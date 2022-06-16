@@ -9,6 +9,8 @@ public class InventoryUI : MonoBehaviour
 {
     private Inventory inventory;
 
+    private int selectedIdx = -1; // not selected
+
     [SerializeField]
     public Sprite itemBackground;
 
@@ -41,6 +43,40 @@ public class InventoryUI : MonoBehaviour
             }
             j++;
         }
+
+        // if current selected item is in 2nd slot, but will be moved to 1st slot when the item in 1st slot is used up
+        if (selectedIdx == 1)
+        {
+            // visually deselects 2nd slot
+            GameObject.Find("InventoryPressed1").transform.localScale = new Vector3(1, 1, 1);
+            // visually selects 1st slot
+            GameObject.Find("InventoryPressed0").transform.localScale = new Vector3(0, 0, 0);
+            selectedIdx = 0;
+        }
+        // if current selected item is in 1st slot and is used up
+        else if (selectedIdx == 0 && inventory.itemList.Count == 0)
+        {
+            GameObject.Find("InventoryPressed0").transform.localScale = new Vector3(1, 1, 1);
+        }
+    }
+
+    public bool ProcessWeaponUse()
+    {
+        if (selectedIdx != -1)
+        {
+            return inventory.ProcessWeaponUse(selectedIdx);
+        }
+        return false;
+    }
+
+
+    public int getCurrentSelected()
+    {
+        return selectedIdx;
+    }
+    public void setCurrentSelected(int nPos)
+    {
+        selectedIdx = nPos;
     }
 
     // shows name and desc of item when hovering over it
@@ -79,4 +115,5 @@ public class InventoryUI : MonoBehaviour
             desctxt.text = "";
         }
     }
+
 }

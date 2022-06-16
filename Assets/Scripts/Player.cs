@@ -241,9 +241,15 @@ public class Player : MonoBehaviour
         actionPointText.text = "AP:" + currentAP;
     }
 
-    public void SubtractUP()
+    public void ProcessWeaponUse()
     {
-        //ItemInfo selectedItem = inventory.itemList[idxOfSelectedItem].itemInfo;
+        // if weapon use causes UP to be 0, remove weapon
+        if (inventoryUI.ProcessWeaponUse())
+        {
+            inventory.RemoveItem(inventoryUI.getCurrentSelected());
+            inventoryUI.RefreshInventoryItems();
+            enemyDamage = 0;
+        }
     }
 
     public void AnimateAttack()
@@ -290,9 +296,9 @@ public class Player : MonoBehaviour
         if (n < inventory.itemList.Count && currentAP > 0)
         {
             ItemInfo anItem = inventory.itemList[n].itemInfo;
-            AfterItemUse ret = anItem.UseItem(this);
+            AfterItemUse ret = anItem.UseItem(this, n);
             // if click is to select item, item becomes selected
-            if (ret.fSelected)
+            if (ret.selectedIdx != -1)
             {
                 selectedItem = anItem;
             }
