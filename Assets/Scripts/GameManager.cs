@@ -134,9 +134,6 @@ public class GameManager : MonoBehaviour
 
     private void ResetForNextLevel()
     {
-        //levelText.gameObject.SetActive(true);
-        //dayText.gameObject.SetActive(true);
-
         endTurnButton.interactable = true;
 
         // clear tilemap tiles before generating new tiles
@@ -561,6 +558,7 @@ public class GameManager : MonoBehaviour
                                 HandleEnemyDamage(idxOfEnemy);
                                 player.ChangeActionPoints(-1);
                                 player.AnimateAttack();
+                                player.ProcessWeaponUse();
                                 needToDrawReachableAreas = true;
                                 fStartTimer = true;
                             }

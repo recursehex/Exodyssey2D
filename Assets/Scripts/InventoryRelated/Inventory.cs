@@ -5,7 +5,6 @@ public class Inventory
     public List<ItemInventory> itemList;
 
     private int invMaxSize = 2;
-    private int idxSelectedItem = -1;
 
     public Inventory()
     {
@@ -30,6 +29,11 @@ public class Inventory
     public void RemoveItem(int idx)
     {
         itemList.RemoveAt(idx);
+    }
+
+    public bool ProcessWeaponUse(int idx)
+    {
+        return itemList[idx].itemInfo.ProcessWeaponUse();
     }
 
     public List<ItemInventory> GetItemList()
