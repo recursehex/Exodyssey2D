@@ -41,6 +41,7 @@ public class ItemInventory
             case ItemType.LightningRailgun: return ItemAssets.Instance.lightningRailgun;
             case ItemType.PaintBlaster: return ItemAssets.Instance.missing;
             case ItemType.Unknown: return ItemAssets.Instance.missing;
+                break;
         }
     }
 }

@@ -74,7 +74,7 @@ public enum ItemClass
 public class AfterItemUse
 {
     public bool fRemove = false;
-    public bool fSelected = false;
+    public int selectedIdx = -1;
 }
 
 /// <summary>
@@ -103,7 +103,7 @@ public class ItemInfo
 
 
     // after click on item, need to act as selecting an item if it is not consumable
-    public AfterItemUse UseItem(Player p)
+    public AfterItemUse UseItem(Player p, int nPos)
     {
         AfterItemUse ret = new AfterItemUse();
 
@@ -127,20 +127,10 @@ public class ItemInfo
                 break;
                 
             case ItemType.Branch:
-                if (ret.fSelected == false)
-                {
-                    ret.fSelected = true;
-                    // hides UI
-                    GameObject.Find("InventoryPressed0").transform.localScale = new Vector3(0, 0, 0);
-                }
-                else
-                {
-                    ret.fSelected = false;
-                    // shows UI
-                    GameObject.Find("InventoryPressed0").transform.localScale = new Vector3(1, 1, 1);
-                }
+                ProcessSelection(p.inventoryUI.getCurrentSelected(), nPos);
+                p.inventoryUI.setCurrentSelected(nPos);
+                ret.selectedIdx = nPos;
                 p.enemyDamage = damagePoints;
-                // need to decrease UP after attacking enemy, look at GM
                 break;
                 /*
             case ItemType.LightningRailgun:
@@ -154,6 +144,25 @@ public class ItemInfo
             ret.fRemove = true;
         }
         return ret;
+    }
+
+    public void ProcessSelection(int posOld, int posNew)
+    {
+        // unselect previous selected item
+        if (posOld != -1)
+        {
+            // make button unpressed
+            GameObject.Find("InventoryPressed" + posOld).transform.localScale = new Vector3(1, 1, 1);
+        }
+ 
+        // make button pressed
+        GameObject.Find("InventoryPressed" + posNew).transform.localScale = new Vector3(0, 0, 0);
+    }
+
+    public bool ProcessWeaponUse()
+    {
+        currentUP--;
+        return (currentUP == 0);
     }
 
     public static ItemInfo ItemFactoryFromNumber(int n)
@@ -183,7 +192,7 @@ public class ItemInfo
                 inf.itemName = "MEDKIT+";
                 inf.description = "Use: Heals 2 HP" +
                     "\n" +
-                    "UP:" + inf.maxUP;
+                    "UP:" + inf.currentUP;
                 break;
 
             case 2:
@@ -191,7 +200,7 @@ public class ItemInfo
                 inf.rarity = ItemRarity.Common;
                 inf.itemClass = ItemClass.Weapon;
                 inf.itemName = "BRANCH";
-                inf.description = "A branch broken off a tree that deals 1 DP per strike.";
+                inf.description = "Use: Equip weapon";
                 inf.maxUP = 2;
                 inf.currentUP = inf.maxUP;
                 inf.damagePoints = 1;
