@@ -352,7 +352,6 @@
 "Assets/Scripts/InventoryRelated/ItemAssets.cs"
 "Assets/Scripts/InventoryRelated/ItemInventory.cs"
 "Assets/Scripts/Item.cs"
-"Assets/Scripts/ItemCard.cs"
 "Assets/Scripts/ItemInfo.cs"
 "Assets/Scripts/KeyPressHandler.cs"
 "Assets/Scripts/Loader.cs"
