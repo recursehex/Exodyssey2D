@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -48,7 +49,7 @@ public enum ItemType
 
 public enum ItemRarity
 {
-    Common, // white
+    Common, // white    0.50
     Limited, // green
     Scarce, // yellow
     Rare, // blue
@@ -103,6 +104,23 @@ public class ItemInfo
 
 
     // after click on item, need to act as selecting an item if it is not consumable
+
+    /*
+    public static int lastItemIdx = 2;
+    static public List<ItemInfo> generateAllPossibleItems()
+    {
+        List<ItemInfo> ret = new List<ItemInfo>();
+
+        for (int i=0;i<=lastItemIdx;i++)
+        {
+            ItemInfo item = ItemFactoryFromNumber(i);
+            ret.Add(item);
+        }
+
+        return ret;
+    }
+    */
+
     public AfterItemUse UseItem(Player p, int nPos)
     {
         AfterItemUse ret = new AfterItemUse();
@@ -260,7 +278,7 @@ public class ItemInfo
                 inf.damagePoints = 4;
                 inf.shellDamageMultiplier = 0.5f;
                 break;
-            */
+            
 
             case 4:
                 inf.type = ItemType.HonedGavel;
@@ -274,7 +292,7 @@ public class ItemInfo
                 inf.shellDamageMultiplier = 2.0f;
                 break;
 
-            /*
+            
             case 9:
                 inf.type = ItemType.TribladeRotator;
                 inf.rarity = ItemRarity.Numinous;

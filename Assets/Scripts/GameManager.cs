@@ -16,9 +16,6 @@ public class GameManager : MonoBehaviour
     public TileDot tiledot;
 
     [SerializeField]
-    private ItemCard itemCard;
-
-    [SerializeField]
     private HealthBar enemyHealthBar;
 
     [SerializeField]
@@ -214,12 +211,81 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// Procedurally generates items once per level
     /// </summary>
+    /// 
+
+    /*
+    void PlaceItemRandomly()
+    {
+        while (true)
+        {
+            int x = (Random.Range(-4, 4));
+            int y = (Random.Range(-4, 4));
+            Vector3Int p = new Vector3Int(x, y, 0);
+
+            if (!tilemapWalls.HasTile(p) && !(x == -4 && y == 0))
+            {
+                Vector3 shiftedDst = new Vector3(x + 0.5f, y + 0.5f, 0);
+
+                Item itemInPt = HasItemAtLoc(shiftedDst);
+
+                if (itemInPt == null)
+                {
+                    GameObject instance = Instantiate(item, shiftedDst, Quaternion.identity) as GameObject;
+
+                    Item e = instance.GetComponent<Item>();
+
+                    e.info = ItemInfo.ItemFactoryFromNumber(itemidx);
+                    items.Add(instance);
+
+                    break;
+                }
+            }
+        }
+    }
+    */
     public void ItemGeneration()
     {
+        /*
+        List<ItemInfo> allItems = ItemInfo.generateAllPossibleItems();
+
+
+
+        for (ItemRarity r = ItemRarity.Common; r< ItemRarity.Unknown;r++)
+        {
+            int nItemsOfRarity = 0;
+            for (int i=0;i < allItems.Count;i++)
+            {
+                nItemsOfRarity++;
+            }
+
+            if (nItemsOfRarity>0)
+            {
+                int rndIdx = Random.Range(0, nItemsOfRarity);
+                int count = 0;
+                for (int i = 0; i < allItems.Count; i++)
+                {
+                    if (allItems[i].rarity == r)
+                    {
+                        if(count== rndIdx)
+                        {
+                            GameObject item = itemTemplates[i];
+                            PlaceItemRandomly(item);
+                            break;
+                        }
+                        
+
+                    }
+                }
+            }
+
+        }
+        */
+
         for (int i = 0; i < nStartItems; i++)
         {
             int itemidx = Random.Range(0, itemTemplates.Length);
             GameObject item = itemTemplates[itemidx];
+            // need weighted rarity
 
             while (true)
             {

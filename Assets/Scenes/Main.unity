@@ -723,17 +723,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 5882404452199569417, guid: 8edc287cc9a7ff545a441334d9b2559d, type: 3}
   m_PrefabInstance: {fileID: 5882404452053361704}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &458832930 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 5882404452199569418, guid: 8edc287cc9a7ff545a441334d9b2559d, type: 3}
-  m_PrefabInstance: {fileID: 5882404452053361704}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 40818da3160dd264abbeba44fed7efff, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &514329634
 GameObject:
   m_ObjectHideFlags: 0
@@ -4026,7 +4015,7 @@ PrefabInstance:
     - target: {fileID: 6710520114537087609, guid: b9524bd1945f59349a7c4906e557ed5a, type: 3}
       propertyPath: itemCard
       value: 
-      objectReference: {fileID: 458832930}
+      objectReference: {fileID: 0}
     - target: {fileID: 6710520114537087609, guid: b9524bd1945f59349a7c4906e557ed5a, type: 3}
       propertyPath: tileArea
       value: 
