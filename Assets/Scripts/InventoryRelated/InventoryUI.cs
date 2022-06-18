@@ -69,7 +69,6 @@ public class InventoryUI : MonoBehaviour
         return false;
     }
 
-
     public int getCurrentSelected()
     {
         return selectedIdx;
@@ -115,5 +114,4 @@ public class InventoryUI : MonoBehaviour
             desctxt.text = "";
         }
     }
-
 }
