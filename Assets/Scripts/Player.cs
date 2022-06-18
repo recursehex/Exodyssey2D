@@ -73,7 +73,7 @@ public class Player : MonoBehaviour
 
         currentHP = maxHP;
         currentAP = maxAP;
-       
+
         astar.tilemapGround = tilemapGround;
         astar.tilemapWalls = tilemapWalls;
 
@@ -100,7 +100,7 @@ public class Player : MonoBehaviour
         path = astar.ComputePath(transform.position, goal);
         if (path != null)
         {
-            ChangeActionPoints(-(path.Count-1));
+            ChangeActionPoints(-(path.Count - 1));
             path.Pop();
             destination = path.Pop();
 
@@ -128,7 +128,7 @@ public class Player : MonoBehaviour
 
             Vector3 shiftedDst = new Vector3(destination.x + 0.5f, destination.y + 0.5f, destination.z);
             transform.position = Vector3.MoveTowards(transform.position, shiftedDst, 2 * Time.deltaTime);
-            
+
             float distance = Vector3.Distance(shiftedDst, transform.position);
             if (distance <= 0f)
             {
@@ -318,7 +318,7 @@ public class Player : MonoBehaviour
     /// </summary>
     public void TryDropItem(int n)
     {
-        if (n < inventory.itemList.Count )
+        if (n < inventory.itemList.Count)
         {
             // if drop returns false, then we can't remove it
             if (GameManager.MyInstance.DropItem(inventory.itemList[n].itemInfo))
