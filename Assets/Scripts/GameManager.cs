@@ -69,7 +69,7 @@ public class GameManager : MonoBehaviour
 
     // level # is for each unit of the day, with 5 per day, i.e lvl 5 means day 2
     // the units of the day are Dawn, Midday, Afternoon, Dusk, and Night
-    private readonly string[] timeOfDayNames = {"DAWN", "MIDDAY", "AFTERNOON", "DUSK", "NIGHT"};
+    private readonly string[] timeOfDayNames = { "DAWN", "MIDDAY", "AFTERNOON", "DUSK", "NIGHT" };
     private int level = 0;
     private int day = 1;
 
@@ -157,7 +157,7 @@ public class GameManager : MonoBehaviour
 
         minEnemies += (int)(level * 0.5);
         maxEnemies += (int)(level * 0.5);
-        nStartEnemies = (int)Random.Range(minEnemies, maxEnemies);
+        nStartEnemies = Random.Range(minEnemies, maxEnemies);
     }
 
     void InitGame()
@@ -172,7 +172,7 @@ public class GameManager : MonoBehaviour
         Invoke(nameof(HideLevelLoadScreen), levelStartDelay);
         enemyHealthBar.gameObject.SetActive(false);
 
-        nStartItems = (int)Random.Range(1, 3);
+        nStartItems = Random.Range(2, 5);
 
         mapGenerator = new MapGen();
 
@@ -212,80 +212,54 @@ public class GameManager : MonoBehaviour
     /// Procedurally generates items once per level
     /// </summary>
     /// 
-
-    /*
-    void PlaceItemRandomly()
-    {
-        while (true)
-        {
-            int x = (Random.Range(-4, 4));
-            int y = (Random.Range(-4, 4));
-            Vector3Int p = new Vector3Int(x, y, 0);
-
-            if (!tilemapWalls.HasTile(p) && !(x == -4 && y == 0))
-            {
-                Vector3 shiftedDst = new Vector3(x + 0.5f, y + 0.5f, 0);
-
-                Item itemInPt = HasItemAtLoc(shiftedDst);
-
-                if (itemInPt == null)
-                {
-                    GameObject instance = Instantiate(item, shiftedDst, Quaternion.identity) as GameObject;
-
-                    Item e = instance.GetComponent<Item>();
-
-                    e.info = ItemInfo.ItemFactoryFromNumber(itemidx);
-                    items.Add(instance);
-
-                    break;
-                }
-            }
-        }
-    }
-    */
     public void ItemGeneration()
     {
-        /*
-        List<ItemInfo> allItems = ItemInfo.generateAllPossibleItems();
+        Dictionary<ItemRarity, int> pctMap = ItemInfo.FillRarityNamestoPercentageMap();
+        List<ItemInfo> allItems = ItemInfo.GenerateAllPossibleItems();
 
-
-
-        for (ItemRarity r = ItemRarity.Common; r< ItemRarity.Unknown;r++)
+        int sumPct = 0;
+        List<int> rarityPercentages = new List<int>();
+        List<List<int>> ItemIndexDoubleList = new List<List<int>>();
+        for (ItemRarity r = ItemRarity.Common; r < ItemRarity.Unknown; r++)
         {
             int nItemsOfRarity = 0;
-            for (int i=0;i < allItems.Count;i++)
+            List<int> itemIndices = new List<int>();
+            for (int i = 0; i < allItems.Count; i++)
             {
-                nItemsOfRarity++;
-            }
-
-            if (nItemsOfRarity>0)
-            {
-                int rndIdx = Random.Range(0, nItemsOfRarity);
-                int count = 0;
-                for (int i = 0; i < allItems.Count; i++)
+                if (allItems[i].rarity == r)
                 {
-                    if (allItems[i].rarity == r)
-                    {
-                        if(count== rndIdx)
-                        {
-                            GameObject item = itemTemplates[i];
-                            PlaceItemRandomly(item);
-                            break;
-                        }
-                        
-
-                    }
+                    nItemsOfRarity++;
+                    itemIndices.Add(i);
                 }
             }
-
+            if (nItemsOfRarity > 0)
+            {
+                int p = pctMap[r];
+                rarityPercentages.Add(p);
+                ItemIndexDoubleList.Add(itemIndices);
+                sumPct += p;
+            }
         }
-        */
 
         for (int i = 0; i < nStartItems; i++)
         {
-            int itemidx = Random.Range(0, itemTemplates.Length);
-            GameObject item = itemTemplates[itemidx];
-            // need weighted rarity
+            int rSum = 0;
+            int rndPct = Random.Range(0, 100);
+            int j = 0;
+            for (j = 0; j < rarityPercentages.Count; j++)
+            {
+                if (rndPct <= ((rSum + rarityPercentages[j]) * 100) / sumPct)
+                {
+                    break;
+                }
+                rSum += rarityPercentages[j];
+            }
+
+            int nItemsInGroup = ItemIndexDoubleList[j].Count;
+            int rndItemInGroupIndex = Random.Range(0, nItemsInGroup);
+            int rndItemIndex = ItemIndexDoubleList[j][rndItemInGroupIndex];
+
+            GameObject item = itemTemplates[rndItemIndex];
 
             while (true)
             {
@@ -305,14 +279,13 @@ public class GameManager : MonoBehaviour
 
                         Item e = instance.GetComponent<Item>();
 
-                        e.info = ItemInfo.ItemFactoryFromNumber(itemidx);
+                        e.info = ItemInfo.ItemFactoryFromNumber(rndItemIndex);
                         items.Add(instance);
 
                         break;
                     }
                 }
             }
-
         }
     }
 
