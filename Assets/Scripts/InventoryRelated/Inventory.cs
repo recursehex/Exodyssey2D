@@ -36,6 +36,11 @@ public class Inventory
         return itemList[idx].itemInfo.ProcessWeaponUse();
     }
 
+    public bool IsRangedWeaponSelected(int idx)
+    {
+        return itemList[idx].itemInfo.isRanged;
+    }
+
     public List<ItemInventory> GetItemList()
     {
         return itemList;

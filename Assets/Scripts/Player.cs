@@ -246,10 +246,15 @@ public class Player : MonoBehaviour
         // if weapon use causes UP to be 0, remove weapon
         if (inventoryUI.ProcessWeaponUse())
         {
-            inventory.RemoveItem(inventoryUI.getCurrentSelected());
+            inventoryUI.RemoveItem(inventoryUI.getCurrentSelected());
             inventoryUI.RefreshInventoryItems();
             enemyDamage = 0;
         }
+    }
+
+    public bool IsRangedWeaponSelected()
+    {
+        return inventoryUI.IsRangedWeaponSelected();
     }
 
     public void AnimateAttack()
@@ -305,7 +310,7 @@ public class Player : MonoBehaviour
             // if click is to remove item, item is removed & inv is organized
             if (ret.fRemove)
             {
-                inventory.RemoveItem(n);
+                inventoryUI.RemoveItem(n);
                 inventoryUI.RefreshInventoryItems();
             }
             gm.needToDrawReachableAreas = true;
@@ -323,7 +328,7 @@ public class Player : MonoBehaviour
             // if drop returns false, then we can't remove it
             if (GameManager.MyInstance.DropItem(inventory.itemList[n].itemInfo))
             {
-                inventory.RemoveItem(n);
+                inventoryUI.RemoveItem(n);
                 inventoryUI.RefreshInventoryItems();
             }
         }
