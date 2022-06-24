@@ -4170,7 +4170,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6710520114537087609, guid: b9524bd1945f59349a7c4906e557ed5a, type: 3}
       propertyPath: itemTemplates.Array.size
-      value: 3
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 6710520114537087609, guid: b9524bd1945f59349a7c4906e557ed5a, type: 3}
       propertyPath: areaMarking.Array.data[0]
@@ -4213,6 +4213,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 11400000, guid: 04f411d322f2dd14280a7181840f87f4, type: 2}
     - target: {fileID: 6710520114537087609, guid: b9524bd1945f59349a7c4906e557ed5a, type: 3}
+      propertyPath: reticleMarking.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6710520114537087609, guid: b9524bd1945f59349a7c4906e557ed5a, type: 3}
       propertyPath: itemTemplates.Array.data[0]
       value: 
       objectReference: {fileID: 5730536483717399719, guid: 449c9aea6710b3947a699d611aea06d5, type: 3}
@@ -4227,7 +4231,7 @@ PrefabInstance:
     - target: {fileID: 6710520114537087609, guid: b9524bd1945f59349a7c4906e557ed5a, type: 3}
       propertyPath: itemTemplates.Array.data[3]
       value: 
-      objectReference: {fileID: 142956206023105660, guid: 26546f8ae20dd2d418e1c49d62c10717, type: 3}
+      objectReference: {fileID: 2145379877062402088, guid: 33186f847f6305748921b5b654aa8c9d, type: 3}
     - target: {fileID: 6710520114537087609, guid: b9524bd1945f59349a7c4906e557ed5a, type: 3}
       propertyPath: itemTemplates.Array.data[4]
       value: 
@@ -4236,6 +4240,10 @@ PrefabInstance:
       propertyPath: enemyTemplates.Array.data[0]
       value: 
       objectReference: {fileID: 594585608}
+    - target: {fileID: 6710520114537087609, guid: b9524bd1945f59349a7c4906e557ed5a, type: 3}
+      propertyPath: reticleMarking.Array.data[0]
+      value: 
+      objectReference: {fileID: 3235571212307580798, guid: 0d83749970d77b24286906dba172abc5, type: 3}
     - target: {fileID: 6710520114537087614, guid: b9524bd1945f59349a7c4906e557ed5a, type: 3}
       propertyPath: m_Name
       value: GameManager

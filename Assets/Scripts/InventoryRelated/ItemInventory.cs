@@ -15,6 +15,7 @@ public class ItemInventory
             case ItemType.MedKitPlus: return ItemAssets.Instance.medKitPlus;
             case ItemType.Branch: return ItemAssets.Instance.branch;
             //case ItemType.RovKit: return ItemAssets.Instance.missing;
+            /*
             case ItemType.Knife: return ItemAssets.Instance.missing;
             case ItemType.SteelBeam: return ItemAssets.Instance.missing;
             case ItemType.Mallet: return ItemAssets.Instance.missing;
@@ -38,8 +39,9 @@ public class ItemInventory
             case ItemType.QuantumRelocator: return ItemAssets.Instance.missing;
             case ItemType.TemporalSedative: return ItemAssets.Instance.missing;
             case ItemType.Flamethrower: return ItemAssets.Instance.missing;
+            */
             case ItemType.LightningRailgun: return ItemAssets.Instance.lightningRailgun;
-            case ItemType.PaintBlaster: return ItemAssets.Instance.missing;
+            //case ItemType.PaintBlaster: return ItemAssets.Instance.missing;
             case ItemType.Unknown: return ItemAssets.Instance.missing;
                 break;
         }
