@@ -20,6 +20,30 @@ public class InventoryUI : MonoBehaviour
         RefreshInventoryItems();
     }
 
+    public void RemoveItem(int idx)
+    {
+        if (selectedIdx != -1)
+        {
+            if (selectedIdx == idx)
+            {
+                selectedIdx = -1;
+                GameObject.Find("InventoryPressed0").transform.localScale = new Vector3(1, 1, 1);
+                GameObject.Find("InventoryPressed1").transform.localScale = new Vector3(1, 1, 1);
+            }
+            else
+            {
+                if (idx == 0)
+                {
+                    selectedIdx = 0;
+                    GameObject.Find("InventoryPressed1").transform.localScale = new Vector3(1, 1, 1);
+                    GameObject.Find("InventoryPressed0").transform.localScale = new Vector3(0, 0, 0);
+                }
+            }
+        }
+
+        inventory.RemoveItem(idx);
+    }
+
     public void RefreshInventoryItems()
     {
         int j = 0;
@@ -44,6 +68,7 @@ public class InventoryUI : MonoBehaviour
             j++;
         }
 
+        /*
         // if current selected item is in 2nd slot, but will be moved to 1st slot when the item in 1st slot is used up
         if (selectedIdx == 1)
         {
@@ -57,7 +82,9 @@ public class InventoryUI : MonoBehaviour
         else if (selectedIdx == 0 && inventory.itemList.Count == 0)
         {
             GameObject.Find("InventoryPressed0").transform.localScale = new Vector3(1, 1, 1);
+            selectedIdx = -1;
         }
+        */
     }
 
     public bool ProcessWeaponUse()
@@ -65,6 +92,15 @@ public class InventoryUI : MonoBehaviour
         if (selectedIdx != -1)
         {
             return inventory.ProcessWeaponUse(selectedIdx);
+        }
+        return false;
+    }
+
+    public bool IsRangedWeaponSelected()
+    {
+        if (selectedIdx != -1)
+        {
+            return inventory.IsRangedWeaponSelected(selectedIdx);
         }
         return false;
     }

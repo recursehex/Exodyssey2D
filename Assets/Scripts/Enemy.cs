@@ -54,6 +54,11 @@ public class Enemy : MonoBehaviour
         astar.tilemapWalls = tilemapWalls;
     }
 
+    public void ExposedStart()
+    {
+        Start();
+    }
+
     // future player attacking enemy
     public void DamageEnemy(int loss)
     {

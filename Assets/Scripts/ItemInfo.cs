@@ -5,51 +5,51 @@ using UnityEngine.UI;
 public enum ItemType
 {
     // consumable
-    MedKit,
+    MedKit = 0,
     MedKitPlus,
     //RovKit,
 
     // melee weapon
     Branch,
-    Knife,
-    SteelBeam,
-    Mallet,
-    Axe,
-    HonedGavel,
-    TribladeRotator,
-    BladeOfEternity,
+    //Knife,
+    //SteelBeam,
+    //Mallet,
+    //Axe,
+    //HonedGavel,
+    //TribladeRotator,
+    //BladeOfEternity,
 
     // storage
-    HydrogenCanister,
-    ExternalTank,
-    Backpack,
-    StorageCrate,
+    //HydrogenCanister,
+    //ExternalTank,
+    //Backpack,
+    //StorageCrate,
 
     // utility
-    Flashlight,
-    Lightrod,
-    Spotlight,
-    Matchbox,
-    Blowtorch,
-    Extinguisher,
-    RangeScanner,
-    AudioLocalizer,
-    ThermalImager,
-    QuantumRelocator,
-    TemporalSedative,
+    //Flashlight,
+    //Lightrod,
+    //Spotlight,
+    //Matchbox,
+    //Blowtorch,
+    //Extinguisher,
+    //RangeScanner,
+    //AudioLocalizer,
+    //ThermalImager,
+    //QuantumRelocator,
+    //TemporalSedative,
 
     // ranged weapon
-    Flamethrower,
-    PFL,
+    //Flamethrower,
+    //PFL,
     LightningRailgun,
-    PaintBlaster,
+    //PaintBlaster,
 
     Unknown,
 }
 
 public enum ItemRarity
 {
-    Common, // white
+    Common = 0, // white
     Limited, // green
     Scarce, // yellow
     Rare, // blue
@@ -61,7 +61,7 @@ public enum ItemRarity
 
 public enum ItemClass
 {
-    Utility,
+    Utility = 0,
     Weapon,
     Consumable,
     Armor,
@@ -90,7 +90,9 @@ public class ItemInfo
     public string description; // ingame desc of the item
 
     public int maxUP = -1; // set to positive value for items with UP, -1 means infinite uses
-    public int currentUP;
+    public int currentUP = -1;
+
+    public int healingPoints = -1; // set to positive value for items that heal players, -1 means it does not heal
 
     public int damagePoints; // set only for items with inf.itemClass = Weapon
     public bool isRanged; // false means Melee, true means Ranged
@@ -101,12 +103,13 @@ public class ItemInfo
     public float shellDamageMultiplier = 1.0f; // multiplied by damagePoints value if the weapon does different dmg to shelled bugs 
     public bool needsFuel = false; // special tag for the Lightning Railgun, which needs fuel to start
 
-    public static int lastItemIdx = 2;
+    public static int lastItemIdx = (int)ItemType.Unknown;
+
     static public List<ItemInfo> GenerateAllPossibleItems()
     {
         List<ItemInfo> ret = new List<ItemInfo>();
 
-        for (int i = 0; i <= lastItemIdx; i++)
+        for (int i = 0; i < lastItemIdx; i++)
         {
             ItemInfo item = ItemFactoryFromNumber(i);
             ret.Add(item);
@@ -119,42 +122,28 @@ public class ItemInfo
     {
         AfterItemUse ret = new AfterItemUse();
 
-        switch (type)
+        switch (itemClass)
         {
-            case ItemType.MedKit:
-                if (p.currentHP < p.maxHP)
+            case ItemClass.Consumable:
+                // if the item heals players
+                if (healingPoints != -1 && p.currentHP < p.maxHP)
                 {
-                    p.ChangeHealth(1);
+                    p.ChangeHealth(healingPoints);
                     p.ChangeActionPoints(-1);
                     currentUP--;
-                    description = "Use: Heals 2 HP" +
+                    description = "Use: Heals " + healingPoints + " HP" +
                     "\n" +
                     "UP:" + currentUP;
                 }
                 break;
-            case ItemType.MedKitPlus:
-                if (p.currentHP < p.maxHP)
-                {
-                    p.ChangeHealth(2);
-                    p.ChangeActionPoints(-1);
-                    currentUP--;
-                    description = "Use: Heals 2 HP" +
-                    "\n" +
-                    "UP:" + currentUP;
-                }
-                break;
-
-            case ItemType.Branch:
+            // if item is a weapon as clicking will select it
+            case ItemClass.Weapon:
                 ProcessSelection(p.inventoryUI.getCurrentSelected(), nPos);
                 p.inventoryUI.setCurrentSelected(nPos);
                 ret.selectedIdx = nPos;
+
                 p.enemyDamage = damagePoints;
                 break;
-                /*
-            case ItemType.LightningRailgun:
-                p.enemyDamage = damagePoints;
-                break;
-                */
         }
         // if item runs out of UP, it needs to be removed
         if (currentUP == 0)
@@ -179,12 +168,23 @@ public class ItemInfo
 
     public bool ProcessWeaponUse()
     {
-        currentUP--;
-        description = "Use:Equip weapon" +
-            "\n" +
-            "UP:" + currentUP +
-            "\t" +
-            "DP:" + damagePoints;
+        if (currentUP > 0)
+        {
+            currentUP--;
+            description = "Use:Equip weapon" +
+                "\n" +
+                "UP:" + currentUP +
+                "\t" +
+                "DP:" + damagePoints;
+        }
+        else // if infinite UP
+        {
+            description = "Use:Equip weapon" +
+                "\n" +
+                "UP:" + "\u221e" +
+                "\t" +
+                "DP:" + damagePoints;
+        }
         return (currentUP == 0);
     }
 
@@ -207,7 +207,6 @@ public class ItemInfo
     {
         ItemInfo inf = new ItemInfo();
 
-
         switch (n)
         {
             case 0:
@@ -216,8 +215,9 @@ public class ItemInfo
                 inf.itemClass = ItemClass.Consumable;
                 inf.maxUP = 1;
                 inf.currentUP = inf.maxUP;
+                inf.healingPoints = 1;
                 inf.itemName = "MEDKIT";
-                inf.description = "Use: Heals 1 HP" +
+                inf.description = "Use: Heals " + inf.healingPoints + " HP" +
                     "\n" +
                     "UP:" + inf.maxUP;
                 break;
@@ -228,8 +228,9 @@ public class ItemInfo
                 inf.itemClass = ItemClass.Consumable;
                 inf.maxUP = 3;
                 inf.currentUP = inf.maxUP;
+                inf.healingPoints = 2;
                 inf.itemName = "MEDKIT+";
-                inf.description = "Use: Heals 2 HP" +
+                inf.description = "Use: Heals " + inf.healingPoints + " HP" +
                     "\n" +
                     "UP:" + inf.maxUP;
                 break;
@@ -245,6 +246,21 @@ public class ItemInfo
                 inf.description = "Use:Equip weapon" +
                     "\n" +
                     "UP:" + inf.maxUP +
+                    "\t" +
+                    "DP:" + inf.damagePoints;
+                break;
+            case 3:
+                inf.type = ItemType.LightningRailgun;
+                inf.rarity = ItemRarity.Numinous;
+                inf.rarity = ItemRarity.Common;
+                inf.itemClass = ItemClass.Weapon;
+                inf.itemName = "LIGHTNING RAILGUN";
+                inf.damagePoints = 5;
+                inf.isRanged = true;
+                inf.needsFuel = true;
+                inf.description = "Use: Deals 5 DP" +
+                    "\n" +
+                    "UP:" + "\u221e" +
                     "\t" +
                     "DP:" + inf.damagePoints;
                 break;

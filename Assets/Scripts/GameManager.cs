@@ -43,6 +43,11 @@ public class GameManager : MonoBehaviour
 
     public bool needToDrawReachableAreas = false;
     public List<GameObject> reachableArea = new List<GameObject>();
+
+    public GameObject[] reticleMarking;
+
+    public List<GameObject> targetReticles = new List<GameObject>();
+
     private Dictionary<Vector3Int, Node> reachableAreasToDraw = null;
 
     [SerializeField]
@@ -57,7 +62,7 @@ public class GameManager : MonoBehaviour
     // time that the level screen lasts
     public float levelStartDelay = 1.5f;
 
-    // number of tiles for tilemaps and enemies
+    // number of items and enemies
     public int nStartItems;
     public int nStartEnemies = 1;
     private int minEnemies = 1;
@@ -149,7 +154,7 @@ public class GameManager : MonoBehaviour
             Destroy(enemies[i].gameObject);
         }
 
-        enemies.Clear(); // doesnt work right now, sometimes causes astar error
+        enemies.Clear();
 
         // reset player data
         player.transform.position = new Vector3(-3.5f, 0.5f, 0f);
@@ -368,6 +373,11 @@ public class GameManager : MonoBehaviour
                     if (!HasEnemyAtLoc(shiftedDst))
                     {
                         GameObject instance = Instantiate(enemy, shiftedDst, Quaternion.identity) as GameObject;
+
+                        GameObject obj = instance;
+                        Enemy e = obj.GetComponent<Enemy>();
+                        e.ExposedStart();
+
                         enemies.Add(instance);
 
                         enemies[enemies.Count - 1].GetComponent<Enemy>().SetAllEnemyList(enemies);
@@ -559,17 +569,21 @@ public class GameManager : MonoBehaviour
                             DestroyItemAtLoc(shiftedClkPt);
                     }
                 }
+
+                bool fRangedWeaponSelected = player.IsRangedWeaponSelected();
+                bool fIsInRange = IsInRange(clkPt);
                 // for actions that require AP
                 if (
                     // check if in reachable area
-                    IsInRange(clkPt) &&
+                    (fIsInRange || fRangedWeaponSelected) &&
                     // check if it is players turn
                     playersTurn)
                 {
                     // if click on exit tile, new level
-                    if (tilemapExit.HasTile(clkPt))
+                    if (fIsInRange && tilemapExit.HasTile(clkPt))
                     {
                         OnLevelWasLoaded(level);
+                        // reached exit tile
                     }
                     else
                     {
@@ -577,7 +591,7 @@ public class GameManager : MonoBehaviour
                         bool fStartTimer = false;
 
                         // if there is no enemy on clicked tile
-                        if (idxOfEnemy == -1)
+                        if (fIsInRange && idxOfEnemy == -1)
                         {
                             // if click on tile that player is not occupying
                             if (shiftedClkPt != player.transform.position)
@@ -590,7 +604,8 @@ public class GameManager : MonoBehaviour
                                 fStartTimer = true;
                             }
                         }
-                        else // attack enemy
+                        // attack enemy
+                        else if (idxOfEnemy != -1)
                         {
                             if (player.enemyDamage > 0)
                             {
@@ -695,8 +710,6 @@ public class GameManager : MonoBehaviour
         tiledot.gameObject.SetActive(false);
         ClearTileAreas();
         player.ChangeActionPoints(-3);
-        playersTurn = false;
-        endTurnButton.interactable = true;
     }
 
     /// <summary>
@@ -756,6 +769,20 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    private void ClearReticles()
+    {
+        if (targetReticles.Count > 0)
+        {
+            foreach (GameObject t in targetReticles)
+            {
+                Destroy(t);
+            }
+            targetReticles.Clear();
+        
+        }
+    }
+
+
     /// <summary>
     /// Redraws tile areas when player's AP changes
     /// </summary>
@@ -778,6 +805,25 @@ public class GameManager : MonoBehaviour
                 }
             }
             needToDrawReachableAreas = false;
+
+
+            ClearReticles();
+
+            if (player.IsRangedWeaponSelected())
+            {
+                foreach (GameObject obj in enemies)
+                {
+                    Enemy e = obj.GetComponent<Enemy>();
+                    Vector3 p = e.transform.position;
+
+                    GameObject reticleChoice = reticleMarking[0];
+//                    Vector3 shiftedDst = new Vector3(p.x + 0.5f, p.y + 0.5f, p.z);
+                    Vector3 shiftedDst = new Vector3(p.x + 0.0f, p.y + 0.0f, p.z);
+                    GameObject instance = Instantiate(reticleChoice, shiftedDst, Quaternion.identity) as GameObject;
+
+                    targetReticles.Add(instance);
+                }
+            }
         }
     }
 }
