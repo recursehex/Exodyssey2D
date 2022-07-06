@@ -4085,6 +4085,10 @@ PrefabInstance:
       value: 1.5
       objectReference: {fileID: 0}
     - target: {fileID: 6710520114537087609, guid: b9524bd1945f59349a7c4906e557ed5a, type: 3}
+      propertyPath: target.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6710520114537087609, guid: b9524bd1945f59349a7c4906e557ed5a, type: 3}
       propertyPath: areaTiles.Array.size
       value: 3
       objectReference: {fileID: 0}
@@ -4092,6 +4096,10 @@ PrefabInstance:
       propertyPath: itemTiles.Array.size
       value: 2
       objectReference: {fileID: 0}
+    - target: {fileID: 6710520114537087609, guid: b9524bd1945f59349a7c4906e557ed5a, type: 3}
+      propertyPath: target.Array.data[0]
+      value: 
+      objectReference: {fileID: 3235571212307580798, guid: 0d83749970d77b24286906dba172abc5, type: 3}
     - target: {fileID: 6710520114537087609, guid: b9524bd1945f59349a7c4906e557ed5a, type: 3}
       propertyPath: tileAreas.Array.size
       value: 0
