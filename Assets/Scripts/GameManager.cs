@@ -44,9 +44,9 @@ public class GameManager : MonoBehaviour
     public bool needToDrawReachableAreas = false;
     public List<GameObject> reachableArea = new List<GameObject>();
 
-    public GameObject[] reticleMarking;
+    public GameObject[] target;
 
-    public List<GameObject> targetReticles = new List<GameObject>();
+    public List<GameObject> targets = new List<GameObject>();
 
     private Dictionary<Vector3Int, Node> reachableAreasToDraw = null;
 
@@ -130,7 +130,6 @@ public class GameManager : MonoBehaviour
         }
 
         ResetForNextLevel();
-
         InitGame();
     }
 
@@ -181,12 +180,10 @@ public class GameManager : MonoBehaviour
 
         mapGenerator = new MapGen();
 
-        // tilemap generation
+        // do not change order
         GroundGeneration();
         WallGeneration();
         ItemGeneration();
-
-        // enemy generation
         EnemyGeneration();
     }
 
@@ -246,7 +243,7 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        for (int i = 0; i < nStartItems; i++)
+        for (int i = 0; i < nStartItems * 4; i++)
         {
             int rSum = 0;
             int rndPct = Random.Range(0, 100);
@@ -303,7 +300,7 @@ public class GameManager : MonoBehaviour
         // check if space is empty
         if (itemInPt == null)
         {
-            int idx = (int)inf.type;
+            int idx = (int)inf.tag;
 
             GameObject item = itemTemplates[idx];
             GameObject instance = Instantiate(item, playerLoc, Quaternion.identity) as GameObject;
@@ -533,9 +530,8 @@ public class GameManager : MonoBehaviour
             )
         {
             // this should be for player swapping to other characters or inspecting something
-
         }
-        // if left click, begin Player movement syste
+        // if left click, begin Player movement system
         else if (Input.GetMouseButtonDown(0))
         {
             BoundsInt size = tilemapGround.cellBounds;
@@ -617,6 +613,7 @@ public class GameManager : MonoBehaviour
                                 fStartTimer = true;
                             }
                         }
+
                         if (fStartTimer)
                         {
                             turnTimer.StartTimer();
@@ -682,7 +679,6 @@ public class GameManager : MonoBehaviour
         GameObject obj = enemies[idx];
         Enemy e = obj.GetComponent<Enemy>();
         e.DamageEnemy(player.enemyDamage);
-        //player.subtractUP();
 
         // removes and destroys enemy
         if (e.currentHP <= 0)
@@ -764,24 +760,21 @@ public class GameManager : MonoBehaviour
                 Destroy(t);
             }
             reachableArea.Clear();
-
             reachableAreasToDraw = null;
         }
     }
 
-    private void ClearReticles()
+    private void ClearTargets()
     {
-        if (targetReticles.Count > 0)
+        if (targets.Count > 0)
         {
-            foreach (GameObject t in targetReticles)
+            foreach (GameObject t in targets)
             {
                 Destroy(t);
             }
-            targetReticles.Clear();
-        
+            targets.Clear();
         }
     }
-
 
     /// <summary>
     /// Redraws tile areas when player's AP changes
@@ -806,24 +799,54 @@ public class GameManager : MonoBehaviour
             }
             needToDrawReachableAreas = false;
 
-
-            ClearReticles();
+            ClearTargets();
 
             if (player.IsRangedWeaponSelected())
             {
                 foreach (GameObject obj in enemies)
                 {
                     Enemy e = obj.GetComponent<Enemy>();
-                    Vector3 p = e.transform.position;
+                    Vector3 enemyPoint = e.transform.position;
 
-                    GameObject reticleChoice = reticleMarking[0];
-//                    Vector3 shiftedDst = new Vector3(p.x + 0.5f, p.y + 0.5f, p.z);
-                    Vector3 shiftedDst = new Vector3(p.x + 0.0f, p.y + 0.0f, p.z);
-                    GameObject instance = Instantiate(reticleChoice, shiftedDst, Quaternion.identity) as GameObject;
+                    List<Vector3> shotPath = IsInLineOfSight(player.transform.position, enemyPoint);
 
-                    targetReticles.Add(instance);
+                    if (shotPath.Count>0)
+                    {
+                        foreach (Vector3 pt in shotPath) {
+                            GameObject targetChoice = target[0];
+                            Vector3 shiftedDst = new Vector3(pt.x + 0.0f, pt.y + 0.0f, enemyPoint.z);
+                            GameObject instance = Instantiate(targetChoice, shiftedDst, Quaternion.identity) as GameObject;
+
+                            targets.Add(instance);
+                        }
+                    }
                 }
             }
         }
+    }
+
+    public List<Vector3> IsInLineOfSight(Vector3 playerPos, Vector3 targetPos)
+    {
+        List<Vector3> path = new List<Vector3>();
+
+        float dx = targetPos.x - playerPos.x;
+        float dy = targetPos.y - playerPos.y;
+
+        for (float x = playerPos.x; x < targetPos.x; x++)
+        {
+            float y = playerPos.y + dy * (x - playerPos.x) / dx;
+
+            Vector3Int shiftedDst = new Vector3Int((int)(x + 0.5f), (int)(y + 0.5f), 0);
+
+            if (tilemapWalls.HasTile(shiftedDst))
+            {
+            //    fRet = false;
+                break;
+            }
+            Vector3 pt = new Vector3(x, y, 0);
+            path.Add(pt);
+            
+        }
+        return path;
     }
 }

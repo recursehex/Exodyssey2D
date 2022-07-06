@@ -67,24 +67,6 @@ public class InventoryUI : MonoBehaviour
             }
             j++;
         }
-
-        /*
-        // if current selected item is in 2nd slot, but will be moved to 1st slot when the item in 1st slot is used up
-        if (selectedIdx == 1)
-        {
-            // visually deselects 2nd slot
-            GameObject.Find("InventoryPressed1").transform.localScale = new Vector3(1, 1, 1);
-            // visually selects 1st slot
-            GameObject.Find("InventoryPressed0").transform.localScale = new Vector3(0, 0, 0);
-            selectedIdx = 0;
-        }
-        // if current selected item is in 1st slot and is used up
-        else if (selectedIdx == 0 && inventory.itemList.Count == 0)
-        {
-            GameObject.Find("InventoryPressed0").transform.localScale = new Vector3(1, 1, 1);
-            selectedIdx = -1;
-        }
-        */
     }
 
     public bool ProcessWeaponUse()
@@ -109,6 +91,7 @@ public class InventoryUI : MonoBehaviour
     {
         return selectedIdx;
     }
+
     public void setCurrentSelected(int nPos)
     {
         selectedIdx = nPos;
@@ -136,7 +119,7 @@ public class InventoryUI : MonoBehaviour
             {
                 found = true;
 
-                nametxt.text = item.itemInfo.itemName;
+                nametxt.text = item.itemInfo.name;
                 desctxt.text = item.itemInfo.description;
 
                 break;
