@@ -8,41 +8,41 @@ public class ItemInventory
 
     public Sprite GetSprite()
     {
-        switch (itemInfo.type)
+        switch (itemInfo.tag)
         {
             default:
-            case ItemType.MedKit: return ItemAssets.Instance.medKit;
-            case ItemType.MedKitPlus: return ItemAssets.Instance.medKitPlus;
-            case ItemType.Branch: return ItemAssets.Instance.branch;
-            //case ItemType.RovKit: return ItemAssets.Instance.missing;
+            case ItemTag.MedKit: return ItemAssets.Instance.medKit;
+            case ItemTag.MedKitPlus: return ItemAssets.Instance.medKitPlus;
+            case ItemTag.Branch: return ItemAssets.Instance.branch;
+            //case ItemTag.RovKit: return ItemAssets.Instance.missing;
             /*
-            case ItemType.Knife: return ItemAssets.Instance.missing;
-            case ItemType.SteelBeam: return ItemAssets.Instance.missing;
-            case ItemType.Mallet: return ItemAssets.Instance.missing;
-            case ItemType.Axe: return ItemAssets.Instance.missing;
-            case ItemType.HonedGavel: return ItemAssets.Instance.missing;
-            case ItemType.TribladeRotator: return ItemAssets.Instance.missing;
-            case ItemType.BladeOfEternity: return ItemAssets.Instance.missing;
-            case ItemType.HydrogenCanister: return ItemAssets.Instance.missing;
-            case ItemType.ExternalTank: return ItemAssets.Instance.missing;
-            case ItemType.Backpack: return ItemAssets.Instance.missing;
-            case ItemType.StorageCrate: return ItemAssets.Instance.missing;
-            case ItemType.Flashlight: return ItemAssets.Instance.missing;
-            case ItemType.Lightrod: return ItemAssets.Instance.missing;
-            case ItemType.Spotlight: return ItemAssets.Instance.missing;
-            case ItemType.Matchbox: return ItemAssets.Instance.missing;
-            case ItemType.Blowtorch: return ItemAssets.Instance.missing;
-            case ItemType.Extinguisher: return ItemAssets.Instance.missing;
-            case ItemType.RangeScanner: return ItemAssets.Instance.missing;
-            case ItemType.AudioLocalizer: return ItemAssets.Instance.missing;
-            case ItemType.ThermalImager: return ItemAssets.Instance.missing;
-            case ItemType.QuantumRelocator: return ItemAssets.Instance.missing;
-            case ItemType.TemporalSedative: return ItemAssets.Instance.missing;
-            case ItemType.Flamethrower: return ItemAssets.Instance.missing;
+            case ItemTag.Knife: return ItemAssets.Instance.missing;
+            case ItemTag.SteelBeam: return ItemAssets.Instance.missing;
+            case ItemTag.Mallet: return ItemAssets.Instance.missing;
+            case ItemTag.Axe: return ItemAssets.Instance.missing;
+            case ItemTag.HonedGavel: return ItemAssets.Instance.missing;
+            case ItemTag.TribladeRotator: return ItemAssets.Instance.missing;
+            case ItemTag.BladeOfEternity: return ItemAssets.Instance.missing;
+            case ItemTag.HydrogenCanister: return ItemAssets.Instance.missing;
+            case ItemTag.ExternalTank: return ItemAssets.Instance.missing;
+            case ItemTag.Backpack: return ItemAssets.Instance.missing;
+            case ItemTag.StorageCrate: return ItemAssets.Instance.missing;
+            case ItemTag.Flashlight: return ItemAssets.Instance.missing;
+            case ItemTag.Lightrod: return ItemAssets.Instance.missing;
+            case ItemTag.Spotlight: return ItemAssets.Instance.missing;
+            case ItemTag.Matchbox: return ItemAssets.Instance.missing;
+            case ItemTag.Blowtorch: return ItemAssets.Instance.missing;
+            case ItemTag.Extinguisher: return ItemAssets.Instance.missing;
+            case ItemTag.RangeScanner: return ItemAssets.Instance.missing;
+            case ItemTag.AudioLocalizer: return ItemAssets.Instance.missing;
+            case ItemTag.ThermalImager: return ItemAssets.Instance.missing;
+            case ItemTag.QuantumRelocator: return ItemAssets.Instance.missing;
+            case ItemTag.TemporalSedative: return ItemAssets.Instance.missing;
+            case ItemTag.Flamethrower: return ItemAssets.Instance.missing;
             */
-            case ItemType.LightningRailgun: return ItemAssets.Instance.lightningRailgun;
-            //case ItemType.PaintBlaster: return ItemAssets.Instance.missing;
-            case ItemType.Unknown: return ItemAssets.Instance.missing;
+            case ItemTag.LightningRailgun: return ItemAssets.Instance.lightningRailgun;
+            //case ItemTag.PaintBlaster: return ItemAssets.Instance.missing;
+            case ItemTag.Unknown: return ItemAssets.Instance.missing;
                 break;
         }
     }

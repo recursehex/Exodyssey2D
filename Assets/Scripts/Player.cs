@@ -13,7 +13,6 @@ public class Player : MonoBehaviour
     public int currentHP;
     public int currentAP;
 
-    public int obstacleDamage = 1;
     public int enemyDamage = 0;
 
     // HP and AP text
@@ -243,7 +242,7 @@ public class Player : MonoBehaviour
 
     public void ProcessWeaponUse()
     {
-        // if weapon use causes UP to be 0, remove weapon
+        // if weapon UP goes to 0 after use, remove weapon
         if (inventoryUI.ProcessWeaponUse())
         {
             inventoryUI.RemoveItem(inventoryUI.getCurrentSelected());
