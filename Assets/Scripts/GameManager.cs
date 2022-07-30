@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Tilemaps;
 
+
 public class GameManager : MonoBehaviour
 {
     private Camera mainCamera;
@@ -48,6 +49,12 @@ public class GameManager : MonoBehaviour
 
     public List<GameObject> targets = new List<GameObject>();
 
+    public List<Vector3> rangedTargetPositions = new List<Vector3>();
+
+    public GameObject[] tracer;
+
+    public List<GameObject> tracers = new List<GameObject>();
+
     private Dictionary<Vector3Int, Node> reachableAreasToDraw = null;
 
     [SerializeField]
@@ -85,6 +92,16 @@ public class GameManager : MonoBehaviour
     private bool doingSetup;
 
     private MapGen mapGenerator;
+
+    public class RangedWeaponCalculation
+    {
+        public RangedWeaponCalculation()
+        {
+            tracerPath = new List<Vector3>();
+        }
+        public List<Vector3> tracerPath;
+        public bool fHitTarget = true;
+    }
 
     // Start is called before the first frame update
     void Awake()
@@ -210,6 +227,7 @@ public class GameManager : MonoBehaviour
         mapGenerator.generateMap(tilemapWalls, wallTiles);
     }
 
+    // NEED TO MAKE THIS A SEPARATE CLASS
     /// <summary>
     /// Procedurally generates items once per level
     /// </summary>
@@ -479,6 +497,7 @@ public class GameManager : MonoBehaviour
                     else
                     {
                         enemiesInMovement = false;
+                        DrawTargetAndTracers();
                         UpdateEnemyAP();
                         turnTimer.ResetTimer();
                         tiledot.gameObject.SetActive(true);
@@ -562,16 +581,25 @@ public class GameManager : MonoBehaviour
                     if (itmAtPt != null)
                     {
                         if (player.AddItem(itmAtPt.info))
+                        {
                             DestroyItemAtLoc(shiftedClkPt);
+                        }
                     }
                 }
 
-                bool fRangedWeaponSelected = player.IsRangedWeaponSelected();
                 bool fIsInRange = IsInRange(clkPt);
+                bool fIsInMeleeRange = IsInMeleeRange(shiftedClkPt);
+
+                bool fIsInRangeForRangedWeapon = false;
+                if (player.IsRangedWeaponSelected())
+                {
+                    fIsInRangeForRangedWeapon = IsInRangeForRangedWeapon(shiftedClkPt);
+                }
+
                 // for actions that require AP
                 if (
                     // check if in reachable area
-                    (fIsInRange || fRangedWeaponSelected) &&
+                    (fIsInRange || fIsInRangeForRangedWeapon) &&
                     // check if it is players turn
                     playersTurn)
                 {
@@ -601,7 +629,7 @@ public class GameManager : MonoBehaviour
                             }
                         }
                         // attack enemy
-                        else if (idxOfEnemy != -1)
+                        else if (idxOfEnemy != -1 && (fIsInMeleeRange || fIsInRangeForRangedWeapon))
                         {
                             if (player.enemyDamage > 0)
                             {
@@ -680,7 +708,6 @@ public class GameManager : MonoBehaviour
         Enemy e = obj.GetComponent<Enemy>();
         e.DamageEnemy(player.enemyDamage);
 
-        // removes and destroys enemy
         if (e.currentHP <= 0)
         {
             enemies.RemoveAt(idx);
@@ -709,7 +736,7 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
-    /// returns -1 if no enemy is present in the location pointed by p
+    /// Returns -1 if no enemy is present in the location pointed by p
     /// or index of enemy if enemy is present
     /// </summary>
     private int GetEnemyIdxIfPresent(Vector3Int p)
@@ -748,6 +775,32 @@ public class GameManager : MonoBehaviour
         return false;
     }
 
+    private bool IsInMeleeRange(Vector3 p1)
+    {
+        Vector3 p0 = player.transform.position;
+
+        return (p0.x == p1.x && p0.y + 1 == p1.y) ||
+               (p0.x == p1.x && p0.y - 1 == p1.y) ||
+               (p0.x + 1 == p1.x && p0.y == p1.y) ||
+               (p0.x - 1 == p1.x && p0.y == p1.y);
+    }
+
+
+    private bool IsInRangeForRangedWeapon(Vector3 p)
+    {
+
+        foreach (Vector3 t in rangedTargetPositions)
+        {
+            if (t.x == p.x && t.y == p.y)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+
     /// <summary>
     /// Deletes all tile areas, used to reset tile areas
     /// </summary>
@@ -764,6 +817,13 @@ public class GameManager : MonoBehaviour
         }
     }
 
+
+    private void ClearTargetsAndTracers()
+    {
+        ClearTargets();
+        ClearTracers();
+    }
+
     private void ClearTargets()
     {
         if (targets.Count > 0)
@@ -773,6 +833,18 @@ public class GameManager : MonoBehaviour
                 Destroy(t);
             }
             targets.Clear();
+        }
+    }
+
+    private void ClearTracers()
+    {
+        if (tracers.Count > 0)
+        {
+            foreach (GameObject t in tracers)
+            {
+                Destroy(t);
+            }
+            tracers.Clear();
         }
     }
 
@@ -799,54 +871,134 @@ public class GameManager : MonoBehaviour
             }
             needToDrawReachableAreas = false;
 
-            ClearTargets();
+            DrawTargetAndTracers();
+        }
+    }
 
-            if (player.IsRangedWeaponSelected())
+    public void DrawTargetAndTracers()
+    {
+        ClearTargetsAndTracers();
+
+        if (player.IsRangedWeaponSelected() && (!enemiesInMovement))
+        {
+            rangedTargetPositions.Clear();
+
+            foreach (GameObject obj in enemies)
             {
-                foreach (GameObject obj in enemies)
+                Enemy e = obj.GetComponent<Enemy>();
+                Vector3 enemyPoint = e.transform.position;
+
+                // ADD ACTUAL RANGE
+                RangedWeaponCalculation res = IsInLineOfSight(player.transform.position, enemyPoint, 5);
+
+                if (res.tracerPath.Count > 0)
                 {
-                    Enemy e = obj.GetComponent<Enemy>();
-                    Vector3 enemyPoint = e.transform.position;
-
-                    List<Vector3> shotPath = IsInLineOfSight(player.transform.position, enemyPoint);
-
-                    if (shotPath.Count>0)
+                    foreach (Vector3 pt in res.tracerPath)
                     {
-                        foreach (Vector3 pt in shotPath) {
-                            GameObject targetChoice = target[0];
-                            Vector3 shiftedDst = new Vector3(pt.x + 0.0f, pt.y + 0.0f, enemyPoint.z);
-                            GameObject instance = Instantiate(targetChoice, shiftedDst, Quaternion.identity) as GameObject;
+                        GameObject tracerChoice = tracer[0];
+                        Vector3 shiftedDst = new Vector3(pt.x + 0.0f, pt.y + 0.0f, enemyPoint.z);
+                        GameObject instance = Instantiate(tracerChoice, shiftedDst, Quaternion.identity) as GameObject;
 
-                            targets.Add(instance);
-                        }
+                        tracers.Add(instance);
                     }
+                }
+
+                if (res.fHitTarget)
+                {
+                    Vector3 pt = e.transform.position;
+                    GameObject targetChoice = target[0];
+                    Vector3 shiftedDst = new Vector3(pt.x + 0.0f, pt.y + 0.0f, enemyPoint.z);
+                    GameObject instance = Instantiate(targetChoice, shiftedDst, Quaternion.identity) as GameObject;
+
+                    targets.Add(instance);
+
+                    rangedTargetPositions.Add(shiftedDst);
                 }
             }
         }
     }
 
-    public List<Vector3> IsInLineOfSight(Vector3 playerPos, Vector3 targetPos)
+    public RangedWeaponCalculation IsInLineOfSight(Vector3 playerPos, Vector3 targetPos, int range)
     {
-        List<Vector3> path = new List<Vector3>();
+        RangedWeaponCalculation ret = new RangedWeaponCalculation();
 
         float dx = targetPos.x - playerPos.x;
         float dy = targetPos.y - playerPos.y;
 
-        for (float x = playerPos.x; x < targetPos.x; x++)
+        // distance between player and enemy
+        float r = Mathf.Sqrt(Mathf.Pow(targetPos.x - playerPos.x, 2) + Mathf.Pow(targetPos.y - playerPos.y, 2));
+
+        if (r > range)
         {
-            float y = playerPos.y + dy * (x - playerPos.x) / dx;
+            ret.fHitTarget = false;
 
-            Vector3Int shiftedDst = new Vector3Int((int)(x + 0.5f), (int)(y + 0.5f), 0);
+        }
 
-            if (tilemapWalls.HasTile(shiftedDst))
+        ret.tracerPath = GetPointsOnLine((int)(playerPos.x - 0.5f), (int)(playerPos.y - 0.5f), (int)(targetPos.x - 0.5f), (int)(targetPos.y - 0.5f));
+
+        foreach (Vector3 p in ret.tracerPath)
+        {
+            Vector3Int pInt = new Vector3Int((int)p.x, (int)p.y, 0);
+
+            if (tilemapWalls.HasTile(pInt)) // if weapon's isMortar = true, ignore tilemapWalls check
             {
-            //    fRet = false;
+                ret.fHitTarget = false;
                 break;
             }
-            Vector3 pt = new Vector3(x, y, 0);
-            path.Add(pt);
-            
         }
-        return path;
+
+        return ret;
+    }
+
+    public List<Vector3> GetPointsOnLine(int x0, int y0, int x1, int y1)
+    {
+        List<Vector3> ret = new List<Vector3>();
+
+        Debug.Log("x0:" + x0 + " y0:" + y0 + "    x1:" + x1 + " y1:" + y1);
+
+        int i = 0;
+
+        bool steep = Mathf.Abs(y1 - y0) > Mathf.Abs(x1 - x0);
+        if (steep)
+        {
+            int t;
+            t = x0; // swap x0 and y0
+            x0 = y0;
+            y0 = t;
+            t = x1; // swap x1 and y1
+            x1 = y1;
+            y1 = t;
+        }
+        if (x0 > x1)
+        {
+            int t;
+            t = x0; // swap x0 and x1
+            x0 = x1;
+            x1 = t;
+            t = y0; // swap y0 and y1
+            y0 = y1;
+            y1 = t;
+        }
+        int dx = x1 - x0;
+        int dy = Mathf.Abs(y1 - y0);
+        int error = dx / 2;
+        int ystep = (y0 < y1) ? 1 : -1;
+        int y = y0;
+        for (int x = x0; x <= x1; x++)
+        {
+            Vector3 pt = new Vector3((steep ? y : x) + 0.5f, (steep ? x : y) + 0.5f, 0);
+            Debug.Log("I: " + i + " x: " + pt.x + " y:" + pt.y);
+            i++;
+            ret.Add(pt);
+
+            error -= dy;
+            if (error < 0)
+            {
+                y += ystep;
+                error += dx;
+            }
+        }
+
+        return ret;
     }
 }
