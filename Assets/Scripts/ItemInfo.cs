@@ -96,8 +96,9 @@ public class ItemInfo
 
     public int healingPoints = -1;              // set to positive value for items that heal players, -1 means it does not heal
 
-    public int damagePoints;                    // set only for items with inf.ItemType = Weapon
-    public bool isRanged;                       // false means Melee, true means Ranged
+    public int damagePoints = -1;               // set only for items with inf.ItemType = Weapon
+    public bool isRanged = false;               // false means Melee, true means Ranged
+    public int range = -1;                      // max distance a Ranged weapon can attack to
 
     public bool isEquipable = false;            // can be equipped by characters, enabling the item and emptying an inventory slot
     public bool isAttachable = false;           // can be attached to vehicles, enabling the item
@@ -283,6 +284,7 @@ public class ItemInfo
 
             case 2:
                 inf.tag = ItemTag.Branch;
+                //inf.rarity = ItemRarity.Common;
                 inf.rarity = ItemRarity.Scarce;
                 inf.type = ItemType.Weapon;
                 inf.name = "BRANCH";
@@ -297,12 +299,13 @@ public class ItemInfo
                 break;
             case 3:
                 inf.tag = ItemTag.LightningRailgun;
-                inf.rarity = ItemRarity.Numinous;
+                //inf.rarity = ItemRarity.Numinous;
                 inf.rarity = ItemRarity.Common;
                 inf.type = ItemType.Weapon;
                 inf.name = "LIGHTNING RAILGUN";
                 inf.damagePoints = 5;
                 inf.isRanged = true;
+                inf.range = 5;
                 inf.needsFuel = true;
                 inf.description = "Use:Equip weapon" +
                     "\n" +
@@ -316,9 +319,11 @@ public class ItemInfo
                     inf.rarity = ItemRarity.Scarce;
                     inf.type = ItemType.Consumable;
                     inf.name = "ROVKIT";
-                    inf.description = "A repair kit that restores any vehicle to full HP per use.";
                     inf.maxUP = 2;
                     inf.currentUP = inf.maxUP;
+                    inf.description = "Use:Repairs vehicle" +
+                        "\n" +
+                        "UP:" + inf.maxUP;
                     break;
 
                 case 4:
@@ -326,10 +331,14 @@ public class ItemInfo
                     inf.rarity = ItemRarity.Limited;
                     inf.type = ItemType.Weapon;
                     inf.name = "KNIFE";
-                    inf.description = "A knife that deals 1 DP per strike.";
                     inf.maxUP = 2;
                     inf.currentUP = inf.maxUP;
                     inf.damagePoints = 2;
+                    inf.description = "Use:Equip weapon" +
+                        "\n" +
+                        "UP:" + inf.maxUP +
+                        "\t" +
+                        "DP:" + inf.damagePoints;
                     break;
 
                 case 5:
@@ -337,11 +346,15 @@ public class ItemInfo
                     inf.rarity = ItemRarity.Limited;
                     inf.type = ItemType.Weapon;
                     inf.name = "STEEL BEAM";
-                    inf.description = "A steel beam that deals 2 DP per strike, and no DP to shelled aliens.";
                     inf.maxUP = 4;
                     inf.currentUP = inf.maxUP;
                     inf.damagePoints = 2;
-                    inf.shellDamageMultiplier = 0;
+                    inf.shellDamageMultiplier = 0.0f;
+                    inf.description = "Use:Equip weapon" +
+                        "\n" +
+                        "UP:" + inf.maxUP +
+                        "\t" +
+                        "DP:" + inf.damagePoints;
                     break;
 
                 case 6:
@@ -349,9 +362,13 @@ public class ItemInfo
                     inf.rarity = ItemRarity.Rare;
                     inf.type = ItemType.Weapon;
                     inf.name = "MALLET";
-                    inf.description = "Mallet: This heavy mallet deals 2 DP per strike or throw, and no DP to shelled aliens.";
                     inf.damagePoints = 2;
                     inf.shellDamageMultiplier = 0.0f;
+                    inf.description = "Use:Equip weapon" +
+                        "\n" +
+                        "UP:" + "\u221e" +
+                        "\t" +
+                        "DP:" + inf.damagePoints;
                     break;
 
                 case 7:
@@ -359,11 +376,15 @@ public class ItemInfo
                     inf.rarity = ItemRarity.Scarce;
                     inf.type = ItemType.Weapon;
                     inf.name = "AXE";
-                    inf.description = "An axe that deals 4 DP per use, and half its DP to shelled aliens.";
                     inf.maxUP = 4;
                     inf.currentUP = inf.maxUP;
                     inf.damagePoints = 4;
                     inf.shellDamageMultiplier = 0.5f;
+                    inf.description = "Use:Equip weapon" +
+                        "\n" +
+                        "UP:" + inf.maxUP +
+                        "\t" +
+                        "DP:" + inf.damagePoints;
                     break;
 
                 case 4:
@@ -387,10 +408,14 @@ public class ItemInfo
                     inf.rarity = ItemRarity.Numinous;
                     inf.type = ItemType.Weapon;
                     inf.name = "TRIBLADE ROTATOR";
-                    inf.description = "Triple Chainsaw: This triple-bladed chainsaw deals 4 DP per strike.";
                     inf.maxUP = 8;
                     inf.currentUP = inf.maxUP;
                     inf.damagePoints = 5;
+                    inf.description = "Use:Equip weapon" +
+                        "\n" +
+                        "UP:" + inf.maxUP +
+                        "\t" +
+                        "DP:" + inf.damagePoints;
                     break;
 
                 case 10:
@@ -398,8 +423,12 @@ public class ItemInfo
                     inf.rarity = ItemRarity.Numinous;
                     inf.type = ItemType.Weapon;
                     inf.name = "BLADE OF ETERNTY";
-                    inf.description = "Perpetual Cleaver: This ethereal blade deals 4 DP per strike.";
                     inf.damagePoints = 4;
+                    inf.description = "Use:Equip weapon" +
+                        "\n" +
+                        "UP:" + "\u221e" +
+                        "\t" +
+                        "DP:" + inf.damagePoints;
                     break;
 
                 case 11:
@@ -407,9 +436,9 @@ public class ItemInfo
                     inf.rarity = ItemRarity.Common;
                     inf.type = ItemType.Storage;
                     inf.name = "HYDROGEN CANISTER";
-                    inf.description = "A canister that stores up to 5 liters of Hx.";
                     inf.maxUP = 5; // max fuel
                     inf.currentUP = inf.maxUP; // current fuel
+                    inf.description = "Use:???";
                     break;
 
                 case 12:
@@ -417,10 +446,10 @@ public class ItemInfo
                     inf.rarity = ItemRarity.Rare;
                     inf.type = ItemType.Storage;
                     inf.name = "EXTERNAL TANK";
-                    inf.description = "An attachable tank that adds a capacity of 10 liters of Hx to a vehicle.";
                     inf.maxUP = 10; // max fuel
                     inf.currentUP = inf.maxUP; // current fuel
                     inf.isAttachable = true;
+                    inf.description = "Use:Attach tank";
                     break;
 
                 case 13:
@@ -428,8 +457,8 @@ public class ItemInfo
                     inf.rarity = ItemRarity.Limited;
                     inf.type = ItemType.Storage;
                     inf.name = "BACKPACK";
-                    inf.description = "An equipable backpack that adds 1 inventory slot.";
                     inf.isEquipable = true;
+                    inf.description = "Use:Equip backpack";
                     break;
 
                 case 14:
@@ -437,8 +466,8 @@ public class ItemInfo
                     inf.rarity = ItemRarity.Rare;
                     inf.type = ItemType.Storage;
                     inf.name = "STORAGE CRATE";
-                    inf.description = "An attachable crate that adds 4 storage slots to a vehicle.";
                     inf.isAttachable = true;
+                    inf.description = "Use:Attach crate";
                     break;
 
                 case 15:
@@ -446,7 +475,7 @@ public class ItemInfo
                     inf.rarity = ItemRarity.Scarce;
                     inf.type = ItemType.Utility;
                     inf.name = "FLASHLIGHT";
-                    inf.description = "A handheld flashlight that outputs light in one direction.";
+                    inf.description = "Use:Toggle light";
                     break;
 
                 case 16:
@@ -454,7 +483,7 @@ public class ItemInfo
                     inf.rarity = ItemRarity.Rare;
                     inf.type = ItemType.Utility;
                     inf.name = "LIGHTROD";
-                    inf.description = "A handheld flashlight that outputs light in all directions. Emits a loud hum that alerts aliens.";
+                    inf.description = "Use:Toggle light";
                     break;
 
                 case 17:
@@ -462,8 +491,8 @@ public class ItemInfo
                     inf.rarity = ItemRarity.Scarce;
                     inf.type = ItemType.Utility;
                     inf.name = "SPOTLIGHT";
-                    inf.description = "An array of lights that attaches to vehicles.";
                     inf.isAttachable = true;
+                    inf.description = "Use:Attach light";
                     break;
 
                 case 18:
@@ -471,9 +500,9 @@ public class ItemInfo
                     inf.rarity = ItemRarity.Limited;
                     inf.type = ItemType.Utility;
                     inf.name = "MATCHBOX";
-                    inf.description = "A box of matches that starts fires on tiles or aliens.";
                     inf.maxUP = 2;
                     inf.currentUP = inf.maxUP;
+                    inf.description = "Use:Equip matchbox";
                     break;
 
                 case 19:
@@ -481,9 +510,39 @@ public class ItemInfo
                     inf.rarity = ItemRarity.Rare;
                     inf.type = ItemType.Utility;
                     inf.name = "BLOWTORCH";
-                    inf.description = "A blowtorch that starts fires on tiles or aliens.";
                     inf.maxUP = 4;
                     inf.currentUP = inf.maxUP;
+                    inf.description = "Use:Equip blowtorch";
+                    break;
+
+                case 20:
+                    inf.tag = ItemTag.StunPistol;
+                    inf.rarity = ItemRarity.Scarce;
+                    inf.type = ItemType.Weapon;
+                    inf.name = "STUN PISTOL";
+                    inf.maxUP = 2;
+                    inf.currentUP = inf.maxUP;
+                    inf.damagePoints = 1;
+                    inf.isRanged = true;
+                    inf.range = 5;
+                    inf.description = "Use:Equip weapon" +
+                        "\n" +
+                        "UP:" + inf.maxUP;
+                    break;
+
+                case 20:
+                    inf.tag = ItemTag.InfernalShotgun;
+                    inf.rarity = ItemRarity.Rare;
+                    inf.type = ItemType.Weapon;
+                    inf.name = "INFERNAL SHOTGUN";
+                    inf.maxUP = 4;
+                    inf.currentUP = inf.maxUP;
+                    inf.damagePoints = 2;
+                    inf.isRanged = true;
+                    inf.range = 3;
+                    inf.description = "Use:Equip weapon" +
+                        "\n" +
+                        "UP:" + inf.maxUP;
                     break;
 
                 case 20:
@@ -491,10 +550,28 @@ public class ItemInfo
                     inf.rarity = ItemRarity.Rare;
                     inf.type = ItemType.Weapon;
                     inf.name = "FLAMETHROWER";
-                    inf.description = "Modified Blowtorch: Firing this weapon sprays a streak of fire, roasting anything in its path.";
                     inf.maxUP = 4;
                     inf.currentUP = inf.maxUP;
                     inf.isRanged = true;
+                    inf.range = 3;
+                    inf.description = "Use:Equip weapon" +
+                        "\n" +
+                        "UP:" + inf.maxUP;
+                    break;
+
+                case 20:
+                    inf.tag = ItemTag.ShellPiercer;
+                    inf.rarity = ItemRarity.Rare;
+                    inf.type = ItemType.Weapon;
+                    inf.name = "SHELL PIERCER";
+                    inf.maxUP = 2;
+                    inf.currentUP = inf.maxUP;
+                    inf.damagePoints = 4;
+                    inf.isRanged = true;
+                    inf.range = 99;
+                    inf.description = "Use:Equip weapon" +
+                        "\n" +
+                        "UP:" + inf.maxUP;
                     break;
 
                 case 21:
@@ -502,35 +579,60 @@ public class ItemInfo
                     inf.rarity = ItemRarity.Numinous;
                     inf.type = ItemType.Weapon;
                     inf.name = "POSITIVE FEEDBACK LOOP";
-                    inf.description = "Vicious Cycle: Kills with this weapon refund ammunition and increase its damage.";
                     inf.maxUP = 2;
-                    inf.damagePoints = 1;
-                    // if get kill, inf.damagePoints++;
                     inf.currentUP = inf.maxUP;
+                    inf.damagePoints = 1;   // if get kill, inf.damagePoints++;
                     inf.isRanged = true;
+                    inf.range = 7;
+                    inf.description = "Use:Equip weapon" +
+                        "\n" +
+                        "UP:" + inf.maxUP +
+                        "\t" +
+                        "DP:" + inf.damagePoints;
                     break;
 
-                case 22:
-                    inf.tag = ItemTag.LightningRailgun;
-                    inf.rarity = ItemRarity.Numinous;
-                    inf.type = ItemType.Weapon;
-                    inf.name = "LIGHTNING RAILGUN";
-                    inf.description = "Pinnacle of Technology: Charging this weapon fires a devastating blast of extreme electricity. Requires 1 Hx to start, then runs forever.";
-                    inf.description = "Use: Deals 5 DP" +
-                        "\n" +
-                        "UP:" + "Infinity";
-                    inf.damagePoints = 5;
+                case 20:
+                    inf.tag = ItemTag.UniversalIris;
+                    inf.rarity = ItemRarity.Rare;
+                    inf.type = ItemType.Numinous;
+                    inf.name = "UNIVERSAL IRIS";
+                    inf.maxUP = 3;
+                    inf.currentUP = inf.maxUP;
+                    inf.damagePoints = 10;
                     inf.isRanged = true;
-                    inf.needsFuel = true;
+                    inf.range = 99;
+                    inf.isMortar = true;
+                    inf.description = "Use:Equip weapon" +
+                        "\n" +
+                        "UP:" + inf.maxUP;
                     break;
+
+                case 20:
+                    inf.tag = ItemTag.TimesEdge;
+                    inf.rarity = ItemRarity.Rare;
+                    inf.type = ItemType.Numinous;
+                    inf.name = "TIME'S EDGE";
+                    inf.maxUP = 2;
+                    inf.currentUP = inf.maxUP;
+                    inf.damagePoints = 2;
+                    inf.isRanged = true;
+                    inf.range = 99;
+                    inf.description = "Use:Equip weapon" +
+                        "\n" +
+                        "UP:" + inf.maxUP;
+                    break;
+
                 case 23:
                     inf.tag = ItemTag.PaintBlaster;
                     inf.rarity = ItemRarity.Secret;
                     inf.type = ItemType.Weapon;
                     inf.name = "PAINT BLASTER";
-                    inf.description = "Fueled by Fun: This blaster fires pellets of paint, dealing no DP.";
                     inf.damagePoints = 0;
                     inf.isRanged = true;
+                    inf.range = 99;
+                    inf.description = "Use:Equip weapon" +
+                        "\n" +
+                        "UP:" + "\u221e";
                     break;
                 */
         }
