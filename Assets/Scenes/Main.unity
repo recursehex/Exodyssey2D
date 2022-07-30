@@ -2860,7 +2860,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0.18148, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 70, y: 36}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2028268419
@@ -2896,18 +2896,8 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 1
     m_LineSpacing: 2.5
-  m_Text: 'Interact: [Left Click]
-
-    Drop Item: [Right Click]
-
-    End Turn: [E]
-
-    View
-    Controls: [Esc]
-
-    Use Item 1: [1]
-
-    Use Item 2: [2]'
+  m_Text: "View Controls:\t[Esc]\nInteract:\t\t[Left Click]\nDrop Item:\t\t[Right
+    Click]\nEnd Turn:\t\t[E]\nUse Item 1:\t\t[1]\nUse Item 2:\t\t[2]"
 --- !u!222 &2028268420
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -4089,6 +4079,14 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6710520114537087609, guid: b9524bd1945f59349a7c4906e557ed5a, type: 3}
+      propertyPath: tracer.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6710520114537087609, guid: b9524bd1945f59349a7c4906e557ed5a, type: 3}
+      propertyPath: targets.Array.size
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6710520114537087609, guid: b9524bd1945f59349a7c4906e557ed5a, type: 3}
       propertyPath: areaTiles.Array.size
       value: 3
       objectReference: {fileID: 0}
@@ -4105,6 +4103,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6710520114537087609, guid: b9524bd1945f59349a7c4906e557ed5a, type: 3}
+      propertyPath: tracer.Array.data[0]
+      value: 
+      objectReference: {fileID: 142956206023105660, guid: 26546f8ae20dd2d418e1c49d62c10717, type: 3}
+    - target: {fileID: 6710520114537087609, guid: b9524bd1945f59349a7c4906e557ed5a, type: 3}
       propertyPath: wallTiles.Array.size
       value: 7
       objectReference: {fileID: 0}
@@ -4112,6 +4114,10 @@ PrefabInstance:
       propertyPath: enemyTiles.Array.size
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 6710520114537087609, guid: b9524bd1945f59349a7c4906e557ed5a, type: 3}
+      propertyPath: targets.Array.data[0]
+      value: 
+      objectReference: {fileID: 142956206023105660, guid: 26546f8ae20dd2d418e1c49d62c10717, type: 3}
     - target: {fileID: 6710520114537087609, guid: b9524bd1945f59349a7c4906e557ed5a, type: 3}
       propertyPath: areaMarking.Array.size
       value: 1

@@ -89,7 +89,7 @@ public class MapGen
 
                 int nRotations = Random.Range(0, 4);
 
-                Debug.Log("Generating #" + nGenerated + "\ttemplate #" + templateIdx + "\trotating degrees: " + nRotations * 90);
+                //Debug.Log("Generating #" + nGenerated + "\ttemplate #" + templateIdx + "\trotating degrees: " + nRotations * 90);
                 for (int r = 0; r < nRotations; r++)
                 {
                     t = rotate3by3(t);
@@ -111,7 +111,7 @@ public class MapGen
             }
         }
 
-        Debug.Log("Finished generation total elements: " + nGenerated);
+        //Debug.Log("Finished generation total elements: " + nGenerated);
     }
 
 }
