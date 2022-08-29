@@ -152,6 +152,9 @@ public class GameManager : MonoBehaviour
 
     private void ResetForNextLevel()
     {
+        turnTimer.timerIsRunning = false;
+        turnTimer.ResetTimer();
+
         endTurnButton.interactable = true;
 
         // clear tilemap tiles before generating new tiles
@@ -785,7 +788,6 @@ public class GameManager : MonoBehaviour
                (p0.x - 1 == p1.x && p0.y == p1.y);
     }
 
-
     private bool IsInRangeForRangedWeapon(Vector3 p)
     {
 
@@ -799,7 +801,6 @@ public class GameManager : MonoBehaviour
 
         return false;
     }
-
 
     /// <summary>
     /// Deletes all tile areas, used to reset tile areas
@@ -816,7 +817,6 @@ public class GameManager : MonoBehaviour
             reachableAreasToDraw = null;
         }
     }
-
 
     private void ClearTargetsAndTracers()
     {
@@ -954,7 +954,7 @@ public class GameManager : MonoBehaviour
     {
         List<Vector3> ret = new List<Vector3>();
 
-        Debug.Log("x0:" + x0 + " y0:" + y0 + "    x1:" + x1 + " y1:" + y1);
+        //Debug.Log("x0:" + x0 + " y0:" + y0 + "    x1:" + x1 + " y1:" + y1);
 
         int i = 0;
 
@@ -987,7 +987,7 @@ public class GameManager : MonoBehaviour
         for (int x = x0; x <= x1; x++)
         {
             Vector3 pt = new Vector3((steep ? y : x) + 0.5f, (steep ? x : y) + 0.5f, 0);
-            Debug.Log("I: " + i + " x: " + pt.x + " y:" + pt.y);
+            //Debug.Log("I: " + i + " x: " + pt.x + " y:" + pt.y);
             i++;
             ret.Add(pt);
 
@@ -998,7 +998,6 @@ public class GameManager : MonoBehaviour
                 error += dx;
             }
         }
-
         return ret;
     }
 }
