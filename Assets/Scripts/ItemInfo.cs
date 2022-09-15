@@ -209,6 +209,14 @@ public class ItemInfo
         return fIsSelected;
     }
 
+    public void ProcessDrop(Player p)
+    {
+        if (type == ItemType.Weapon)
+        {
+            p.enemyDamage = 0;
+        }
+    }
+
     /// <summary>
     /// Called when a weapon is used to attack
     /// </summary>

@@ -327,6 +327,7 @@ public class Player : MonoBehaviour
             // if drop returns false, then we can't remove it
             if (GameManager.MyInstance.DropItem(inventory.itemList[n].itemInfo))
             {
+                inventory.itemList[n].itemInfo.ProcessDrop(this);
                 inventoryUI.RemoveItem(n);
                 inventoryUI.RefreshInventoryItems();
             }
