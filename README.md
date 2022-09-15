@@ -6,3 +6,5 @@
 Latest version: **Alpha 1.0.2**
 
 Upcoming version: **Alpha 1.0.3**
+
+Releases are only created for major updates (2nd # in versioning)
