@@ -69,6 +69,15 @@ public class InventoryUI : MonoBehaviour
         }
     }
 
+    public bool ProcessDamageAfterWeaponDrop(Player p)
+    {
+        if (selectedIdx != -1)
+        {
+            return inventory.ProcessDamageAfterWeaponDrop(p, selectedIdx);
+        }
+        return false;
+    }
+
     public bool ProcessWeaponUse()
     {
         if (selectedIdx != -1)
