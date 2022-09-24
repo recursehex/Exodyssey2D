@@ -9,9 +9,9 @@ Latest release:   **Alpha 1.0.0**
 
 Upcoming release: **Alpha 1.1.0**
 
-Latest patch:     **Alpha 1.0.2**
+Latest patch:     **Alpha 1.0.3**
 
-Upcoming patch:   **Alpha 1.0.3**
+Upcoming patch:   **Alpha 1.0.4**
 
 *Releases are only created for major updates, not patches*
 
