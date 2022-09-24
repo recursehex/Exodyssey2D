@@ -1,8 +1,18 @@
 # Exodyssey 2D
-###### This is Stella Nova Studios' repository for **Exodyssey 2D**, built in Unity using C#.
+###### This is Stella Nova Studios' repository for **Exodyssey 2D**, a timed roguelike built in Unity using C#.
 
-**Exodyssey 2D Alpha** is under development.
+**Exodyssey 2D Alpha** is under development
 
-Latest version: **Alpha 1.0.1**
+--------------------------------------------------------
 
-Upcoming version: **Alpha 1.0.2**
+Latest release:   **Alpha 1.0.0**
+
+Upcoming release: **Alpha 1.1.0**
+
+Latest patch:     **Alpha 1.0.2**
+
+Upcoming patch:   **Alpha 1.0.3**
+
+*Releases are only created for major updates, not patches*
+
+--------------------------------------------------------
