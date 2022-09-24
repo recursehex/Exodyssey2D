@@ -10,8 +10,8 @@ public class Inventory
     {
         itemList = new List<ItemInventory>();
 
+        // test code for giving player an item
         //AddItem(new ItemInventory { itemType = ItemType.MedKit, amount = 1 });
-        //AddItem(new ItemInventory { itemType = ItemType.MedKitPlus, amount = 1 });
     }
 
     public bool AddItem(ItemInventory item)
@@ -29,6 +29,11 @@ public class Inventory
     public void RemoveItem(int idx)
     {
         itemList.RemoveAt(idx);
+    }
+
+    public bool ProcessDamageAfterWeaponDrop(Player p, int idx)
+    {
+        return itemList[idx].itemInfo.ProcessDamageAfterWeaponDrop(p);
     }
 
     public bool ProcessWeaponUse(int idx)

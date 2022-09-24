@@ -818,7 +818,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private void ClearTargetsAndTracers()
+    public void ClearTargetsAndTracers()
     {
         ClearTargets();
         ClearTracers();

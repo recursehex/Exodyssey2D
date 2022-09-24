@@ -209,12 +209,15 @@ public class ItemInfo
         return fIsSelected;
     }
 
-    public void ProcessDrop(Player p)
+    // ensures that player damage is reset after dropping a weapon
+    public bool ProcessDamageAfterWeaponDrop(Player p)
     {
         if (type == ItemType.Weapon)
         {
             p.enemyDamage = 0;
+            return true;
         }
+        return false;
     }
 
     /// <summary>
