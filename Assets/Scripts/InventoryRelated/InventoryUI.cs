@@ -69,7 +69,7 @@ public class InventoryUI : MonoBehaviour
         }
     }
 
-    public bool ProcessDamageAfterWeaponDrop(Player p,int n)
+    public bool ProcessDamageAfterWeaponDrop(Player p, int n)
     {
         if (selectedIdx == n)
         {

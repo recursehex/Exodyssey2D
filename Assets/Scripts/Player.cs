@@ -327,7 +327,7 @@ public class Player : MonoBehaviour
             // if drop returns false, then we can't remove it
             if (GameManager.MyInstance.DropItem(inventory.itemList[n].itemInfo))
             {
-                if (inventoryUI.ProcessDamageAfterWeaponDrop(this,n))
+                if (inventoryUI.ProcessDamageAfterWeaponDrop(this, n))
                 {
                     if (IsRangedWeaponSelected())
                     {
