@@ -19,7 +19,7 @@ MonoBehaviour:
     width: 2560
     height: 1397.3334
   m_ShowMode: 4
-  m_Title: Game
+  m_Title: Project
   m_RootView: {fileID: 2}
   m_MinSize: {x: 875, y: 300}
   m_MaxSize: {x: 10000, y: 10000}
@@ -115,10 +115,10 @@ MonoBehaviour:
     y: 30
     width: 2560
     height: 1347
-  m_MinSize: {x: 679, y: 492}
-  m_MaxSize: {x: 12004, y: 14042}
+  m_MinSize: {x: 678, y: 492}
+  m_MaxSize: {x: 12003, y: 14042}
   vertical: 0
-  controlID: 23
+  controlID: 90
 --- !u!114 &6
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -140,10 +140,10 @@ MonoBehaviour:
     y: 0
     width: 2560
     height: 1347
-  m_MinSize: {x: 679, y: 492}
-  m_MaxSize: {x: 12004, y: 14042}
+  m_MinSize: {x: 678, y: 492}
+  m_MaxSize: {x: 12003, y: 14042}
   vertical: 1
-  controlID: 24
+  controlID: 91
 --- !u!114 &7
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -166,10 +166,10 @@ MonoBehaviour:
     y: 0
     width: 2560
     height: 848
-  m_MinSize: {x: 679, y: 221}
-  m_MaxSize: {x: 12004, y: 4021}
+  m_MinSize: {x: 678, y: 221}
+  m_MaxSize: {x: 12003, y: 4021}
   vertical: 0
-  controlID: 25
+  controlID: 92
 --- !u!114 &8
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -690,21 +690,21 @@ MonoBehaviour:
     m_SkipHidden: 0
     m_SearchArea: 1
     m_Folders:
-    - Assets/Scripts
+    - Assets/Scripts/InventoryRelated
     m_Globs: []
     m_OriginalText: 
   m_ViewMode: 1
   m_StartGridSize: 57
   m_LastFolders:
-  - Assets/Scripts
+  - Assets/Scripts/InventoryRelated
   m_LastFoldersGridSize: 57
   m_LastProjectPath: C:\Users\binar\Exodyssey2D
   m_LockTracker:
     m_IsLocked: 0
   m_FolderTreeState:
     scrollPos: {x: 0, y: 0}
-    m_SelectedIDs: 405b0000
-    m_LastClickedID: 23360
+    m_SelectedIDs: 545b0000
+    m_LastClickedID: 23380
     m_ExpandedIDs: 00000000345b0000365b0000385b00003a5b00003c5b00003e5b0000405b000000ca9a3b
     m_RenameOverlay:
       m_UserAcceptedRename: 0
