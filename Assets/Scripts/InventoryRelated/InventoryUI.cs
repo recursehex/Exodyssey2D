@@ -10,6 +10,8 @@ public class InventoryUI : MonoBehaviour
     private Inventory inventory;
 
     private int selectedIdx = -1; // not selected
+    private string cachedName;
+    private string cachedDesc;
 
     [SerializeField]
     public Sprite itemBackground;
@@ -104,6 +106,9 @@ public class InventoryUI : MonoBehaviour
     public void setCurrentSelected(int nPos)
     {
         selectedIdx = nPos;
+        cachedName = inventory.itemList[selectedIdx].itemInfo.name;
+        cachedDesc = inventory.itemList[selectedIdx].itemInfo.description;
+        // NOTE: need to get updated desc when UP changes
     }
 
     // shows name and desc of item when hovering over it
@@ -135,11 +140,16 @@ public class InventoryUI : MonoBehaviour
             }
             i++;
         }
-
-        if (!found)
+        
+        if (!found && selectedIdx == -1)
         {
             nametxt.text = "";
             desctxt.text = "";
+        }
+        else if (!found && selectedIdx != -1)
+        {
+            nametxt.text = cachedName;
+            desctxt.text = cachedDesc;
         }
     }
 }

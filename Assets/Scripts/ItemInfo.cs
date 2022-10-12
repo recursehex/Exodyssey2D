@@ -209,7 +209,11 @@ public class ItemInfo
         return fIsSelected;
     }
 
-    // ensures that player damage is reset after dropping a weapon
+    /// <summary>
+    /// Ensures that player damage is reset after dropping a weapon
+    /// </summary>
+    /// <param name="p"></param>
+    /// <returns></returns>
     public bool ProcessDamageAfterWeaponDrop(Player p)
     {
         if (type == ItemType.Weapon)
@@ -221,7 +225,7 @@ public class ItemInfo
     }
 
     /// <summary>
-    /// Called when a weapon is used to attack
+    /// Changes UP of a weapon after it is used
     /// </summary>
     /// <returns></returns>
     public bool ProcessWeaponUse()

@@ -148,6 +148,7 @@ public class GameManager : MonoBehaviour
 
         ResetForNextLevel();
         InitGame();
+        DrawTargetAndTracers();
     }
 
     private void ResetForNextLevel()
@@ -634,7 +635,7 @@ public class GameManager : MonoBehaviour
                         // attack enemy
                         else if (idxOfEnemy != -1 && (fIsInMeleeRange || fIsInRangeForRangedWeapon))
                         {
-                            if (player.enemyDamage > 0)
+                            if (player.enemyDamage > 0 && player.currentAP > 0)
                             {
                                 HandleEnemyDamage(idxOfEnemy);
                                 player.ChangeActionPoints(-1);
@@ -921,9 +922,6 @@ public class GameManager : MonoBehaviour
     public RangedWeaponCalculation IsInLineOfSight(Vector3 playerPos, Vector3 targetPos, int range)
     {
         RangedWeaponCalculation ret = new RangedWeaponCalculation();
-
-        float dx = targetPos.x - playerPos.x;
-        float dy = targetPos.y - playerPos.y;
 
         // distance between player and enemy
         float r = Mathf.Sqrt(Mathf.Pow(targetPos.x - playerPos.x, 2) + Mathf.Pow(targetPos.y - playerPos.y, 2));
