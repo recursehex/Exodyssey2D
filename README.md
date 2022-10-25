@@ -13,6 +13,6 @@ Latest patch:     **Alpha 1.0.5**
 
 Upcoming patch:   **Alpha 1.0.6**
 
-*Releases are only created for major updates, not patches*
+*Releases are only created for major updates (e.g Alpha 1.1.0) and the final patch of a minor version (e.g. Alpha 1.0.6)*
 
 --------------------------------------------------------
