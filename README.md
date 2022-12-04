@@ -5,9 +5,7 @@
 
 --------------------------------------------------------
 
-Latest build:     **Alpha 1.0.6**
-
-Latest release:   **Alpha 1.0.0**
+Latest release:   **Alpha 1.0.6**
 
 Upcoming release: **Alpha 1.1.0**
 
