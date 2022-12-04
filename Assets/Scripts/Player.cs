@@ -96,7 +96,7 @@ public class Player : MonoBehaviour
     public void CalculatePathAndStartMovement(Vector3 goal)
     {
         astar.Initialize();
-        path = astar.ComputePath(transform.position, goal);
+        path = astar.ComputePath(transform.position, goal, gm);
         if (path != null)
         {
             ChangeActionPoints(-(path.Count - 1));
@@ -125,10 +125,10 @@ public class Player : MonoBehaviour
         {
             isInMovement = true;
 
-            Vector3 shiftedDst = new Vector3(destination.x + 0.5f, destination.y + 0.5f, destination.z);
-            transform.position = Vector3.MoveTowards(transform.position, shiftedDst, 2 * Time.deltaTime);
+            Vector3 shiftedDistance = new Vector3(destination.x + 0.5f, destination.y + 0.5f, destination.z);
+            transform.position = Vector3.MoveTowards(transform.position, shiftedDistance, 2 * Time.deltaTime);
 
-            float distance = Vector3.Distance(shiftedDst, transform.position);
+            float distance = Vector3.Distance(shiftedDistance, transform.position);
             if (distance <= 0f)
             {
                 if (path.Count > 0)
@@ -245,13 +245,13 @@ public class Player : MonoBehaviour
         // if weapon UP goes to 0 after use, remove weapon
         if (inventoryUI.ProcessWeaponUse())
         {
-            inventoryUI.RemoveItem(inventoryUI.getCurrentSelected());
+            inventoryUI.RemoveItem(inventoryUI.GetCurrentSelected());
             inventoryUI.RefreshInventoryItems();
             enemyDamage = 0;
         }
     }
 
-    public bool IsRangedWeaponSelected()
+    public int IsRangedWeaponSelected()
     {
         return inventoryUI.IsRangedWeaponSelected();
     }
@@ -297,7 +297,7 @@ public class Player : MonoBehaviour
     /// </summary>
     public void TryUseItem(int n)
     {
-        if (n < inventory.itemList.Count && currentAP > 0)
+        if (n < inventory.itemList.Count)
         {
             ItemInfo anItem = inventory.itemList[n].itemInfo;
             AfterItemUse ret = anItem.UseItem(this, n);
@@ -312,8 +312,6 @@ public class Player : MonoBehaviour
                 inventoryUI.RemoveItem(n);
                 inventoryUI.RefreshInventoryItems();
             }
-            gm.needToDrawReachableAreas = true;
-            gm.DrawTileAreaIfNeeded();
         }
     }
 
@@ -329,7 +327,7 @@ public class Player : MonoBehaviour
             {
                 if (inventoryUI.ProcessDamageAfterWeaponDrop(this, n))
                 {
-                    if (IsRangedWeaponSelected())
+                    if (IsRangedWeaponSelected() > 0)
                     {
                         gm.ClearTargetsAndTracers();
                     }

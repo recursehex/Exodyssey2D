@@ -12,7 +12,6 @@ public class Enemy : MonoBehaviour
 
     private Animator animator;
     private Transform target;
-    private bool skipMove;
     public AudioClip moveSound1;
     public AudioClip moveSound2;
     public AudioClip enemyAttack;
@@ -77,15 +76,14 @@ public class Enemy : MonoBehaviour
         MoveAlongThePath();
     }
 
-
     public void MoveAlongThePath()
     {
         if (path != null)
         {
-            Vector3 shiftedDst = new Vector3(destination.x + 0.5f, destination.y + 0.5f, destination.z);
-            transform.position = Vector3.MoveTowards(transform.position, shiftedDst, 2 * Time.deltaTime);
+            Vector3 shiftedDistance = new Vector3(destination.x + 0.5f, destination.y + 0.5f, destination.z);
+            transform.position = Vector3.MoveTowards(transform.position, shiftedDistance, 2 * Time.deltaTime);
 
-            float distance = Vector3.Distance(shiftedDst, transform.position);
+            float distance = Vector3.Distance(shiftedDistance, transform.position);
             if (distance <= 0f)
             {
                 if (path.Count > 0 && 
@@ -112,7 +110,7 @@ public class Enemy : MonoBehaviour
         astar.Initialize();
         astar.SetAllowDiagonal(false); // disables diagonal movement
 
-        path = astar.ComputePath(transform.position, goal);
+        path = astar.ComputePath(transform.position, goal, gm);
         if (path != null  && 
             currentAP> 0 &&
             path.Count > 2) // to stop enemy from colliding into player
@@ -122,10 +120,10 @@ public class Enemy : MonoBehaviour
             // don't remove this, need to pop first path element
             path.Pop();
 
-            Vector3Int tryDst = path.Pop();
-            if (!hasEnemyAtLoc(tryDst))
+            Vector3Int tryDistance = path.Pop();
+            if (!HasEnemyAtLoc(tryDistance))
             {
-                destination = tryDst;
+                destination = tryDistance;
             }
             else
             {
@@ -147,23 +145,21 @@ public class Enemy : MonoBehaviour
         }
     }
 
-    private bool hasEnemyAtLoc(Vector3 p)
+    private bool HasEnemyAtLoc(Vector3 p)
     {
         bool ret = false;
-        Vector3 shiftedDst = new Vector3(p.x + 0.5f, p.y + 0.5f, 0);
+        Vector3 shiftedDistance = new Vector3(p.x + 0.5f, p.y + 0.5f, 0);
         foreach (GameObject obj in allEnemies)
         {
             Enemy e = obj.GetComponent<Enemy>();
-            if (e.transform.position == shiftedDst)
+            if (e.transform.position == shiftedDistance)
             {
                 ret = true;
                 break;
             }
         }
-
         return ret;
     }
-
 
     public void ChangeActionPoints(int change)
     {
@@ -182,7 +178,6 @@ public class Enemy : MonoBehaviour
         currentAP = maxAP;
     }
 
-
     public void SetAllEnemyList(List<GameObject> toExclude)
     {
         allEnemies = toExclude;
@@ -192,5 +187,4 @@ public class Enemy : MonoBehaviour
     {
         gm = g;
     }
-
 }
