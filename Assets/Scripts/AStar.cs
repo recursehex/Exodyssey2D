@@ -15,6 +15,8 @@ public class AStar
     [SerializeField]
     public Tilemap tilemapWalls;
 
+    private GameManager gm;
+
     private Node current;
 
     private Stack<Vector3Int> path;
@@ -81,8 +83,10 @@ public class AStar
         return res;
     }
 
-    public Stack<Vector3Int> ComputePath(Vector3 start, Vector3 goal)
+    public Stack<Vector3Int> ComputePath(Vector3 start, Vector3 goal, GameManager g)
     {
+        gm = g;
+
         startPos = tilemapGround.WorldToCell(start);
         goalPos = tilemapGround.WorldToCell(goal);
 
@@ -130,18 +134,30 @@ public class AStar
     private List<Node> FindNeighbors(Vector3Int parentPosition)
     {
         List<Node> neighbors = new List<Node>();
+ 
 
         for (int x = -1; x <= 1; x++) // these two for loops makes sure that we make all nodes around our current node
         {
             for (int y = -1; y <= 1; y++)
             {
                 Vector3Int p = new Vector3Int(parentPosition.x - x, parentPosition.y - y, parentPosition.z);
+               
+                bool fEnemy = false;
+                if (gm != null)
+                {
+                    Vector3 pForEnemy = new Vector3(parentPosition.x - x +0.5f, parentPosition.y - y +0.5f, parentPosition.z);
+                    fEnemy = gm.HasEnemyAtLoc(pForEnemy);
+                }
+                if (fEnemy)
+                {
+                    fEnemy = true;
+                }
                 if ((y != 0 || x != 0) && (allowDiagonal || (!allowDiagonal && (y == 0 || x == 0))))
                 {
                     BoundsInt size = tilemapGround.cellBounds;
 
-                    // if node is within bounds of the grid & if there is no wall tile there & if player has any AP, add it to the neighbors list
-                    if (p.x >= size.min.x && p.x < size.max.x && p.y >= size.min.y && p.y < size.max.y && (!tilemapWalls.HasTile(p)))
+                    // if node is within bounds of the grid & if there is no wall tile or enemy there & if player has any AP, add it to the neighbors list
+                    if (p.x >= size.min.x && p.x < size.max.x && p.y >= size.min.y && p.y < size.max.y && !tilemapWalls.HasTile(p) && !fEnemy)
                     {
                         Node neighbour = GetNode(p);
                         neighbors.Add(neighbour);

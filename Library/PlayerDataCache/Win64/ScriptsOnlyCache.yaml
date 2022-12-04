@@ -82,51 +82,51 @@ ScriptsOnlyBuild:
     - Class: 104
       Script: {instanceID: 0}
     - Class: 114
-      Script: {instanceID: 632}
+      Script: {instanceID: 638}
     - Class: 114
-      Script: {instanceID: 1492}
+      Script: {instanceID: 1498}
     - Class: 114
-      Script: {instanceID: 1494}
+      Script: {instanceID: 1500}
     - Class: 114
-      Script: {instanceID: 1556}
+      Script: {instanceID: 1562}
     - Class: 114
-      Script: {instanceID: 1610}
+      Script: {instanceID: 1616}
     - Class: 114
-      Script: {instanceID: 2218}
+      Script: {instanceID: 2224}
     - Class: 114
-      Script: {instanceID: 2684}
+      Script: {instanceID: 2690}
     - Class: 114
-      Script: {instanceID: 2738}
+      Script: {instanceID: 2744}
     - Class: 114
-      Script: {instanceID: 2840}
+      Script: {instanceID: 2846}
     - Class: 114
-      Script: {instanceID: 2924}
+      Script: {instanceID: 2930}
     - Class: 114
-      Script: {instanceID: 3172}
+      Script: {instanceID: 3178}
     - Class: 114
-      Script: {instanceID: 3232}
+      Script: {instanceID: 3238}
     - Class: 114
-      Script: {instanceID: 4342}
+      Script: {instanceID: 4348}
     - Class: 114
-      Script: {instanceID: 5042}
+      Script: {instanceID: 5048}
     - Class: 114
-      Script: {instanceID: 5306}
+      Script: {instanceID: 5312}
     - Class: 114
-      Script: {instanceID: 5452}
+      Script: {instanceID: 5458}
     - Class: 114
-      Script: {instanceID: 6006}
+      Script: {instanceID: 6012}
     - Class: 114
-      Script: {instanceID: 6158}
+      Script: {instanceID: 6164}
     - Class: 114
-      Script: {instanceID: 6204}
+      Script: {instanceID: 6210}
     - Class: 114
-      Script: {instanceID: 6762}
+      Script: {instanceID: 6768}
     - Class: 114
-      Script: {instanceID: 8022}
+      Script: {instanceID: 8028}
     - Class: 114
-      Script: {instanceID: 8092}
+      Script: {instanceID: 8098}
     - Class: 114
-      Script: {instanceID: 8358}
+      Script: {instanceID: 8364}
     - Class: 115
       Script: {instanceID: 0}
     - Class: 128
@@ -1183,4 +1183,4 @@ ScriptsOnlyBuild:
   platform: 19
   scenePathNames:
   - Assets/Scenes/Main.unity
-  playerPath: C:/Users/binar/Builds/Windows/Exodyssey2D.exe
+  playerPath: C:/Users/binar/Builds/Windows/v1.0.6-alpha/Exodyssey2D.exe

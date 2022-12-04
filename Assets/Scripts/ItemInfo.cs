@@ -91,19 +91,20 @@ public class ItemInfo
     public string name;                         // ingame name of item
     public string description;                  // ingame desc of item
 
-    public int maxUP = -1;                      // set to positive value for items with UP, -1 means infinite uses
+    public int maxUP = -1;                      // set to positive value for items with UP, -1 = infinite uses
     public int currentUP = -1;
 
-    public int healingPoints = -1;              // set to positive value for items that heal players, -1 means it does not heal
+    public int healingPoints = -1;              // set to positive value for items that heal players, -1 = does not heal
 
     public int damagePoints = -1;               // set only for items with inf.ItemType = Weapon
-    public bool isRanged = false;               // false means Melee, true means Ranged
+    public bool isRanged = false;               // false = Melee, true = Ranged
     public int range = -1;                      // max distance a Ranged weapon can attack to
 
     public bool isEquipable = false;            // can be equipped by characters, enabling the item and emptying an inventory slot
     public bool isAttachable = false;           // can be attached to vehicles, enabling the item
 
     public float shellDamageMultiplier = 1.0f;  // multiplied by damagePoints value if the weapon does different dmg to shelled bugs 
+    public bool isMortal = false;               // false = will use tracers to find line of sight, true = ignores obstacles
     public bool needsFuel = false;              // special tag for the Lightning Railgun (maybe other weapons), which needs fuel to start
 
     public static int lastItemIdx = (int)ItemTag.Unknown;
@@ -148,14 +149,14 @@ public class ItemInfo
                 break;
             // if item is a weapon as clicking will select it
             case ItemType.Weapon:
-                bool fIsSelected = ProcessSelection(p.inventoryUI.getCurrentSelected(), nPos);
+                bool fIsSelected = ProcessSelection(p.inventoryUI.GetCurrentSelected(), nPos);
 
                 if (!fIsSelected)
                 {
                     nPos = -1;
                 }
 
-                p.inventoryUI.setCurrentSelected(nPos);
+                p.inventoryUI.SetCurrentSelected(nPos);
 
                 if (nPos == -1) // reset enemyDamage since weapon was deselected
                 {
@@ -184,7 +185,7 @@ public class ItemInfo
     /// <param name="posNew"></param>
     public bool ProcessSelection(int posOld, int posNew)
     {
-        bool fIsSelected = true;
+        bool IsSelected = true;
         // if an item is already selected
         if (posOld != -1)
         {
@@ -192,7 +193,7 @@ public class ItemInfo
             {
                 // deselect old item
                 GameObject.Find("InventoryPressed" + posOld).transform.localScale = new Vector3(1, 1, 1);
-                fIsSelected = false;
+                IsSelected = false;
             }
             else // if selected unselected item
             {
@@ -206,7 +207,7 @@ public class ItemInfo
             // select new item
             GameObject.Find("InventoryPressed" + posNew).transform.localScale = new Vector3(0, 0, 0);
         }
-        return fIsSelected;
+        return IsSelected;
     }
 
     /// <summary>
@@ -326,7 +327,9 @@ public class ItemInfo
                     "\n" +
                     "UP:" + "\u221e" +
                     "\t" +
-                    "DP:" + inf.damagePoints;
+                    "DP:" + inf.damagePoints;// +
+                    //"\n" +
+                    //"RP:" + inf.range;
                 break;
                 /*
                 case 3:
