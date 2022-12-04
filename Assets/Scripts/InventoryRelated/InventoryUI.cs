@@ -49,11 +49,10 @@ public class InventoryUI : MonoBehaviour
     public void RefreshInventoryItems()
     {
         int j = 0;
+        int MaxInventoryUIItems = 2;
 
-        int nMaxInvUiItems = 2;
-
-        // cleanup 
-        for (int i = 0; i < nMaxInvUiItems; i++)
+        // cleanup of icons
+        for (int i = 0; i < MaxInventoryUIItems; i++)
         {
             Image icon = GameObject.Find("InventoryIcon" + i).GetComponent<Image>();
             icon.sprite = itemBackground;
@@ -62,7 +61,7 @@ public class InventoryUI : MonoBehaviour
         // add new
         foreach (ItemInventory item in inventory.GetItemList())
         {
-            if (j < nMaxInvUiItems)
+            if (j < MaxInventoryUIItems)
             {
                 Image icon = GameObject.Find("InventoryIcon" + j).GetComponent<Image>();
                 icon.sprite = item.GetSprite();
@@ -89,52 +88,60 @@ public class InventoryUI : MonoBehaviour
         return false;
     }
 
-    public bool IsRangedWeaponSelected()
+    public int IsRangedWeaponSelected()
     {
         if (selectedIdx != -1)
         {
             return inventory.IsRangedWeaponSelected(selectedIdx);
         }
-        return false;
+        return 0;
     }
 
-    public int getCurrentSelected()
+    public int GetCurrentSelected()
     {
         return selectedIdx;
     }
 
-    public void setCurrentSelected(int nPos)
+    public void SetCurrentSelected(int nPosition)
     {
-        selectedIdx = nPos;
-        cachedName = inventory.itemList[selectedIdx].itemInfo.name;
-        cachedDesc = inventory.itemList[selectedIdx].itemInfo.description;
+        selectedIdx = nPosition;
+        if (nPosition >= 0)
+        {
+            cachedName = inventory.itemList[selectedIdx].itemInfo.name;
+            cachedDesc = inventory.itemList[selectedIdx].itemInfo.description;
+        }
+        else
+        {
+            cachedName = "";
+            cachedDesc = "";
+        }
         // NOTE: need to get updated desc when UP changes
     }
 
     // shows name and desc of item when hovering over it
-    public void ProcessHoverForInventory(Vector3 mp)
+    public void ProcessHoverForInventory(Vector3 mousePosition)
     {
         int i = 0;
-        int sens = 50;
+        int sensitivityDistance = 50;
         bool found = false;
 
         GameObject iName = GameObject.Find("ItemName");
-        Text nametxt = iName.GetComponent<Text>();
+        Text nameText = iName.GetComponent<Text>();
         GameObject iDesc = GameObject.Find("ItemDescription");
-        Text desctxt = iDesc.GetComponent<Text>();
+        Text descText = iDesc.GetComponent<Text>();
 
         foreach (ItemInventory item in inventory.GetItemList())
         {
             Image icon = GameObject.Find("InventoryIcon" + i).GetComponent<Image>();
 
-            Vector3 p1 = icon.transform.position;
+            Vector3 iconPosition = icon.transform.position;
 
-            if (Math.Abs(p1.x - mp.x) < sens && Math.Abs(p1.y - mp.y) < sens)
+            if (Math.Abs(iconPosition.x - mousePosition.x) < sensitivityDistance && Math.Abs(iconPosition.y - mousePosition.y) < sensitivityDistance)
             {
                 found = true;
 
-                nametxt.text = item.itemInfo.name;
-                desctxt.text = item.itemInfo.description;
+                nameText.text = item.itemInfo.name;
+                descText.text = item.itemInfo.description;
 
                 break;
             }
@@ -143,13 +150,13 @@ public class InventoryUI : MonoBehaviour
         
         if (!found && selectedIdx == -1)
         {
-            nametxt.text = "";
-            desctxt.text = "";
+            nameText.text = "";
+            descText.text = "";
         }
         else if (!found && selectedIdx != -1)
         {
-            nametxt.text = cachedName;
-            desctxt.text = cachedDesc;
+            nameText.text = cachedName;
+            descText.text = cachedDesc;
         }
     }
 }

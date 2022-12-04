@@ -608,7 +608,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.2735849, g: 0.2735849, b: 0.2735849, a: 0.78431374}
+  m_Color: {r: 0.2735849, g: 0.2735849, b: 0.2735849, a: 0.88235295}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -1264,7 +1264,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 1
     m_LineSpacing: 2.5
-  m_Text: "EXODYSSEY 2D Alpha 1.0.1\t\t\t\t\t\tUnity 2021.1.14f1\tDX11"
+  m_Text: "EXODYSSEY 2D Alpha 1.0.6\t\t\t\t\t\tUnity 2021.1.14f1\tDX11"
 --- !u!222 &768722518
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -2976,8 +2976,8 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 1
     m_LineSpacing: 2.5
-  m_Text: "View Controls\t.\t[Esc]\nInteract\t\t.\t[Left Click]\nDrop Item\t\t.\t[Right
-    Click]\nEnd Turn\t\t.\t[E]\nUse Item 1\t\t.\t[1]\nUse Item 2\t\t.\t[2]"
+  m_Text: "Open Menu\t-\tESC\nInteract\t-\tMOUSE 1\nDrop Item\t-\tMOUSE 2\nEnd Turn\t-\tE\nUse
+    Item 1\t-\t1\nUse Item 2\t-\t2"
 --- !u!222 &2028268420
 CanvasRenderer:
   m_ObjectHideFlags: 0

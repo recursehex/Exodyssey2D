@@ -41,9 +41,20 @@ public class Inventory
         return itemList[idx].itemInfo.ProcessWeaponUse();
     }
 
-    public bool IsRangedWeaponSelected(int idx)
+    /// <summary>
+    /// Returns 0 if weapon is not ranged, > 0 if it is ranged to specify range
+    /// </summary>
+    /// <param name="idx"></param>
+    /// <returns></returns>
+    public int IsRangedWeaponSelected(int idx)
     {
-        return itemList[idx].itemInfo.isRanged;
+        //return itemList[idx].itemInfo.isRanged;
+        int ret = 0;
+        if (itemList[idx].itemInfo.isRanged)
+        {
+            ret = itemList[idx].itemInfo.range;
+        }
+        return ret;
     }
 
     public List<ItemInventory> GetItemList()
