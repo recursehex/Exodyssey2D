@@ -10,7 +10,7 @@ public class Inventory
     {
         itemList = new List<ItemInventory>();
 
-        // test code for giving player an item
+        // Test code for giving player an item
         //AddItem(new ItemInventory { itemType = ItemType.MedKit, amount = 1 });
     }
 
@@ -48,7 +48,6 @@ public class Inventory
     /// <returns></returns>
     public int IsRangedWeaponSelected(int idx)
     {
-        //return itemList[idx].itemInfo.isRanged;
         int ret = 0;
         if (itemList[idx].itemInfo.isRanged)
         {
