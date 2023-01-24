@@ -118,7 +118,10 @@ public class InventoryUI : MonoBehaviour
         // NOTE: need to get updated desc when UP changes
     }
 
-    // shows name and desc of item when hovering over it
+    /// <summary>
+    /// Shows name and desc of an item when hovering over it
+    /// </summary>
+    /// <param name="mousePosition"></param>
     public void ProcessHoverForInventory(Vector3 mousePosition)
     {
         int i = 0;

@@ -58,11 +58,11 @@ public class Enemy : MonoBehaviour
         Start();
     }
 
-    // future player attacking enemy
+    // Player attacks enemy
     public void DamageEnemy(int loss)
     {
         SoundManager.instance.RandomizeSfx(chopSound1, chopSound2);
-        // eventually add sprite change for enemy on this line using: spriteRenderer.sprite = dmgSprite;
+        // NOTE: Eventually add sprite change for enemy on this line using: spriteRenderer.sprite = dmgSprite;
         currentHP -= loss;
         if (currentHP <= 0)
         {
@@ -108,16 +108,18 @@ public class Enemy : MonoBehaviour
     {
         isInMovement = true;
         astar.Initialize();
-        astar.SetAllowDiagonal(false); // disables diagonal movement
+        // Disables diagonal movement
+        astar.SetAllowDiagonal(false);
 
         path = astar.ComputePath(transform.position, goal, gm);
         if (path != null  && 
-            currentAP> 0 &&
-            path.Count > 2) // to stop enemy from colliding into player
+            currentAP > 0 &&
+            // To stop enemy from colliding into player
+            path.Count > 2)
         {
             ChangeActionPoints(-1);
 
-            // don't remove this, need to pop first path element
+            // Do not remove this, need to pop first path element
             path.Pop();
 
             Vector3Int tryDistance = path.Pop();
@@ -163,7 +165,8 @@ public class Enemy : MonoBehaviour
 
     public void ChangeActionPoints(int change)
     {
-        if (currentAP + change > maxAP) // if new AP is greater than max
+        // If new AP is greater than max
+        if (currentAP + change > maxAP)
         {
             currentAP = maxAP;
         }

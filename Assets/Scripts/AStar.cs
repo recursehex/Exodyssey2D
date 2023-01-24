@@ -63,7 +63,7 @@ public class AStar
 
         toExamineList.Add(new Node(s));
 
-        // checks within AP distance limit for reachable tiles, pseudo-recursive
+        // Checks within AP distance limit for reachable tiles, pseudo-recursive
         for (int i = 0; i < dst; i++)
         {
             List<Node> newNeighbors = new List<Node>();
@@ -94,10 +94,10 @@ public class AStar
 
         current = GetNode(startPos);
 
-        // creates an open list for nodes that we might want to look at later
+        // Creates an open list for nodes that could be looked at later
         openList = new HashSet<Node>();
 
-        // creates a closed list for nodes that we have examined
+        // Creates a closed list for examined nodes
         closedList = new HashSet<Node>();
 
         foreach (KeyValuePair<Vector3Int, Node> node in allNodes)
@@ -107,7 +107,7 @@ public class AStar
 
         allNodes.Clear();
 
-        // adds the current node to the open list (we have examined it)
+        // Adds the current node to the open list (has been examined)
         openList.Add(current);
 
         path = null;
@@ -134,9 +134,9 @@ public class AStar
     private List<Node> FindNeighbors(Vector3Int parentPosition)
     {
         List<Node> neighbors = new List<Node>();
- 
 
-        for (int x = -1; x <= 1; x++) // these two for loops makes sure that we make all nodes around our current node
+        // These two for loops make sure that all nodes are created around the current node
+        for (int x = -1; x <= 1; x++)
         {
             for (int y = -1; y <= 1; y++)
             {
@@ -156,11 +156,11 @@ public class AStar
                 {
                     BoundsInt size = tilemapGround.cellBounds;
 
-                    // if node is within bounds of the grid & if there is no wall tile or enemy there & if player has any AP, add it to the neighbors list
+                    // If node is within bounds of the grid and if there is no wall tile and no enemy there and if player has any AP, then add it to the neighbors list
                     if (p.x >= size.min.x && p.x < size.max.x && p.y >= size.min.y && p.y < size.max.y && !tilemapWalls.HasTile(p) && !fEnemy)
                     {
-                        Node neighbour = GetNode(p);
-                        neighbors.Add(neighbour);
+                        Node neighbor = GetNode(p);
+                        neighbors.Add(neighbor);
                     }
 
                 }
@@ -173,62 +173,65 @@ public class AStar
     {
         for (int i = 0; i < neighbors.Count; i++)
         {
-            Node neighbour = neighbors[i];
+            Node neighbor = neighbors[i];
 
-            if (!ConnectedDiagonally(current, neighbour))
+            if (!ConnectedDiagonally(current, neighbor))
             {
                 continue;
             }
 
-            int gScore = DetermineGScore(neighbour.Position, current.Position);
+            int gScore = DetermineGScore(neighbor.Position, current.Position);
 
-            if (gScore == 14 && NoDiagonalTiles.Contains(neighbour.Position) && NoDiagonalTiles.Contains(current.Position))
+            if (gScore == 14 && NoDiagonalTiles.Contains(neighbor.Position) && NoDiagonalTiles.Contains(current.Position))
             {
                 continue;
             }
 
-            if (openList.Contains(neighbour))
+            if (openList.Contains(neighbor))
             {
-                if (current.G + gScore < neighbour.G)
+                if (current.G + gScore < neighbor.G)
                 {
-                    CalcValues(current, neighbour, goalPos, gScore);
+                    CalcValues(current, neighbor, goalPos, gScore);
                 }
             }
-            else if (!closedList.Contains(neighbour))
+            else if (!closedList.Contains(neighbor))
             {
-                CalcValues(current, neighbour, goalPos, gScore);
+                CalcValues(current, neighbor, goalPos, gScore);
 
-                if (!openList.Contains(neighbour)) // an extra check for openlist containing the neighbour
+                // An extra check for openList containing the neighbor
+                if (!openList.Contains(neighbor))
                 {
-                    openList.Add(neighbour); // then we need to add the node to the openlist
+                    // Node is added to the openList
+                    openList.Add(neighbor);
                 }
             }
         }
     }
 
-    private bool ConnectedDiagonally(Node currentNode, Node neighbour)
+    private bool ConnectedDiagonally(Node currentNode, Node neighbor)
     {
-        // gets the direction
-        Vector3Int direction = currentNode.Position - neighbour.Position;
+        // Gets the direction
+        Vector3Int direction = currentNode.Position - neighbor.Position;
 
-        // gets the positions of the nodes
+        // Gets the positions of the nodes
         Vector3Int first = new Vector3Int(currentNode.Position.x + (direction.x * -1), currentNode.Position.y, currentNode.Position.z);
         Vector3Int second = new Vector3Int(currentNode.Position.x, currentNode.Position.y + (direction.y * -1), currentNode.Position.z);
 
-        // the nodes are empty
+        // The nodes are empty
         return true;
     }
 
-    private int DetermineGScore(Vector3Int neighbour, Vector3Int current)
+    private int DetermineGScore(Vector3Int neighbor, Vector3Int current)
     {
         int gScore = 0;
 
-        int x = current.x - neighbour.x;
-        int y = current.y - neighbour.y;
+        int x = current.x - neighbor.x;
+        int y = current.y - neighbor.y;
 
         if (Math.Abs(x - y) % 2 == 1)
         {
-            gScore = 10; // the gscore for a vertical or horizontal node is 10
+            // The gScore for a vertical or horizontal node is 10
+            gScore = 10;
         }
         else
         {
@@ -240,36 +243,39 @@ public class AStar
 
     private void UpdateCurrentTile(ref Node current)
     {
-        // the current node is removed fromt he open list
+        // The current node is removed from the openList
         openList.Remove(current);
 
-        // the current node is added to the closed list
+        // The current node is added to the closedList
         closedList.Add(current);
 
-        if (openList.Count > 0) // if the openlist has nodes on it, then we need to sort them by its F value
+        // If the openList has nodes in it, then sort them by F value
+        if (openList.Count > 0)
         {
-            current = openList.OrderBy(x => x.F).First(); // orders the list by the F value, to make it easier to pick the node with the lowest F value
+            // Orders the list by the F value to make it easier to pick the node with the lowest F value
+            current = openList.OrderBy(x => x.F).First();
         }
     }
 
     private Stack<Vector3Int> GeneratePath(Node current)
     {
-        if (current.Position == goalPos) // if our current node is the goal, then we found a path
+        // If the current node is the goal, then a path is found
+        if (current.Position == goalPos)
         {
-            // creates a stack to contain the final path
+            // Creates a stack to contain the final path
             Stack<Vector3Int> finalPath = new Stack<Vector3Int>();
 
-            // adds the nodes to the final path
+            // Adds the nodes to the final path
             while (current != null)
             {
-                // adds the current node to the final path
+                // Adds the current node to the final path
                 finalPath.Push(current.Position);
-                // find the parent of the node, this is actually retracing the whole path back to start
-                // by doing so, we will end up with a complete path
+                // Find the parent of the node, this retraces the whole path back to the start,
+                // by doing so, a complete path is formed
                 current = current.Parent;
             }
 
-            // returns the complete path
+            // Returns the complete path
             return finalPath;
         }
 
@@ -277,19 +283,19 @@ public class AStar
 
     }
 
-    private void CalcValues(Node parent, Node neighbour, Vector3Int goalPos, int cost)
+    private void CalcValues(Node parent, Node neighbor, Vector3Int goalPos, int cost)
     {
-        // sets the parent node
-        neighbour.Parent = parent;
+        // Sets the parent node
+        neighbor.Parent = parent;
 
-        // calculates this nodes g cost, The parents g cost + what it costs to move tot his node
-        neighbour.G = parent.G + cost;
+        // Calculates this nodes g cost, the parents g cost + what it costs to move to this node
+        neighbor.G = parent.G + cost;
 
         // H is calucalted, it is the distance from this node to the goal * 10
-        neighbour.H = ((Math.Abs((neighbour.Position.x - goalPos.x)) + Math.Abs((neighbour.Position.y - goalPos.y))) * 10);
+        neighbor.H = ((Math.Abs((neighbor.Position.x - goalPos.x)) + Math.Abs((neighbor.Position.y - goalPos.y))) * 10);
 
-        // F is calcualted 
-        neighbour.F = neighbour.G + neighbour.H;
+        // F is calcualted, it is G + H
+        neighbor.F = neighbor.G + neighbor.H;
     }
 
     private Node GetNode(Vector3Int position)
