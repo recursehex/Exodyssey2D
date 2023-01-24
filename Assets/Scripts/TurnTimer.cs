@@ -33,7 +33,8 @@ public class TurnTimer : MonoBehaviour
                 timeRemaining -= Time.deltaTime;
                 DisplayTime(timeRemaining);
             }
-            else // when time has run out
+            // When time has run out
+            else
             {
                 timeRemaining = 0;
                 timerIsRunning = false;

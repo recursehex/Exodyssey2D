@@ -66,21 +66,20 @@ public class GameManager : MonoBehaviour
     [SerializeField]
     private GameObject levelImage;
 
-    // time that the level screen lasts
+    // How long the psuedo-loading screen lasts in seconds
     public float levelStartDelay = 1.5f;
 
-    // number of items and enemies
+    // Number of items and enemies, with min and max range for enemies
     public int nStartItems;
     public int nStartEnemies = 1;
     private int minEnemies = 1;
     private int maxEnemies = 3;
 
-    // tile arrays used for random generation
+    // Tile arrays are used for random generation
     public Tile[] groundTiles;
     public Tile[] wallTiles;
 
-    // level # is for each unit of the day, with 5 per day, i.e lvl 5 means day 2
-    // the units of the day are Dawn, Midday, Afternoon, Dusk, and Night
+    // Level # is for each unit of the day, with 5 per day, e.g. lvl 5 means day 2
     private readonly string[] timeOfDayNames = { "DAWN", "MIDDAY", "AFTERNOON", "DUSK", "NIGHT" };
     private int level = 0;
     private int day = 1;
@@ -158,7 +157,7 @@ public class GameManager : MonoBehaviour
 
         endTurnButton.interactable = true;
 
-        // clear tilemap tiles before generating new tiles
+        // Clears tilemap tiles before generating new tiles
         tilemapGround.ClearAllTiles();
         tilemapWalls.ClearAllTiles();
 
@@ -176,7 +175,7 @@ public class GameManager : MonoBehaviour
 
         enemies.Clear();
 
-        // reset player data
+        // Resets player position and AP
         player.transform.position = new Vector3(-3.5f, 0.5f, 0f);
         player.RestoreAP();
 
@@ -201,7 +200,7 @@ public class GameManager : MonoBehaviour
 
         mapGenerator = new MapGen();
 
-        // do not change order
+        // Do not change order
         GroundGeneration();
         WallGeneration();
         ItemGeneration();
@@ -233,7 +232,7 @@ public class GameManager : MonoBehaviour
 
     // NEED TO MAKE THIS A SEPARATE CLASS
     /// <summary>
-    /// Procedurally generates items once per level
+    /// Procedurally generates items once per level, first selecting a weighted rarity and then selecting equally from within that rarity
     /// </summary>
     public void ItemGeneration()
     {
@@ -504,7 +503,6 @@ public class GameManager : MonoBehaviour
                     else
                     {
                         enemiesInMovement = false;
-                        DrawTargetAndTracers();
                         UpdateEnemyAP();
                         turnTimer.ResetTimer();
                         tiledot.gameObject.SetActive(true);
@@ -513,6 +511,7 @@ public class GameManager : MonoBehaviour
 
                         needToDrawReachableAreas = true;
                         DrawTileAreaIfNeeded();
+                        DrawTargetAndTracers();
                     }
                 }
             }
@@ -554,13 +553,14 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private void ClickTarget()
     {
+        // If RMB clicks
         if (Input.GetMouseButtonDown(1)
             //&& !EventSystem.current.IsPointerOverGameObject()
             )
         {
-            // this should be for player swapping to other characters or inspecting something
+            // This should be for player swapping to other characters or inspecting something
         }
-        // if left click, begin Player movement system
+        // If LMB clicks, begin Player movement system
         else if (Input.GetMouseButtonDown(0))
         {
             BoundsInt size = tilemapGround.cellBounds;
@@ -570,26 +570,27 @@ public class GameManager : MonoBehaviour
             Vector3 shiftedClickPoint = new Vector3(clickPoint.x + 0.5f, clickPoint.y + 0.5f, 0);
 
             if (
-            // check if in bounds
+            // If mouse clicks within the grid
             clickPoint.x >= size.min.x &&
             clickPoint.x < size.max.x &&
             clickPoint.y >= size.min.y &&
             clickPoint.y < size.max.y &&
 
-            // check if not a wall tile
+            // If mouse does not click a wall tile
             (!tilemapWalls.HasTile(clickPoint)) &&
 
-            // check if not moving
+            // If Player is not moving
             !player.isInMovement)
             {
-                // if click is on player position, ITEM CHECK
+                // If click is on the Player's position
                 if (shiftedClickPoint == player.transform.position)
                 {
-                    // checks for item on tile and if so, player picks up item
+                    // If there is an item on the same tile as the Player
                     Item itemAtPosition = HasItemAtPosition(shiftedClickPoint);
 
                     if (itemAtPosition != null)
                     {
+                        // If an item is there, Player picks it up
                         if (player.AddItem(itemAtPosition.info))
                         {
                             DestroyItemAtPosition(shiftedClickPoint);
@@ -606,16 +607,10 @@ public class GameManager : MonoBehaviour
                     isInRangeForRangedWeapon = IsInRangeForRangedWeapon(shiftedClickPoint);
                 }
 
-                // for actions that require AP
-                if (
-                    // check if in reachable area
-
-                    // MAYBE UNCOMMENT BELOW LINE IF FOUND PROBLEMS REGARDING MOVEMENT
-                    //(isInRange || isInRangeForRangedWeapon) &&
-                    // check if it is players turn
-                    playersTurn)
+                // For actions that require AP, first check if it is the Player's turn
+                if (playersTurn)
                 {
-                    // if click on exit tile, new level
+                    // If the mouse clicks on an exit tile, start a new level
                     if (isInMovementRange && tilemapExit.HasTile(clickPoint))
                     {
                         OnLevelWasLoaded(level);
@@ -625,13 +620,13 @@ public class GameManager : MonoBehaviour
                         int idxOfEnemy = GetEnemyIdxIfPresent(clickPoint);
                         bool startTimer = false;
 
-                        // if there is no enemy on clicked tile
+                        // If there is no enemy on the clicked tile
                         if (isInMovementRange && idxOfEnemy == -1)
                         {
-                            // if click on tile that player is not occupying
+                            // If the mouse clicks on a tile that Player is not on
                             if (shiftedClickPoint != player.transform.position)
                             {
-                                // movement code
+                                // Movement code
                                 endTurnButton.interactable = false;
                                 player.isInMovement = true;
                                 needToDrawReachableAreas = true;
@@ -639,10 +634,10 @@ public class GameManager : MonoBehaviour
                                 startTimer = true;
                             }
                         }
-                        // attack enemy
+                        // For attacking an enemy, if there exists an enemy and if it is in melee or ranged weapon range
                         else if (idxOfEnemy != -1 && (isInMeleeRange || isInRangeForRangedWeapon))
                         {
-                            // if player has a weapon and AP > 0
+                            // If the Player has a weapon and AP > 0
                             if (player.enemyDamage > 0 && player.currentAP > 0)
                             {
                                 HandleEnemyDamage(idxOfEnemy);
@@ -662,7 +657,7 @@ public class GameManager : MonoBehaviour
                 }
             }
         }
-        // hovering over tile, right now this is for enemy HP display
+        // If mouse is hovering over a tile, to move tiledot and enemyHealthBar
         else
         {
             BoundsInt size = tilemapGround.cellBounds;
@@ -675,19 +670,20 @@ public class GameManager : MonoBehaviour
             Vector3Int tilePoint = tilemapGround.WorldToCell(worldPoint);
 
             if (
-                // check if in bounds
+                // If mouse is within the grid
                 tilePoint.x >= size.min.x &&
                 tilePoint.x < size.max.x &&
                 tilePoint.y >= size.min.y &&
                 tilePoint.y < size.max.y)
             {
-                // check is if in reachable area to update tiledot
+                // If mouse is hovering over a tileArea
                 if (IsInMovementRange(tilePoint))
                 {
+                    // Moves tiledot to the tile the mouse is hovering over
                     tiledot.MoveToPlace(tilePoint);
                 }
 
-                // checks which enemy is hovered over to display its health
+                // Checks which enemy is hovered over to display its health
                 int idxOfEnemy = GetEnemyIdxIfPresent(tilePoint);
                 if (idxOfEnemy >= 0)
                 {
@@ -703,9 +699,9 @@ public class GameManager : MonoBehaviour
                     enemyHealthBar.gameObject.SetActive(false);
                 }
             }
-            // if hovering over UI
+            // If mouse is hovering over UI since UI is outside the grid
             {
-                // if hovering over inventory slot
+                // If mouse is hovering over an inventory slot
                 player.ProcessHoverForInventory(mousePoint);
             }
         }
@@ -744,6 +740,7 @@ public class GameManager : MonoBehaviour
     {
         tiledot.gameObject.SetActive(false);
         ClearTileAreas();
+        ClearTargetsAndTracers();
         player.ChangeActionPoints(-3);
     }
 
@@ -817,7 +814,6 @@ public class GameManager : MonoBehaviour
                 return true;
             }
         }
-
         return false;
     }
 
@@ -899,7 +895,7 @@ public class GameManager : MonoBehaviour
         ClearTargetsAndTracers();
 
         int weaponRange = player.IsRangedWeaponSelected();
-        if (weaponRange > 0 && (!enemiesInMovement))
+        if (weaponRange > 0 && (!enemiesInMovement) && player.currentAP > 0)
         {
             rangedTargetPositions.Clear();
 
@@ -908,7 +904,6 @@ public class GameManager : MonoBehaviour
                 Enemy e = obj.GetComponent<Enemy>();
                 Vector3 enemyPoint = e.transform.position;
 
-                // NOTE: add actual range
                 RangedWeaponCalculation result = IsInLineOfSight(player.transform.position, enemyPoint, weaponRange);
 
                 if (result.tracerPath.Count > 0)
@@ -942,7 +937,7 @@ public class GameManager : MonoBehaviour
     {
         RangedWeaponCalculation ret = new RangedWeaponCalculation();
 
-        // distance between player and enemy
+        // Distance between player and enemy
         float distance = Mathf.Sqrt(Mathf.Pow(objPosition.x - playerPosition.x, 2) + Mathf.Pow(objPosition.y - playerPosition.y, 2));
 
         if (distance > weaponRange)

@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
 public enum ItemTag
 {
@@ -84,28 +83,28 @@ public class AfterItemUse
 /// </summary>
 public class ItemInfo
 {
-    public ItemTag tag;                         // name of item
-    public ItemRarity rarity;                   // rarity of item
-    public ItemType type;                       // type of item
+    public ItemTag tag;                         // Name of item
+    public ItemRarity rarity;                   // Rarity of item
+    public ItemType type;                       // Type of item
 
-    public string name;                         // ingame name of item
-    public string description;                  // ingame desc of item
+    public string name;                         // Ingame name of item
+    public string description;                  // Ingame desc of item
 
-    public int maxUP = -1;                      // set to positive value for items with UP, -1 = infinite uses
+    public int maxUP = -1;                      // Set to positive value for items with UP, -1 = infinite uses
     public int currentUP = -1;
 
-    public int healingPoints = -1;              // set to positive value for items that heal players, -1 = does not heal
+    public int healingPoints = -1;              // Set to positive value for items that heal players, -1 = does not heal
 
-    public int damagePoints = -1;               // set only for items with inf.ItemType = Weapon
+    public int damagePoints = -1;               // Set only for items with inf.ItemType = Weapon
     public bool isRanged = false;               // false = Melee, true = Ranged
-    public int range = -1;                      // max distance a Ranged weapon can attack to
+    public int range = -1;                      // Maximum distance a Ranged weapon can attack to
 
-    public bool isEquipable = false;            // can be equipped by characters, enabling the item and emptying an inventory slot
-    public bool isAttachable = false;           // can be attached to vehicles, enabling the item
+    public bool isEquipable = false;            // Can be equipped by characters, enabling the item and emptying an inventory slot
+    public bool isAttachable = false;           // Can be attached to vehicles, enabling the item
 
-    public float shellDamageMultiplier = 1.0f;  // multiplied by damagePoints value if the weapon does different dmg to shelled bugs 
+    public float shellDamageMultiplier = 1.0f;  // Multiplied by damagePoints value if the weapon does different dmg to shelled bugs 
     public bool isMortal = false;               // false = will use tracers to find line of sight, true = ignores obstacles
-    public bool needsFuel = false;              // special tag for the Lightning Railgun (maybe other weapons), which needs fuel to start
+    public bool needsFuel = false;              // Special tag for the Lightning Railgun (maybe other weapons), which needs fuel to start
 
     public static int lastItemIdx = (int)ItemTag.Unknown;
 
@@ -132,11 +131,11 @@ public class ItemInfo
     {
         AfterItemUse ret = new AfterItemUse();
 
-        // checks by item type category
+        // Checks by item type category
         switch (type)
         {
             case ItemType.Consumable:
-                // if the item heals players
+                // If the item heals the Player
                 if (healingPoints != -1 && p.currentHP < p.maxHP)
                 {
                     p.ChangeHealth(healingPoints);
@@ -147,7 +146,7 @@ public class ItemInfo
                     "UP:" + currentUP;
                 }
                 break;
-            // if item is a weapon as clicking will select it
+            // If an item is a weapon, as clicking it will select it
             case ItemType.Weapon:
                 bool fIsSelected = ProcessSelection(p.inventoryUI.GetCurrentSelected(), nPos);
 
@@ -170,7 +169,7 @@ public class ItemInfo
                 ret.selectedIdx = nPos;               
                 break;
         }
-        // if item runs out of UP, it needs to be removed
+        // If an item runs out of UP, it needs to be removed
         if (currentUP == 0)
         {
             ret.fRemove = true;
@@ -186,32 +185,34 @@ public class ItemInfo
     public bool ProcessSelection(int posOld, int posNew)
     {
         bool IsSelected = true;
-        // if an item is already selected
+        // If an item is already selected
         if (posOld != -1)
         {
             if (posNew == posOld)
             {
-                // deselect old item
+                // Deselect old item
                 GameObject.Find("InventoryPressed" + posOld).transform.localScale = new Vector3(1, 1, 1);
                 IsSelected = false;
             }
-            else // if selected unselected item
+            // If selected unselected item
+            else
             {
-                // deselect old item and select new item
+                // Deselect old item and select new item
                 GameObject.Find("InventoryPressed" + posOld).transform.localScale = new Vector3(1, 1, 1);
                 GameObject.Find("InventoryPressed" + posNew).transform.localScale = new Vector3(0, 0, 0);
             }
         }
-        else // if no item is selected
+        // If no item is selected
+        else
         {
-            // select new item
+            // Select new item
             GameObject.Find("InventoryPressed" + posNew).transform.localScale = new Vector3(0, 0, 0);
         }
         return IsSelected;
     }
 
     /// <summary>
-    /// Ensures that player damage is reset after dropping a weapon
+    /// Ensures that enemyDamage is reset after the Player drops a weapon
     /// </summary>
     /// <param name="p"></param>
     /// <returns></returns>
@@ -226,7 +227,7 @@ public class ItemInfo
     }
 
     /// <summary>
-    /// Changes UP of a weapon after it is used
+    /// Changes the UP of a weapon after it is used
     /// </summary>
     /// <returns></returns>
     public bool ProcessWeaponUse()
@@ -240,7 +241,8 @@ public class ItemInfo
                 "\t" +
                 "DP:" + damagePoints;
         }
-        else // if infinite UP
+        // If a weapon has infinite UP
+        else
         {
             description = "Use:Equip weapon" +
                 "\n" +
@@ -251,9 +253,12 @@ public class ItemInfo
         return (currentUP == 0);
     }
 
+    /// <summary>
+    /// Returns the percentage for a desired rarity
+    /// </summary>
+    /// <returns></returns>
     public static Dictionary<ItemRarity, int> FillRarityNamestoPercentageMap()
     {
-        // weighting for each rarity group
         Dictionary<ItemRarity, int> RarityToPercentage = new Dictionary<ItemRarity, int>
         {
             [ItemRarity.Common] = 35,
@@ -266,6 +271,11 @@ public class ItemInfo
         return RarityToPercentage;
     }
 
+    /// <summary>
+    /// Returns the info for a desired item 
+    /// </summary>
+    /// <param name="n"></param>
+    /// <returns></returns>
     public static ItemInfo ItemFactoryFromNumber(int n)
     {
         ItemInfo inf = new ItemInfo();

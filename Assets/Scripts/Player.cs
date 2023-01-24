@@ -19,7 +19,7 @@ public class Player : MonoBehaviour
     public Text healthText;
     public Text actionPointText;
 
-    // audio clips relating to the player
+    // Audio clips relating to the player
     public AudioClip moveSound1;
     public AudioClip moveSound2;
     public AudioClip eatSound1;
@@ -76,7 +76,7 @@ public class Player : MonoBehaviour
         astar.tilemapGround = tilemapGround;
         astar.tilemapWalls = tilemapWalls;
 
-        // sets text of healthText and actionPointText
+        // Sets text of healthText and actionPointText
         healthText.text = "HP:" + currentHP;
         actionPointText.text = "AP:" + currentAP;
 
@@ -161,7 +161,8 @@ public class Player : MonoBehaviour
     /// </summary>
     public void ChangeHealth(int change)
     {
-        if (currentHP + change > maxHP) // if new HP is greater than max
+        // If new HP is greater than max
+        if (currentHP + change > maxHP)
         {
             currentHP = maxHP;
             healthText.text = "HP:" + currentHP;
@@ -170,10 +171,12 @@ public class Player : MonoBehaviour
         else
         {
             currentHP += change;
-            if (change < 0) // only used when player takes damage
+            // If change is negative, only used when player takes damage
+            if (change < 0)
             {
                 animator.SetTrigger("playerHit");
                 healthText.text = "HP:" + currentHP;
+                // If Player reaches 1 HP, maxAP drops to 1 to simulate weakness
                 if (currentHP == 1)
                 {
                     maxAP = 1;
@@ -182,13 +185,14 @@ public class Player : MonoBehaviour
                 CheckIfGameOver();
                 return;
             }
-            else // if change is positive but not over max
+            // If change is positive but not over max
+            else
             {
                 healthText.text = "HP:" + currentHP;
                 maxAP = 3;
             }
         }
-        // will be replaced with a different healing sound
+        // NOTE: Will be replaced with a different healing sound
         SoundManager.instance.RandomizeSfx(eatSound1, eatSound2);
     }
 
@@ -197,7 +201,8 @@ public class Player : MonoBehaviour
     /// </summary>
     public void ChangeActionPoints(int change)
     {
-        if (currentAP + change > maxAP) // if new AP is greater than max
+        // If new AP is greater than max
+        if (currentAP + change > maxAP)
         {
             currentAP = maxAP;
             actionPointText.text = "AP:" + currentAP;
@@ -205,7 +210,8 @@ public class Player : MonoBehaviour
         else
         {
             currentAP += change;
-            if (change < 0) // if change is negative
+            // If change is negative
+            if (change < 0)
             {
                 if (currentAP <= 0)
                 {
@@ -215,7 +221,8 @@ public class Player : MonoBehaviour
                 }
                 actionPointText.text = "AP:" + currentAP;
             }
-            else // if change is postive but not over max, wont really be used
+            // If change is postive but not over max, wont really be used
+            else
             {
                 actionPointText.text = "AP:" + currentAP;
             }
@@ -300,13 +307,14 @@ public class Player : MonoBehaviour
         if (n < inventory.itemList.Count)
         {
             ItemInfo anItem = inventory.itemList[n].itemInfo;
+            gm.needToDrawReachableAreas = true;
             AfterItemUse ret = anItem.UseItem(this, n);
-            // if click is to select item, item becomes selected
+            // Item gets selected since it was unselected before
             if (ret.selectedIdx != -1)
             {
                 selectedItem = anItem;
             }
-            // if click is to remove item, item is removed & inv is organized
+            // Item is removed and inventory is refreshed since it was used up
             if (ret.fRemove)
             {
                 inventoryUI.RemoveItem(n);
@@ -322,7 +330,7 @@ public class Player : MonoBehaviour
     {
         if (n < inventory.itemList.Count)
         {
-            // if drop returns false, then we can't remove it
+            // If drop returns false, then we can't remove it
             if (GameManager.MyInstance.DropItem(inventory.itemList[n].itemInfo))
             {
                 if (inventoryUI.ProcessDamageAfterWeaponDrop(this, n))
