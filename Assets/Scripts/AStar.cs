@@ -145,12 +145,8 @@ public class AStar
                 bool fEnemy = false;
                 if (gm != null)
                 {
-                    Vector3 pForEnemy = new Vector3(parentPosition.x - x +0.5f, parentPosition.y - y +0.5f, parentPosition.z);
+                    Vector3 pForEnemy = new Vector3(parentPosition.x - x + 0.5f, parentPosition.y - y + 0.5f, parentPosition.z);
                     fEnemy = gm.HasEnemyAtLoc(pForEnemy);
-                }
-                if (fEnemy)
-                {
-                    fEnemy = true;
                 }
                 if ((y != 0 || x != 0) && (allowDiagonal || (!allowDiagonal && (y == 0 || x == 0))))
                 {

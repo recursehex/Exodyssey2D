@@ -4,11 +4,7 @@ using UnityEngine.Tilemaps;
 
 public class Enemy : MonoBehaviour
 {
-    public int maxHP = 2;
-    public int maxAP = 1;
-    public int playerDamage = -1;
-    public int currentHP;
-    public int currentAP;
+    public EnemyInfo info;
 
     private Animator animator;
     private Transform target;
@@ -32,7 +28,6 @@ public class Enemy : MonoBehaviour
 
     private Vector3Int destination;
 
-    List<GameObject> allEnemies;
     GameManager gm;
 
     [SerializeField]
@@ -45,9 +40,6 @@ public class Enemy : MonoBehaviour
         animator = GetComponent<Animator>();
         target = GameObject.FindGameObjectWithTag("Player").transform;
 
-        //maxHP = (int)Random.Range(1, 4);
-        currentHP = maxHP;
-        currentAP = maxAP;
         astar = new AStar();
         astar.tilemapGround = tilemapGround;
         astar.tilemapWalls = tilemapWalls;
@@ -63,8 +55,8 @@ public class Enemy : MonoBehaviour
     {
         SoundManager.instance.RandomizeSfx(chopSound1, chopSound2);
         // NOTE: Eventually add sprite change for enemy on this line using: spriteRenderer.sprite = dmgSprite;
-        currentHP -= loss;
-        if (currentHP <= 0)
+        info.currentHP -= loss;
+        if (info.currentHP <= 0)
         {
             gameObject.SetActive(false);
         }
@@ -87,10 +79,8 @@ public class Enemy : MonoBehaviour
             if (distance <= 0f)
             {
                 if (path.Count > 0 && 
-                    currentAP > 0  &&
-                    path.Count > 1
-
-                    )
+                    info.currentAP > 0  &&
+                    path.Count > 1)
                 {
                     destination = path.Pop();
                     ChangeActionPoints(-1);
@@ -113,7 +103,7 @@ public class Enemy : MonoBehaviour
 
         path = astar.ComputePath(transform.position, goal, gm);
         if (path != null  && 
-            currentAP > 0 &&
+            info.currentAP > 0 &&
             // To stop enemy from colliding into player
             path.Count > 2)
         {
@@ -139,7 +129,7 @@ public class Enemy : MonoBehaviour
         {
             if (path != null && path.Count == 2)
             {
-                gm.HandlePlayerDamage(playerDamage);
+                gm.HandleDamageToPlayer(info.damagePoints);
                 SoundManager.instance.RandomizeSfx(enemyAttack, enemyAttack);
             }
             path = null;
@@ -151,7 +141,7 @@ public class Enemy : MonoBehaviour
     {
         bool ret = false;
         Vector3 shiftedDistance = new Vector3(p.x + 0.5f, p.y + 0.5f, 0);
-        foreach (GameObject obj in allEnemies)
+        foreach (GameObject obj in gm.enemies)
         {
             Enemy e = obj.GetComponent<Enemy>();
             if (e.transform.position == shiftedDistance)
@@ -166,24 +156,16 @@ public class Enemy : MonoBehaviour
     public void ChangeActionPoints(int change)
     {
         // If new AP is greater than max
-        if (currentAP + change > maxAP)
+        info.currentAP += change;
+        if (info.currentAP > info.maxAP)
         {
-            currentAP = maxAP;
-        }
-        else
-        {
-            currentAP += change;
+            info.currentAP = info.maxAP;
         }
     }
 
     public void RestoreAP()
     {
-        currentAP = maxAP;
-    }
-
-    public void SetAllEnemyList(List<GameObject> toExclude)
-    {
-        allEnemies = toExclude;
+        info.currentAP = info.maxAP;
     }
 
     public void SetGameManager(GameManager g)
