@@ -13,7 +13,7 @@ public class Player : MonoBehaviour
     public int currentHP;
     public int currentAP;
 
-    public int enemyDamage = 0;
+    public int damageToEnemy = 0;
 
     // HP and AP text
     public Text healthText;
@@ -254,7 +254,7 @@ public class Player : MonoBehaviour
         {
             inventoryUI.RemoveItem(inventoryUI.GetCurrentSelected());
             inventoryUI.RefreshInventoryItems();
-            enemyDamage = 0;
+            damageToEnemy = 0;
         }
     }
 
