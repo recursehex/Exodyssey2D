@@ -71,7 +71,7 @@ public class GameManager : MonoBehaviour
 
     // Number of items and enemies, with min and max range for enemies
     public int nStartItems;
-    public int nStartEnemies = 1;
+    public int nStartEnemies = 5;
     private int minEnemies = 1;
     private int maxEnemies = 3;
 
@@ -203,8 +203,8 @@ public class GameManager : MonoBehaviour
         // Do not change order
         GroundGeneration();
         WallGeneration();
-        ItemGeneration();
         EnemyGeneration();
+        ItemGeneration();
     }
 
     /// <summary>
@@ -230,85 +230,12 @@ public class GameManager : MonoBehaviour
         mapGenerator.generateMap(tilemapWalls, wallTiles);
     }
 
-    // NEED TO MAKE THIS A SEPARATE CLASS
     /// <summary>
     /// Procedurally generates items once per level, first selecting a weighted rarity and then selecting equally from within that rarity
     /// </summary>
     public void ItemGeneration()
     {
-        Dictionary<ItemRarity, int> percentMap = ItemInfo.FillRarityNamestoPercentageMap();
-        List<ItemInfo> allItems = ItemInfo.GenerateAllPossibleItems();
-
-        int sumPercent = 0;
-        List<int> rarityPercentages = new List<int>();
-        List<List<int>> ItemIndexDoubleList = new List<List<int>>();
-        for (ItemRarity r = ItemRarity.Common; r < ItemRarity.Unknown; r++)
-        {
-            int nItemsOfRarity = 0;
-            List<int> itemIndices = new List<int>();
-            for (int i = 0; i < allItems.Count; i++)
-            {
-                if (allItems[i].rarity == r)
-                {
-                    nItemsOfRarity++;
-                    itemIndices.Add(i);
-                }
-            }
-            if (nItemsOfRarity > 0)
-            {
-                int p = percentMap[r];
-                rarityPercentages.Add(p);
-                ItemIndexDoubleList.Add(itemIndices);
-                sumPercent += p;
-            }
-        }
-
-        for (int i = 0; i < nStartItems * 4; i++)
-        {
-            int rSum = 0;
-            int randomPercent = Random.Range(0, 100);
-            int j;
-            for (j = 0; j < rarityPercentages.Count; j++)
-            {
-                if (randomPercent <= ((rSum + rarityPercentages[j]) * 100) / sumPercent)
-                {
-                    break;
-                }
-                rSum += rarityPercentages[j];
-            }
-
-            int nItemsInGroup = ItemIndexDoubleList[j].Count;
-            int randomItemInGroupIndex = Random.Range(0, nItemsInGroup);
-            int randomItemIndex = ItemIndexDoubleList[j][randomItemInGroupIndex];
-
-            GameObject item = itemTemplates[randomItemIndex];
-
-            while (true)
-            {
-                int x = (Random.Range(-4, 4));
-                int y = (Random.Range(-4, 4));
-                Vector3Int p = new Vector3Int(x, y, 0);
-
-                if (!tilemapWalls.HasTile(p) && !(x == -4 && y == 0))
-                {
-                    Vector3 shiftedDistance = new Vector3(x + 0.5f, y + 0.5f, 0);
-
-                    Item itemAtPosition = HasItemAtPosition(shiftedDistance);
-
-                    if (itemAtPosition == null)
-                    {
-                        GameObject instance = Instantiate(item, shiftedDistance, Quaternion.identity) as GameObject;
-
-                        Item e = instance.GetComponent<Item>();
-
-                        e.info = ItemInfo.ItemFactoryFromNumber(randomItemIndex);
-                        items.Add(instance);
-
-                        break;
-                    }
-                }
-            }
-        }
+        WeightedRarityGeneration.Generation(ItemInfo.RarityPercentMap(), ItemInfo.GenerateAllRarities(), nStartItems, itemTemplates, items, tilemapWalls, this,true);
     }
 
     /// <summary>
@@ -340,7 +267,7 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// Returns null if no item at position, returns item object if item is found
     /// </summary>
-    private Item HasItemAtPosition(Vector3 position)
+    public Item HasItemAtPosition(Vector3 position)
     {
         Item ret = null;
         foreach (GameObject obj in items)
@@ -353,6 +280,30 @@ public class GameManager : MonoBehaviour
             }
         }
         return ret;
+    }
+
+
+    public bool HasElementAtPosition(Vector3 position)
+    {
+        foreach (GameObject obj in items)
+        {
+            Item e = obj.GetComponent<Item>();
+            if (e.transform.position == position)
+            {
+                return true;
+            }
+        }
+
+        foreach (GameObject obj in enemies)
+        {
+            Enemy e = obj.GetComponent<Enemy>();
+            if (e.transform.position == position)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -377,6 +328,10 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public void EnemyGeneration()
     {
+        nStartEnemies = 5;
+        WeightedRarityGeneration.Generation(EnemyInfo.RarityPercentMap(), EnemyInfo.GenerateAllRarities(), nStartEnemies, enemyTemplates, enemies, tilemapWalls, this,false);
+
+        /*
         for (int i = 0; i < nStartEnemies; i++)
         {
             GameObject enemy = enemyTemplates[0];
@@ -409,6 +364,7 @@ public class GameManager : MonoBehaviour
                 }
             }
         }
+        */
     }
 
     /// <summary>
@@ -638,9 +594,9 @@ public class GameManager : MonoBehaviour
                         else if (idxOfEnemy != -1 && (isInMeleeRange || isInRangeForRangedWeapon))
                         {
                             // If the Player has a weapon and AP > 0
-                            if (player.enemyDamage > 0 && player.currentAP > 0)
+                            if (player.damageToEnemy > 0 && player.currentAP > 0)
                             {
-                                HandleEnemyDamage(idxOfEnemy);
+                                HandleDamageToEnemy(idxOfEnemy);
                                 player.ChangeActionPoints(-1);
                                 player.AnimateAttack();
                                 player.ProcessWeaponUse();
@@ -689,7 +645,7 @@ public class GameManager : MonoBehaviour
                 {
                     GameObject obj = enemies[idxOfEnemy];
                     Enemy e = obj.GetComponent<Enemy>();
-                    enemyHealthBar.SetHealth(e.currentHP);
+                    enemyHealthBar.SetHealth(e.info.currentHP);
 
                     enemyHealthBar.gameObject.SetActive(true);
                     enemyHealthBar.MoveToPlace(tilePoint);
@@ -708,15 +664,15 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Called when an enemy takes damage, assumes player.enemyDamage > 0
+    /// Called when an enemy takes damage, assumes player.damageToEnemy > 0
     /// </summary>
-    private void HandleEnemyDamage(int idx)
+    private void HandleDamageToEnemy(int idx)
     {
         GameObject obj = enemies[idx];
         Enemy e = obj.GetComponent<Enemy>();
-        e.DamageEnemy(player.enemyDamage);
+        e.DamageEnemy(player.damageToEnemy);
 
-        if (e.currentHP <= 0)
+        if (e.info.currentHP <= 0)
         {
             enemies.RemoveAt(idx);
             Destroy(obj, 0f);
@@ -726,9 +682,9 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// Called when player takes damage to adjust health and redraw tile areas
     /// </summary>
-    public void HandlePlayerDamage(int dmg)
+    public void HandleDamageToPlayer(int dmg)
     {
-        player.ChangeHealth(dmg);
+        player.ChangeHealth(-dmg);
         needToDrawReachableAreas = true;
         DrawTileAreaIfNeeded();
     }
@@ -937,10 +893,9 @@ public class GameManager : MonoBehaviour
     {
         RangedWeaponCalculation ret = new RangedWeaponCalculation();
 
-        // Distance between player and enemy
-        float distance = Mathf.Sqrt(Mathf.Pow(objPosition.x - playerPosition.x, 2) + Mathf.Pow(objPosition.y - playerPosition.y, 2));
+        float distanceFromPlayerToEnemy = Mathf.Sqrt(Mathf.Pow(objPosition.x - playerPosition.x, 2) + Mathf.Pow(objPosition.y - playerPosition.y, 2));
 
-        if (distance > weaponRange)
+        if (distanceFromPlayerToEnemy > weaponRange)
         {
             ret.fHitTarget = false;
 

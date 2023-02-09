@@ -8,26 +8,13 @@ public enum EnemyTag
 
     // MEDIOCRE
     //Spawner,
+    Launcher,
 
     // STRONG
     //Beast,
 
     // EXOTIC
     //OvergrownScanner,
-
-    // BOSS
-    //Biolith,
-
-    Unknown,
-}
-public enum EnemyRarity
-{
-    Common = 0, // white
-    Limited,    // green
-    Scarce,     // yellow
-    Rare,       // blue
-    Numinous,   // purple
-    Secret,     // red
 
     Unknown,
 }
@@ -38,7 +25,6 @@ public enum EnemyType
     Mediocre,
     Strong,
     Exotic,
-    Boss,
 
     Unknown,
 }
@@ -46,7 +32,7 @@ public enum EnemyType
 public class EnemyInfo
 {
     public EnemyTag tag;                        // Name of enemy
-    public EnemyRarity rarity;                  // Rarity of enemy
+    public Rarity rarity;                       // Rarity of enemy
     public EnemyType type;                      // Type of enemy
 
     public string name;                         // Ingame name of enemy
@@ -62,24 +48,38 @@ public class EnemyInfo
     public bool isRanged = false;               // false = Melee, true = Ranged
     public int range = -1;                      // Maximum distance a Ranged enemy can attack to
 
+    public bool isHunting = true;               // true = will hunt the player, false = will guard nearby items
     public bool isShelled = false;              // false = will not have resistance to Steel Beam and Mallet, true = will have resistance to those weapons and will be affected by Axe, Honed Gavel, and Shell Piercer
 
     public static int lastEnemyIdx = (int)EnemyTag.Unknown;
+
+    static public List<Rarity> GenerateAllRarities()
+    {
+        List<Rarity> ret = new();
+
+        for (int i = 0; i < lastEnemyIdx; i++)
+        {
+            EnemyInfo item = FactoryFromNumber(i);
+            ret.Add(item.rarity);
+        }
+
+        return ret;
+    }
 
     /// <summary>
     /// Returns the percentage for a desired rarity
     /// </summary>
     /// <returns></returns>
-    public static Dictionary<EnemyRarity, int> FillRarityNamestoPercentageMap()
+    public static Dictionary<Rarity, int> RarityPercentMap()
     {
-        Dictionary<EnemyRarity, int> RarityToPercentage = new Dictionary<EnemyRarity, int>
+        Dictionary<Rarity, int> RarityToPercentage = new Dictionary<Rarity, int>
         {
-            [EnemyRarity.Common] = 35,
-            [EnemyRarity.Limited] = 30,
-            [EnemyRarity.Scarce] = 20,
-            [EnemyRarity.Rare] = 10,
-            [EnemyRarity.Numinous] = 4,
-            [EnemyRarity.Secret] = 1,
+            [Rarity.Common] = 35,
+            [Rarity.Limited] = 30,
+            [Rarity.Scarce] = 20,
+            [Rarity.Rare] = 10,
+            [Rarity.Numinous] = 4,
+            [Rarity.Secret] = 1,
         };
         return RarityToPercentage;
     }
@@ -89,7 +89,7 @@ public class EnemyInfo
     /// </summary>
     /// <param name="n"></param>
     /// <returns></returns>
-    public static EnemyInfo EnemyFactoryFromNumber(int n)
+    public static EnemyInfo FactoryFromNumber(int n)
     {
         EnemyInfo inf = new();
 
@@ -97,15 +97,29 @@ public class EnemyInfo
         {
             case 0:
                 inf.tag = EnemyTag.Crawler;
-                inf.rarity = EnemyRarity.Common;
+                inf.rarity = Rarity.Common;
                 inf.type = EnemyType.Weak;
-                inf.maxHP = 1;
+                inf.maxHP = 2;
                 inf.currentHP = inf.maxHP;
                 inf.maxAP = 1;
                 inf.currentAP = inf.maxAP;
                 inf.damagePoints = 1;
                 inf.name = "CRAWLER";
                 inf.description = "";
+                inf.isHunting = true;
+                break;
+            case 1:
+                inf.tag = EnemyTag.Launcher;
+                inf.rarity = Rarity.Limited;
+                inf.type = EnemyType.Mediocre;
+                inf.maxHP = 2;
+                inf.currentHP = inf.maxHP;
+                inf.maxAP = 2;
+                inf.currentAP = inf.maxAP;
+                inf.damagePoints = 2;
+                inf.name = "LAUNCHER";
+                inf.description = "";
+                inf.isHunting = false;
                 break;
         }
         return inf;
