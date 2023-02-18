@@ -116,7 +116,7 @@ public class EnemyInfo
                 inf.currentHP = inf.maxHP;
                 inf.maxAP = 2;
                 inf.currentAP = inf.maxAP;
-                inf.damagePoints = 2;
+                inf.damagePoints = 1;
                 inf.name = "LAUNCHER";
                 inf.description = "";
                 inf.isHunting = false;

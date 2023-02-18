@@ -7,12 +7,12 @@ public class WeightedRarityGeneration: MonoBehaviour
     static public void Generation(Dictionary<Rarity, int> percentMap, List<Rarity> allRarities, int nStartElements, GameObject[] elementTemplates, List<GameObject> elements, Tilemap tilemapWalls,GameManager gm, bool isFromItemClass)
     {
         int sumPercent = 0;
-        List<int> rarityPercentages = new List<int>();
-        List<List<int>> ItemIndexDoubleList = new List<List<int>>();
+        List<int> rarityPercentages = new();
+        List<List<int>> ItemIndexDoubleList = new();
         for (Rarity r = Rarity.Common; r < Rarity.Unknown; r++)
         {
             int nItemsOfRarity = 0;
-            List<int> itemIndices = new List<int>();
+            List<int> itemIndices = new();
             for (int i = 0; i < allRarities.Count; i++)
             {
                 if (allRarities[i] == r)
@@ -54,11 +54,11 @@ public class WeightedRarityGeneration: MonoBehaviour
             {
                 int x = (Random.Range(-4, 4));
                 int y = (Random.Range(-4, 4));
-                Vector3Int p = new Vector3Int(x, y, 0);
+                Vector3Int p = new(x, y, 0);
 
                 if (!tilemapWalls.HasTile(p) && !(x == -4 && y == 0))
                 {
-                    Vector3 shiftedDistance = new Vector3(x + 0.5f, y + 0.5f, 0);
+                    Vector3 shiftedDistance = new(x + 0.5f, y + 0.5f, 0);
                     if (!gm.HasElementAtPosition(shiftedDistance))
                     {
                         if (isFromItemClass)

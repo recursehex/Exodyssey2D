@@ -49,7 +49,6 @@ public class TurnTimer : MonoBehaviour
     {
         timeToDisplay += 1;
         float seconds = Mathf.FloorToInt(timeToDisplay % 60);
-
         timeText.text = string.Format(":{0:00}", seconds);
     }
 }

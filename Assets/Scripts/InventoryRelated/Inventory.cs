@@ -4,7 +4,7 @@ public class Inventory
 {
     public List<ItemInventory> itemList;
 
-    private int invMaxSize = 2;
+    private readonly int invMaxSize = 2;
 
     public Inventory()
     {
