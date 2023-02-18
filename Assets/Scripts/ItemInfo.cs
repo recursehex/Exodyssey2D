@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public enum ItemTag
@@ -62,8 +63,9 @@ public enum ItemType
 
 public class AfterItemUse
 {
-    public bool fRemove = false;
+    public bool needToRemoveItem = false;
     public int selectedIdx = -1;
+    public bool consumableWasUsed = false;
 }
 
 /// <summary>
@@ -131,7 +133,8 @@ public class ItemInfo
                     currentUP--;
                     description = "Use:Heals " + healingPoints + " HP" +
                     "\n" +
-                    "UP:" + currentUP;
+                    "UP:" + currentUP + "/" + maxUP;
+                    ret.consumableWasUsed = true;
                 }
                 break;
             // If the item is a weapon, as clicking it will select it
@@ -162,7 +165,7 @@ public class ItemInfo
         // If the item runs out of UP, it needs to be removed
         if (currentUP == 0)
         {
-            ret.fRemove = true;
+            ret.needToRemoveItem = true;
         }
         return ret;
     }
@@ -226,10 +229,10 @@ public class ItemInfo
         {
             currentUP--;
             description = "Use:Equip weapon" +
-                "\n" +
-                "UP:" + currentUP +
-                "\t" +
-                "DP:" + damagePoints;
+            "\n" +
+            "UP:" + currentUP + "/" + maxUP +
+            "\t" +
+            "DP:" + damagePoints;
         }
         // If a weapon has infinite UP
         else
@@ -249,7 +252,7 @@ public class ItemInfo
     /// <returns></returns>
     public static Dictionary<Rarity, int> RarityPercentMap()
     {
-        Dictionary<Rarity, int> RarityToPercentage = new Dictionary<Rarity, int>
+        Dictionary<Rarity, int> RarityToPercentage = new()
         {
             [Rarity.Common] = 35,
             [Rarity.Limited] = 30,
@@ -268,7 +271,7 @@ public class ItemInfo
     /// <returns></returns>
     public static ItemInfo FactoryFromNumber(int n)
     {
-        ItemInfo inf = new ItemInfo();
+        ItemInfo inf = new();
 
         switch (n)
         {
@@ -282,9 +285,8 @@ public class ItemInfo
                 inf.name = "MEDKIT";
                 inf.description = "Use:Heals " + inf.healingPoints + " HP" +
                     "\n" +
-                    "UP:" + inf.maxUP;
+                    "UP:" + inf.maxUP + "/" + inf.maxUP;
                 break;
-
             case 1:
                 inf.tag = ItemTag.MedKitPlus;
                 inf.rarity = Rarity.Rare;
@@ -295,9 +297,8 @@ public class ItemInfo
                 inf.name = "MEDKIT+";
                 inf.description = "Use:Heals " + inf.healingPoints + " HP" +
                     "\n" +
-                    "UP:" + inf.maxUP;
+                    "UP:" + inf.maxUP + "/" + inf.maxUP;
                 break;
-
             case 2:
                 inf.tag = ItemTag.Branch;
                 inf.rarity = Rarity.Common;
@@ -308,7 +309,7 @@ public class ItemInfo
                 inf.damagePoints = 1;
                 inf.description = "Use:Equip weapon" +
                     "\n" +
-                    "UP:" + inf.maxUP +
+                    "UP:" + inf.maxUP + "/" + inf.maxUP +
                     "\t" +
                     "DP:" + inf.damagePoints;
                 break;
@@ -547,7 +548,7 @@ public class ItemInfo
                         "UP:" + inf.maxUP;
                     break;
 
-                case 20:
+                case 21:
                     inf.tag = ItemTag.InfernalShotgun;
                     inf.rarity = Rarity.Rare;
                     inf.type = ItemType.Weapon;
@@ -562,7 +563,7 @@ public class ItemInfo
                         "UP:" + inf.maxUP;
                     break;
 
-                case 20:
+                case 22:
                     inf.tag = ItemTag.Flamethrower;
                     inf.rarity = Rarity.Rare;
                     inf.type = ItemType.Weapon;
@@ -576,7 +577,7 @@ public class ItemInfo
                         "UP:" + inf.maxUP;
                     break;
 
-                case 20:
+                case 23:
                     inf.tag = ItemTag.ShellPiercer;
                     inf.rarity = Rarity.Rare;
                     inf.type = ItemType.Weapon;
@@ -591,7 +592,7 @@ public class ItemInfo
                         "UP:" + inf.maxUP;
                     break;
 
-                case 21:
+                case 24:
                     inf.tag = ItemTag.PFL;
                     inf.rarity = Rarity.Numinous;
                     inf.type = ItemType.Weapon;
@@ -608,11 +609,11 @@ public class ItemInfo
                         "DP:" + inf.damagePoints;
                     break;
 
-                case 20:
-                    inf.tag = ItemTag.UniversalIris;
+                case 25:
+                    inf.tag = ItemTag.BrinkOfExtinction;
                     inf.rarity = Rarity.Rare;
                     inf.type = ItemType.Numinous;
-                    inf.name = "UNIVERSAL IRIS";
+                    inf.name = "BRINK OF EXTINCTION";
                     inf.maxUP = 3;
                     inf.currentUP = inf.maxUP;
                     inf.damagePoints = 10;
@@ -624,7 +625,7 @@ public class ItemInfo
                         "UP:" + inf.maxUP;
                     break;
 
-                case 20:
+                case 26:
                     inf.tag = ItemTag.TimesEdge;
                     inf.rarity = Rarity.Rare;
                     inf.type = ItemType.Numinous;
@@ -639,7 +640,7 @@ public class ItemInfo
                         "UP:" + inf.maxUP;
                     break;
 
-                case 23:
+                case 27:
                     inf.tag = ItemTag.PaintBlaster;
                     inf.rarity = Rarity.Secret;
                     inf.type = ItemType.Weapon;

@@ -4,7 +4,6 @@ using UnityEngine.UI;
 public class KeyPressHandler : MonoBehaviour
 {
     public KeyCode key;
-
     private Button button;
 
     void Awake()

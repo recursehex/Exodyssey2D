@@ -30,24 +30,18 @@ public class Player : MonoBehaviour
 
     private Animator animator;
     public Inventory inventory;
-
-    [SerializeField]
     public InventoryUI inventoryUI;
+    public ItemInfo selectedItem = null;
 
     public bool finishedInit = false;
     public bool isInMovement = false;
-
-
-    public ItemInfo selectedItem = null;
 
     GameManager gm;
 
     #region PATHFINDING
 
-    [SerializeField]
     public Tilemap tilemapGround;
 
-    [SerializeField]
     public Tilemap tilemapWalls;
 
     private Stack<Vector3Int> path;
@@ -125,7 +119,7 @@ public class Player : MonoBehaviour
         {
             isInMovement = true;
 
-            Vector3 shiftedDistance = new Vector3(destination.x + 0.5f, destination.y + 0.5f, destination.z);
+            Vector3 shiftedDistance = new(destination.x + 0.5f, destination.y + 0.5f, destination.z);
             transform.position = Vector3.MoveTowards(transform.position, shiftedDistance, 2 * Time.deltaTime);
 
             float distance = Vector3.Distance(shiftedDistance, transform.position);
@@ -286,7 +280,7 @@ public class Player : MonoBehaviour
     /// </summary>
     public bool AddItem(ItemInfo itemInfo)
     {
-        ItemInventory itemInventory = new ItemInventory
+        ItemInventory itemInventory = new()
         {
             itemInfo = itemInfo,
             amount = 1
@@ -314,8 +308,12 @@ public class Player : MonoBehaviour
             {
                 selectedItem = anItem;
             }
+            if (ret.consumableWasUsed && !gm.turnTimer.timerIsRunning)
+            {
+                gm.turnTimer.timerIsRunning = true;
+            }
             // Item is removed and inventory is refreshed since it was used up
-            if (ret.fRemove)
+            if (ret.needToRemoveItem)
             {
                 inventoryUI.RemoveItem(n);
                 inventoryUI.RefreshInventoryItems();

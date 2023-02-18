@@ -72,18 +72,24 @@ public class Enemy : MonoBehaviour
     {
         if (path != null)
         {
-            Vector3 shiftedDistance = new Vector3(destination.x + 0.5f, destination.y + 0.5f, destination.z);
+            Vector3 shiftedDistance = new(destination.x + 0.5f, destination.y + 0.5f, destination.z);
             transform.position = Vector3.MoveTowards(transform.position, shiftedDistance, 2 * Time.deltaTime);
 
             float distance = Vector3.Distance(shiftedDistance, transform.position);
             if (distance <= 0f)
             {
-                if (path.Count > 0 && 
-                    info.currentAP > 0  &&
-                    path.Count > 1)
+                // Move one tile closer to the Player
+                if (path.Count > 1 && info.currentAP > 0)
                 {
                     destination = path.Pop();
                     ChangeActionPoints(-1);
+                }
+                // Enemy attacks the Player if enemy moves to an adjacent tile
+                else if (path.Count == 1 && info.currentAP > 0)
+                {
+                    SoundManager.instance.RandomizeSfx(enemyAttack, enemyAttack);
+                    gm.HandleDamageToPlayer(info.damagePoints);
+                    info.currentAP -= 1;
                 }
                 else
                 {
@@ -102,9 +108,9 @@ public class Enemy : MonoBehaviour
         astar.SetAllowDiagonal(false);
 
         path = astar.ComputePath(transform.position, goal, gm);
-        if (path != null  && 
+        if (path != null &&
             info.currentAP > 0 &&
-            // To stop enemy from colliding into player
+            // To stop enemy from colliding into the Player
             path.Count > 2)
         {
             ChangeActionPoints(-1);
@@ -127,10 +133,17 @@ public class Enemy : MonoBehaviour
         }
         else
         {
+            // Enemy attacks the Player if enemy is adjacent
             if (path != null && path.Count == 2)
             {
-                gm.HandleDamageToPlayer(info.damagePoints);
-                SoundManager.instance.RandomizeSfx(enemyAttack, enemyAttack);
+                for (int i = 0; i < info.currentAP; i++)
+                {
+                    SoundManager.instance.RandomizeSfx(enemyAttack, enemyAttack);
+                    gm.HandleDamageToPlayer(info.damagePoints);
+                    //info.currentAP -= 1;
+                }
+                //gm.HandleDamageToPlayer(info.damagePoints);
+                //SoundManager.instance.RandomizeSfx(enemyAttack, enemyAttack);
             }
             path = null;
             isInMovement = false;
@@ -140,7 +153,7 @@ public class Enemy : MonoBehaviour
     private bool HasEnemyAtLoc(Vector3 p)
     {
         bool ret = false;
-        Vector3 shiftedDistance = new Vector3(p.x + 0.5f, p.y + 0.5f, 0);
+        Vector3 shiftedDistance = new(p.x + 0.5f, p.y + 0.5f, 0);
         foreach (GameObject obj in gm.enemies)
         {
             Enemy e = obj.GetComponent<Enemy>();
@@ -155,7 +168,6 @@ public class Enemy : MonoBehaviour
 
     public void ChangeActionPoints(int change)
     {
-        // If new AP is greater than max
         info.currentAP += change;
         if (info.currentAP > info.maxAP)
         {

@@ -4264,7 +4264,7 @@ PrefabInstance:
       objectReference: {fileID: 2049175783}
     - target: {fileID: 6710520114537087609, guid: b9524bd1945f59349a7c4906e557ed5a, type: 3}
       propertyPath: nStartEnemies
-      value: 1
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 6710520114537087609, guid: b9524bd1945f59349a7c4906e557ed5a, type: 3}
       propertyPath: tilemapGround

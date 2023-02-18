@@ -8,12 +8,9 @@ using System;
 public class InventoryUI : MonoBehaviour
 {
     private Inventory inventory;
-
-    private int selectedIdx = -1; // not selected
+    private int selectedIdx = -1;
     private string cachedName;
     private string cachedDesc;
-
-    [SerializeField]
     public Sprite itemBackground;
 
     public void SetInventory(Inventory inventory)
@@ -42,7 +39,6 @@ public class InventoryUI : MonoBehaviour
                 }
             }
         }
-
         inventory.RemoveItem(idx);
     }
 
@@ -51,14 +47,13 @@ public class InventoryUI : MonoBehaviour
         int j = 0;
         int MaxInventoryUIItems = 2;
 
-        // cleanup of icons
+        // Cleanup of icons
         for (int i = 0; i < MaxInventoryUIItems; i++)
         {
             Image icon = GameObject.Find("InventoryIcon" + i).GetComponent<Image>();
             icon.sprite = itemBackground;
         }
-
-        // add new
+        // Add item icon
         foreach (ItemInventory item in inventory.GetItemList())
         {
             if (j < MaxInventoryUIItems)
@@ -142,15 +137,12 @@ public class InventoryUI : MonoBehaviour
             if (Math.Abs(iconPosition.x - mousePosition.x) < sensitivityDistance && Math.Abs(iconPosition.y - mousePosition.y) < sensitivityDistance)
             {
                 found = true;
-
                 nameText.text = item.itemInfo.name;
                 descText.text = item.itemInfo.description;
-
                 break;
             }
             i++;
         }
-        
         if (!found && selectedIdx == -1)
         {
             nameText.text = "";
