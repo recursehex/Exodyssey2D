@@ -57,16 +57,17 @@ public class AStar
     {
         Vector3Int s = tilemapGround.WorldToCell(start);
 
-        Dictionary<Vector3Int, Node> res = new Dictionary<Vector3Int, Node>();
+        Dictionary<Vector3Int, Node> res = new();
 
-        List<Node> toExamineList = new List<Node>();
-
-        toExamineList.Add(new Node(s));
+        List<Node> toExamineList = new()
+        {
+            new Node(s)
+        };
 
         // Checks within AP distance limit for reachable tiles, pseudo-recursive
         for (int i = 0; i < dst; i++)
         {
-            List<Node> newNeighbors = new List<Node>();
+            List<Node> newNeighbors = new();
 
             for (int j = 0; j < toExamineList.Count; j++)
             {
@@ -133,19 +134,19 @@ public class AStar
 
     private List<Node> FindNeighbors(Vector3Int parentPosition)
     {
-        List<Node> neighbors = new List<Node>();
+        List<Node> neighbors = new();
 
         // These two for loops make sure that all nodes are created around the current node
         for (int x = -1; x <= 1; x++)
         {
             for (int y = -1; y <= 1; y++)
             {
-                Vector3Int p = new Vector3Int(parentPosition.x - x, parentPosition.y - y, parentPosition.z);
+                Vector3Int p = new(parentPosition.x - x, parentPosition.y - y, parentPosition.z);
                
                 bool fEnemy = false;
                 if (gm != null)
                 {
-                    Vector3 pForEnemy = new Vector3(parentPosition.x - x + 0.5f, parentPosition.y - y + 0.5f, parentPosition.z);
+                    Vector3 pForEnemy = new(parentPosition.x - x + 0.5f, parentPosition.y - y + 0.5f, parentPosition.z);
                     fEnemy = gm.HasEnemyAtLoc(pForEnemy);
                 }
                 if ((y != 0 || x != 0) && (allowDiagonal || (!allowDiagonal && (y == 0 || x == 0))))
@@ -210,8 +211,8 @@ public class AStar
         Vector3Int direction = currentNode.Position - neighbor.Position;
 
         // Gets the positions of the nodes
-        Vector3Int first = new Vector3Int(currentNode.Position.x + (direction.x * -1), currentNode.Position.y, currentNode.Position.z);
-        Vector3Int second = new Vector3Int(currentNode.Position.x, currentNode.Position.y + (direction.y * -1), currentNode.Position.z);
+        Vector3Int first = new(currentNode.Position.x + (direction.x * -1), currentNode.Position.y, currentNode.Position.z);
+        Vector3Int second = new(currentNode.Position.x, currentNode.Position.y + (direction.y * -1), currentNode.Position.z);
 
         // The nodes are empty
         return true;
@@ -219,8 +220,7 @@ public class AStar
 
     private int DetermineGScore(Vector3Int neighbor, Vector3Int current)
     {
-        int gScore = 0;
-
+        int gScore;
         int x = current.x - neighbor.x;
         int y = current.y - neighbor.y;
 
@@ -233,7 +233,6 @@ public class AStar
         {
             gScore = 14;
         }
-
         return gScore;
     }
 
@@ -259,7 +258,7 @@ public class AStar
         if (current.Position == goalPos)
         {
             // Creates a stack to contain the final path
-            Stack<Vector3Int> finalPath = new Stack<Vector3Int>();
+            Stack<Vector3Int> finalPath = new();
 
             // Adds the nodes to the final path
             while (current != null)
@@ -270,13 +269,10 @@ public class AStar
                 // by doing so, a complete path is formed
                 current = current.Parent;
             }
-
             // Returns the complete path
             return finalPath;
         }
-
         return null;
-
     }
 
     private void CalcValues(Node parent, Node neighbor, Vector3Int goalPos, int cost)
@@ -284,13 +280,13 @@ public class AStar
         // Sets the parent node
         neighbor.Parent = parent;
 
-        // Calculates this nodes g cost, the parents g cost + what it costs to move to this node
+        // Calculates this node's g cost, the parent's g cost + what it costs to move to this node
         neighbor.G = parent.G + cost;
 
-        // H is calucalted, it is the distance from this node to the goal * 10
+        // H is calculated, it is the distance from this node to the goal * 10
         neighbor.H = ((Math.Abs((neighbor.Position.x - goalPos.x)) + Math.Abs((neighbor.Position.y - goalPos.y))) * 10);
 
-        // F is calcualted, it is G + H
+        // F is calculated, it is G + H
         neighbor.F = neighbor.G + neighbor.H;
     }
 
@@ -302,7 +298,7 @@ public class AStar
         }
         else
         {
-            Node node = new Node(position);
+            Node node = new(position);
             allNodes.Add(position, node);
             return node;
         }
@@ -316,9 +312,6 @@ public class Node
     public int F { get; set; }
     public Node Parent { get; set; }
     public Vector3Int Position { get; set; }
-
-    //private TextMeshProUGUI MyText { get; set; }
-
     public Node(Vector3Int position)
     {
         this.Position = position;

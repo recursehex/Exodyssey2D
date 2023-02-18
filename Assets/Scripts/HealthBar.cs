@@ -25,7 +25,7 @@ public class HealthBar : MonoBehaviour
         {
             prevX = goal.x;
             prevY = goal.y;
-            Vector3 shiftedDst = new Vector3(goal.x + 0.5f, goal.y + 1.1f, goal.z);
+            Vector3 shiftedDst = new(goal.x + 0.5f, goal.y + 1.1f, goal.z);
             transform.position = shiftedDst;
         }
     }
