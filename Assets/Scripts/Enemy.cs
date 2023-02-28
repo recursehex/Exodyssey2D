@@ -6,8 +6,8 @@ public class Enemy : MonoBehaviour
 {
     public EnemyInfo info;
 
-    private Animator animator;
-    private Transform target;
+    //private Animator animator;
+    //private Transform target;
     public AudioClip moveSound1;
     public AudioClip moveSound2;
     public AudioClip enemyAttack;
@@ -37,8 +37,8 @@ public class Enemy : MonoBehaviour
     // Start is called before the first frame update
     protected virtual void Start()
     {
-        animator = GetComponent<Animator>();
-        target = GameObject.FindGameObjectWithTag("Player").transform;
+        // = GetComponent<Animator>();
+        //target = GameObject.FindGameObjectWithTag("Player").transform;
 
         astar = new AStar();
         astar.tilemapGround = tilemapGround;
@@ -82,14 +82,14 @@ public class Enemy : MonoBehaviour
                 if (path.Count > 1 && info.currentAP > 0)
                 {
                     destination = path.Pop();
-                    ChangeActionPoints(-1);
+                    info.currentAP--;
                 }
                 // Enemy attacks the Player if enemy moves to an adjacent tile
                 else if (path.Count == 1 && info.currentAP > 0)
                 {
                     SoundManager.instance.RandomizeSfx(enemyAttack, enemyAttack);
                     gm.HandleDamageToPlayer(info.damagePoints);
-                    info.currentAP -= 1;
+                    info.currentAP--;
                 }
                 else
                 {
@@ -108,13 +108,11 @@ public class Enemy : MonoBehaviour
         astar.SetAllowDiagonal(false);
 
         path = astar.ComputePath(transform.position, goal, gm);
-        if (path != null &&
-            info.currentAP > 0 &&
+        if (path != null && info.currentAP > 0 &&
             // To stop enemy from colliding into the Player
             path.Count > 2)
         {
-            ChangeActionPoints(-1);
-
+            info.currentAP--;
             // Do not remove this, need to pop first path element
             path.Pop();
 
@@ -128,7 +126,6 @@ public class Enemy : MonoBehaviour
                 path = null;
                 isInMovement = false;
             }
-
             SoundManager.instance.RandomizeSfx(moveSound1, moveSound2);
         }
         else
@@ -140,10 +137,7 @@ public class Enemy : MonoBehaviour
                 {
                     SoundManager.instance.RandomizeSfx(enemyAttack, enemyAttack);
                     gm.HandleDamageToPlayer(info.damagePoints);
-                    //info.currentAP -= 1;
                 }
-                //gm.HandleDamageToPlayer(info.damagePoints);
-                //SoundManager.instance.RandomizeSfx(enemyAttack, enemyAttack);
             }
             path = null;
             isInMovement = false;
@@ -164,15 +158,6 @@ public class Enemy : MonoBehaviour
             }
         }
         return ret;
-    }
-
-    public void ChangeActionPoints(int change)
-    {
-        info.currentAP += change;
-        if (info.currentAP > info.maxAP)
-        {
-            info.currentAP = info.maxAP;
-        }
     }
 
     public void RestoreAP()

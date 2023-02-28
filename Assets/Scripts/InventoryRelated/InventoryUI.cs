@@ -78,7 +78,9 @@ public class InventoryUI : MonoBehaviour
     {
         if (selectedIdx != -1)
         {
-            return inventory.ProcessWeaponUse(selectedIdx);
+            bool wasUsed = inventory.ProcessWeaponUse(selectedIdx);
+            SetCurrentSelected(selectedIdx);
+            return wasUsed;
         }
         return false;
     }
@@ -97,10 +99,10 @@ public class InventoryUI : MonoBehaviour
         return selectedIdx;
     }
 
-    public void SetCurrentSelected(int nPosition)
+    public void SetCurrentSelected(int itemPosition)
     {
-        selectedIdx = nPosition;
-        if (nPosition >= 0)
+        selectedIdx = itemPosition;
+        if (itemPosition >= 0)
         {
             cachedName = inventory.itemList[selectedIdx].itemInfo.name;
             cachedDesc = inventory.itemList[selectedIdx].itemInfo.description;
@@ -110,7 +112,6 @@ public class InventoryUI : MonoBehaviour
             cachedName = "";
             cachedDesc = "";
         }
-        // NOTE: need to get updated desc when UP changes
     }
 
     /// <summary>
@@ -121,37 +122,38 @@ public class InventoryUI : MonoBehaviour
     {
         int i = 0;
         int sensitivityDistance = 50;
-        bool found = false;
+        bool mouseIsOverIcon = false;
 
-        GameObject iName = GameObject.Find("ItemName");
-        Text nameText = iName.GetComponent<Text>();
-        GameObject iDesc = GameObject.Find("ItemDescription");
-        Text descText = iDesc.GetComponent<Text>();
+        GameObject itemName = GameObject.Find("ItemName");
+        Text nameText = itemName.GetComponent<Text>();
+        GameObject itemDesc = GameObject.Find("ItemDescription");
+        Text descText = itemDesc.GetComponent<Text>();
 
         foreach (ItemInventory item in inventory.GetItemList())
         {
             Image icon = GameObject.Find("InventoryIcon" + i).GetComponent<Image>();
-
             Vector3 iconPosition = icon.transform.position;
-
             if (Math.Abs(iconPosition.x - mousePosition.x) < sensitivityDistance && Math.Abs(iconPosition.y - mousePosition.y) < sensitivityDistance)
             {
-                found = true;
+                mouseIsOverIcon = true;
                 nameText.text = item.itemInfo.name;
                 descText.text = item.itemInfo.description;
                 break;
             }
             i++;
         }
-        if (!found && selectedIdx == -1)
+        if (!mouseIsOverIcon)
         {
-            nameText.text = "";
-            descText.text = "";
-        }
-        else if (!found && selectedIdx != -1)
-        {
-            nameText.text = cachedName;
-            descText.text = cachedDesc;
+            if (selectedIdx == -1)
+            {
+                nameText.text = "";
+                descText.text = "";
+            }
+            else
+            {
+                nameText.text = cachedName;
+                descText.text = cachedDesc;
+            }
         }
     }
 }

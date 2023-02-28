@@ -23,6 +23,7 @@ public enum ItemTag
     //Rock
     //Flamethrower,
     //ShellPiercer
+    //Deathwave
     //PFL,
     LightningRailgun,
     //PaintBlaster,
@@ -74,7 +75,7 @@ public class AfterItemUse
 public class ItemInfo
 {
     public ItemTag tag;                         // Name of item
-    public Rarity rarity;                   // Rarity of item
+    public Rarity rarity;                       // Rarity of item
     public ItemType type;                       // Type of item
 
     public string name;                         // Ingame name of item
@@ -101,23 +102,21 @@ public class ItemInfo
     static public List<Rarity> GenerateAllRarities()
     {
         List<Rarity> ret = new();
-
         for (int i = 0; i < lastItemIdx; i++)
         {
             ItemInfo item = FactoryFromNumber(i);
             ret.Add(item.rarity);
         }
-
         return ret;
     }
 
     /// <summary>
     /// Called when player clicks on an item in an inventory slot
     /// </summary>
-    /// <param name="p"></param>
-    /// <param name="nPos"></param>
+    /// <param name="player"></param>
+    /// <param name="selectedIdx"></param>
     /// <returns></returns>
-    public AfterItemUse UseItem(Player p, int nPos)
+    public AfterItemUse UseItem(Player player, int selectedIdx)
     {
         AfterItemUse ret = new();
 
@@ -126,10 +125,10 @@ public class ItemInfo
         {
             case ItemType.Consumable:
                 // If the consumable is a healing item
-                if (healingPoints != -1 && p.currentHP < p.maxHP && p.currentAP > 0)
+                if (healingPoints != -1 && player.currentHP < player.maxHP && player.currentAP > 0)
                 {
-                    p.ChangeHealth(healingPoints);
-                    p.ChangeActionPoints(-1);
+                    player.ChangeHP(healingPoints);
+                    player.ChangeAP(-1);
                     currentUP--;
                     description = "Use:Heals " + healingPoints + " HP" +
                     "\n" +
@@ -139,27 +138,23 @@ public class ItemInfo
                 break;
             // If the item is a weapon, as clicking it will select it
             case ItemType.Weapon:
-                bool fIsSelected = ProcessSelection(p.inventoryUI.GetCurrentSelected(), nPos);
-
-                if (!fIsSelected)
+                bool weaponIsSelected = ProcessSelection(player.inventoryUI.GetCurrentSelected(), selectedIdx);
+                if (!weaponIsSelected)
                 {
-                    nPos = -1;
+                    selectedIdx = -1;
                 }
-
-                p.inventoryUI.SetCurrentSelected(nPos);
-
+                player.inventoryUI.SetCurrentSelected(selectedIdx);
                 // Reset damageToEnemy since weapon was deselected
-                if (nPos == -1)
+                if (selectedIdx == -1)
                 {
-                    p.damageToEnemy = 0;
+                    player.damageToEnemy = 0;
                 }
                 // Set damageToEnemy as the damage of the weapon
                 else
                 {
-                    p.damageToEnemy = damagePoints;
+                    player.damageToEnemy = damagePoints;
                 }
-
-                ret.selectedIdx = nPos;               
+                ret.selectedIdx = selectedIdx;
                 break;
         }
         // If the item runs out of UP, it needs to be removed
@@ -272,7 +267,6 @@ public class ItemInfo
     public static ItemInfo FactoryFromNumber(int n)
     {
         ItemInfo inf = new();
-
         switch (n)
         {
             case 0:
@@ -593,6 +587,23 @@ public class ItemInfo
                     break;
 
                 case 24:
+                    inf.tag = ItemTag.Deathwave;
+                    inf.rarity = Rarity.Numinous;
+                    inf.type = ItemType.Weapon;
+                    inf.name = "DEATHWAVE";
+                    inf.maxUP = 3;
+                    inf.currentUP = inf.maxUP;
+                    inf.damagePoints = 5;
+                    inf.isRanged = true;
+                    inf.range = 2;
+                    inf.description = "Use:Equip weapon" +
+                        "\n" +
+                        "UP:" + inf.maxUP +
+                        "\t" +
+                        "DP:" + inf.damagePoints;
+                    break;
+
+                case 25:
                     inf.tag = ItemTag.PFL;
                     inf.rarity = Rarity.Numinous;
                     inf.type = ItemType.Weapon;
@@ -609,7 +620,7 @@ public class ItemInfo
                         "DP:" + inf.damagePoints;
                     break;
 
-                case 25:
+                case 26:
                     inf.tag = ItemTag.BrinkOfExtinction;
                     inf.rarity = Rarity.Rare;
                     inf.type = ItemType.Numinous;
@@ -625,7 +636,7 @@ public class ItemInfo
                         "UP:" + inf.maxUP;
                     break;
 
-                case 26:
+                case 27:
                     inf.tag = ItemTag.TimesEdge;
                     inf.rarity = Rarity.Rare;
                     inf.type = ItemType.Numinous;
@@ -640,7 +651,7 @@ public class ItemInfo
                         "UP:" + inf.maxUP;
                     break;
 
-                case 27:
+                case 28:
                     inf.tag = ItemTag.PaintBlaster;
                     inf.rarity = Rarity.Secret;
                     inf.type = ItemType.Weapon;

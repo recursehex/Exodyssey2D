@@ -93,7 +93,7 @@ public class GameManager : MonoBehaviour
             tracerPath = new List<Vector3>();
         }
         public List<Vector3> tracerPath;
-        public bool fHitTarget = true;
+        public bool canTargetEnemy = true;
     }
 
     // Start is called before the first frame update
@@ -373,7 +373,6 @@ public class GameManager : MonoBehaviour
     private void EnemyMovement()
     {
         Vector3 playerPosition = player.transform.position;
-
         if (enemies.Count == 0)
         {
             playersTurn = true;
@@ -417,7 +416,7 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Redraws tile areas for the Player since their AP was reset
+    /// Called by EndTurnButton, redraws tile areas for the Player since their AP was reset
     /// </summary>
     public void EndTurnAreaReset()
     {
@@ -531,7 +530,7 @@ public class GameManager : MonoBehaviour
                             if (player.damageToEnemy > 0 && player.currentAP > 0)
                             {
                                 HandleDamageToEnemy(idxOfEnemy);
-                                player.ChangeActionPoints(-1);
+                                player.ChangeAP(-1);
                                 player.AnimateAttack();
                                 player.ProcessWeaponUse();
                                 needToDrawReachableAreas = true;
@@ -613,7 +612,7 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public void HandleDamageToPlayer(int dmg)
     {
-        player.ChangeHealth(-dmg);
+        player.ChangeHP(-dmg);
         needToDrawReachableAreas = true;
         DrawTileAreaIfNeeded();
     }
@@ -626,7 +625,7 @@ public class GameManager : MonoBehaviour
         tiledot.gameObject.SetActive(false);
         ClearTileAreas();
         ClearTargetsAndTracers();
-        player.ChangeActionPoints(-3);
+        player.ChangeAP(-player.maxAP);
     }
 
     /// <summary>
@@ -669,14 +668,13 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Returns true if an enemy is adjacent to the Player
+    /// Returns true if an enemy or object is adjacent to the Player
     /// </summary>
     /// <param name="p1"></param>
     /// <returns></returns>
     private bool IsInMeleeRange(Vector3 objPosition)
     {
         Vector3 playerPosition = player.transform.position;
-
         return (playerPosition.x == objPosition.x && playerPosition.y + 1 == objPosition.y) ||
                (playerPosition.x == objPosition.x && playerPosition.y - 1 == objPosition.y) ||
                (playerPosition.x + 1 == objPosition.x && playerPosition.y == objPosition.y) ||
@@ -684,7 +682,7 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Return true if an enemy is within range of a ranged weapon
+    /// Return true if an enemy or object is within range of a ranged weapon
     /// </summary>
     /// <param name="objPosition"></param>
     /// <returns></returns>
@@ -794,7 +792,7 @@ public class GameManager : MonoBehaviour
                         tracers.Add(instance);
                     }
                 }
-                if (result.fHitTarget)
+                if (result.canTargetEnemy)
                 {
                     Vector3 targetPosition = e.transform.position;
                     GameObject targetChoice = target[0];
@@ -813,7 +811,7 @@ public class GameManager : MonoBehaviour
         float distanceFromPlayerToEnemy = Mathf.Sqrt(Mathf.Pow(objPosition.x - playerPosition.x, 2) + Mathf.Pow(objPosition.y - playerPosition.y, 2));
         if (distanceFromPlayerToEnemy > weaponRange)
         {
-            ret.fHitTarget = false;
+            ret.canTargetEnemy = false;
 
         }
         ret.tracerPath = GetPointsOnLine((int)(playerPosition.x - 0.5f), (int)(playerPosition.y - 0.5f), (int)(objPosition.x - 0.5f), (int)(objPosition.y - 0.5f));
@@ -822,7 +820,7 @@ public class GameManager : MonoBehaviour
             Vector3Int tracerPositionInt = new((int)tracerPosition.x, (int)tracerPosition.y, 0);
             if (tilemapWalls.HasTile(tracerPositionInt)) // NOTE: if weapon's isMortar = true, ignore tilemapWalls check
             {
-                ret.fHitTarget = false;
+                ret.canTargetEnemy = false;
                 break;
             }
         }
