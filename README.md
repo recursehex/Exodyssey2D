@@ -8,8 +8,9 @@ This is Stella Nova Studios' repository for **Exodyssey 2D**, a sci-fi turn-base
 
 | Tag | Description |
 | :---: | :---: |
-| v1.1.0-alpha | Upcoming release |
-| [v1.0.6-alpha](https://github.com/infraneon/Exodyssey2D/releases/latest) | Latest release |
+| v1.1.x-alpha | Upcoming release |
+| [v1.1.0-alpha](https://github.com/infraneon/Exodyssey2D/releases/tag/v1.1.0-alpha) | Latest release |
+| [v1.0.6-alpha](https://github.com/infraneon/Exodyssey2D/releases/tag/v1.0.6-alpha) | Outdated |
 | [v1.0.0-alpha](https://github.com/infraneon/Exodyssey2D/releases/tag/v1.0.0-alpha) | Outdated |
 
 ## Patches[^2]
@@ -17,7 +18,7 @@ This is Stella Nova Studios' repository for **Exodyssey 2D**, a sci-fi turn-base
 | Tag | Description |
 | :---: | :---: |
 | v1.1.1-alpha | Upcoming patch |
-| [v1.0.6-alpha](https://github.com/infraneon/Exodyssey2D/releases/latest) | Latest patch |
+| [v1.0.6-alpha](https://github.com/infraneon/Exodyssey2D/releases/tag/v1.0.6-alpha) | Latest patch |
 | v1.0.5-alpha | Outdated |
 | v1.0.4-alpha | Outdated |
 | v1.0.3-alpha | Outdated |
