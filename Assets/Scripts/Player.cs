@@ -24,8 +24,8 @@ public class Player : MonoBehaviour
     public AudioClip moveSound2;
     public AudioClip eatSound1;
     public AudioClip eatSound2;
-    public AudioClip drinkSound1;
-    public AudioClip drinkSound2;
+    public AudioClip pressSound1;
+    public AudioClip pressSound2;
     public AudioClip gameOverSound;
 
     private Animator animator;
@@ -52,15 +52,12 @@ public class Player : MonoBehaviour
     private AStar astar;
     #endregion
 
-    Player()
-    {
-        astar = new AStar();
-        inventory = new Inventory();
-    }
-
     // Start is called before the first frame update
     protected virtual void Start()
     {
+        astar = new AStar();
+        inventory = new Inventory();
+
         animator = GetComponent<Animator>();
         inventoryUI.SetInventory(inventory);
 
@@ -80,7 +77,6 @@ public class Player : MonoBehaviour
     // Update is called once per frame 
     void Update()
     {
-        //if (!GameManager.instance.playersTurn) return;
         MoveAlongThePath();
     }
 
@@ -93,10 +89,9 @@ public class Player : MonoBehaviour
         path = astar.ComputePath(transform.position, goal, gm);
         if (path != null)
         {
-            ChangeActionPoints(-(path.Count - 1));
+            ChangeAP(-(path.Count - 1));
             path.Pop();
             destination = path.Pop();
-
             SoundManager.instance.RandomizeSfx(moveSound1, moveSound2);
         }
     }
@@ -118,10 +113,8 @@ public class Player : MonoBehaviour
         if (path != null)
         {
             isInMovement = true;
-
             Vector3 shiftedDistance = new(destination.x + 0.5f, destination.y + 0.5f, destination.z);
             transform.position = Vector3.MoveTowards(transform.position, shiftedDistance, 2 * Time.deltaTime);
-
             float distance = Vector3.Distance(shiftedDistance, transform.position);
             if (distance <= 0f)
             {
@@ -140,20 +133,19 @@ public class Player : MonoBehaviour
     }
 
     /// <summary>
-    /// Ends player's turn and switches to enemy turn
+    /// Called by EndTurnButton, ends player's turn and switches to enemy turn
     /// </summary>
     public void EndTurn()
     {
         CheckIfGameOver();
-
         GameManager.instance.playersTurn = false;
-        ChangeActionPoints(maxAP);
+        ChangeAP(maxAP);
     }
 
     /// <summary>
     /// Changes player's HP and updates HP text display, use negative to decrease
     /// </summary>
-    public void ChangeHealth(int change)
+    public void ChangeHP(int change)
     {
         // If new HP is greater than max
         if (currentHP + change > maxHP)
@@ -193,7 +185,7 @@ public class Player : MonoBehaviour
     /// <summary>
     /// Changes player's AP and updates AP text display, use negative to decrease
     /// </summary>
-    public void ChangeActionPoints(int change)
+    public void ChangeAP(int change)
     {
         // If new AP is greater than max
         if (currentAP + change > maxAP)
@@ -221,15 +213,6 @@ public class Player : MonoBehaviour
                 actionPointText.text = "AP:" + currentAP;
             }
         }
-    }
-
-    /// <summary>
-    /// Resets player's HP to maxHP
-    /// </summary>
-    public void RestoreHP()
-    {
-        currentHP = maxHP;
-        healthText.text = "HP:" + currentHP;
     }
 
     /// <summary>
@@ -307,6 +290,7 @@ public class Player : MonoBehaviour
             if (ret.selectedIdx != -1)
             {
                 selectedItem = anItem;
+                SoundManager.instance.RandomizeSfx(pressSound1, pressSound2);
             }
             if (ret.consumableWasUsed && !gm.turnTimer.timerIsRunning)
             {
@@ -328,7 +312,6 @@ public class Player : MonoBehaviour
     {
         if (n < inventory.itemList.Count)
         {
-            // If drop returns false, then we can't remove it
             if (GameManager.MyInstance.DropItem(inventory.itemList[n].itemInfo))
             {
                 if (inventoryUI.ProcessDamageAfterWeaponDrop(this, n))
@@ -340,6 +323,7 @@ public class Player : MonoBehaviour
                 }
                 inventoryUI.RemoveItem(n);
                 inventoryUI.RefreshInventoryItems();
+                SoundManager.instance.RandomizeSfx(moveSound1, moveSound2);
             }
         }
     }
