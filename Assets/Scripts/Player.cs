@@ -15,11 +15,9 @@ public class Player : MonoBehaviour
 
     public int damageToEnemy = 0;
 
-    // HP and AP text
     public Text healthText;
     public Text actionPointText;
 
-    // Audio clips relating to the player
     public AudioClip moveSound1;
     public AudioClip moveSound2;
     public AudioClip eatSound1;
@@ -28,7 +26,7 @@ public class Player : MonoBehaviour
     public AudioClip pressSound2;
     public AudioClip gameOverSound;
 
-    private Animator animator;
+    public Animator animator;
     public Inventory inventory;
     public InventoryUI inventoryUI;
     public ItemInfo selectedItem = null;
@@ -56,6 +54,9 @@ public class Player : MonoBehaviour
     protected virtual void Start()
     {
         astar = new AStar();
+        astar.tilemapGround = tilemapGround;
+        astar.tilemapWalls = tilemapWalls;
+
         inventory = new Inventory();
 
         animator = GetComponent<Animator>();
@@ -64,10 +65,6 @@ public class Player : MonoBehaviour
         currentHP = maxHP;
         currentAP = maxAP;
 
-        astar.tilemapGround = tilemapGround;
-        astar.tilemapWalls = tilemapWalls;
-
-        // Sets text of healthText and actionPointText
         healthText.text = "HP:" + currentHP;
         actionPointText.text = "AP:" + currentAP;
 
@@ -127,6 +124,7 @@ public class Player : MonoBehaviour
                 {
                     path = null;
                     isInMovement = false;
+                    gm.DrawTargetsAndTracers();
                 }
             }
         }
@@ -137,7 +135,6 @@ public class Player : MonoBehaviour
     /// </summary>
     public void EndTurn()
     {
-        CheckIfGameOver();
         GameManager.instance.playersTurn = false;
         ChangeAP(maxAP);
     }
@@ -147,39 +144,30 @@ public class Player : MonoBehaviour
     /// </summary>
     public void ChangeHP(int change)
     {
-        // If new HP is greater than max
-        if (currentHP + change > maxHP)
+        currentHP = Mathf.Clamp(currentHP + change, 0, maxHP);
+        healthText.text = "HP:" + currentHP;
+
+        if (currentHP == 0)
         {
-            currentHP = maxHP;
-            healthText.text = "HP:" + currentHP;
-            maxAP = 3;
+            SoundManager.instance.PlaySingle(gameOverSound);
+            SoundManager.instance.musicSource.Stop();
+            GameManager.instance.GameOver();
+        }
+
+        if (change < 0)
+        {
+            animator.SetTrigger("playerHit");
+            if (currentHP == 1)
+            {
+                maxAP = 1;
+                RestoreAP();
+            }
         }
         else
         {
-            currentHP += change;
-            // If change is negative, only used when player takes damage
-            if (change < 0)
-            {
-                animator.SetTrigger("playerHit");
-                healthText.text = "HP:" + currentHP;
-                // If Player reaches 1 HP, maxAP drops to 1 to simulate weakness
-                if (currentHP == 1)
-                {
-                    maxAP = 1;
-                    RestoreAP();
-                }
-                CheckIfGameOver();
-                return;
-            }
-            // If change is positive but not over max
-            else
-            {
-                healthText.text = "HP:" + currentHP;
-                maxAP = 3;
-            }
+            SoundManager.instance.RandomizeSfx(eatSound1, eatSound2);
+            maxAP = 3;
         }
-        // NOTE: Will be replaced with a different healing sound
-        SoundManager.instance.RandomizeSfx(eatSound1, eatSound2);
     }
 
     /// <summary>
@@ -187,31 +175,12 @@ public class Player : MonoBehaviour
     /// </summary>
     public void ChangeAP(int change)
     {
-        // If new AP is greater than max
-        if (currentAP + change > maxAP)
+        currentAP = Mathf.Clamp(currentAP + change, 0, maxAP);
+        actionPointText.text = "AP:" + currentAP;
+        if (currentAP == 0)
         {
-            currentAP = maxAP;
-            actionPointText.text = "AP:" + currentAP;
-        }
-        else
-        {
-            currentAP += change;
-            // If change is negative
-            if (change < 0)
-            {
-                if (currentAP <= 0)
-                {
-                    currentAP = 0;
-                    gm.tiledot.gameObject.SetActive(false);
-                    gm.turnTimer.timeRemaining = 0;
-                }
-                actionPointText.text = "AP:" + currentAP;
-            }
-            // If change is postive but not over max, wont really be used
-            else
-            {
-                actionPointText.text = "AP:" + currentAP;
-            }
+            gm.tiledot.gameObject.SetActive(false);
+            gm.turnTimer.timeRemaining = 0;
         }
     }
 
@@ -224,10 +193,10 @@ public class Player : MonoBehaviour
         actionPointText.text = "AP:" + currentAP;
     }
 
-    public void ProcessWeaponUse()
+    public void UpdateWeaponUP()
     {
-        // if weapon UP goes to 0 after use, remove weapon
-        if (inventoryUI.ProcessWeaponUse())
+        // If weapon UP == 0 after use, remove weapon
+        if (inventoryUI.UpdateWeaponUP())
         {
             inventoryUI.RemoveItem(inventoryUI.GetCurrentSelected());
             inventoryUI.RefreshInventoryItems();
@@ -240,40 +209,16 @@ public class Player : MonoBehaviour
         return inventoryUI.IsRangedWeaponSelected();
     }
 
-    public void AnimateAttack()
-    {
-        animator.SetTrigger("playerAttack");
-    }
-
-    /// <summary>
-    /// Plays game over sound and ends the game
-    /// </summary>
-    private void CheckIfGameOver()
-    {
-        if (currentHP <= 0)
-        {
-            SoundManager.instance.PlaySingle(gameOverSound);
-            SoundManager.instance.musicSource.Stop();
-            GameManager.instance.GameOver();
-        }
-    }
-
     /// <summary>
     /// Adds item to inventory when picked up
     /// </summary>
     public bool AddItem(ItemInfo itemInfo)
     {
-        ItemInventory itemInventory = new()
-        {
-            itemInfo = itemInfo,
-            amount = 1
-        };
-
-        bool ret = inventory.AddItem(itemInventory);
-        if (ret)
+        bool itemIsadded = inventory.AddItem(new ItemInventory { itemInfo = itemInfo, amount = 1 });
+        if (itemIsadded)
             inventoryUI.RefreshInventoryItems();
 
-        return ret;
+        return itemIsadded;
     }
 
     /// <summary>
@@ -281,27 +226,25 @@ public class Player : MonoBehaviour
     /// </summary>
     public void TryUseItem(int n)
     {
-        if (n < inventory.itemList.Count)
+        ItemInfo anItem = inventory.itemList[n].itemInfo;
+        gm.needToDrawReachableAreas = true;
+        AfterItemUse ret = anItem.UseItem(this, n);
+        // Item gets selected since it was unselected before
+        if (ret.selectedIdx != -1)
         {
-            ItemInfo anItem = inventory.itemList[n].itemInfo;
-            gm.needToDrawReachableAreas = true;
-            AfterItemUse ret = anItem.UseItem(this, n);
-            // Item gets selected since it was unselected before
-            if (ret.selectedIdx != -1)
-            {
-                selectedItem = anItem;
-                SoundManager.instance.RandomizeSfx(pressSound1, pressSound2);
-            }
-            if (ret.consumableWasUsed && !gm.turnTimer.timerIsRunning)
-            {
-                gm.turnTimer.timerIsRunning = true;
-            }
-            // Item is removed and inventory is refreshed since it was used up
-            if (ret.needToRemoveItem)
-            {
-                inventoryUI.RemoveItem(n);
-                inventoryUI.RefreshInventoryItems();
-            }
+            selectedItem = anItem;
+            SoundManager.instance.RandomizeSfx(pressSound1, pressSound2);
+        }
+        // TurnTimer is started after player uses a consumable on the first move of a turn
+        if (ret.consumableWasUsed && !gm.turnTimer.timerIsRunning)
+        {
+            gm.turnTimer.timerIsRunning = true;
+        }
+        // Item is removed and inventory is refreshed since it was used up
+        if (ret.needToRemoveItem)
+        {
+            inventoryUI.RemoveItem(n);
+            inventoryUI.RefreshInventoryItems();
         }
     }
 
@@ -310,27 +253,36 @@ public class Player : MonoBehaviour
     /// </summary>
     public void TryDropItem(int n)
     {
-        if (n < inventory.itemList.Count)
+        if (!GameManager.MyInstance.DropItem(inventory.itemList[n].itemInfo))
         {
-            if (GameManager.MyInstance.DropItem(inventory.itemList[n].itemInfo))
+            return;
+        }
+
+        if (inventoryUI.ProcessDamageAfterWeaponDrop(this, n))
+        {
+            if (IsRangedWeaponSelected() > 0)
             {
-                if (inventoryUI.ProcessDamageAfterWeaponDrop(this, n))
-                {
-                    if (IsRangedWeaponSelected() > 0)
-                    {
-                        gm.ClearTargetsAndTracers();
-                    }
-                }
-                inventoryUI.RemoveItem(n);
-                inventoryUI.RefreshInventoryItems();
-                SoundManager.instance.RandomizeSfx(moveSound1, moveSound2);
+                gm.ClearTargetsAndTracers();
             }
         }
+        inventoryUI.RemoveItem(n);
+        inventoryUI.RefreshInventoryItems();
+        SoundManager.instance.RandomizeSfx(moveSound1, moveSound2);
     }
 
     public void ProcessHoverForInventory(Vector3 mp)
     {
         inventoryUI.ProcessHoverForInventory(mp);
+    }
+
+    public void ClearTargetsAndTracers()
+    {
+        gm.ClearTargetsAndTracers();
+    }
+
+    public void DrawTargetsAndTracers()
+    {
+        gm.DrawTargetsAndTracers();
     }
 
     public void SetGameManager(GameManager g)
