@@ -94,7 +94,7 @@ public class ItemInfo
     public bool isAttachable = false;           // Can be attached to vehicles, enabling the item
 
     public float shellDamageMultiplier = 1.0f;  // Multiplied by damagePoints value if the weapon does different dmg to shelled bugs 
-    public bool isMortal = false;               // false = will use tracers to find line of sight, true = ignores obstacles
+    public bool isMortar = false;               // false = will use tracers to find line of sight, true = ignores obstacles
     public bool needsFuel = false;              // Special tag for the Lightning Railgun (maybe other weapons), which needs fuel to start
 
     public static int lastItemIdx = (int)ItemTag.Unknown;
@@ -148,11 +148,13 @@ public class ItemInfo
                 if (selectedIdx == -1)
                 {
                     player.damageToEnemy = 0;
+                    player.ClearTargetsAndTracers();
                 }
                 // Set damageToEnemy as the damage of the weapon
                 else
                 {
                     player.damageToEnemy = damagePoints;
+                    player.DrawTargetsAndTracers();
                 }
                 ret.selectedIdx = selectedIdx;
                 break;
@@ -172,31 +174,28 @@ public class ItemInfo
     /// <param name="posNew"></param>
     public bool ProcessSelection(int posOld, int posNew)
     {
-        bool IsSelected = true;
-        // If an item is already selected
-        if (posOld != -1)
+        if (posOld == posNew)
         {
-            if (posNew == posOld)
+            // Deselect old item
+            if (posOld != -1)
             {
-                // Deselect old item
-                GameObject.Find("InventoryPressed" + posOld).transform.localScale = new Vector3(1, 1, 1);
-                IsSelected = false;
-            }
-            // If selected unselected item
-            else
-            {
-                // Deselect old item and select new item
-                GameObject.Find("InventoryPressed" + posOld).transform.localScale = new Vector3(1, 1, 1);
-                GameObject.Find("InventoryPressed" + posNew).transform.localScale = new Vector3(0, 0, 0);
+                GameObject.Find("InventoryPressed" + posOld).transform.localScale = Vector3.one;
+                return false;
             }
         }
-        // If no item is selected
         else
         {
-            // Select new item
-            GameObject.Find("InventoryPressed" + posNew).transform.localScale = new Vector3(0, 0, 0);
+            // Deselect old item and select new item
+            if (posOld != -1)
+            {
+                GameObject.Find("InventoryPressed" + posOld).transform.localScale = Vector3.one;
+            }
+            if (posNew != -1)
+            {
+                GameObject.Find("InventoryPressed" + posNew).transform.localScale = Vector3.zero;
+            }
         }
-        return IsSelected;
+        return true;
     }
 
     /// <summary>
@@ -218,7 +217,7 @@ public class ItemInfo
     /// Changes the UP of a weapon after it is used
     /// </summary>
     /// <returns></returns>
-    public bool ProcessWeaponUse()
+    public bool UpdateWeaponUP()
     {
         if (currentUP > 0)
         {
@@ -238,6 +237,9 @@ public class ItemInfo
                 "\t" +
                 "DP:" + damagePoints;
         }
+        if (range > 0)
+            description += "\n" + "RP:" + range;
+
         return (currentUP == 0);
     }
 
@@ -247,16 +249,15 @@ public class ItemInfo
     /// <returns></returns>
     public static Dictionary<Rarity, int> RarityPercentMap()
     {
-        Dictionary<Rarity, int> RarityToPercentage = new()
+        return new Dictionary<Rarity, int>()
         {
-            [Rarity.Common] = 35,
-            [Rarity.Limited] = 30,
-            [Rarity.Scarce] = 20,
-            [Rarity.Rare] = 10,
-            [Rarity.Numinous] = 4,
-            [Rarity.Secret] = 1,
+            { Rarity.Common, 35 },
+            { Rarity.Limited, 30 },
+            { Rarity.Scarce, 20 },
+            { Rarity.Rare, 10 },
+            { Rarity.Numinous, 4 },
+            { Rarity.Secret, 1 }
         };
-        return RarityToPercentage;
     }
 
     /// <summary>
@@ -321,9 +322,9 @@ public class ItemInfo
                     "\n" +
                     "UP:" + "\u221e" +
                     "\t" +
-                    "DP:" + inf.damagePoints;// +
-                    //"\n" +
-                    //"RP:" + inf.range;
+                    "DP:" + inf.damagePoints +
+                    "\n" +
+                    "RP:" + inf.range;
                 break;
                 /*
                 case 3:

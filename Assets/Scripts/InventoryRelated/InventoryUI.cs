@@ -26,17 +26,14 @@ public class InventoryUI : MonoBehaviour
             if (selectedIdx == idx)
             {
                 selectedIdx = -1;
-                GameObject.Find("InventoryPressed0").transform.localScale = new Vector3(1, 1, 1);
-                GameObject.Find("InventoryPressed1").transform.localScale = new Vector3(1, 1, 1);
+                GameObject.Find("InventoryPressed0").transform.localScale = Vector3.one;
+                GameObject.Find("InventoryPressed1").transform.localScale = Vector3.one;
             }
-            else
+            else if (idx == 0)
             {
-                if (idx == 0)
-                {
-                    selectedIdx = 0;
-                    GameObject.Find("InventoryPressed1").transform.localScale = new Vector3(1, 1, 1);
-                    GameObject.Find("InventoryPressed0").transform.localScale = new Vector3(0, 0, 0);
-                }
+                selectedIdx = 0;
+                GameObject.Find("InventoryPressed1").transform.localScale = Vector3.one;
+                GameObject.Find("InventoryPressed0").transform.localScale = Vector3.zero;
             }
         }
         inventory.RemoveItem(idx);
@@ -74,11 +71,11 @@ public class InventoryUI : MonoBehaviour
         return false;
     }
 
-    public bool ProcessWeaponUse()
+    public bool UpdateWeaponUP()
     {
         if (selectedIdx != -1)
         {
-            bool wasUsed = inventory.ProcessWeaponUse(selectedIdx);
+            bool wasUsed = inventory.UpdateWeaponUP(selectedIdx);
             SetCurrentSelected(selectedIdx);
             return wasUsed;
         }

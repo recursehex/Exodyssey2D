@@ -6,8 +6,6 @@ public class Enemy : MonoBehaviour
 {
     public EnemyInfo info;
 
-    //private Animator animator;
-    //private Transform target;
     public AudioClip moveSound1;
     public AudioClip moveSound2;
     public AudioClip enemyAttack;
@@ -37,9 +35,6 @@ public class Enemy : MonoBehaviour
     // Start is called before the first frame update
     protected virtual void Start()
     {
-        // = GetComponent<Animator>();
-        //target = GameObject.FindGameObjectWithTag("Player").transform;
-
         astar = new AStar();
         astar.tilemapGround = tilemapGround;
         astar.tilemapWalls = tilemapWalls;
@@ -81,6 +76,7 @@ public class Enemy : MonoBehaviour
                 // Move one tile closer to the Player
                 if (path.Count > 1 && info.currentAP > 0)
                 {
+                    SoundManager.instance.RandomizeSfx(moveSound1, moveSound2);
                     destination = path.Pop();
                     info.currentAP--;
                 }

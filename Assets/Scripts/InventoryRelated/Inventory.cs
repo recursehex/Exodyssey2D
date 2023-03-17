@@ -16,14 +16,12 @@ public class Inventory
 
     public bool AddItem(ItemInventory item)
     {
-        bool ret = false;
-        if (itemList.Count < invMaxSize)
+        if (itemList.Count >= invMaxSize)
         {
-            itemList.Add(item);
-            ret = true;
+            return false;
         }
-        return ret;
-
+        itemList.Add(item);
+        return true;
     }
 
     public void RemoveItem(int idx)
@@ -36,9 +34,9 @@ public class Inventory
         return itemList[idx].itemInfo.ProcessDamageAfterWeaponDrop(p);
     }
 
-    public bool ProcessWeaponUse(int idx)
+    public bool UpdateWeaponUP(int idx)
     {
-        return itemList[idx].itemInfo.ProcessWeaponUse();
+        return itemList[idx].itemInfo.UpdateWeaponUP();
     }
 
     /// <summary>
@@ -48,12 +46,7 @@ public class Inventory
     /// <returns></returns>
     public int IsRangedWeaponSelected(int idx)
     {
-        int ret = 0;
-        if (itemList[idx].itemInfo.isRanged)
-        {
-            ret = itemList[idx].itemInfo.range;
-        }
-        return ret;
+        return itemList[idx]?.itemInfo.isRanged == true ? itemList[idx].itemInfo.range : 0;
     }
 
     public List<ItemInventory> GetItemList()

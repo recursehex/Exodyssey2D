@@ -2,7 +2,7 @@
 
 This is Stella Nova Studios' repository for **Exodyssey 2D**, a sci-fi turn-based roguelike set in the year 2283.
 
-**Alpha** is currently in development, which will be followed first by **Beta** and then the **Live Release**.
+**Alpha** is in development, which will be followed first by **Beta** and then by **Stable Release**.
 
 ## Releases[^1]
 
