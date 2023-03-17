@@ -21,16 +21,9 @@ public class Vehicle : MonoBehaviour
     /// <summary>
     /// Changes vehicle's HP, use negative to decrease
     /// </summary>
-    public void ChangeHealth(int change)
+    public void ChangeHP(int change)
     {
-        if (info.currentHP + change > info.maxHP) // if new HP is greater than max
-        {
-            info.currentHP = info.maxHP;
-        }
-        else
-        {
-            info.currentHP += change;
-        }
+        info.currentHP = Mathf.Clamp(info.currentHP + change, 0, info.maxHP);
     }
 
     /// <summary>

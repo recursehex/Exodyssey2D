@@ -141,7 +141,6 @@ public class GameManager : MonoBehaviour
 
         ResetForNextLevel();
         InitGame();
-        DrawTargetAndTracers();
     }
 
     private void ResetForNextLevel()
@@ -182,7 +181,7 @@ public class GameManager : MonoBehaviour
         Invoke(nameof(HideLevelLoadScreen), levelStartDelay);
         enemyHealthBar.gameObject.SetActive(false);
 
-        nStartItems = Random.Range(2, 5);
+        nStartItems = Random.Range(5, 10);
         nStartEnemies = Random.Range(1 + (int)(level * 0.5), 3 + (int)(level * 0.5));
 
         mapGenerator = new MapGen();
@@ -204,7 +203,7 @@ public class GameManager : MonoBehaviour
             for (int y = -4; y < 5; y++)
             {
                 Vector3Int tilePosition = new(x, y, 0);
-                tilemapGround.SetTile(tilePosition, groundTiles[(Random.Range(0, 8))]);
+                tilemapGround.SetTile(tilePosition, groundTiles[Random.Range(0, 8)]);
             }
         }
     }
@@ -232,21 +231,16 @@ public class GameManager : MonoBehaviour
     /// <returns></returns>
     public bool DropItem(ItemInfo inf)
     {
-        bool ret = false;
-        Vector3 playerPosition = player.transform.position;
-        Item itemAtPosition = HasItemAtPosition(playerPosition);
-
-        if (itemAtPosition == null)
+        if (HasItemAtPosition(player.transform.position) == null)
         {
             int idx = (int)inf.tag;
             GameObject item = itemTemplates[idx];
-            GameObject instance = Instantiate(item, playerPosition, Quaternion.identity) as GameObject;
-            Item e = instance.GetComponent<Item>();
-            e.info = inf;
+            GameObject instance = Instantiate(item, player.transform.position, Quaternion.identity);
+            instance.GetComponent<Item>().info = inf;
             items.Add(instance);
-            ret = true;
+            return true;
         }
-        return ret;
+        return false;
     }
 
     /// <summary>
@@ -254,17 +248,15 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public Item HasItemAtPosition(Vector3 position)
     {
-        Item ret = null;
         foreach (GameObject obj in items)
         {
             Item e = obj.GetComponent<Item>();
             if (e.transform.position == position)
             {
-                ret = e;
-                break;
+                return e;
             }
         }
-        return ret;
+        return null;
     }
 
     public bool HasElementAtPosition(Vector3 position)
@@ -318,17 +310,15 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public bool HasEnemyAtLoc(Vector3 position)
     {
-        bool ret = false;
         foreach (GameObject obj in enemies)
         {
             Enemy e = obj.GetComponent<Enemy>();
             if (e.transform.position == position)
             {
-                ret = true;
-                break;
+                return true;
             }
         }
-        return ret;
+        return false;
     }
 
     private void HideLevelLoadScreen()
@@ -377,40 +367,38 @@ public class GameManager : MonoBehaviour
         {
             playersTurn = true;
             endTurnButton.interactable = true;
+            return;
         }
-        else
+        if (needToStartEnemyMovement)
         {
-            if (needToStartEnemyMovement)
+            endTurnButton.interactable = false;
+            ClearTargetsAndTracers();
+            needToStartEnemyMovement = false;
+            idxEnemyMoving = 0;
+            enemies[idxEnemyMoving].GetComponent<Enemy>().CalculatePathAndStartMovement(playerPosition);
+            enemiesInMovement = true;
+            return;
+        }
+        if (enemiesInMovement)
+        {
+            Enemy e = enemies[idxEnemyMoving].GetComponent<Enemy>();
+            if (!e.isInMovement)
             {
-                endTurnButton.interactable = false;
-                needToStartEnemyMovement = false;
-                idxEnemyMoving = 0;
-                enemies[idxEnemyMoving].GetComponent<Enemy>().CalculatePathAndStartMovement(playerPosition);
-                enemiesInMovement = true;
-            }
-            else if (enemiesInMovement)
-            {
-                Enemy e = enemies[idxEnemyMoving].GetComponent<Enemy>();
-                if (!e.isInMovement)
+                if (idxEnemyMoving < enemies.Count - 1)
                 {
-                    if (idxEnemyMoving < enemies.Count - 1)
-                    {
-                        idxEnemyMoving++;
-                        enemies[idxEnemyMoving].GetComponent<Enemy>().CalculatePathAndStartMovement(playerPosition);
-                    }
-                    else
-                    {
-                        enemiesInMovement = false;
-                        UpdateEnemyAP();
-                        turnTimer.ResetTimer();
-                        tiledot.gameObject.SetActive(true);
-                        playersTurn = true;
-                        endTurnButton.interactable = true;
-                        needToDrawReachableAreas = true;
-                        DrawTileAreaIfNeeded();
-                        DrawTargetAndTracers();
-                    }
+                    idxEnemyMoving++;
+                    enemies[idxEnemyMoving].GetComponent<Enemy>().CalculatePathAndStartMovement(playerPosition);
+                    return;
                 }
+                enemiesInMovement = false;
+                UpdateEnemyAP();
+                turnTimer.ResetTimer();
+                tiledot.gameObject.SetActive(true);
+                playersTurn = true;
+                endTurnButton.interactable = true;
+                needToDrawReachableAreas = true;
+                DrawTileAreaIfNeeded();
+                DrawTargetsAndTracers();
             }
         }
     }
@@ -418,7 +406,7 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// Called by EndTurnButton, redraws tile areas for the Player since their AP was reset
     /// </summary>
-    public void EndTurnAreaReset()
+    public void EndTurn()
     {
         endTurnButton.interactable = false;
         turnTimer.timerIsRunning = false;
@@ -448,9 +436,7 @@ public class GameManager : MonoBehaviour
     private void ClickTarget()
     {
         // If RMB clicks
-        if (Input.GetMouseButtonDown(1)
-            //&& !EventSystem.current.IsPointerOverGameObject()
-            )
+        if (Input.GetMouseButtonDown(1))
         {
             // This should be for the Player swapping to other characters or inspecting something
         }
@@ -531,8 +517,8 @@ public class GameManager : MonoBehaviour
                             {
                                 HandleDamageToEnemy(idxOfEnemy);
                                 player.ChangeAP(-1);
-                                player.AnimateAttack();
-                                player.ProcessWeaponUse();
+                                player.animator.SetTrigger("playerAttack");
+                                player.UpdateWeaponUP();
                                 needToDrawReachableAreas = true;
                                 startTimer = true;
                             }
@@ -575,7 +561,6 @@ public class GameManager : MonoBehaviour
                     GameObject obj = enemies[idxOfEnemy];
                     Enemy e = obj.GetComponent<Enemy>();
                     enemyHealthBar.SetHealth(e.info.currentHP);
-
                     enemyHealthBar.gameObject.SetActive(true);
                     enemyHealthBar.MoveToPlace(tilePoint);
                 }
@@ -604,6 +589,7 @@ public class GameManager : MonoBehaviour
         {
             enemies.RemoveAt(idx);
             Destroy(obj, 0f);
+            DrawTargetsAndTracers();
         }
     }
 
@@ -620,12 +606,12 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// Called when the turn timer ends to stop the Player from acting
     /// </summary>
-    public void OnEndTurnTimer()
+    public void OnTurnTimerEnd()
     {
         tiledot.gameObject.SetActive(false);
+        player.ChangeAP(-player.maxAP);
         ClearTileAreas();
         ClearTargetsAndTracers();
-        player.ChangeAP(-player.maxAP);
     }
 
     /// <summary>
@@ -634,19 +620,16 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private int GetEnemyIdxIfPresent(Vector3Int position)
     {
-        int ret = -1;
         Vector3 shiftedDistance = new(position.x + 0.5f, position.y + 0.5f, 0);
         for (int i = 0; i < enemies.Count; i++)
         {
-            GameObject obj = enemies[i];
-            Enemy e = obj.GetComponent<Enemy>();
+            Enemy e = enemies[i].GetComponent<Enemy>();
             if (e.transform.position == shiftedDistance)
             {
-                ret = i;
-                break;
+                return i;
             }
         }
-        return ret;
+        return -1;
     }
 
     /// <summary>
@@ -654,17 +637,7 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private bool IsInMovementRange(Vector3Int position)
     {
-        if (reachableAreasToDraw != null)
-        {
-            foreach (KeyValuePair<Vector3Int, Node> node in reachableAreasToDraw)
-            {
-                if (node.Value.Position.x == position.x && node.Value.Position.y == position.y)
-                {
-                    return true;
-                }
-            }
-        }
-        return false;
+        return reachableAreasToDraw?.ContainsKey(position) == true;
     }
 
     /// <summary>
@@ -675,10 +648,8 @@ public class GameManager : MonoBehaviour
     private bool IsInMeleeRange(Vector3 objPosition)
     {
         Vector3 playerPosition = player.transform.position;
-        return (playerPosition.x == objPosition.x && playerPosition.y + 1 == objPosition.y) ||
-               (playerPosition.x == objPosition.x && playerPosition.y - 1 == objPosition.y) ||
-               (playerPosition.x + 1 == objPosition.x && playerPosition.y == objPosition.y) ||
-               (playerPosition.x - 1 == objPosition.x && playerPosition.y == objPosition.y);
+        float distance = Vector3.Distance(playerPosition, objPosition);
+        return distance <= 1.0f;
     }
 
     /// <summary>
@@ -688,14 +659,7 @@ public class GameManager : MonoBehaviour
     /// <returns></returns>
     private bool IsInRangeForRangedWeapon(Vector3 objPosition)
     {
-        foreach (Vector3 targetPosition in rangedTargetPositions)
-        {
-            if (targetPosition.x == objPosition.x && targetPosition.y == objPosition.y)
-            {
-                return true;
-            }
-        }
-        return false;
+        return rangedTargetPositions.Contains(objPosition);
     }
 
     /// <summary>
@@ -722,26 +686,20 @@ public class GameManager : MonoBehaviour
 
     private void ClearTargets()
     {
-        if (targets.Count > 0)
+        foreach (GameObject target in targets)
         {
-            foreach (GameObject target in targets)
-            {
-                Destroy(target);
-            }
-            targets.Clear();
+            Destroy(target);
         }
+        targets.Clear();
     }
 
     private void ClearTracers()
     {
-        if (tracers.Count > 0)
+        foreach (GameObject tracer in tracers)
         {
-            foreach (GameObject tracer in tracers)
-            {
-                Destroy(tracer);
-            }
-            tracers.Clear();
+            Destroy(tracer);
         }
+        tracers.Clear();
     }
 
     /// <summary>
@@ -749,7 +707,7 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public void DrawTileAreaIfNeeded()
     {
-        if (!player.isInMovement && needToDrawReachableAreas)
+        if (!player.isInMovement && needToDrawReachableAreas && playersTurn)
         {
             ClearTileAreas();
             reachableAreasToDraw = player.CalculateArea();
@@ -764,15 +722,14 @@ public class GameManager : MonoBehaviour
                 }
             }
             needToDrawReachableAreas = false;
-            DrawTargetAndTracers();
         }
     }
 
-    public void DrawTargetAndTracers()
+    public void DrawTargetsAndTracers()
     {
         ClearTargetsAndTracers();
         int weaponRange = player.IsRangedWeaponSelected();
-        if (weaponRange > 0 && (!enemiesInMovement) && player.currentAP > 0)
+        if (weaponRange > 0 && !enemiesInMovement && player.currentAP > 0)
         {
             rangedTargetPositions.Clear();
 
@@ -788,7 +745,6 @@ public class GameManager : MonoBehaviour
                         GameObject tracerChoice = tracer[0];
                         Vector3 shiftedDistance = new(tracerPosition.x + 0.0f, tracerPosition.y + 0.0f, enemyPoint.z);
                         GameObject instance = Instantiate(tracerChoice, shiftedDistance, Quaternion.identity) as GameObject;
-
                         tracers.Add(instance);
                     }
                 }
@@ -812,7 +768,6 @@ public class GameManager : MonoBehaviour
         if (distanceFromPlayerToEnemy > weaponRange)
         {
             ret.canTargetEnemy = false;
-
         }
         ret.tracerPath = GetPointsOnLine((int)(playerPosition.x - 0.5f), (int)(playerPosition.y - 0.5f), (int)(objPosition.x - 0.5f), (int)(objPosition.y - 0.5f));
         foreach (Vector3 tracerPosition in ret.tracerPath)

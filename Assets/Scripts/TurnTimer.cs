@@ -33,14 +33,13 @@ public class TurnTimer : MonoBehaviour
                 timeRemaining -= Time.deltaTime;
                 DisplayTime(timeRemaining);
             }
-            // When time has run out
             else
             {
                 timeRemaining = 0;
                 timerIsRunning = false;
                 timeText.color = new Color((float)(172.0 / 256.0), (float)(22.0 / 256.0), (float)(45.0 / 256.0), 1);
                 DisplayTime(-1);
-                GameManager.instance.OnEndTurnTimer();
+                GameManager.instance.OnTurnTimerEnd();
             }
         }
     }
