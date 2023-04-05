@@ -120,23 +120,18 @@ public class Player : MonoBehaviour
                     destination = path.Pop();
                     SoundManager.instance.RandomizeSfx(moveSound1, moveSound2);
                 }
-                else
+                else // When Player stops moving
                 {
                     path = null;
                     isInMovement = false;
+                    if (gm.PlayerIsOnExitTile())
+                    {
+                        return;
+                    }
                     gm.DrawTargetsAndTracers();
                 }
             }
         }
-    }
-
-    /// <summary>
-    /// Called by EndTurnButton, ends player's turn and switches to enemy turn
-    /// </summary>
-    public void EndTurn()
-    {
-        GameManager.instance.playersTurn = false;
-        ChangeAP(maxAP);
     }
 
     /// <summary>
@@ -227,7 +222,6 @@ public class Player : MonoBehaviour
     public void TryUseItem(int n)
     {
         ItemInfo anItem = inventory.itemList[n].itemInfo;
-        gm.needToDrawReachableAreas = true;
         AfterItemUse ret = anItem.UseItem(this, n);
         // Item gets selected since it was unselected before
         if (ret.selectedIdx != -1)
@@ -239,12 +233,14 @@ public class Player : MonoBehaviour
         if (ret.consumableWasUsed && !gm.turnTimer.timerIsRunning)
         {
             gm.turnTimer.timerIsRunning = true;
+            gm.needToDrawReachableAreas = true;
         }
         // Item is removed and inventory is refreshed since it was used up
         if (ret.needToRemoveItem)
         {
             inventoryUI.RemoveItem(n);
             inventoryUI.RefreshInventoryItems();
+            gm.needToDrawReachableAreas = true;
         }
     }
 
