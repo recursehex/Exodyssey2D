@@ -87,7 +87,7 @@ public class MapGen
                         {
                             Vector3Int p = new(baseX + x, baseY - y, 0);
 
-                            tilemapWalls.SetTile(p, wallTiles[(Random.Range(0, 7))]);
+                            tilemapWalls.SetTile(p, wallTiles[Random.Range(0, wallTiles.Length)]);
                         }
                     }
                 }
