@@ -23,8 +23,10 @@ public enum ItemTag
     //Rock
     //Flamethrower,
     //ShellPiercer
-    //Deathwave
+    //CatalyticRadiator
     //PFL,
+    //BrinkOfExtinction,
+    //BorrowedSpacetime,
     LightningRailgun,
     //PaintBlaster,
 
@@ -70,7 +72,7 @@ public class AfterItemUse
 }
 
 /// <summary>
-/// Contains all item variables, creates items with specific values, and manages items after usage
+/// Contains all item variables, creates items with specific values, & manages items after usage
 /// </summary>
 public class ItemInfo
 {
@@ -84,13 +86,13 @@ public class ItemInfo
     public int maxUP = -1;                      // Set to positive value for items with UP, -1 = infinite uses
     public int currentUP = -1;
 
-    public int healingPoints = -1;              // Set to positive value for items that heal players, -1 = does not heal
+    public int healingPoints = -1;              // Set to positive value for items that heal Players, -1 = does not heal
 
     public int damagePoints = -1;               // Set only for items with inf.ItemType = Weapon
     public bool isRanged = false;               // false = Melee, true = Ranged
     public int range = -1;                      // Maximum distance a Ranged weapon can attack to
 
-    public bool isEquipable = false;            // Can be equipped by characters, enabling the item and emptying an inventory slot
+    public bool isEquipable = false;            // Can be equipped by characters, enabling the item & emptying an inventory slot
     public bool isAttachable = false;           // Can be attached to vehicles, enabling the item
 
     public float shellDamageMultiplier = 1.0f;  // Multiplied by damagePoints value if the weapon does different dmg to shelled bugs 
@@ -104,14 +106,14 @@ public class ItemInfo
         List<Rarity> ret = new();
         for (int i = 0; i < lastItemIdx; i++)
         {
-            ItemInfo item = FactoryFromNumber(i);
+            ItemInfo item = ItemFactory(i);
             ret.Add(item.rarity);
         }
         return ret;
     }
 
     /// <summary>
-    /// Called when player clicks on an item in an inventory slot
+    /// Called when Player clicks on an item in an inventory slot
     /// </summary>
     /// <param name="player"></param>
     /// <param name="selectedIdx"></param>
@@ -168,24 +170,21 @@ public class ItemInfo
     }
 
     /// <summary>
-    /// Called by UseItem when a weapon is selected or deselected
+    /// Called by UseItem when weapon is selected or deselected
     /// </summary>
     /// <param name="posOld"></param>
     /// <param name="posNew"></param>
     public bool ProcessSelection(int posOld, int posNew)
     {
-        if (posOld == posNew)
+        // Deselect old item
+        if (posOld == posNew && posOld != -1)
         {
-            // Deselect old item
-            if (posOld != -1)
-            {
-                GameObject.Find("InventoryPressed" + posOld).transform.localScale = Vector3.one;
-                return false;
-            }
+            GameObject.Find("InventoryPressed" + posOld).transform.localScale = Vector3.one;
+            return false;
         }
         else
         {
-            // Deselect old item and select new item
+            // Deselect old item & select new item
             if (posOld != -1)
             {
                 GameObject.Find("InventoryPressed" + posOld).transform.localScale = Vector3.one;
@@ -199,7 +198,7 @@ public class ItemInfo
     }
 
     /// <summary>
-    /// Ensures that damageToEnemy is reset after the Player drops a weapon
+    /// Ensures damageToEnemy is reset after Player drops a weapon
     /// </summary>
     /// <param name="p"></param>
     /// <returns></returns>
@@ -214,7 +213,7 @@ public class ItemInfo
     }
 
     /// <summary>
-    /// Changes the UP of a weapon after it is used
+    /// Changes UP of a weapon after usage
     /// </summary>
     /// <returns></returns>
     public bool UpdateWeaponUP()
@@ -244,7 +243,7 @@ public class ItemInfo
     }
 
     /// <summary>
-    /// Returns the percentage for a desired rarity
+    /// Returns percentage for a desired rarity
     /// </summary>
     /// <returns></returns>
     public static Dictionary<Rarity, int> RarityPercentMap()
@@ -261,11 +260,11 @@ public class ItemInfo
     }
 
     /// <summary>
-    /// Returns the info for a desired item 
+    /// Returns info for a desired item 
     /// </summary>
     /// <param name="n"></param>
     /// <returns></returns>
-    public static ItemInfo FactoryFromNumber(int n)
+    public static ItemInfo ItemFactory(int n)
     {
         ItemInfo inf = new();
         switch (n)
@@ -588,10 +587,10 @@ public class ItemInfo
                     break;
 
                 case 24:
-                    inf.tag = ItemTag.Deathwave;
+                    inf.tag = ItemTag.CatalyticRadiator;
                     inf.rarity = Rarity.Numinous;
                     inf.type = ItemType.Weapon;
-                    inf.name = "DEATHWAVE";
+                    inf.name = "CATALYTIC RADIATOR";
                     inf.maxUP = 3;
                     inf.currentUP = inf.maxUP;
                     inf.damagePoints = 5;
@@ -638,10 +637,10 @@ public class ItemInfo
                     break;
 
                 case 27:
-                    inf.tag = ItemTag.TimesEdge;
+                    inf.tag = ItemTag.BorrowedSpacetime;
                     inf.rarity = Rarity.Rare;
                     inf.type = ItemType.Numinous;
-                    inf.name = "TIME'S EDGE";
+                    inf.name = "BORROWED SPACETIME";
                     inf.maxUP = 2;
                     inf.currentUP = inf.maxUP;
                     inf.damagePoints = 2;

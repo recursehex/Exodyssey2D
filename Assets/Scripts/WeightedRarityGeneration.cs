@@ -65,14 +65,14 @@ public class WeightedRarityGeneration: MonoBehaviour
                         {
                             GameObject instance = Instantiate(element, shiftedDistance, Quaternion.identity) as GameObject;
                             Item e = instance.GetComponent<Item>();
-                            e.info = ItemInfo.FactoryFromNumber(randomItemIndex);
+                            e.info = ItemInfo.ItemFactory(randomItemIndex);
                             elements.Add(instance);
                         }
                         else
                         {
                             GameObject instance = Instantiate(element, shiftedDistance, Quaternion.identity) as GameObject;
                             Enemy e = instance.GetComponent<Enemy>();
-                            e.info = EnemyInfo.FactoryFromNumber(randomItemIndex);
+                            e.info = EnemyInfo.EnemyFactory(randomItemIndex);
                             e.SetGameManager(gm);
                             e.ExposedStart();
                             elements.Add(instance);

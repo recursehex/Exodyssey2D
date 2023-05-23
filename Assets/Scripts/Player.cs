@@ -94,7 +94,7 @@ public class Player : MonoBehaviour
     }
 
     /// <summary>
-    /// Calculates area that the player can move to in a turn based on currentAP
+    /// Calculates area Player can move to in a turn based on currentAP
     /// </summary>
     public Dictionary<Vector3Int, Node> CalculateArea()
     {
@@ -135,7 +135,7 @@ public class Player : MonoBehaviour
     }
 
     /// <summary>
-    /// Changes player's HP and updates HP text display, use negative to decrease
+    /// Changes HP & updates HP text display, use negative to decrease
     /// </summary>
     public void ChangeHP(int change)
     {
@@ -166,7 +166,7 @@ public class Player : MonoBehaviour
     }
 
     /// <summary>
-    /// Changes player's AP and updates AP text display, use negative to decrease
+    /// Changes AP & updates AP text display, use negative to decrease
     /// </summary>
     public void ChangeAP(int change)
     {
@@ -180,7 +180,7 @@ public class Player : MonoBehaviour
     }
 
     /// <summary>
-    /// Resets player's AP to maxAP
+    /// Resets AP to maxAP
     /// </summary>
     public void RestoreAP()
     {
@@ -217,7 +217,7 @@ public class Player : MonoBehaviour
     }
 
     /// <summary>
-    /// Uses item in player's inventory
+    /// Uses item in inventory
     /// </summary>
     public void TryUseItem(int n)
     {
@@ -229,13 +229,13 @@ public class Player : MonoBehaviour
             selectedItem = anItem;
             SoundManager.instance.RandomizeSfx(pressSound1, pressSound2);
         }
-        // TurnTimer is started after player uses a consumable on the first move of a turn
+        // TurnTimer is started after Player uses a consumable on the first move of a turn
         if (ret.consumableWasUsed && !gm.turnTimer.timerIsRunning)
         {
             gm.turnTimer.timerIsRunning = true;
             gm.needToDrawReachableAreas = true;
         }
-        // Item is removed and inventory is refreshed since it was used up
+        // Item is removed & inventory is refreshed
         if (ret.needToRemoveItem)
         {
             inventoryUI.RemoveItem(n);
@@ -245,7 +245,7 @@ public class Player : MonoBehaviour
     }
 
     /// <summary>
-    /// Tries to drop item in player's inventory onto the ground
+    /// Tries to drop item from inventory onto the ground
     /// </summary>
     public void TryDropItem(int n)
     {
