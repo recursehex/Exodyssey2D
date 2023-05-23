@@ -59,8 +59,8 @@ public class EnemyInfo
 
         for (int i = 0; i < lastEnemyIdx; i++)
         {
-            EnemyInfo item = FactoryFromNumber(i);
-            ret.Add(item.rarity);
+            EnemyInfo enemy = EnemyFactory(i);
+            ret.Add(enemy.rarity);
         }
 
         return ret;
@@ -85,11 +85,11 @@ public class EnemyInfo
     }
 
     /// <summary>
-    /// Returns the info for a desired enemy 
+    /// Returns info for a desired enemy 
     /// </summary>
     /// <param name="n"></param>
     /// <returns></returns>
-    public static EnemyInfo FactoryFromNumber(int n)
+    public static EnemyInfo EnemyFactory(int n)
     {
         EnemyInfo inf = new();
 

@@ -65,7 +65,7 @@ public class GameManager : MonoBehaviour
     // How long the psuedo-loading screen lasts in seconds
     private readonly float levelStartDelay = 1.5f;
 
-    // Number of items and enemies, with min and max range for enemies
+    // Number of items & enemies, with min & max range for enemies
     private int nStartItems;
     private int nStartEnemies;
 
@@ -142,6 +142,7 @@ public class GameManager : MonoBehaviour
         ResetForNextLevel();
         InitGame();
         DrawTargetsAndTracers();
+        tiledot.gameObject.SetActive(true);
     }
 
     private void ResetForNextLevel()
@@ -167,7 +168,7 @@ public class GameManager : MonoBehaviour
         }
         enemies.Clear();
 
-        // Resets the Player's position and AP
+        // Resets Player position & AP
         player.transform.position = new Vector3(-3.5f, 0.5f, 0f);
         player.RestoreAP();
     }
@@ -218,7 +219,7 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Procedurally generates items once per level, first selecting a weighted rarity and then selecting equally from within that rarity
+    /// Procedurally generates items once per level, first selecting a weighted rarity, then selecting equally from within that rarity
     /// </summary>
     public void ItemGeneration()
     {
@@ -226,7 +227,7 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Returns true if there is no item at the Player's position, allowing an item in the inventory to be dropped
+    /// Returns true if no item at Player position, allowing an item in the inventory to be dropped
     /// </summary>
     /// <param name="inf"></param>
     /// <returns></returns>
@@ -327,7 +328,7 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Called when the Player dies
+    /// Called when Player dies
     /// </summary>
     public void GameOver()
     {
@@ -355,26 +356,29 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Calculates each enemy's movement path and gives back the Player's turn at the end
+    /// Calculates each enemy's movement path & gives Player turn back at the end
     /// </summary>
     private void EnemyMovement()
     {
+        // If all enemies are dead
         if (enemies.Count == 0)
         {
             playersTurn = true;
             endTurnButton.interactable = true;
             return;
         }
+        // When enemies begin moving
         if (needToStartEnemyMovement)
         {
             endTurnButton.interactable = false;
-            ClearTargetsAndTracers();
+            ClearTargetsAndTracers(); // PROBLEM
             needToStartEnemyMovement = false;
             idxEnemyMoving = 0;
             enemies[idxEnemyMoving].GetComponent<Enemy>().CalculatePathAndStartMovement(player.transform.position);
             enemiesInMovement = true;
             return;
         }
+        // Enemy movement
         if (enemiesInMovement && !enemies[idxEnemyMoving].GetComponent<Enemy>().isInMovement)
         {
             if (idxEnemyMoving < enemies.Count - 1)
@@ -383,6 +387,7 @@ public class GameManager : MonoBehaviour
                 enemies[idxEnemyMoving].GetComponent<Enemy>().CalculatePathAndStartMovement(player.transform.position);
                 return;
             }
+            // Once enemies have finished moving
             enemiesInMovement = false;
             UpdateEnemyAP();
             turnTimer.ResetTimer();
@@ -396,23 +401,29 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Called by EndTurnButton, redraws tile areas for the Player since their AP was reset
+    /// Called by EndTurnButton, redraws tile areas, resets timer, & resets AP
     /// </summary>
-    public void EndTurn()
+    public void OnEndTurnPress()
     {
-        endTurnButton.interactable = false;
-        turnTimer.timerIsRunning = false;
-        turnTimer.ResetTimer();
-        playersTurn = false;
-        player.ChangeAP(player.maxAP);
         tiledot.gameObject.SetActive(true);
-        needToDrawReachableAreas = true;
-        DrawTileAreaIfNeeded();
-        needToStartEnemyMovement = true;
+        if (!player.isInMovement)
+        {
+            endTurnButton.interactable = false;
+            turnTimer.timerIsRunning = false;
+            turnTimer.ResetTimer();
+            playersTurn = false;
+            player.ChangeAP(player.maxAP);
+            needToDrawReachableAreas = true;
+            DrawTileAreaIfNeeded();
+            if (enemies.Count > 0)
+            {
+                needToStartEnemyMovement = true;
+            }
+        }
     }
 
     /// <summary>
-    /// Resets every enemy's AP when the Player's turn ends
+    /// Resets every enemy's AP when Player turn ends
     /// </summary>
     public void UpdateEnemyAP()
     {
@@ -423,7 +434,7 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Checks what mouse button is clicked and acts
+    /// Checks what mouse button is clicked & acts
     /// </summary>
     private void ClickTarget()
     {
@@ -447,14 +458,14 @@ public class GameManager : MonoBehaviour
             clickPoint.y < size.max.y &&
             !tilemapWalls.HasTile(clickPoint) && !player.isInMovement)
             {
-                // If click is on the Player's position
+                // If click is on Player position
                 if (shiftedClickPoint == player.transform.position)
                 {
-                    // If there is an item on the same tile as the Player
+                    // If there is an item on the same tile as Player
                     Item itemAtPosition = HasItemAtPosition(shiftedClickPoint);
                     if (itemAtPosition != null)
                     {
-                        // If an item is there, the Player picks it up
+                        // If an item is there, Player picks it up
                         if (player.AddItem(itemAtPosition.info))
                         {
                             DestroyItemAtPosition(shiftedClickPoint);
@@ -468,42 +479,33 @@ public class GameManager : MonoBehaviour
                 {
                     isInRangeForRangedWeapon = IsInRangeForRangedWeapon(shiftedClickPoint);
                 }
-                // For actions that require AP, first check if it is the Player's turn
-                if (playersTurn)
+                // For actions that require AP, first check if it is Player turn
+                if (!playersTurn) return;
+
+                int idxOfEnemy = GetEnemyIndexAtPosition(clickPoint);
+                // If there is no enemy on the clicked tile & if the mouse clicks on a tile Player is not on
+                if (isInMovementRange && idxOfEnemy == -1 && shiftedClickPoint != player.transform.position)
                 {
-                    int idxOfEnemy = GetEnemyIndexAtPosition(clickPoint);
-                    // If there is no enemy on the clicked tile
-                    if (isInMovementRange && idxOfEnemy == -1)
-                    {
-                        // If the mouse clicks on a tile that the Player is not on
-                        if (shiftedClickPoint != player.transform.position)
-                        {
-                            // Movement code
-                            endTurnButton.interactable = false;
-                            player.isInMovement = true;
-                            needToDrawReachableAreas = true;
-                            player.CalculatePathAndStartMovement(worldPoint);
-                            turnTimer.StartTimer();
-                        }
-                    }
-                    // For attacking an enemy, if there exists an enemy and if it is in melee or ranged weapon range
-                    else if (idxOfEnemy != -1 && (isInMeleeRange || isInRangeForRangedWeapon))
-                    {
-                        // If the Player has a weapon and AP > 0
-                        if (player.damageToEnemy > 0 && player.currentAP > 0)
-                        {
-                            HandleDamageToEnemy(idxOfEnemy);
-                            player.ChangeAP(-1);
-                            player.animator.SetTrigger("playerAttack");
-                            player.UpdateWeaponUP();
-                            needToDrawReachableAreas = true;
-                            turnTimer.StartTimer();
-                        }
-                    }
+                    // Player movement
+                    endTurnButton.interactable = false;
+                    player.isInMovement = true;
+                    needToDrawReachableAreas = true;
+                    player.CalculatePathAndStartMovement(worldPoint);
+                    turnTimer.StartTimer();
+                }
+                // For attacking an enemy, if there exists an enemy & if it is in melee or ranged weapon range & if Player has a weapon & has AP
+                else if (idxOfEnemy >= 0 && (isInMeleeRange || isInRangeForRangedWeapon) && player.damageToEnemy > 0 && player.currentAP > 0)
+                {
+                    HandleDamageToEnemy(idxOfEnemy);
+                    player.ChangeAP(-1);
+                    player.animator.SetTrigger("playerAttack");
+                    player.UpdateWeaponUP();
+                    needToDrawReachableAreas = true;
+                    turnTimer.StartTimer();
                 }
             }
         }
-        // If mouse is hovering over a tile, to move tiledot and enemyHealthBar
+        // If mouse is hovering over a tile, to move tiledot & enemyHealthBar
         else
         {
             BoundsInt size = tilemapGround.cellBounds;
@@ -566,7 +568,7 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Called when the Player takes damage to adjust health and redraw tile areas
+    /// Called when Player takes damage to adjust health & redraw tile areas
     /// </summary>
     public void HandleDamageToPlayer(int dmg)
     {
@@ -576,7 +578,7 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Called when the turn timer ends to stop the Player from acting
+    /// Called when the turn timer ends to stop Player from acting
     /// </summary>
     public void OnTurnTimerEnd()
     {
@@ -590,7 +592,6 @@ public class GameManager : MonoBehaviour
     {
         if (tilemapExit.HasTile(Vector3Int.FloorToInt(player.transform.position)))
         {
-            ClearTargetsAndTracers();
             OnLevelWasLoaded(level);
             return true;
         }
@@ -614,7 +615,7 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Checks if tile is within range based on the Player's AP
+    /// Checks if tile is within range based on Player AP
     /// </summary>
     private bool IsInMovementRange(Vector3Int position)
     {
@@ -622,7 +623,7 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Returns true if an enemy or object is adjacent to the Player
+    /// Returns true if an enemy or object is adjacent to Player
     /// </summary>
     /// <param name="p1"></param>
     /// <returns></returns>
@@ -682,7 +683,7 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Redraws tile areas when the Player's AP changes
+    /// Redraws tile areas when Player AP changes
     /// </summary>
     public void DrawTileAreaIfNeeded()
     {
@@ -759,7 +760,7 @@ public class GameManager : MonoBehaviour
         }
         return ret;
     }
-
+    
     public List<Vector3> GetPointsOnLine(int x0, int y0, int x1, int y1)
     {
         List<Vector3> ret = new();
@@ -768,20 +769,20 @@ public class GameManager : MonoBehaviour
         if (steep)
         {
             int t;
-            t = x0; // swap x0 and y0
+            t = x0; // swap x0 & y0
             x0 = y0;
             y0 = t;
-            t = x1; // swap x1 and y1
+            t = x1; // swap x1 & y1
             x1 = y1;
             y1 = t;
         }
         if (x0 > x1)
         {
             int t;
-            t = x0; // swap x0 and x1
+            t = x0; // swap x0 & x1
             x0 = x1;
             x1 = t;
-            t = y0; // swap y0 and y1
+            t = y0; // swap y0 & y1
             y0 = y1;
             y1 = t;
         }
