@@ -221,6 +221,11 @@ public class Player : MonoBehaviour
     /// </summary>
     public void TryUseItem(int n)
     {
+        // Ensures index is within bounds AND inventory has an item
+        if (n < 0 || inventory.itemList.Count == 0)
+        {
+            return;
+        }
         ItemInfo anItem = inventory.itemList[n].itemInfo;
         AfterItemUse ret = anItem.UseItem(this, n);
         // Item gets selected since it was unselected before

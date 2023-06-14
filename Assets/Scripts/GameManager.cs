@@ -307,7 +307,7 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// Checks if enemy is on a tile to avoid collisions
     /// </summary>
-    public bool HasEnemyAtLoc(Vector3 position)
+    public bool HasEnemyAtPosition(Vector3 position)
     {
         foreach (GameObject enemy in enemies)
         {
@@ -371,7 +371,7 @@ public class GameManager : MonoBehaviour
         if (needToStartEnemyMovement)
         {
             endTurnButton.interactable = false;
-            ClearTargetsAndTracers(); // PROBLEM
+            ClearTargetsAndTracers();
             needToStartEnemyMovement = false;
             idxEnemyMoving = 0;
             enemies[idxEnemyMoving].GetComponent<Enemy>().CalculatePathAndStartMovement(player.transform.position);
@@ -748,11 +748,11 @@ public class GameManager : MonoBehaviour
         {
             ret.canTargetEnemy = false;
         }
-        ret.tracerPath = GetPointsOnLine((int)(playerPosition.x - 0.5f), (int)(playerPosition.y - 0.5f), (int)(objPosition.x - 0.5f), (int)(objPosition.y - 0.5f));
+        ret.tracerPath = BresenhamsAlgorithm((int)(playerPosition.x - 0.5f), (int)(playerPosition.y - 0.5f), (int)(objPosition.x - 0.5f), (int)(objPosition.y - 0.5f));
         foreach (Vector3 tracerPosition in ret.tracerPath)
         {
             Vector3Int tracerPositionInt = new((int)tracerPosition.x, (int)tracerPosition.y, 0);
-            if (tilemapWalls.HasTile(tracerPositionInt)) // NOTE: if weapon's isMortar = true, ignore tilemapWalls check
+            if (tilemapWalls.HasTile(tracerPositionInt)) // NOTE: ignore if weapon's isMortar = true
             {
                 ret.canTargetEnemy = false;
                 break;
@@ -760,47 +760,29 @@ public class GameManager : MonoBehaviour
         }
         return ret;
     }
-    
-    public List<Vector3> GetPointsOnLine(int x0, int y0, int x1, int y1)
+
+    public List<Vector3> BresenhamsAlgorithm(int x0, int y0, int x1, int y1)
     {
         List<Vector3> ret = new();
-        int i = 0;
-        bool steep = Mathf.Abs(y1 - y0) > Mathf.Abs(x1 - x0);
-        if (steep)
-        {
-            int t;
-            t = x0; // swap x0 & y0
-            x0 = y0;
-            y0 = t;
-            t = x1; // swap x1 & y1
-            x1 = y1;
-            y1 = t;
-        }
-        if (x0 > x1)
-        {
-            int t;
-            t = x0; // swap x0 & x1
-            x0 = x1;
-            x1 = t;
-            t = y0; // swap y0 & y1
-            y0 = y1;
-            y1 = t;
-        }
-        int dx = x1 - x0;
+        int dx = Mathf.Abs(x1 - x0);
         int dy = Mathf.Abs(y1 - y0);
-        int error = dx / 2;
-        int ystep = (y0 < y1) ? 1 : -1;
-        int y = y0;
-        for (int x = x0; x <= x1; x++)
+        int sx = (x0 < x1) ? 1 : -1;
+        int sy = (y0 < y1) ? 1 : -1;
+        int err = dx - dy;
+        while (true)
         {
-            Vector3 point = new((steep ? y : x) + 0.5f, (steep ? x : y) + 0.5f, 0);
-            i++;
-            ret.Add(point);
-            error -= dy;
-            if (error < 0)
+            ret.Add(new Vector3(x0, y0, 0));
+            if ((x0 == x1) && (y0 == y1)) break;
+            int e2 = 2 * err;
+            if (e2 > -dy)
             {
-                y += ystep;
-                error += dx;
+                err -= dy;
+                x0 += sx;
+            }
+            if (e2 < dx)
+            {
+                err += dx;
+                y0 += sy;
             }
         }
         return ret;

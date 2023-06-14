@@ -3,7 +3,8 @@ using UnityEngine.UI;
 
 public class KeyPressHandler : MonoBehaviour
 {
-    public KeyCode key;
+    public KeyCode primaryKey;
+    public KeyCode secondaryKey;
     private Button button;
 
     void Awake()
@@ -13,7 +14,7 @@ public class KeyPressHandler : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(key) && button.interactable)
+        if ((Input.GetKeyDown(primaryKey) || Input.GetKeyDown(secondaryKey)) && button.interactable)
         {
             button.onClick.Invoke();
         }
