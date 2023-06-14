@@ -49,7 +49,7 @@ public class EnemyInfo
     public int range = -1;                      // Maximum distance a Ranged enemy can attack to
 
     public bool isHunting = true;               // true = will hunt the player, false = will guard nearby items
-    public bool isShelled = false;              // false = will not have resistance to Steel Beam and Mallet, true = will have resistance to those weapons and will be affected by Axe, Honed Gavel, and Shell Piercer
+    public bool isShelled = false;              // false = will not have resistance to Steel Beam and Mallet, true = will have resistance to those weapons and will be vulnerable to Axe, Honed Gavel, and Shell Piercer
 
     public static int lastEnemyIdx = (int)EnemyTag.Unknown;
 
@@ -72,7 +72,7 @@ public class EnemyInfo
     /// <returns></returns>
     public static Dictionary<Rarity, int> RarityPercentMap()
     {
-        Dictionary<Rarity, int> RarityToPercentage = new Dictionary<Rarity, int>
+        Dictionary<Rarity, int> RarityToPercentage = new()
         {
             [Rarity.Common] = 35,
             [Rarity.Limited] = 30,
@@ -116,7 +116,7 @@ public class EnemyInfo
                 inf.currentHP = inf.maxHP;
                 inf.maxAP = 2;
                 inf.currentAP = inf.maxAP;
-                inf.damagePoints = 1;
+                inf.damagePoints = 2;
                 inf.name = "LAUNCHER";
                 inf.description = "";
                 inf.isHunting = false;
