@@ -1277,7 +1277,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 1
     m_LineSpacing: 2.5
-  m_Text: "EXODYSSEY 2D Alpha 1.1.3\t\t\t\t\t\t\tUnity 2021.3.16f1"
+  m_Text: "EXODYSSEY 2D Alpha 1.1.4\t\t\t\t\t\t\tUnity 2021.3.16f1"
 --- !u!222 &768722518
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1762,7 +1762,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 09ecd49b09aa73b4f8d10999458e42f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  key: 50
+  primaryKey: 50
+  secondaryKey: 258
 --- !u!114 &1318703600
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2534,7 +2535,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 09ecd49b09aa73b4f8d10999458e42f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  key: 49
+  primaryKey: 49
+  secondaryKey: 257
 --- !u!114 &1888353603
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3076,8 +3078,8 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 1
     m_LineSpacing: 2.5
-  m_Text: "Open Menu\t-\tESC\nInteract\t-\tMOUSE 1\nDrop Item\t-\tMOUSE 2\nEnd Turn\t-\tE\nUse
-    Item 1\t-\t1\nUse Item 2\t-\t2"
+  m_Text: "Open Menu\t-\tESC\nInteract\t-\tMOUSE 1\nDrop Item\t-\tMOUSE 2\nEnd Turn\t-\tE
+    or ENTER\nUse Item 1\t-\t1\nUse Item 2\t-\t2"
 --- !u!222 &2028268420
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -3138,7 +3140,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 09ecd49b09aa73b4f8d10999458e42f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  key: 101
+  primaryKey: 101
+  secondaryKey: 13
 --- !u!114 &2049175783
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3471,7 +3474,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 09ecd49b09aa73b4f8d10999458e42f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  key: 27
+  primaryKey: 27
+  secondaryKey: 0
 --- !u!114 &2071582132
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3911,7 +3915,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5882404451406253061, guid: 8edc287cc9a7ff545a441334d9b2559d, type: 3}
       propertyPath: m_Text
-      value: ITEM NAME
+      value: 
       objectReference: {fileID: 0}
     - target: {fileID: 5882404451406253061, guid: 8edc287cc9a7ff545a441334d9b2559d, type: 3}
       propertyPath: m_Color.b
@@ -3989,6 +3993,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: ItemCard
       objectReference: {fileID: 0}
+    - target: {fileID: 5882404452199569416, guid: 8edc287cc9a7ff545a441334d9b2559d, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5882404452199569417, guid: 8edc287cc9a7ff545a441334d9b2559d, type: 3}
       propertyPath: m_RootOrder
       value: 6
@@ -4044,6 +4052,10 @@ PrefabInstance:
     - target: {fileID: 5882404452199569417, guid: 8edc287cc9a7ff545a441334d9b2559d, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5882404452772989968, guid: 8edc287cc9a7ff545a441334d9b2559d, type: 3}
+      propertyPath: m_Text
+      value: 
       objectReference: {fileID: 0}
     - target: {fileID: 5882404452772989968, guid: 8edc287cc9a7ff545a441334d9b2559d, type: 3}
       propertyPath: m_Color.b

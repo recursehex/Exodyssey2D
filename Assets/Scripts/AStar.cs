@@ -143,18 +143,18 @@ public class AStar
             {
                 Vector3Int p = new(parentPosition.x - x, parentPosition.y - y, parentPosition.z);
                
-                bool fEnemy = false;
+                bool EnemyAtPosition = false;
                 if (gm != null)
                 {
                     Vector3 pForEnemy = new(parentPosition.x - x + 0.5f, parentPosition.y - y + 0.5f, parentPosition.z);
-                    fEnemy = gm.HasEnemyAtLoc(pForEnemy);
+                    EnemyAtPosition = gm.HasEnemyAtPosition(pForEnemy);
                 }
                 if ((y != 0 || x != 0) && (allowDiagonal || (!allowDiagonal && (y == 0 || x == 0))))
                 {
                     BoundsInt size = tilemapGround.cellBounds;
 
                     // If node is within bounds of the grid and if there is no wall tile and no enemy there and if player has any AP, then add it to the neighbors list
-                    if (p.x >= size.min.x && p.x < size.max.x && p.y >= size.min.y && p.y < size.max.y && !tilemapWalls.HasTile(p) && !fEnemy)
+                    if (p.x >= size.min.x && p.x < size.max.x && p.y >= size.min.y && p.y < size.max.y && !tilemapWalls.HasTile(p) && !EnemyAtPosition)
                     {
                         Node neighbor = GetNode(p);
                         neighbors.Add(neighbor);
