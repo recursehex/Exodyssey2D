@@ -88,8 +88,7 @@ public class ItemInfo
     public int healingPoints = -1;              // Set to positive value for items that heal Players, -1 = does not heal
 
     public int damagePoints = -1;               // Set only for items with inf.ItemType = Weapon
-    public bool isRanged = false;               // false = Melee, true = Ranged
-    public int range = -1;                      // Maximum distance a Ranged weapon can attack to
+    public int range = 0;                      // Maximum distance a Ranged weapon can attack to, 0 = Melee
 
     public bool isEquipable = false;            // Can be equipped by characters, enabling the item & emptying an inventory slot
     public bool isAttachable = false;           // Can be attached to vehicles, enabling the item
@@ -313,7 +312,6 @@ public class ItemInfo
                 inf.type = ItemType.Weapon;
                 inf.name = "LIGHTNING RAILGUN";
                 inf.damagePoints = 5;
-                inf.isRanged = true;
                 inf.range = 5;
                 inf.needsFuel = true;
                 inf.description = "Use:Equip weapon" +
@@ -534,7 +532,6 @@ public class ItemInfo
                     inf.maxUP = 2;
                     inf.currentUP = inf.maxUP;
                     inf.damagePoints = 1;
-                    inf.isRanged = true;
                     inf.range = 5;
                     inf.description = "Use:Equip weapon" +
                         "\n" +
@@ -549,7 +546,6 @@ public class ItemInfo
                     inf.maxUP = 4;
                     inf.currentUP = inf.maxUP;
                     inf.damagePoints = 2;
-                    inf.isRanged = true;
                     inf.range = 3;
                     inf.description = "Use:Equip weapon" +
                         "\n" +
@@ -563,7 +559,6 @@ public class ItemInfo
                     inf.name = "FLAMETHROWER";
                     inf.maxUP = 4;
                     inf.currentUP = inf.maxUP;
-                    inf.isRanged = true;
                     inf.range = 3;
                     inf.description = "Use:Equip weapon" +
                         "\n" +
@@ -578,7 +573,6 @@ public class ItemInfo
                     inf.maxUP = 2;
                     inf.currentUP = inf.maxUP;
                     inf.damagePoints = 4;
-                    inf.isRanged = true;
                     inf.range = 99;
                     inf.description = "Use:Equip weapon" +
                         "\n" +
@@ -593,7 +587,6 @@ public class ItemInfo
                     inf.maxUP = 3;
                     inf.currentUP = inf.maxUP;
                     inf.damagePoints = 5;
-                    inf.isRanged = true;
                     inf.range = 2;
                     inf.description = "Use:Equip weapon" +
                         "\n" +
@@ -610,7 +603,6 @@ public class ItemInfo
                     inf.maxUP = 2;
                     inf.currentUP = inf.maxUP;
                     inf.damagePoints = 1;   // if get kill, inf.damagePoints++;
-                    inf.isRanged = true;
                     inf.range = 7;
                     inf.description = "Use:Equip weapon" +
                         "\n" +
@@ -627,7 +619,6 @@ public class ItemInfo
                     inf.maxUP = 3;
                     inf.currentUP = inf.maxUP;
                     inf.damagePoints = 10;
-                    inf.isRanged = true;
                     inf.range = 99;
                     inf.isMortar = true;
                     inf.description = "Use:Equip weapon" +
@@ -643,7 +634,6 @@ public class ItemInfo
                     inf.maxUP = 2;
                     inf.currentUP = inf.maxUP;
                     inf.damagePoints = 2;
-                    inf.isRanged = true;
                     inf.range = 99;
                     inf.description = "Use:Equip weapon" +
                         "\n" +
@@ -656,7 +646,6 @@ public class ItemInfo
                     inf.type = ItemType.Weapon;
                     inf.name = "PAINT BLASTER";
                     inf.damagePoints = 0;
-                    inf.isRanged = true;
                     inf.range = 99;
                     inf.description = "Use:Equip weapon" +
                         "\n" +
