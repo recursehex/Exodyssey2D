@@ -415,10 +415,7 @@ public class GameManager : MonoBehaviour
             player.ChangeAP(player.maxAP);
             needToDrawReachableAreas = true;
             DrawTileAreaIfNeeded();
-            if (enemies.Count > 0)
-            {
-                needToStartEnemyMovement = true;
-            }
+            needToStartEnemyMovement = enemies.Count > 0;
         }
     }
 
@@ -474,11 +471,7 @@ public class GameManager : MonoBehaviour
                 }
                 bool isInMovementRange = IsInMovementRange(clickPoint);
                 bool isInMeleeRange = IsInMeleeRange(shiftedClickPoint);
-                bool isInRangeForRangedWeapon = false;
-                if (player.IsRangedWeaponSelected() > 0)
-                {
-                    isInRangeForRangedWeapon = IsInRangeForRangedWeapon(shiftedClickPoint);
-                }
+                bool isInRangeForRangedWeapon = player.GetWeaponRange() > 0 && IsInRangeForRangedWeapon(shiftedClickPoint);
                 // For actions that require AP, first check if it is Player turn
                 if (!playersTurn) return;
 
@@ -707,11 +700,10 @@ public class GameManager : MonoBehaviour
     public void DrawTargetsAndTracers()
     {
         ClearTargetsAndTracers();
-        int weaponRange = player.IsRangedWeaponSelected();
+        int weaponRange = player.GetWeaponRange();
         if (weaponRange > 0 && !enemiesInMovement && player.currentAP > 0)
         {
             rangedTargetPositions.Clear();
-
             foreach (GameObject enemy in enemies)
             {
                 Enemy e = enemy.GetComponent<Enemy>();
@@ -744,11 +736,14 @@ public class GameManager : MonoBehaviour
     {
         RangedWeaponCalculation ret = new();
         float distanceFromPlayerToEnemy = Mathf.Sqrt(Mathf.Pow(objPosition.x - playerPosition.x, 2) + Mathf.Pow(objPosition.y - playerPosition.y, 2));
+
         if (distanceFromPlayerToEnemy > weaponRange)
         {
             ret.canTargetEnemy = false;
         }
+
         ret.tracerPath = BresenhamsAlgorithm((int)(playerPosition.x - 0.5f), (int)(playerPosition.y - 0.5f), (int)(objPosition.x - 0.5f), (int)(objPosition.y - 0.5f));
+
         foreach (Vector3 tracerPosition in ret.tracerPath)
         {
             Vector3Int tracerPositionInt = new((int)tracerPosition.x, (int)tracerPosition.y, 0);

@@ -39,14 +39,9 @@ public class Inventory
         return itemList[idx].itemInfo.UpdateWeaponUP();
     }
 
-    /// <summary>
-    /// Returns 0 if weapon is not ranged, > 0 if it is ranged to specify range
-    /// </summary>
-    /// <param name="idx"></param>
-    /// <returns></returns>
-    public int IsRangedWeaponSelected(int idx)
+    public int GetWeaponRange(int idx)
     {
-        return itemList[idx]?.itemInfo.isRanged == true ? itemList[idx].itemInfo.range : 0;
+        return itemList[idx].itemInfo.range;
     }
 
     public List<ItemInventory> GetItemList()

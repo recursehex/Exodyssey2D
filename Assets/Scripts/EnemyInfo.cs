@@ -45,11 +45,10 @@ public class EnemyInfo
     public int currentAP = 1;
 
     public int damagePoints = -1;               // Set only for enemies that do direct attacks
-    public bool isRanged = false;               // false = Melee, true = Ranged
-    public int range = -1;                      // Maximum distance a Ranged enemy can attack to
+    public int range = 0;                       // Maximum distance a Ranged enemy can attack to, 0 = Melee
 
     public bool isHunting = true;               // true = will hunt the player, false = will guard nearby items
-    public bool isShelled = false;              // false = will not have resistance to Steel Beam and Mallet, true = will have resistance to those weapons and will be vulnerable to Axe, Honed Gavel, and Shell Piercer
+    public bool isShelled = false;              // false = will not have resistance to Steel Beam and Mallet, true = will have resistance and will be vulnerable to Axe, Honed Gavel, and Shell Piercer
 
     public static int lastEnemyIdx = (int)EnemyTag.Unknown;
 
@@ -117,6 +116,7 @@ public class EnemyInfo
                 inf.maxAP = 2;
                 inf.currentAP = inf.maxAP;
                 inf.damagePoints = 2;
+                inf.range = 3;
                 inf.name = "LAUNCHER";
                 inf.description = "";
                 inf.isHunting = false;

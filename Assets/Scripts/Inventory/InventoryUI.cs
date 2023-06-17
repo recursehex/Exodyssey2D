@@ -82,11 +82,11 @@ public class InventoryUI : MonoBehaviour
         return false;
     }
 
-    public int IsRangedWeaponSelected()
+    public int GetWeaponRange()
     {
         if (selectedIdx != -1)
         {
-            return inventory.IsRangedWeaponSelected(selectedIdx);
+            return inventory.GetWeaponRange(selectedIdx);
         }
         return 0;
     }

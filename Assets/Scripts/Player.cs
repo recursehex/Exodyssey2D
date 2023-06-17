@@ -199,9 +199,9 @@ public class Player : MonoBehaviour
         }
     }
 
-    public int IsRangedWeaponSelected()
+    public int GetWeaponRange()
     {
-        return inventoryUI.IsRangedWeaponSelected();
+        return inventoryUI.GetWeaponRange();
     }
 
     /// <summary>
@@ -261,7 +261,7 @@ public class Player : MonoBehaviour
 
         if (inventoryUI.ProcessDamageAfterWeaponDrop(this, n))
         {
-            if (IsRangedWeaponSelected() > 0)
+            if (GetWeaponRange() > 0)
             {
                 gm.ClearTargetsAndTracers();
             }
