@@ -219,15 +219,15 @@ public class Player : MonoBehaviour
     /// <summary>
     /// Uses item in inventory
     /// </summary>
-    public void TryUseItem(int n)
+    public void TryUseItem(int itemIdx)
     {
-        // Ensures index is within bounds AND inventory has an item
-        if (n < 0 || inventory.itemList.Count == 0)
+        // Ensures index is within bounds & inventory has an item
+        if (itemIdx >= inventory.itemList.Count || inventory.itemList.Count == 0)
         {
             return;
         }
-        ItemInfo anItem = inventory.itemList[n].itemInfo;
-        AfterItemUse ret = anItem.UseItem(this, n);
+        ItemInfo anItem = inventory.itemList[itemIdx].itemInfo;
+        AfterItemUse ret = anItem.UseItem(this, itemIdx);
         // Item gets selected since it was unselected before
         if (ret.selectedIdx != -1)
         {
@@ -240,10 +240,10 @@ public class Player : MonoBehaviour
             gm.turnTimer.timerIsRunning = true;
             gm.needToDrawReachableAreas = true;
         }
-        // Item is removed & inventory is refreshed
+        // Item is removed & inventory is refreshed if UP = 0
         if (ret.needToRemoveItem)
         {
-            inventoryUI.RemoveItem(n);
+            inventoryUI.RemoveItem(itemIdx);
             inventoryUI.RefreshInventoryItems();
             gm.needToDrawReachableAreas = true;
         }
@@ -276,11 +276,13 @@ public class Player : MonoBehaviour
         inventoryUI.ProcessHoverForInventory(mp);
     }
 
+    // Called by ItemInfo
     public void ClearTargetsAndTracers()
     {
         gm.ClearTargetsAndTracers();
     }
 
+    // Called by ItemInfo
     public void DrawTargetsAndTracers()
     {
         gm.DrawTargetsAndTracers();
