@@ -1277,7 +1277,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 1
     m_LineSpacing: 2.5
-  m_Text: "EXODYSSEY 2D Alpha 1.1.4\t\t\t\t\t\t\tUnity 2021.3.16f1"
+  m_Text: "EXODYSSEY 2D Alpha 1.1.5\t\t\t\t\t\t\tUnity 2021.3.16f1"
 --- !u!222 &768722518
 CanvasRenderer:
   m_ObjectHideFlags: 0

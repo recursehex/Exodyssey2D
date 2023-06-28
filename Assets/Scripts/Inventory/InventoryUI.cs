@@ -109,6 +109,13 @@ public class InventoryUI : MonoBehaviour
             cachedName = "";
             cachedDesc = "";
         }
+        GameObject itemName = GameObject.Find("ItemName");
+        Text nameText = itemName.GetComponent<Text>();
+        GameObject itemDesc = GameObject.Find("ItemDescription");
+        Text descText = itemDesc.GetComponent<Text>();
+        nameText.text = cachedName;
+        descText.text = cachedDesc;
+
     }
 
     /// <summary>
