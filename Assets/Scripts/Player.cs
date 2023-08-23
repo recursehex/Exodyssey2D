@@ -13,7 +13,7 @@ public class Player : MonoBehaviour
     public int currentHP;
     public int currentAP;
 
-    public int damageToEnemy = 0;
+    public int damagePoints = 0;
 
     public Text healthText;
     public Text actionPointText;
@@ -195,7 +195,7 @@ public class Player : MonoBehaviour
         {
             inventoryUI.RemoveItem(inventoryUI.GetCurrentSelected());
             inventoryUI.RefreshInventoryItems();
-            damageToEnemy = 0;
+            damagePoints = 0;
         }
     }
 

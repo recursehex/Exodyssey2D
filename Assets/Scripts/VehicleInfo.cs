@@ -8,14 +8,8 @@ public enum VehicleTag
     Rover = 0,
     Trailer,
     Buggy,
-    Coupe,
     Shuttle,
     Carrier,
-
-    // LARGE VEHICLES
-    Mech,
-    Crawler,
-    Rocket,
 
     Unknown,
 }
@@ -73,8 +67,7 @@ public class VehicleInfo
             [Rarity.Limited] = 30,
             [Rarity.Scarce] = 20,
             [Rarity.Rare] = 10,
-            [Rarity.Numinous] = 4,
-            [Rarity.Secret] = 1,
+            [Rarity.Anomalous] = 5,
         };
         return RarityToPercentage;
     }
@@ -91,6 +84,8 @@ public class VehicleInfo
         switch (n)
         {
             case 0:
+                inf.tag = VehicleTag.Rover;
+                inf.rarity = Rarity.Scarce;
                 inf.name = "ROVER";
                 inf.maxSeats = 4;
                 inf.maxStorage = 2;
@@ -104,6 +99,8 @@ public class VehicleInfo
                 break;
 
             case 1:
+                inf.tag = VehicleTag.Trailer;
+                inf.rarity = Rarity.Scarce;
                 inf.name = "TRAILER";
                 inf.maxSeats = 2;
                 inf.maxStorage = 4;
@@ -117,6 +114,8 @@ public class VehicleInfo
                 break;
 
             case 2:
+                inf.tag = VehicleTag.Buggy;
+                inf.rarity = Rarity.Rare;
                 inf.name = "BUGGY";
                 inf.maxSeats = 2;
                 inf.maxStorage = 0;
@@ -130,6 +129,8 @@ public class VehicleInfo
                 break;
 
             case 3:
+                inf.tag = VehicleTag.Shuttle;
+                inf.rarity = Rarity.Anomalous;
                 inf.name = "SHUTTLE";
                 inf.maxSeats = 7;
                 inf.maxStorage = 0;
@@ -143,6 +144,8 @@ public class VehicleInfo
                 break;
 
             case 4:
+                inf.tag = VehicleTag.Carrier;
+                inf.rarity = Rarity.Anomalous;
                 inf.name = "CARRIER";
                 inf.maxSeats = 5;
                 inf.maxStorage = 3;
@@ -152,45 +155,6 @@ public class VehicleInfo
                 inf.maxFuel = 15;
                 inf.currentFuel = inf.maxFuel;
                 inf.maxHP = 4;
-                inf.currentHP = inf.maxHP;
-                break;
-
-            case 5:
-                inf.name = "MECH";
-                inf.maxSeats = 3;
-                inf.maxStorage = 1;
-                inf.efficiency = 1;
-                inf.time = 1.0f;
-                inf.isLargeVehicle = true;
-                inf.maxFuel = 15;
-                inf.currentFuel = inf.maxFuel;
-                inf.maxHP = 4;
-                inf.currentHP = inf.maxHP;
-                break;
-
-            case 6:
-                inf.name = "CRAWLER";
-                inf.maxSeats = 6;
-                inf.maxStorage = 4;
-                inf.efficiency = 1;
-                inf.time = 1.5f;
-                inf.isLargeVehicle = true;
-                inf.maxFuel = 15;
-                inf.currentFuel = inf.maxFuel;
-                inf.maxHP = 6;
-                inf.currentHP = inf.maxHP;
-                break;
-
-            case 7:
-                inf.name = "RX-04";
-                inf.maxSeats = 7;
-                inf.maxStorage = 0;
-                inf.efficiency = 0;
-                inf.time = 0f;
-                inf.isLargeVehicle = true;
-                inf.maxFuel = 0;
-                inf.currentFuel = inf.maxFuel;
-                inf.maxHP = 1;
                 inf.currentHP = inf.maxHP;
                 break;
         }

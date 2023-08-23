@@ -77,8 +77,7 @@ public class EnemyInfo
             [Rarity.Limited] = 30,
             [Rarity.Scarce] = 20,
             [Rarity.Rare] = 10,
-            [Rarity.Numinous] = 4,
-            [Rarity.Secret] = 1,
+            [Rarity.Anomalous] = 5,
         };
         return RarityToPercentage;
     }
