@@ -487,7 +487,7 @@ public class GameManager : MonoBehaviour
                     turnTimer.StartTimer();
                 }
                 // For attacking an enemy, if there exists an enemy & if it is in melee or ranged weapon range & if Player has a weapon & has AP
-                else if (idxOfEnemy >= 0 && (isInMeleeRange || isInRangeForRangedWeapon) && player.damageToEnemy > 0 && player.currentAP > 0)
+                else if (idxOfEnemy >= 0 && (isInMeleeRange || isInRangeForRangedWeapon) && player.damagePoints > 0 && player.currentAP > 0)
                 {
                     HandleDamageToEnemy(idxOfEnemy);
                     player.ChangeAP(-1);
@@ -545,13 +545,13 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Called when an enemy takes damage, assumes player.damageToEnemy > 0
+    /// Called when an enemy takes damage, assumes player.damagePoints > 0
     /// </summary>
     private void HandleDamageToEnemy(int idx)
     {
         GameObject enemy = enemies[idx];
         Enemy e = enemy.GetComponent<Enemy>();
-        e.DamageEnemy(player.damageToEnemy);
+        e.DamageEnemy(player.damagePoints);
         if (e.info.currentHP <= 0)
         {
             enemies.RemoveAt(idx);
