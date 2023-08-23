@@ -5,48 +5,47 @@ public enum ItemTag
 {
     // CONSUMABLE
     MedKit = 0,
-    MedKitPlus,
-    //RovKit,
+    //ToolKit,
 
     // MELEE
     Branch,
     //Knife,
-    //SteelBeam,
+    //Wrench,
     //Mallet,
     //Axe,
-    //HonedGavel,
-    //TribladeRotator,
-    //BladeOfEternity,
+    DiamondChainsaw,
+
+    // THROWABLE
+    //Rock,
+    //SmokeGrenade,
+    //Dynamite,
+    //StickyGrenade,
 
     // RANGED
-    //Rock
+    //Tranquilizer,
+    //Carbine,
     //Flamethrower,
-    //ShellPiercer
-    //CatalyticRadiator
-    //PFL,
-    //BrinkOfExtinction,
-    //BorrowedSpacetime,
-    LightningRailgun,
-    //PaintBlaster,
+    //HuntingRifle,
+    PlasmaRailgun,
+
+    // ARMOR
+    //Helmet,
+    //Vest,
+    //GrapheneShield,
 
     // STORAGE
     //HydrogenCanister,
-    //ExternalTank,
-    //Backpack,
-    //StorageCrate,
+    //Bacpack,
+    //FuelTank,
+    //Crate,
 
     // UTILITY
-    //Flashlight,
-    //Lightrod,
-    //Spotlight,
-    //Matchbox,
-    //Blowtorch,
+    //Lightrod;
     //Extinguisher,
-    //RangeScanner,
-    //AudioLocalizer,
+    //Spotlight,
+    //Blowtorch,
     //ThermalImager,
-    //QuantumRelocator,
-    //TemporalSedative,
+    //NightVision,
 
     Unknown,
 }
@@ -58,7 +57,6 @@ public enum ItemType
     Consumable,
     Armor,
     Storage,
-    Platonic,
 
     Unknown,
 }
@@ -85,17 +83,14 @@ public class ItemInfo
     public int maxUP = -1;                      // Set to positive value for items with UP, -1 = infinite uses
     public int currentUP = -1;
 
-    public int healingPoints = -1;              // Set to positive value for items that heal Players, -1 = does not heal
-
-    public int damagePoints = -1;               // Set only for items with inf.ItemType = Weapon
-    public int range = 0;                      // Maximum distance a Ranged weapon can attack to, 0 = Melee
+    public int damagePoints = -1;               // Set only for weapons
+    public int range = 0;                       // Maximum distance a Ranged weapon can attack to, 0 = Melee
 
     public bool isEquipable = false;            // Can be equipped by characters, enabling the item & emptying an inventory slot
     public bool isAttachable = false;           // Can be attached to vehicles, enabling the item
+    public bool isFlammable = false;            // Will be destroyed by fire and helps it to spread
 
-    public float shellDamageMultiplier = 1.0f;  // Multiplied by damagePoints value if the weapon does different dmg to shelled bugs 
-    public bool isMortar = false;               // false = will use tracers to find line of sight, true = ignores obstacles
-    public bool needsFuel = false;              // Special tag for the Lightning Railgun (maybe other weapons), which needs fuel to start
+    public int shellDamage = -1;                // Set only if weapon does different damage to shelled aliens
 
     public static int lastItemIdx = (int)ItemTag.Unknown;
 
@@ -125,12 +120,12 @@ public class ItemInfo
         {
             case ItemType.Consumable:
                 // If the consumable is a healing item
-                if (healingPoints != -1 && player.currentHP < player.maxHP && player.currentAP > 0)
+                if (tag == ItemTag.MedKit && player.currentHP < player.maxHP && player.currentAP > 0)
                 {
-                    player.ChangeHP(healingPoints);
+                    player.ChangeHP(player.maxHP);
                     player.ChangeAP(-1);
                     currentUP--;
-                    description = "Use:Heals " + healingPoints + " HP" +
+                    description = "Use:Heals all HP" +
                     "\n" +
                     "UP:" + currentUP + "/" + maxUP;
                     ret.consumableWasUsed = true;
@@ -147,13 +142,13 @@ public class ItemInfo
                 // Reset damageToEnemy since weapon was deselected
                 if (selectedIdx == -1)
                 {
-                    player.damageToEnemy = 0;
+                    player.damagePoints = 0;
                     player.ClearTargetsAndTracers();
                 }
                 // Set damageToEnemy as the damage of the weapon
                 else
                 {
-                    player.damageToEnemy = damagePoints;
+                    player.damagePoints = damagePoints;
                     player.DrawTargetsAndTracers();
                 }
                 ret.selectedIdx = selectedIdx;
@@ -196,7 +191,7 @@ public class ItemInfo
     }
 
     /// <summary>
-    /// Ensures damageToEnemy is reset after Player drops a weapon
+    /// Ensures damagePoints is reset after Player drops a weapon
     /// </summary>
     /// <param name="p"></param>
     /// <returns></returns>
@@ -204,7 +199,7 @@ public class ItemInfo
     {
         if (type == ItemType.Weapon)
         {
-            p.damageToEnemy = 0;
+            p.damagePoints = 0;
             return true;
         }
         return false;
@@ -246,15 +241,15 @@ public class ItemInfo
     /// <returns></returns>
     public static Dictionary<Rarity, int> RarityPercentMap()
     {
-        return new Dictionary<Rarity, int>()
+        Dictionary<Rarity, int> RarityToPercentage = new()
         {
-            { Rarity.Common, 35 },
-            { Rarity.Limited, 30 },
-            { Rarity.Scarce, 20 },
-            { Rarity.Rare, 10 },
-            { Rarity.Numinous, 4 },
-            { Rarity.Secret, 1 }
+            [Rarity.Common] = 35,
+            [Rarity.Limited] = 30,
+            [Rarity.Scarce] = 20,
+            [Rarity.Rare] = 10,
+            [Rarity.Anomalous] = 5,
         };
+        return RarityToPercentage;
     }
 
     /// <summary>
@@ -271,27 +266,15 @@ public class ItemInfo
                 inf.tag = ItemTag.MedKit;
                 inf.rarity = Rarity.Limited;
                 inf.type = ItemType.Consumable;
+                inf.name = "MEDKIT";
                 inf.maxUP = 1;
                 inf.currentUP = inf.maxUP;
-                inf.healingPoints = 1;
-                inf.name = "MEDKIT";
-                inf.description = "Use:Heals " + inf.healingPoints + " HP" +
+                inf.isFlammable = true;
+                inf.description = "Use:Heals user" +
                     "\n" +
                     "UP:" + inf.maxUP + "/" + inf.maxUP;
                 break;
             case 1:
-                inf.tag = ItemTag.MedKitPlus;
-                inf.rarity = Rarity.Rare;
-                inf.type = ItemType.Consumable;
-                inf.maxUP = 3;
-                inf.currentUP = inf.maxUP;
-                inf.healingPoints = 2;
-                inf.name = "MEDKIT+";
-                inf.description = "Use:Heals " + inf.healingPoints + " HP" +
-                    "\n" +
-                    "UP:" + inf.maxUP + "/" + inf.maxUP;
-                break;
-            case 2:
                 inf.tag = ItemTag.Branch;
                 inf.rarity = Rarity.Common;
                 inf.type = ItemType.Weapon;
@@ -299,21 +282,36 @@ public class ItemInfo
                 inf.maxUP = 2;
                 inf.currentUP = inf.maxUP;
                 inf.damagePoints = 1;
+                inf.isFlammable = true;
                 inf.description = "Use:Equip weapon" +
                     "\n" +
                     "UP:" + inf.maxUP + "/" + inf.maxUP +
                     "\t" +
                     "DP:" + inf.damagePoints;
                 break;
+            case 2:
+                inf.tag = ItemTag.DiamondChainsaw;
+                inf.rarity = Rarity.Rare;
+                //inf.rarity = Rarity.Anomalous;
+                inf.type = ItemType.Weapon;
+                inf.name = "CHAINSAW";
+                inf.maxUP = 8;
+                inf.currentUP = inf.maxUP;
+                inf.damagePoints = 5;
+                inf.description = "Use:Equip weapon" +
+                    "\n" +
+                    "UP:" + inf.maxUP +
+                    "\t" +
+                    "DP:" + inf.damagePoints;
+                break;
             case 3:
-                inf.tag = ItemTag.LightningRailgun;
-                //inf.rarity = Rarity.Numinous;
+                inf.tag = ItemTag.PlasmaRailgun;
+                //inf.rarity = Rarity.Anomalous;
                 inf.rarity = Rarity.Common;
                 inf.type = ItemType.Weapon;
-                inf.name = "LIGHTNING RAILGUN";
-                inf.damagePoints = 5;
+                inf.name = "PLASMA RAILGUN";
+                inf.damagePoints = 10;
                 inf.range = 5;
-                inf.needsFuel = true;
                 inf.description = "Use:Equip weapon" +
                     "\n" +
                     "UP:" + "\u221e" +
@@ -324,11 +322,11 @@ public class ItemInfo
                 break;
                 /*
                 case 3:
-                    inf.tag = ItemTag.RovKit;
+                    inf.tag = ItemTag.ToolKit;
                     inf.rarity = Rarity.Scarce;
                     inf.type = ItemType.Consumable;
-                    inf.name = "ROVKIT";
-                    inf.maxUP = 2;
+                    inf.name = "TOOLKIT";
+                    inf.maxUP = 1;
                     inf.currentUP = inf.maxUP;
                     inf.description = "Use:Repairs vehicle" +
                         "\n" +
@@ -351,14 +349,14 @@ public class ItemInfo
                     break;
 
                 case 5:
-                    inf.tag = ItemTag.SteelBeam;
-                    inf.rarity = Rarity.Limited;
+                    inf.tag = ItemTag.Wrench;
+                    inf.rarity = Rarity.Scarce;
                     inf.type = ItemType.Weapon;
-                    inf.name = "STEEL BEAM";
+                    inf.name = "WRENCH";
                     inf.maxUP = 4;
                     inf.currentUP = inf.maxUP;
                     inf.damagePoints = 2;
-                    inf.shellDamageMultiplier = 0.0f;
+                    inf.shellDamage = 0;
                     inf.description = "Use:Equip weapon" +
                         "\n" +
                         "UP:" + inf.maxUP +
@@ -370,25 +368,27 @@ public class ItemInfo
                     inf.tag = ItemTag.Mallet;
                     inf.rarity = Rarity.Rare;
                     inf.type = ItemType.Weapon;
+                    inf.maxUP = 6;
+                    inf.currentUP = inf.maxUP;
                     inf.name = "MALLET";
-                    inf.damagePoints = 2;
-                    inf.shellDamageMultiplier = 0.0f;
+                    inf.damagePoints = 3;
+                    inf.shellDamage = 0;
                     inf.description = "Use:Equip weapon" +
                         "\n" +
-                        "UP:" + "\u221e" +
+                        "UP:" + inf.maxUP +
                         "\t" +
                         "DP:" + inf.damagePoints;
                     break;
 
                 case 7:
                     inf.tag = ItemTag.Axe;
-                    inf.rarity = Rarity.Scarce;
+                    inf.rarity = Rarity.Rare;
                     inf.type = ItemType.Weapon;
                     inf.name = "AXE";
                     inf.maxUP = 4;
                     inf.currentUP = inf.maxUP;
                     inf.damagePoints = 4;
-                    inf.shellDamageMultiplier = 0.5f;
+                    inf.shellDamage = 2;
                     inf.description = "Use:Equip weapon" +
                         "\n" +
                         "UP:" + inf.maxUP +
@@ -396,15 +396,15 @@ public class ItemInfo
                         "DP:" + inf.damagePoints;
                     break;
 
-                case 4:
-                    inf.tag = ItemTag.HonedGavel;
-                    inf.rarity = Rarity.Rare;
+                case 7:
+                    inf.tag = ItemTag.Rock;
+                    inf.rarity = Rarity.Common;
                     inf.type = ItemType.Weapon;
-                    inf.name = "HONED GAVEL";
-                    inf.maxUP = 4;
+                    inf.name = "ROCK";
+                    inf.maxUP = 1;
                     inf.currentUP = inf.maxUP;
-                    inf.damagePoints = 2;
-                    inf.shellDamageMultiplier = 2.0f;
+                    inf.damagePoints = 1;
+                    inf.range = 3;
                     inf.description = "Use:Equip weapon" +
                         "\n" +
                         "UP:" + inf.maxUP +
@@ -412,14 +412,32 @@ public class ItemInfo
                         "DP:" + inf.damagePoints;
                     break;
 
-                case 9:
-                    inf.tag = ItemTag.TribladeRotator;
-                    inf.rarity = Rarity.Numinous;
+                case 7:
+                    inf.tag = ItemTag.SmokeGrenade;
+                    inf.rarity = Rarity.Scarce;
                     inf.type = ItemType.Weapon;
-                    inf.name = "TRIBLADE ROTATOR";
-                    inf.maxUP = 8;
+                    inf.name = "SMOKE GRENADE";
+                    inf.maxUP = 1;
+                    inf.currentUP = inf.maxUP;
+                    inf.damagePoints = 0;
+                    inf.range = 3;
+                    inf.description = "Use:Equip weapon" +
+                        "\n" +
+                        "UP:" + inf.maxUP +
+                        "\t" +
+                        "DP:" + inf.damagePoints;
+                    break;
+
+                case 7:
+                    inf.tag = ItemTag.Dynamite;
+                    inf.rarity = Rarity.Scarce;
+                    inf.type = ItemType.Weapon;
+                    inf.name = "DYNAMITE";
+                    inf.maxUP = 1;
                     inf.currentUP = inf.maxUP;
                     inf.damagePoints = 5;
+                    inf.range = 3;
+                    inf.isFlammable = true;
                     inf.description = "Use:Equip weapon" +
                         "\n" +
                         "UP:" + inf.maxUP +
@@ -427,15 +445,19 @@ public class ItemInfo
                         "DP:" + inf.damagePoints;
                     break;
 
-                case 10:
-                    inf.tag = ItemTag.BladeOfEternity;
-                    inf.rarity = Rarity.Numinous;
+                case 7:
+                    inf.tag = ItemTag.StickyGrenade;
+                    inf.rarity = Rarity.Anomalous;
                     inf.type = ItemType.Weapon;
-                    inf.name = "BLADE OF ETERNTY";
-                    inf.damagePoints = 4;
+                    inf.name = "STICKY GRENADE";
+                    inf.maxUP = 1;
+                    inf.currentUP = inf.maxUP;
+                    inf.damagePoints = 3;
+                    inf.range = 5;
+                    inf.isFlammable = true;
                     inf.description = "Use:Equip weapon" +
                         "\n" +
-                        "UP:" + "\u221e" +
+                        "UP:" + inf.maxUP +
                         "\t" +
                         "DP:" + inf.damagePoints;
                     break;
@@ -447,18 +469,38 @@ public class ItemInfo
                     inf.name = "HYDROGEN CANISTER";
                     inf.maxUP = 5; // max fuel
                     inf.currentUP = inf.maxUP; // current fuel
+                    inf.isFlammable = true;
                     inf.description = "Use:???";
                     break;
 
-                case 12:
-                    inf.tag = ItemTag.ExternalTank;
+                case 13:
+                    inf.tag = ItemTag.Helmet;
+                    inf.rarity = Rarity.Common;
+                    inf.type = ItemType.Armor;
+                    inf.name = "HELMET";
+                    inf.maxUP = 2;
+                    inf.isEquipable = true;
+                    inf.description = "Use:Equip helmet";
+                    break;
+
+                case 13:
+                    inf.tag = ItemTag.Vest;
                     inf.rarity = Rarity.Rare;
-                    inf.type = ItemType.Storage;
-                    inf.name = "EXTERNAL TANK";
-                    inf.maxUP = 10; // max fuel
-                    inf.currentUP = inf.maxUP; // current fuel
-                    inf.isAttachable = true;
-                    inf.description = "Use:Attach tank";
+                    inf.type = ItemType.Armor;
+                    inf.name = "VEST";
+                    inf.maxUP = 3;
+                    inf.isEquipable = true;
+                    inf.isFlammable = true;
+                    inf.description = "Use:Equip vest";
+                    break;
+
+                case 13:
+                    inf.tag = ItemTag.GrapheneShield;
+                    inf.rarity = Rarity.Anomalous;
+                    inf.type = ItemType.Armor;
+                    inf.name = "GRAPHENE SHIELD";
+                    inf.isEquipable = true;
+                    inf.description = "Use:Equip shield";
                     break;
 
                 case 13:
@@ -467,51 +509,55 @@ public class ItemInfo
                     inf.type = ItemType.Storage;
                     inf.name = "BACKPACK";
                     inf.isEquipable = true;
+                    inf.isFlammable = true;
                     inf.description = "Use:Equip backpack";
                     break;
 
-                case 14:
-                    inf.tag = ItemTag.StorageCrate;
+                case 12:
+                    inf.tag = ItemTag.FuelTank;
                     inf.rarity = Rarity.Rare;
                     inf.type = ItemType.Storage;
-                    inf.name = "STORAGE CRATE";
+                    inf.name = "FUEL TANK";
+                    inf.maxUP = 10; // max fuel
+                    inf.currentUP = inf.maxUP; // current fuel
+                    inf.isAttachable = true;
+                    inf.isFlammable = true;
+                    inf.description = "Use:Attach tank";
+                    break;
+                
+                case 14:
+                    inf.tag = ItemTag.Crate;
+                    inf.rarity = Rarity.Rare;
+                    inf.type = ItemType.Storage;
+                    inf.name = "CRATE";
                     inf.isAttachable = true;
                     inf.description = "Use:Attach crate";
                     break;
-
-                case 15:
-                    inf.tag = ItemTag.Flashlight;
-                    inf.rarity = Rarity.Scarce;
+                case 16:
+                    inf.tag = ItemTag.Lightrod;
+                    inf.rarity = Rarity.Limited;
                     inf.type = ItemType.Utility;
-                    inf.name = "FLASHLIGHT";
+                    inf.name = "LIGHTROD";
+                    inf.isFlammable = true;
                     inf.description = "Use:Toggle light";
                     break;
 
                 case 16:
-                    inf.tag = ItemTag.Lightrod;
-                    inf.rarity = Rarity.Rare;
+                    inf.tag = ItemTag.Extinguisher;
+                    inf.rarity = Rarity.Scarce;
                     inf.type = ItemType.Utility;
-                    inf.name = "LIGHTROD";
-                    inf.description = "Use:Toggle light";
+                    inf.name = "EXTINGUISHER";
+                    inf.isFlammable = true;
+                    inf.description = "Use:Equip tool";
                     break;
 
                 case 17:
                     inf.tag = ItemTag.Spotlight;
-                    inf.rarity = Rarity.Scarce;
+                    inf.rarity = Rarity.Rare;
                     inf.type = ItemType.Utility;
                     inf.name = "SPOTLIGHT";
                     inf.isAttachable = true;
                     inf.description = "Use:Attach light";
-                    break;
-
-                case 18:
-                    inf.tag = ItemTag.Matchbox;
-                    inf.rarity = Rarity.Limited;
-                    inf.type = ItemType.Utility;
-                    inf.name = "MATCHBOX";
-                    inf.maxUP = 2;
-                    inf.currentUP = inf.maxUP;
-                    inf.description = "Use:Equip matchbox";
                     break;
 
                 case 19:
@@ -521,32 +567,52 @@ public class ItemInfo
                     inf.name = "BLOWTORCH";
                     inf.maxUP = 4;
                     inf.currentUP = inf.maxUP;
-                    inf.description = "Use:Equip blowtorch";
+                    inf.isFlammable = true;
+                    inf.description = "Use:Equip tool";
+                    break;
+
+                case 19:
+                    inf.tag = ItemTag.ThermalImager;
+                    inf.rarity = Rarity.Rare;
+                    inf.type = ItemType.Utility;
+                    inf.name = "THERMAL IMAGER";
+                    inf.maxUP = 4;
+                    inf.currentUP = inf.maxUP;
+                    inf.description = "Use:Take picture";
+                    break;
+
+                case 19:
+                    inf.tag = ItemTag.NightVision;
+                    inf.rarity = Rarity.Anomalous;
+                    inf.type = ItemType.Utility;
+                    inf.name = "NIGHT VISION";
+                    inf.isEquipable = true;
+                    inf.description = "Use:Equip goggles";
                     break;
 
                 case 20:
-                    inf.tag = ItemTag.StunPistol;
+                    inf.tag = ItemTag.Tranquilizer;
                     inf.rarity = Rarity.Scarce;
                     inf.type = ItemType.Weapon;
-                    inf.name = "STUN PISTOL";
+                    inf.name = "TRANQUILIZER";
                     inf.maxUP = 2;
                     inf.currentUP = inf.maxUP;
-                    inf.damagePoints = 1;
-                    inf.range = 5;
+                    inf.damagePoints = 0;
+                    inf.range = 4;
                     inf.description = "Use:Equip weapon" +
                         "\n" +
                         "UP:" + inf.maxUP;
                     break;
 
                 case 21:
-                    inf.tag = ItemTag.InfernalShotgun;
+                    inf.tag = ItemTag.Carbine;
                     inf.rarity = Rarity.Rare;
                     inf.type = ItemType.Weapon;
-                    inf.name = "INFERNAL SHOTGUN";
+                    inf.name = "CARBINE";
                     inf.maxUP = 4;
                     inf.currentUP = inf.maxUP;
-                    inf.damagePoints = 2;
-                    inf.range = 3;
+                    inf.damagePoints = 3;
+                    inf.range = 4;
                     inf.description = "Use:Equip weapon" +
                         "\n" +
                         "UP:" + inf.maxUP;
@@ -559,97 +625,26 @@ public class ItemInfo
                     inf.name = "FLAMETHROWER";
                     inf.maxUP = 4;
                     inf.currentUP = inf.maxUP;
+                    inf.damagePoints = 1;
                     inf.range = 3;
+                    inf.isFlammable = true;
                     inf.description = "Use:Equip weapon" +
                         "\n" +
                         "UP:" + inf.maxUP;
                     break;
 
                 case 23:
-                    inf.tag = ItemTag.ShellPiercer;
+                    inf.tag = ItemTag.HuntingRifle;
                     inf.rarity = Rarity.Rare;
                     inf.type = ItemType.Weapon;
-                    inf.name = "SHELL PIERCER";
-                    inf.maxUP = 2;
-                    inf.currentUP = inf.maxUP;
-                    inf.damagePoints = 4;
-                    inf.range = 99;
-                    inf.description = "Use:Equip weapon" +
-                        "\n" +
-                        "UP:" + inf.maxUP;
-                    break;
-
-                case 24:
-                    inf.tag = ItemTag.CatalyticRadiator;
-                    inf.rarity = Rarity.Numinous;
-                    inf.type = ItemType.Weapon;
-                    inf.name = "CATALYTIC RADIATOR";
+                    inf.name = "HUNTING RIFLE";
                     inf.maxUP = 3;
                     inf.currentUP = inf.maxUP;
                     inf.damagePoints = 5;
-                    inf.range = 2;
-                    inf.description = "Use:Equip weapon" +
-                        "\n" +
-                        "UP:" + inf.maxUP +
-                        "\t" +
-                        "DP:" + inf.damagePoints;
-                    break;
-
-                case 25:
-                    inf.tag = ItemTag.PFL;
-                    inf.rarity = Rarity.Numinous;
-                    inf.type = ItemType.Weapon;
-                    inf.name = "POSITIVE FEEDBACK LOOP";
-                    inf.maxUP = 2;
-                    inf.currentUP = inf.maxUP;
-                    inf.damagePoints = 1;   // if get kill, inf.damagePoints++;
-                    inf.range = 7;
-                    inf.description = "Use:Equip weapon" +
-                        "\n" +
-                        "UP:" + inf.maxUP +
-                        "\t" +
-                        "DP:" + inf.damagePoints;
-                    break;
-
-                case 26:
-                    inf.tag = ItemTag.BrinkOfExtinction;
-                    inf.rarity = Rarity.Rare;
-                    inf.type = ItemType.Numinous;
-                    inf.name = "BRINK OF EXTINCTION";
-                    inf.maxUP = 3;
-                    inf.currentUP = inf.maxUP;
-                    inf.damagePoints = 10;
-                    inf.range = 99;
-                    inf.isMortar = true;
-                    inf.description = "Use:Equip weapon" +
-                        "\n" +
-                        "UP:" + inf.maxUP;
-                    break;
-
-                case 27:
-                    inf.tag = ItemTag.BorrowedSpacetime;
-                    inf.rarity = Rarity.Rare;
-                    inf.type = ItemType.Numinous;
-                    inf.name = "BORROWED SPACETIME";
-                    inf.maxUP = 2;
-                    inf.currentUP = inf.maxUP;
-                    inf.damagePoints = 2;
                     inf.range = 99;
                     inf.description = "Use:Equip weapon" +
                         "\n" +
                         "UP:" + inf.maxUP;
-                    break;
-
-                case 28:
-                    inf.tag = ItemTag.PaintBlaster;
-                    inf.rarity = Rarity.Secret;
-                    inf.type = ItemType.Weapon;
-                    inf.name = "PAINT BLASTER";
-                    inf.damagePoints = 0;
-                    inf.range = 99;
-                    inf.description = "Use:Equip weapon" +
-                        "\n" +
-                        "UP:" + "\u221e";
                     break;
                 */
         }

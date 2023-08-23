@@ -8,8 +8,7 @@ public enum Rarity
     Limited,    // green
     Scarce,     // yellow
     Rare,       // blue
-    Numinous,   // purple
-    Secret,     // red
+    Anomalous,  // purple
 
     Unknown,
 }

@@ -60,13 +60,15 @@ public class MapGen
         return res;
     }
 
+    readonly float minimumChance = 0.15f;
+
     public void GenerateMap(Tilemap tilemapWalls, Tile[] wallTiles)
     {
         int totalTemplates = allTemplates.Count;
         int nGenerated = 0;
         for (int i = 0; i < 6; i++)
         {
-            if (Random.value > 0.15)
+            if (Random.value > minimumChance)
             {
                 nGenerated++;
                 int templateIdx = Random.Range(0, totalTemplates);
@@ -82,7 +84,6 @@ public class MapGen
                 {
                     for (int y = 0; y < 3; y++)
                     {
-                        //if (allTemplates[templateIdx][y, x] > 0)
                         if (t[y, x] > 0)
                         {
                             Vector3Int p = new(baseX + x, baseY - y, 0);

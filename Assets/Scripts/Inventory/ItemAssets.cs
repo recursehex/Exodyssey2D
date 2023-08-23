@@ -10,8 +10,7 @@ public class ItemAssets : MonoBehaviour
     }
 
     public Sprite medKit;
-    public Sprite medKitPlus;
-    public Sprite lightningRailgun;
+    public Sprite plasmaRailgun;
     public Sprite branch;
     public Sprite honedGavel;
     public Sprite missing;
