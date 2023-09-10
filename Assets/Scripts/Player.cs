@@ -18,13 +18,10 @@ public class Player : MonoBehaviour
     public Text healthText;
     public Text actionPointText;
 
-    public AudioClip moveSound1;
-    public AudioClip moveSound2;
-    public AudioClip eatSound1;
-    public AudioClip eatSound2;
-    public AudioClip pressSound1;
-    public AudioClip pressSound2;
-    public AudioClip gameOverSound;
+    public AudioClip playerMove;
+    public AudioClip heal;
+    public AudioClip select;
+    public AudioClip gameOver;
 
     public Animator animator;
     public Inventory inventory;
@@ -89,7 +86,7 @@ public class Player : MonoBehaviour
             ChangeAP(-(path.Count - 1));
             path.Pop();
             destination = path.Pop();
-            SoundManager.instance.RandomizeSfx(moveSound1, moveSound2);
+            SoundManager.instance.PlaySound(playerMove);
         }
     }
 
@@ -118,7 +115,7 @@ public class Player : MonoBehaviour
                 if (path.Count > 0)
                 {
                     destination = path.Pop();
-                    SoundManager.instance.RandomizeSfx(moveSound1, moveSound2);
+                    SoundManager.instance.PlaySound(playerMove);
                 }
                 else // When Player stops moving
                 {
@@ -144,7 +141,7 @@ public class Player : MonoBehaviour
 
         if (currentHP == 0)
         {
-            SoundManager.instance.PlaySingle(gameOverSound);
+            SoundManager.instance.PlaySound(gameOver);
             SoundManager.instance.musicSource.Stop();
             GameManager.instance.GameOver();
         }
@@ -160,7 +157,7 @@ public class Player : MonoBehaviour
         }
         else
         {
-            SoundManager.instance.RandomizeSfx(eatSound1, eatSound2);
+            SoundManager.instance.PlaySound(heal);
             maxAP = 3;
         }
     }
@@ -195,6 +192,7 @@ public class Player : MonoBehaviour
         {
             inventoryUI.RemoveItem(inventoryUI.GetCurrentSelected());
             inventoryUI.RefreshInventoryItems();
+            inventoryUI.SetCurrentSelected(-1);
             damagePoints = 0;
         }
     }
@@ -232,7 +230,7 @@ public class Player : MonoBehaviour
         if (ret.selectedIdx != -1)
         {
             selectedItem = anItem;
-            SoundManager.instance.RandomizeSfx(pressSound1, pressSound2);
+            SoundManager.instance.PlaySound(select);
         }
         // TurnTimer is started after Player uses a consumable on the first move of a turn
         if (ret.consumableWasUsed && !gm.turnTimer.timerIsRunning)
@@ -268,7 +266,7 @@ public class Player : MonoBehaviour
         }
         inventoryUI.RemoveItem(n);
         inventoryUI.RefreshInventoryItems();
-        SoundManager.instance.RandomizeSfx(moveSound1, moveSound2);
+        SoundManager.instance.PlaySound(playerMove);
     }
 
     public void ProcessHoverForInventory(Vector3 mp)

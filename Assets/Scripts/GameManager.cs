@@ -405,9 +405,9 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public void OnEndTurnPress()
     {
-        tiledot.gameObject.SetActive(true);
         if (!player.isInMovement)
         {
+            tiledot.gameObject.SetActive(true);
             endTurnButton.interactable = false;
             turnTimer.timerIsRunning = false;
             turnTimer.ResetTimer();
@@ -747,7 +747,7 @@ public class GameManager : MonoBehaviour
         foreach (Vector3 tracerPosition in ret.tracerPath)
         {
             Vector3Int tracerPositionInt = new((int)tracerPosition.x, (int)tracerPosition.y, 0);
-            if (tilemapWalls.HasTile(tracerPositionInt)) // NOTE: ignore if weapon's isMortar = true
+            if (tilemapWalls.HasTile(tracerPositionInt))
             {
                 ret.canTargetEnemy = false;
                 break;

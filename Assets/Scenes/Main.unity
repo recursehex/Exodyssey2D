@@ -248,8 +248,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   efxSource: {fileID: 215762113}
   musicSource: {fileID: 215762112}
-  lowPitchRange: 0.95
-  highPitchRange: 1.05
 --- !u!82 &215762112
 AudioSource:
   m_ObjectHideFlags: 0
@@ -1447,6 +1445,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Enemy2
       objectReference: {fileID: 0}
+    - target: {fileID: 283541130281458627, guid: 9844e1c572099de4493431c23e68fee5, type: 3}
+      propertyPath: enemyMove
+      value: 
+      objectReference: {fileID: 8300000, guid: a826bc3d758db43d6ae9caf415b63d1d, type: 3}
+    - target: {fileID: 283541130281458627, guid: 9844e1c572099de4493431c23e68fee5, type: 3}
+      propertyPath: playerAttack
+      value: 
+      objectReference: {fileID: 8300000, guid: 4c2332bc8245b474dad63074059bb755, type: 3}
     - target: {fileID: 283541130281458627, guid: 9844e1c572099de4493431c23e68fee5, type: 3}
       propertyPath: tilemapWalls
       value: 
@@ -3735,13 +3741,29 @@ PrefabInstance:
       value: Player
       objectReference: {fileID: 0}
     - target: {fileID: 917007481830541330, guid: 657e2a86062317544ade4b449a68bdf5, type: 3}
+      propertyPath: heal
+      value: 
+      objectReference: {fileID: 8300000, guid: 062161c1897a54088a5430f8c197e1b8, type: 3}
+    - target: {fileID: 917007481830541330, guid: 657e2a86062317544ade4b449a68bdf5, type: 3}
       propertyPath: maxAP
       value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 917007481830541330, guid: 657e2a86062317544ade4b449a68bdf5, type: 3}
+      propertyPath: select
+      value: 
+      objectReference: {fileID: 8300000, guid: f6aaac83be9e0493493aace800b76619, type: 3}
+    - target: {fileID: 917007481830541330, guid: 657e2a86062317544ade4b449a68bdf5, type: 3}
+      propertyPath: gameOver
+      value: 
+      objectReference: {fileID: 8300000, guid: e2beefeb2273f4efe992adf5b8d67c29, type: 3}
+    - target: {fileID: 917007481830541330, guid: 657e2a86062317544ade4b449a68bdf5, type: 3}
       propertyPath: healthText
       value: 
       objectReference: {fileID: 1790429813}
+    - target: {fileID: 917007481830541330, guid: 657e2a86062317544ade4b449a68bdf5, type: 3}
+      propertyPath: playerMove
+      value: 
+      objectReference: {fileID: 8300000, guid: 892962212a4b74d1c9f578a3b6ea6439, type: 3}
     - target: {fileID: 917007481830541330, guid: 657e2a86062317544ade4b449a68bdf5, type: 3}
       propertyPath: enemyDamage
       value: 0
@@ -4475,6 +4497,10 @@ PrefabInstance:
       value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 8301553589233551288, guid: 3a66190a890058e44bc0653995faf798, type: 3}
+      propertyPath: enemyMove
+      value: 
+      objectReference: {fileID: 8300000, guid: a826bc3d758db43d6ae9caf415b63d1d, type: 3}
+    - target: {fileID: 8301553589233551288, guid: 3a66190a890058e44bc0653995faf798, type: 3}
       propertyPath: moveSound1
       value: 
       objectReference: {fileID: 8300000, guid: 892962212a4b74d1c9f578a3b6ea6439, type: 3}
@@ -4486,6 +4512,10 @@ PrefabInstance:
       propertyPath: enemyAttack
       value: 
       objectReference: {fileID: 8300000, guid: 114514a3b3697484ebaa08f7fbf842d3, type: 3}
+    - target: {fileID: 8301553589233551288, guid: 3a66190a890058e44bc0653995faf798, type: 3}
+      propertyPath: playerAttack
+      value: 
+      objectReference: {fileID: 8300000, guid: 4c2332bc8245b474dad63074059bb755, type: 3}
     - target: {fileID: 8301553589233551288, guid: 3a66190a890058e44bc0653995faf798, type: 3}
       propertyPath: playerDamage
       value: -1

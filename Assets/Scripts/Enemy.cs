@@ -6,11 +6,9 @@ public class Enemy : MonoBehaviour
 {
     public EnemyInfo info;
 
-    public AudioClip moveSound1;
-    public AudioClip moveSound2;
+    public AudioClip enemyMove;
     public AudioClip enemyAttack;
-    public AudioClip chopSound1;
-    public AudioClip chopSound2;
+    public AudioClip playerAttack;
 
     public bool isInMovement = false;
 
@@ -48,7 +46,7 @@ public class Enemy : MonoBehaviour
     // Player attacks enemy
     public void DamageEnemy(int loss)
     {
-        SoundManager.instance.RandomizeSfx(chopSound1, chopSound2);
+        SoundManager.instance.PlaySound(playerAttack);
         // NOTE: Eventually add sprite change for enemy on this line using: spriteRenderer.sprite = dmgSprite;
         info.currentHP -= loss;
         if (info.currentHP <= 0)
@@ -76,14 +74,14 @@ public class Enemy : MonoBehaviour
                 // Move one tile closer to Player
                 if (path.Count > 1 && info.currentAP > 0)
                 {
-                    SoundManager.instance.RandomizeSfx(moveSound1, moveSound2);
+                    SoundManager.instance.PlaySound(enemyMove);
                     destination = path.Pop();
                     info.currentAP--;
                 }
                 // Enemy attacks Player if enemy moves to an adjacent tile
                 else if (path.Count == 1 && info.currentAP > 0)
                 {
-                    SoundManager.instance.RandomizeSfx(enemyAttack, enemyAttack);
+                    SoundManager.instance.PlaySound(enemyAttack);
                     gm.HandleDamageToPlayer(info.damagePoints);
                     info.currentAP--;
                 }
@@ -95,7 +93,7 @@ public class Enemy : MonoBehaviour
             }
         }
     }
-    
+
     public void CalculatePathAndStartMovement(Vector3 goal)
     {
         isInMovement = true;
@@ -119,7 +117,7 @@ public class Enemy : MonoBehaviour
                 path = null;
                 isInMovement = false;
             }
-            SoundManager.instance.RandomizeSfx(moveSound1, moveSound2);
+            SoundManager.instance.PlaySound(enemyMove);
         }
         else // If enemy is adjacent to Player, attack
         {
@@ -127,7 +125,7 @@ public class Enemy : MonoBehaviour
             {
                 for (int i = 0; i < info.currentAP; i++)
                 {
-                    SoundManager.instance.RandomizeSfx(enemyAttack, enemyAttack);
+                    SoundManager.instance.PlaySound(enemyAttack);
                     gm.HandleDamageToPlayer(info.damagePoints);
                 }
             }
@@ -135,7 +133,7 @@ public class Enemy : MonoBehaviour
             isInMovement = false;
         }
     }
-    
+
     private bool HasEnemyAtPosition(Vector3 p)
     {
         Vector3 shiftedDistance = new(p.x + 0.5f, p.y + 0.5f, 0);
