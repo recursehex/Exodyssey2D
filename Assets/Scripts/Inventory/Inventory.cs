@@ -9,9 +9,6 @@ public class Inventory
     public Inventory()
     {
         itemList = new List<ItemInventory>();
-
-        // Test code for giving player an item
-        //AddItem(new ItemInventory { itemType = ItemType.MedKit, amount = 1 });
     }
 
     public bool AddItem(ItemInventory item)

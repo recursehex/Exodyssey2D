@@ -37,6 +37,7 @@ public class InventoryUI : MonoBehaviour
             }
         }
         inventory.RemoveItem(idx);
+        RefreshInventoryItems();
     }
 
     public void RefreshInventoryItems()
@@ -102,7 +103,7 @@ public class InventoryUI : MonoBehaviour
         if (itemPosition >= 0)
         {
             cachedName = inventory.itemList[selectedIdx].itemInfo.name;
-            cachedDesc = inventory.itemList[selectedIdx].itemInfo.description;
+            cachedDesc = inventory.itemList[selectedIdx].itemInfo.description + inventory.itemList[selectedIdx].itemInfo.stats;
         }
         else
         {
@@ -137,11 +138,11 @@ public class InventoryUI : MonoBehaviour
         {
             Image icon = GameObject.Find("InventoryIcon" + i).GetComponent<Image>();
             Vector3 iconPosition = icon.transform.position;
-            if (Math.Abs(iconPosition.x - mousePosition.x) < sensitivityDistance && Math.Abs(iconPosition.y - mousePosition.y) < sensitivityDistance)
+            if (Math.Abs(iconPosition.x - mousePosition.x) <= sensitivityDistance && Math.Abs(iconPosition.y - mousePosition.y) <= sensitivityDistance)
             {
                 mouseIsOverIcon = true;
                 nameText.text = item.itemInfo.name;
-                descText.text = item.itemInfo.description;
+                descText.text = item.itemInfo.description + item.itemInfo.stats;
                 break;
             }
             i++;

@@ -110,7 +110,7 @@ public class EnemyInfo
                 inf.tag = EnemyTag.Launcher;
                 inf.rarity = Rarity.Limited;
                 inf.type = EnemyType.Mediocre;
-                inf.maxHP = 2;
+                inf.maxHP = 4;
                 inf.currentHP = inf.maxHP;
                 inf.maxAP = 2;
                 inf.currentAP = inf.maxAP;
