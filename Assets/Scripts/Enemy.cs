@@ -14,10 +14,8 @@ public class Enemy : MonoBehaviour
 
     #region PATHFINDING
 
-    [SerializeField]
     public Tilemap tilemapGround;
 
-    [SerializeField]
     public Tilemap tilemapWalls;
 
     private Stack<Vector3Int> path;
@@ -33,9 +31,11 @@ public class Enemy : MonoBehaviour
     // Start is called before the first frame update
     protected virtual void Start()
     {
-        astar = new AStar();
-        astar.tilemapGround = tilemapGround;
-        astar.tilemapWalls = tilemapWalls;
+        astar = new AStar
+        {
+            tilemapGround = tilemapGround,
+            tilemapWalls = tilemapWalls
+        };
     }
 
     public void ExposedStart()

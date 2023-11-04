@@ -167,11 +167,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f7e73e3b81789e0449337e6d1d23afd8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSound1: {fileID: 8300000, guid: 892962212a4b74d1c9f578a3b6ea6439, type: 3}
-  moveSound2: {fileID: 8300000, guid: a826bc3d758db43d6ae9caf415b63d1d, type: 3}
+  enemyMove: {fileID: 8300000, guid: a826bc3d758db43d6ae9caf415b63d1d, type: 3}
   enemyAttack: {fileID: 8300000, guid: 114514a3b3697484ebaa08f7fbf842d3, type: 3}
-  chopSound1: {fileID: 8300000, guid: 4c2332bc8245b474dad63074059bb755, type: 3}
-  chopSound2: {fileID: 8300000, guid: f6aaac83be9e0493493aace800b76619, type: 3}
+  playerAttack: {fileID: 8300000, guid: 4c2332bc8245b474dad63074059bb755, type: 3}
   isInMovement: 0
   tilemapGround: {fileID: 0}
   tilemapWalls: {fileID: 0}

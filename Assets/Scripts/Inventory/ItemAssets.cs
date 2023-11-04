@@ -13,5 +13,6 @@ public class ItemAssets : MonoBehaviour
     public Sprite plasmaRailgun;
     public Sprite branch;
     public Sprite honedGavel;
+    public Sprite huntingRifle;
     public Sprite missing;
 }
