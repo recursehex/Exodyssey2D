@@ -14,9 +14,6 @@ public class GameManager : MonoBehaviour
 
     public TileDot tiledot;
 
-    [SerializeField]
-    private HealthBar enemyHealthBar;
-
     public TurnTimer turnTimer;
 
     public GameObject[] areaMarking;
@@ -74,7 +71,7 @@ public class GameManager : MonoBehaviour
     public Tile[] wallTiles;
 
     // Level # is for each unit of the day, with 5 per day, e.g. lvl 5 means day 2
-    private readonly string[] timeOfDayNames = { "DAWN", "MIDDAY", "AFTERNOON", "DUSK", "NIGHT" };
+    private readonly string[] timeOfDayNames = { "DAWN", "NOON", "AFTERNOON", "DUSK", "NIGHT" };
     private int level = 0;
     private int day = 1;
 
@@ -129,8 +126,9 @@ public class GameManager : MonoBehaviour
         player.SetGameManager(this);
     }
 
-    private void OnLevelWasLoaded(int index)
+    private void ResetForNextLevel()
     {
+        // Increments level and day
         level++;
         levelText.text = timeOfDayNames[level % timeOfDayNames.Length];
         if (level % 5 == 0)
@@ -139,14 +137,6 @@ public class GameManager : MonoBehaviour
             dayText.text = "DAY " + day;
         }
 
-        ResetForNextLevel();
-        InitGame();
-        DrawTargetsAndTracers();
-        tiledot.gameObject.SetActive(true);
-    }
-
-    private void ResetForNextLevel()
-    {
         turnTimer.timerIsRunning = false;
         turnTimer.ResetTimer();
 
@@ -156,12 +146,14 @@ public class GameManager : MonoBehaviour
         tilemapGround.ClearAllTiles();
         tilemapWalls.ClearAllTiles();
 
+        // Destroys all items on the ground
         for (int i = 0; i < items.Count; i++)
         {
             Destroy(items[i]);
         }
         items.Clear();
 
+        // Destroys all enemies
         for (int i = 0; i < enemies.Count; i++)
         {
             Destroy(enemies[i]);
@@ -170,7 +162,11 @@ public class GameManager : MonoBehaviour
 
         // Resets Player position & AP
         player.transform.position = new Vector3(-3.5f, 0.5f, 0f);
-        player.RestoreAP();
+        player.ChangeAP(player.maxAP);
+
+        InitGame();
+        DrawTargetsAndTracers();
+        tiledot.gameObject.SetActive(true);
     }
 
     void InitGame()
@@ -181,14 +177,11 @@ public class GameManager : MonoBehaviour
         levelText.gameObject.SetActive(true);
         dayText.gameObject.SetActive(true);
         Invoke(nameof(HideLevelLoadScreen), levelStartDelay);
-        enemyHealthBar.gameObject.SetActive(false);
 
         nStartItems = Random.Range(5, 10);
         nStartEnemies = Random.Range(1 + (int)(level * 0.5), 3 + (int)(level * 0.5));
-
         mapGenerator = new MapGen();
 
-        // Do not change order
         GroundGeneration();
         WallGeneration();
         EnemyGeneration();
@@ -223,7 +216,7 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public void ItemGeneration()
     {
-        WeightedRarityGeneration.Generation(ItemInfo.RarityPercentMap(), ItemInfo.GenerateAllRarities(), nStartItems, itemTemplates, items, tilemapWalls, this, true);
+        WeightedRarityGeneration.Generation(ItemInfo.RarityPercentMap(), ItemInfo.GenerateAllRarities(), nStartItems, itemTemplates, items, tilemapWalls, this, true, null);
     }
 
     /// <summary>
@@ -301,7 +294,7 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public void EnemyGeneration()
     {
-        WeightedRarityGeneration.Generation(EnemyInfo.RarityPercentMap(), EnemyInfo.GenerateAllRarities(), nStartEnemies, enemyTemplates, enemies, tilemapWalls, this, false);
+        WeightedRarityGeneration.Generation(EnemyInfo.RarityPercentMap(), EnemyInfo.GenerateAllRarities(), nStartEnemies, enemyTemplates, enemies, tilemapWalls, this, false, tilemapGround);
     }
 
     /// <summary>
@@ -333,7 +326,9 @@ public class GameManager : MonoBehaviour
     public void GameOver()
     {
         dayText.gameObject.SetActive(true);
-        dayText.text = "You died after " + ((level / 5) + 1) + " days.";
+        levelText.gameObject.SetActive(true);
+        dayText.text = "YOU DIED";
+        levelText.text = "AFTER " + ((level / 5) + 1) + " DAYS";
         levelImage.SetActive(true);
         enabled = false;
     }
@@ -360,14 +355,14 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private void EnemyMovement()
     {
-        // If all enemies are dead
+        // If there are no enemies
         if (enemies.Count == 0)
         {
             playersTurn = true;
             endTurnButton.interactable = true;
             return;
         }
-        // When enemies begin moving
+        // When enemies start moving
         if (needToStartEnemyMovement)
         {
             endTurnButton.interactable = false;
@@ -395,6 +390,7 @@ public class GameManager : MonoBehaviour
             playersTurn = true;
             endTurnButton.interactable = true;
             needToDrawReachableAreas = true;
+            tiledot.gameObject.SetActive(true);
             DrawTileAreaIfNeeded();
             DrawTargetsAndTracers();
         }
@@ -407,7 +403,6 @@ public class GameManager : MonoBehaviour
     {
         if (!player.isInMovement)
         {
-            tiledot.gameObject.SetActive(true);
             endTurnButton.interactable = false;
             turnTimer.timerIsRunning = false;
             turnTimer.ResetTimer();
@@ -415,6 +410,7 @@ public class GameManager : MonoBehaviour
             player.ChangeAP(player.maxAP);
             needToDrawReachableAreas = true;
             DrawTileAreaIfNeeded();
+            if (enemies.Count == 0) tiledot.gameObject.SetActive(true);
             needToStartEnemyMovement = enemies.Count > 0;
         }
     }
@@ -484,6 +480,7 @@ public class GameManager : MonoBehaviour
                     player.isInMovement = true;
                     needToDrawReachableAreas = true;
                     player.CalculatePathAndStartMovement(worldPoint);
+                    ClearTileAreas();
                     turnTimer.StartTimer();
                 }
                 // For attacking an enemy, if there exists an enemy & if it is in melee or ranged weapon range & if Player has a weapon & has AP
@@ -498,15 +495,15 @@ public class GameManager : MonoBehaviour
                 }
             }
         }
-        // If mouse is hovering over a tile, to move tiledot & enemyHealthBar
+        // If mouse is hovering over a tile
         else
         {
             BoundsInt size = tilemapGround.cellBounds;
-            // mouse point on screen
+            // Screen MP
             Vector3 mousePoint = Input.mousePosition;
-            // mouse point in world
+            // World MP
             Vector3 worldPoint = mainCamera.ScreenToWorldPoint(mousePoint);
-            // mouse point on tilemap
+            // Tilemap MP
             Vector3Int tilePoint = tilemapGround.WorldToCell(worldPoint);
             if (
                 // If mouse is within the grid
@@ -520,19 +517,6 @@ public class GameManager : MonoBehaviour
                 {
                     // Moves tiledot to the tile the mouse is hovering over
                     tiledot.MoveToPlace(tilePoint);
-                }
-                // Checks which enemy is hovered over to display its health
-                int idxOfEnemy = GetEnemyIndexAtPosition(tilePoint);
-                if (idxOfEnemy >= 0)
-                {
-                    Enemy e = enemies[idxOfEnemy].GetComponent<Enemy>();
-                    enemyHealthBar.SetHealth(e.info.currentHP);
-                    enemyHealthBar.gameObject.SetActive(true);
-                    enemyHealthBar.MoveToPlace(tilePoint);
-                }
-                else
-                {
-                    enemyHealthBar.gameObject.SetActive(false);
                 }
             }
             // If mouse is hovering over UI since UI is outside the grid
@@ -555,7 +539,7 @@ public class GameManager : MonoBehaviour
         if (e.info.currentHP <= 0)
         {
             enemies.RemoveAt(idx);
-            Destroy(enemy, 0f);
+            Destroy(enemy);
             DrawTargetsAndTracers();
         }
     }
@@ -585,7 +569,7 @@ public class GameManager : MonoBehaviour
     {
         if (tilemapExit.HasTile(Vector3Int.FloorToInt(player.transform.position)))
         {
-            OnLevelWasLoaded(level);
+            ResetForNextLevel();
             return true;
         }
         return false;
@@ -597,14 +581,8 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private int GetEnemyIndexAtPosition(Vector3Int position)
     {
-        for (int i = 0; i < enemies.Count; i++)
-        {
-            if (enemies[i].GetComponent<Enemy>().transform.position == position + new Vector3(0.5f, 0.5f, 0))
-            {
-                return i;
-            }
-        }
-        return -1;
+        Vector3 targetPosition = position + new Vector3(0.5f, 0.5f, 0);
+        return enemies.FindIndex(enemy => enemy.transform.position == targetPosition);
     }
 
     /// <summary>
@@ -689,7 +667,7 @@ public class GameManager : MonoBehaviour
                 foreach (KeyValuePair<Vector3Int, Node> node in reachableAreasToDraw)
                 {
                     Vector3 shiftedDistance = new(node.Value.Position.x + 0.5f, node.Value.Position.y + 0.5f, node.Value.Position.z);
-                    GameObject instance = Instantiate(areaMarking[0], shiftedDistance, Quaternion.identity) as GameObject;
+                    GameObject instance = Instantiate(areaMarking[0], shiftedDistance, Quaternion.identity);
                     reachableArea.Add(instance);
                 }
             }

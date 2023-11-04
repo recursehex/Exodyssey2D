@@ -6,16 +6,18 @@ public class Vehicle : MonoBehaviour
 {
     public VehicleInfo info;
 
+    public bool isInMovement = false;
+
     // Start is called before the first frame update
     void Start()
     {
-        
+
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+
     }
 
     /// <summary>

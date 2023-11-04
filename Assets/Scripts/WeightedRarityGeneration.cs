@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-public class WeightedRarityGeneration: MonoBehaviour
+public class WeightedRarityGeneration : MonoBehaviour
 {
-    static public void Generation(Dictionary<Rarity, int> percentMap, List<Rarity> allRarities, int nStartElements, GameObject[] elementTemplates, List<GameObject> elements, Tilemap tilemapWalls,GameManager gm, bool isFromItemClass)
+    static public void Generation(Dictionary<Rarity, int> percentMap, List<Rarity> allRarities, int nStartElements, GameObject[] elementTemplates, List<GameObject> elements, Tilemap tilemapWalls, GameManager gm, bool isFromItemClass, Tilemap tilemapGround)
     {
         int sumPercent = 0;
         List<int> rarityPercentages = new();
@@ -52,26 +52,29 @@ public class WeightedRarityGeneration: MonoBehaviour
 
             while (true)
             {
-                int x = (Random.Range(-4, 4));
-                int y = (Random.Range(-4, 4));
+                int x = Random.Range(-4, 4);
+                int y = Random.Range(-4, 4);
                 Vector3Int p = new(x, y, 0);
 
-                if (!tilemapWalls.HasTile(p) && !(x == -4 && y == 0))
+                if (!tilemapWalls.HasTile(p) && !(x <= -2 && y <= 1 && y >= -1))
                 {
                     Vector3 shiftedDistance = new(x + 0.5f, y + 0.5f, 0);
                     if (!gm.HasElementAtPosition(shiftedDistance))
                     {
                         if (isFromItemClass)
                         {
-                            GameObject instance = Instantiate(element, shiftedDistance, Quaternion.identity) as GameObject;
+                            GameObject instance = Instantiate(element, shiftedDistance, Quaternion.identity);
                             Item e = instance.GetComponent<Item>();
                             e.info = ItemInfo.ItemFactory(randomItemIndex);
                             elements.Add(instance);
                         }
                         else
                         {
-                            GameObject instance = Instantiate(element, shiftedDistance, Quaternion.identity) as GameObject;
+                            GameObject instance = Instantiate(element, shiftedDistance, Quaternion.identity);
                             Enemy e = instance.GetComponent<Enemy>();
+
+                            e.tilemapGround = tilemapGround;
+                            e.tilemapWalls = tilemapWalls;
                             e.info = EnemyInfo.EnemyFactory(randomItemIndex);
                             e.SetGameManager(gm);
                             e.ExposedStart();

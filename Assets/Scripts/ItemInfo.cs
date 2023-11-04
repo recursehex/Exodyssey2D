@@ -6,6 +6,7 @@ public enum ItemTag
     // CONSUMABLE
     MedKit = 0,
     //ToolKit,
+    //FusionCell,
 
     // MELEE
     Branch,
@@ -25,8 +26,8 @@ public enum ItemTag
     //Tranquilizer,
     //Carbine,
     //Flamethrower,
-    //HuntingRifle,
     PlasmaRailgun,
+    HuntingRifle,
 
     // ARMOR
     //Helmet,
@@ -34,9 +35,8 @@ public enum ItemTag
     //GrapheneShield,
 
     // STORAGE
-    //HydrogenCanister,
-    //Bacpack,
-    //FuelTank,
+    //Backpack,
+    //Battery,
     //Crate,
 
     // UTILITY
@@ -79,8 +79,9 @@ public class ItemInfo
 
     public string name;                         // Ingame name of item
     public string description;                  // Ingame desc of item
+    public string stats = "";                   // Ingame list of UP, DP, SDP, RP
 
-    public int maxUP = -1;                      // Set to positive value for items with UP, -1 = infinite uses
+    public int maxUP = -1;
     public int currentUP = -1;
 
     public int damagePoints = -1;               // Set only for weapons
@@ -111,7 +112,7 @@ public class ItemInfo
     /// <param name="player"></param>
     /// <param name="selectedIdx"></param>
     /// <returns></returns>
-    public AfterItemUse UseItem(Player player, int selectedIdx)
+    public AfterItemUse ClickItem(Player player, int selectedIdx)
     {
         AfterItemUse ret = new();
 
@@ -119,19 +120,17 @@ public class ItemInfo
         switch (type)
         {
             case ItemType.Consumable:
-                // If the consumable is a healing item
+                // If the consumable is a MedKit
                 if (tag == ItemTag.MedKit && player.currentHP < player.maxHP && player.currentAP > 0)
                 {
                     player.ChangeHP(player.maxHP);
                     player.ChangeAP(-1);
                     currentUP--;
-                    description = "Use:Heals all HP" +
-                    "\n" +
-                    "UP:" + currentUP + "/" + maxUP;
+                    stats = "\n" + "UP:" + currentUP + "/" + maxUP;
                     ret.consumableWasUsed = true;
                 }
                 break;
-            // If the item is a weapon, as clicking it will select it
+            // Selects or unselects a weapon
             case ItemType.Weapon:
                 bool weaponIsSelected = ProcessSelection(player.inventoryUI.GetCurrentSelected(), selectedIdx);
                 if (!weaponIsSelected)
@@ -139,7 +138,7 @@ public class ItemInfo
                     selectedIdx = -1;
                 }
                 player.inventoryUI.SetCurrentSelected(selectedIdx);
-                // Reset damageToEnemy since weapon was deselected
+                // Reset damageToEnemy if weapon is unselected
                 if (selectedIdx == -1)
                 {
                     player.damagePoints = 0;
@@ -163,13 +162,13 @@ public class ItemInfo
     }
 
     /// <summary>
-    /// Called by UseItem when weapon is selected or deselected
+    /// Called by UseItem when weapon is selected or unselected
     /// </summary>
     /// <param name="posOld"></param>
     /// <param name="posNew"></param>
     public bool ProcessSelection(int posOld, int posNew)
     {
-        // Deselect old item
+        // Unselect old item
         if (posOld == posNew && posOld != -1)
         {
             GameObject.Find("InventoryPressed" + posOld).transform.localScale = Vector3.one;
@@ -177,7 +176,7 @@ public class ItemInfo
         }
         else
         {
-            // Deselect old item & select new item
+            // Unselect old item & select new item
             if (posOld != -1)
             {
                 GameObject.Find("InventoryPressed" + posOld).transform.localScale = Vector3.one;
@@ -212,16 +211,12 @@ public class ItemInfo
     public bool UpdateWeaponUP()
     {
         currentUP--;
-        description = "Use:Equip weapon" +
-            "\n" +
-            "UP:" + currentUP + "/" + maxUP +
-            "\t" +
-            "DP:" + damagePoints;
+        stats = "\n" + "UP:" + currentUP + "/" + maxUP + "\t" + "DP:" + damagePoints;
 
         if (range > 0)
-            description += "\n" + "RP:" + range;
+            stats += "\n" + "RP:" + range;
 
-        return (currentUP == 0);
+        return currentUP == 0;
     }
 
     /// <summary>
@@ -259,9 +254,8 @@ public class ItemInfo
                 inf.maxUP = 1;
                 inf.currentUP = inf.maxUP;
                 inf.isFlammable = true;
-                inf.description = "Use:Heals user" +
-                    "\n" +
-                    "UP:" + inf.maxUP + "/" + inf.maxUP;
+                inf.description = "Heals oneself";
+                inf.stats = "\n" + "UP:" + inf.maxUP + "/" + inf.maxUP;
                 break;
             case 1:
                 inf.tag = ItemTag.Branch;
@@ -273,11 +267,8 @@ public class ItemInfo
                 inf.damagePoints = 1;
                 inf.shellDamage = 0;
                 inf.isFlammable = true;
-                inf.description = "Use:Equip weapon" +
-                    "\n" +
-                    "UP:" + inf.maxUP + "/" + inf.maxUP +
-                    "\t" +
-                    "DP:" + inf.damagePoints;
+                inf.description = "Fragile stick";
+                inf.stats = "\n" + "UP:" + inf.maxUP + "/" + inf.maxUP + "\t" + "DP:" + inf.damagePoints + "\n" + "SDP:" + inf.shellDamage;
                 break;
             case 2:
                 inf.tag = ItemTag.DiamondChainsaw;
@@ -288,11 +279,8 @@ public class ItemInfo
                 inf.maxUP = 8;
                 inf.currentUP = inf.maxUP;
                 inf.damagePoints = 5;
-                inf.description = "Use:Equip weapon" +
-                    "\n" +
-                    "UP:" + inf.maxUP + "/" + inf.maxUP +
-                    "\t" +
-                    "DP:" + inf.damagePoints;
+                inf.description = "Handheld rock saw";
+                inf.stats = "\n" + "UP:" + inf.maxUP + "/" + inf.maxUP + "\t" + "DP:" + inf.damagePoints;
                 break;
             case 3:
                 inf.tag = ItemTag.PlasmaRailgun;
@@ -304,359 +292,329 @@ public class ItemInfo
                 inf.currentUP = inf.maxUP;
                 inf.damagePoints = 10;
                 inf.range = 5;
-                inf.description = "Use:Equip weapon" +
-                    "\n" +
-                    "UP:" + inf.maxUP + "/" + inf.maxUP +
-                    "\t" +
-                    "DP:" + inf.damagePoints +
-                    "\n" +
-                    "RP:" + inf.range;
+                inf.description = "Fires a voltaic plasma bolt";
+                inf.stats = "\n" + "UP:" + inf.maxUP + "/" + inf.maxUP + "\t" + "DP:" + inf.damagePoints + "\n" + "RP:" + inf.range;
                 break;
-                /*
-                case 3:
-                    inf.tag = ItemTag.ToolKit;
-                    inf.rarity = Rarity.Scarce;
-                    inf.type = ItemType.Consumable;
-                    inf.name = "TOOLKIT";
-                    inf.maxUP = 1;
-                    inf.currentUP = inf.maxUP;
-                    inf.description = "Use:Repairs vehicle" +
-                        "\n" +
-                        "UP:" + inf.maxUP;
-                    break;
+            /*
+            case 4:
+                inf.tag = ItemTag.ToolKit;
+                inf.rarity = Rarity.Scarce;
+                inf.type = ItemType.Consumable;
+                inf.name = "TOOLKIT";
+                inf.maxUP = 1;
+                inf.currentUP = inf.maxUP;
+                inf.description = "Repairs vehicles";
+                inf.stats = "\n" + "UP:" + inf.maxUP;
+                break;
 
-                case 4:
-                    inf.tag = ItemTag.Knife;
-                    inf.rarity = Rarity.Limited;
-                    inf.type = ItemType.Weapon;
-                    inf.name = "KNIFE";
-                    inf.maxUP = 3;
-                    inf.currentUP = inf.maxUP;
-                    inf.damagePoints = 2;
-                    inf.shellDamage = 1;
-                    inf.description = "Use:Equip weapon" +
-                        "\n" +
-                        "UP:" + inf.maxUP + "/" + inf.maxUP +
-                        "\t" +
-                        "DP:" + inf.damagePoints;
-                    break;
+            case 5:
+                inf.tag = ItemTag.Knife;
+                inf.rarity = Rarity.Limited;
+                inf.type = ItemType.Weapon;
+                inf.name = "KNIFE";
+                inf.maxUP = 3;
+                inf.currentUP = inf.maxUP;
+                inf.damagePoints = 2;
+                inf.shellDamage = 1;
+                inf.description = "Can stab shelled aliens";
+                inf.stats = "\n" + "UP:" + inf.maxUP + "/" + inf.maxUP + "\t" + "DP:" + inf.damagePoints + "\n" + "SDP:" + inf.shellDamage;
+                break;
 
-                case 5:
-                    inf.tag = ItemTag.Wrench;
-                    inf.rarity = Rarity.Scarce;
-                    inf.type = ItemType.Weapon;
-                    inf.name = "WRENCH";
-                    inf.maxUP = 4;
-                    inf.currentUP = inf.maxUP;
-                    inf.damagePoints = 2;
-                    inf.shellDamage = 0;
-                    inf.description = "Use:Equip weapon" +
-                        "\n" +
-                        "UP:" + inf.maxUP + "/" + inf.maxUP +
-                        "\t" +
-                        "DP:" + inf.damagePoints;
-                    break;
+            case 6:
+                inf.tag = ItemTag.Wrench;
+                inf.rarity = Rarity.Scarce;
+                inf.type = ItemType.Weapon;
+                inf.name = "WRENCH";
+                inf.maxUP = 4;
+                inf.currentUP = inf.maxUP;
+                inf.damagePoints = 2;
+                inf.shellDamage = 0;
+                inf.description = "Useless for shelled aliens";
+                inf.stats = "\n" + "UP:" + inf.maxUP + "/" + inf.maxUP + "\t" + "DP:" + inf.damagePoints + "\n" + "SDP:" + inf.shellDamage;
+                break;
 
-                case 6:
-                    inf.tag = ItemTag.Mallet;
-                    inf.rarity = Rarity.Rare;
-                    inf.type = ItemType.Weapon;
-                    inf.maxUP = 6;
-                    inf.currentUP = inf.maxUP;
-                    inf.name = "MALLET";
-                    inf.damagePoints = 3;
-                    inf.shellDamage = 0;
-                    inf.description = "Use:Equip weapon" +
-                        "\n" +
-                        "UP:" + inf.maxUP + "/" + inf.maxUP +
-                        "\t" +
-                        "DP:" + inf.damagePoints;
-                    break;
+            case 7:
+                inf.tag = ItemTag.Mallet;
+                inf.rarity = Rarity.Rare;
+                inf.type = ItemType.Weapon;
+                inf.maxUP = 6;
+                inf.currentUP = inf.maxUP;
+                inf.name = "MALLET";
+                inf.damagePoints = 3;
+                inf.shellDamage = 0;
+                inf.description = "Bounces off shelled aliens";
+                inf.stats = "\n" + "UP:" + inf.maxUP + "/" + inf.maxUP + "\t" + "DP:" + inf.damagePoints + "\n" + "SDP:" + inf.shellDamage;
+                break;
 
-                case 7:
-                    inf.tag = ItemTag.Axe;
-                    inf.rarity = Rarity.Rare;
-                    inf.type = ItemType.Weapon;
-                    inf.name = "AXE";
-                    inf.maxUP = 4;
-                    inf.currentUP = inf.maxUP;
-                    inf.damagePoints = 4;
-                    inf.shellDamage = 2;
-                    inf.description = "Use:Equip weapon" +
-                        "\n" +
-                        "UP:" + inf.maxUP + "/" + inf.maxUP +
-                        "\t" +
-                        "DP:" + inf.damagePoints;
-                    break;
+            case 8:
+                inf.tag = ItemTag.Axe;
+                inf.rarity = Rarity.Rare;
+                inf.type = ItemType.Weapon;
+                inf.name = "AXE";
+                inf.maxUP = 4;
+                inf.currentUP = inf.maxUP;
+                inf.damagePoints = 4;
+                inf.shellDamage = 2;
+                inf.description = "Can cut shelled aliens";
+                inf.stats = "\n" + "UP:" + inf.maxUP + "/" + inf.maxUP + "\t" + "DP:" + inf.damagePoints + "\n" + "SDP:" + inf.shellDamage;
+                break;
 
-                case 7:
-                    inf.tag = ItemTag.Rock;
-                    inf.rarity = Rarity.Common;
-                    inf.type = ItemType.Weapon;
-                    inf.name = "ROCK";
-                    inf.maxUP = 1;
-                    inf.currentUP = inf.maxUP;
-                    inf.damagePoints = 1;
-                    inf.range = 3;
-                    inf.description = "Use:Equip weapon" +
-                        "\n" +
-                        "UP:" + inf.maxUP + "/" + inf.maxUP +
-                        "\t" +
-                        "DP:" + inf.damagePoints;
-                    break;
+            case 9:
+                inf.tag = ItemTag.Rock;
+                inf.rarity = Rarity.Common;
+                inf.type = ItemType.Weapon;
+                inf.name = "ROCK";
+                inf.maxUP = 1;
+                inf.currentUP = inf.maxUP;
+                inf.damagePoints = 1;
+                inf.range = 3;
+                inf.description = "Can be thrown again";
+                inf.stats = "\n" + "UP:" + inf.maxUP + "/" + inf.maxUP + "\t" + "DP:" + inf.damagePoints + "\n" + "RP:" + inf.range;
+                break;
 
-                case 7:
-                    inf.tag = ItemTag.SmokeGrenade;
-                    inf.rarity = Rarity.Scarce;
-                    inf.type = ItemType.Weapon;
-                    inf.name = "SMOKE GRENADE";
-                    inf.maxUP = 1;
-                    inf.currentUP = inf.maxUP;
-                    inf.damagePoints = 0;
-                    inf.range = 3;
-                    inf.description = "Use:Equip weapon" +
-                        "\n" +
-                        "UP:" + inf.maxUP + "/" + inf.maxUP +
-                        "\t" +
-                        "DP:" + inf.damagePoints;
-                    break;
+            case 10:
+                inf.tag = ItemTag.SmokeGrenade;
+                inf.rarity = Rarity.Scarce;
+                inf.type = ItemType.Weapon;
+                inf.name = "SMOKE GRENADE";
+                inf.maxUP = 1;
+                inf.currentUP = inf.maxUP;
+                inf.damagePoints = 0;
+                inf.range = 3;
+                inf.description = "Stuns nearby enemies for 1 turn";
+                inf.stats = "\n" + "UP:" + inf.maxUP + "/" + inf.maxUP + "\t" + "DP:" + inf.damagePoints + "\n" + "RP:" + inf.range;
+                break;
 
-                case 7:
-                    inf.tag = ItemTag.Dynamite;
-                    inf.rarity = Rarity.Scarce;
-                    inf.type = ItemType.Weapon;
-                    inf.name = "DYNAMITE";
-                    inf.maxUP = 1;
-                    inf.currentUP = inf.maxUP;
-                    inf.damagePoints = 5;
-                    inf.range = 3;
-                    inf.isFlammable = true;
-                    inf.description = "Use:Equip weapon" +
-                        "\n" +
-                        "UP:" + inf.maxUP + "/" + inf.maxUP +
-                        "\t" +
-                        "DP:" + inf.damagePoints;
-                    break;
+            case 11:
+                inf.tag = ItemTag.Dynamite;
+                inf.rarity = Rarity.Scarce;
+                inf.type = ItemType.Weapon;
+                inf.name = "DYNAMITE";
+                inf.maxUP = 1;
+                inf.currentUP = inf.maxUP;
+                inf.damagePoints = 5;
+                inf.range = 3;
+                inf.isFlammable = true;
+                inf.description = "Fuse lights after landing";
+                inf.stats = "\n" + "UP:" + inf.maxUP + "/" + inf.maxUP + "\t" + "DP:" + inf.damagePoints + "\n" + "RP:" + inf.range;
+                break;
 
-                case 7:
-                    inf.tag = ItemTag.StickyGrenade;
-                    inf.rarity = Rarity.Anomalous;
-                    inf.type = ItemType.Weapon;
-                    inf.name = "STICKY GRENADE";
-                    inf.maxUP = 1;
-                    inf.currentUP = inf.maxUP;
-                    inf.damagePoints = 3;
-                    inf.range = 5;
-                    inf.isFlammable = true;
-                    inf.description = "Use:Equip weapon" +
-                        "\n" +
-                        "UP:" + inf.maxUP + "/" + inf.maxUP +
-                        "\t" +
-                        "DP:" + inf.damagePoints;
-                    break;
+            case 12:
+                inf.tag = ItemTag.StickyGrenade;
+                inf.rarity = Rarity.Anomalous;
+                inf.type = ItemType.Weapon;
+                inf.name = "STICKY GRENADE";
+                inf.maxUP = 1;
+                inf.currentUP = inf.maxUP;
+                inf.damagePoints = 3;
+                inf.range = 5;
+                inf.isFlammable = true;
+                inf.description = "Sticks to enemies before detonating";
+                inf.stats = "\n" + "UP:" + inf.maxUP + "/" + inf.maxUP + "\t" + "DP:" + inf.damagePoints + "\n" + "RP:" + inf.range;
+                break;
 
-                case 11:
-                    inf.tag = ItemTag.HydrogenCanister;
-                    inf.rarity = Rarity.Common;
-                    inf.type = ItemType.Storage;
-                    inf.name = "HYDROGEN CANISTER";
-                    inf.maxUP = 5; // max fuel
-                    inf.currentUP = inf.maxUP; // current fuel
-                    inf.isFlammable = true;
-                    inf.description = "";
-                    break;
+            case 13:
+                inf.tag = ItemTag.FusionCell;
+                inf.rarity = Rarity.Common;
+                inf.type = ItemType.Consumable;
+                inf.name = "FUSION CELL";
+                inf.maxUP = 5; // max charge
+                inf.currentUP = inf.maxUP; // current charge
+                inf.isFlammable = true;
+                inf.description = "Powers vehicles";
+                inf.stats = "\n\" + "UP:" + inf.maxUP;
+                break;
 
-                case 13:
-                    inf.tag = ItemTag.Helmet;
-                    inf.rarity = Rarity.Scarce;
-                    inf.type = ItemType.Armor;
-                    inf.name = "HELMET";
-                    inf.maxUP = 2;
-                    inf.isEquipable = true;
-                    inf.description = "Use:Equip helmet";
-                    break;
+            case 14:
+                inf.tag = ItemTag.Helmet;
+                inf.rarity = Rarity.Scarce;
+                inf.type = ItemType.Armor;
+                inf.name = "HELMET";
+                inf.maxUP = 2;
+                inf.currentUP = inf.maxUP;
+                inf.isEquipable = true;
+                inf.description = "Absorbs 2 melee DP";
+                inf.stats = "\n\" + "UP:" + inf.maxUP;
+                break;
 
-                case 13:
-                    inf.tag = ItemTag.Vest;
-                    inf.rarity = Rarity.Rare;
-                    inf.type = ItemType.Armor;
-                    inf.name = "VEST";
-                    inf.maxUP = 3;
-                    inf.isEquipable = true;
-                    inf.isFlammable = true;
-                    inf.description = "Use:Equip vest";
-                    break;
+            case 15:
+                inf.tag = ItemTag.Vest;
+                inf.rarity = Rarity.Rare;
+                inf.type = ItemType.Armor;
+                inf.name = "VEST";
+                inf.maxUP = 3;
+                inf.currentUP = inf.maxUP;
+                inf.isEquipable = true;
+                inf.isFlammable = true;
+                inf.description = "Absorbs 3 ranged DP";
+                inf.stats = "\n\" + "UP:" + inf.maxUP;
+                break;
 
-                case 13:
-                    inf.tag = ItemTag.GrapheneShield;
-                    inf.rarity = Rarity.Anomalous;
-                    inf.type = ItemType.Armor;
-                    inf.name = "GRAPHENE SHIELD";
-                    inf.isEquipable = true;
-                    inf.description = "Use:Equip shield";
-                    break;
+            case 16:
+                inf.tag = ItemTag.GrapheneShield;
+                inf.rarity = Rarity.Anomalous;
+                inf.type = ItemType.Armor;
+                inf.name = "GRAPHENE SHIELD";
+                inf.maxUP = 1;
+                inf.currentUP = inf.maxUP;
+                inf.isEquipable = true;
+                inf.description = "Blocks all DP except boss DP";
+                inf.stats = "\n\" + "UP:" + inf.maxUP;
+                break;
 
-                case 13:
-                    inf.tag = ItemTag.Backpack;
-                    inf.rarity = Rarity.Limited;
-                    inf.type = ItemType.Storage;
-                    inf.name = "BACKPACK";
-                    inf.isEquipable = true;
-                    inf.isFlammable = true;
-                    inf.description = "Use:Equip backpack";
-                    break;
+            case 17:
+                inf.tag = ItemTag.Backpack;
+                inf.rarity = Rarity.Limited;
+                inf.type = ItemType.Storage;
+                inf.name = "BACKPACK";
+                inf.maxUP = 1;
+                inf.currentUP = inf.maxUP;
+                inf.isEquipable = true;
+                inf.isFlammable = true;
+                inf.description = "Adds 1 inventory slot";
+                inf.stats = "\n\" + "UP:" + inf.maxUP;
+                break;
 
-                case 14:
-                    inf.tag = ItemTag.Crate;
-                    inf.rarity = Rarity.Rare;
-                    inf.type = ItemType.Storage;
-                    inf.name = "CRATE";
-                    inf.isAttachable = true;
-                    inf.description = "Use:Attach crate";
-                    break;
+            case 18:
+                inf.tag = ItemTag.Crate;
+                inf.rarity = Rarity.Rare;
+                inf.type = ItemType.Storage;
+                inf.name = "CRATE";
+                inf.maxUP = 4;
+                inf.currentUP = inf.maxUP;
+                inf.isAttachable = true;
+                inf.description = "Adds 4 vehicle storage";
+                inf.stats = "\n\" + "UP:" + inf.maxUP;
+                break;
 
-                case 12:
-                    inf.tag = ItemTag.FuelTank;
-                    inf.rarity = Rarity.Anomalous;
-                    inf.type = ItemType.Storage;
-                    inf.name = "FUEL TANK";
-                    inf.maxUP = 10; // max fuel
-                    inf.currentUP = inf.maxUP; // current fuel
-                    inf.isAttachable = true;
-                    inf.isFlammable = true;
-                    inf.description = "Use:Attach tank";
-                    break;
-                
-                case 16:
-                    inf.tag = ItemTag.Lightrod;
-                    inf.rarity = Rarity.Limited;
-                    inf.type = ItemType.Utility;
-                    inf.name = "LIGHTROD";
-                    inf.isFlammable = true;
-                    inf.description = "Use:Toggle light";
-                    break;
+            case 19:
+                inf.tag = ItemTag.Battery;
+                inf.rarity = Rarity.Anomalous;
+                inf.type = ItemType.Storage;
+                inf.name = "BATTERY";
+                inf.maxUP = 5; // max charge
+                inf.currentUP = inf.maxUP; // current charge
+                inf.isAttachable = true;
+                inf.isFlammable = true;
+                inf.description = "Adds 5 fuel slots";
+                inf.stats = "\n\" + "UP:" + inf.maxUP;
+                break;
 
-                case 16:
-                    inf.tag = ItemTag.Extinguisher;
-                    inf.rarity = Rarity.Scarce;
-                    inf.type = ItemType.Utility;
-                    inf.name = "EXTINGUISHER";
-                    inf.isFlammable = true;
-                    inf.description = "Use:Equip tool";
-                    break;
+            case 20:
+                inf.tag = ItemTag.Lightrod;
+                inf.rarity = Rarity.Limited;
+                inf.type = ItemType.Utility;
+                inf.name = "LIGHTROD";
+                inf.isFlammable = true;
+                inf.description = "Illuminates surroundings";
+                break;
 
-                case 17:
-                    inf.tag = ItemTag.Spotlight;
-                    inf.rarity = Rarity.Rare;
-                    inf.type = ItemType.Utility;
-                    inf.name = "SPOTLIGHT";
-                    inf.isAttachable = true;
-                    inf.description = "Use:Attach light";
-                    break;
+            case 21:
+                inf.tag = ItemTag.Extinguisher;
+                inf.rarity = Rarity.Scarce;
+                inf.type = ItemType.Utility;
+                inf.name = "EXTINGUISHER";
+                inf.maxUP = 4;
+                inf.currentUP = inf.maxUP;
+                inf.isFlammable = true;
+                inf.description = "Extinguishes burning tiles";
+                inf.stats = "\n\" + "UP:" + inf.maxUP;
+                break;
 
-                case 19:
-                    inf.tag = ItemTag.Blowtorch;
-                    inf.rarity = Rarity.Rare;
-                    inf.type = ItemType.Utility;
-                    inf.name = "BLOWTORCH";
-                    inf.maxUP = 4;
-                    inf.currentUP = inf.maxUP;
-                    inf.isFlammable = true;
-                    inf.description = "Use:Equip tool";
-                    break;
+            case 22:
+                inf.tag = ItemTag.Spotlight;
+                inf.rarity = Rarity.Rare;
+                inf.type = ItemType.Utility;
+                inf.name = "SPOTLIGHT";
+                inf.isAttachable = true;
+                inf.description = "Outputs directional light";
+                break;
 
-                case 19:
-                    inf.tag = ItemTag.ThermalImager;
-                    inf.rarity = Rarity.Rare;
-                    inf.type = ItemType.Utility;
-                    inf.name = "THERMAL IMAGER";
-                    inf.maxUP = 4;
-                    inf.currentUP = inf.maxUP;
-                    inf.description = "Use:Take picture";
-                    break;
+            case 23:
+                inf.tag = ItemTag.Blowtorch;
+                inf.rarity = Rarity.Rare;
+                inf.type = ItemType.Utility;
+                inf.name = "BLOWTORCH";
+                inf.maxUP = 4;
+                inf.currentUP = inf.maxUP;
+                inf.isFlammable = true;
+                inf.description = "Starts fires on tiles or enemies";
+                inf.stats = "\n\" + "UP:" + inf.maxUP;
+                break;
 
-                case 19:
-                    inf.tag = ItemTag.NightVision;
-                    inf.rarity = Rarity.Anomalous;
-                    inf.type = ItemType.Utility;
-                    inf.name = "NIGHT VISION";
-                    inf.isEquipable = true;
-                    inf.description = "Use:Equip goggles";
-                    break;
+            case 24:
+                inf.tag = ItemTag.ThermalImager;
+                inf.rarity = Rarity.Rare;
+                inf.type = ItemType.Utility;
+                inf.name = "THERMAL IMAGER";
+                inf.maxUP = 4;
+                inf.currentUP = inf.maxUP;
+                inf.description = "Take infrared picture";
+                inf.stats = "\n\" + "UP:" + inf.maxUP;
+                break;
 
-                case 20:
-                    inf.tag = ItemTag.Tranquilizer;
-                    inf.rarity = Rarity.Scarce;
-                    inf.type = ItemType.Weapon;
-                    inf.name = "TRANQUILIZER";
-                    inf.maxUP = 2;
-                    inf.currentUP = inf.maxUP;
-                    inf.damagePoints = 0;
-                    inf.range = 4;
-                    inf.description = "Use:Equip weapon" +
-                        "\n" +
-                        "UP:" + inf.maxUP + "/" + inf.maxUP +
-                        "\t" +
-                        "DP:" + inf.damagePoints +
-                        "\n" +
-                        "RP:" + inf.range;
-                    break;
+            case 25:
+                inf.tag = ItemTag.NightVision;
+                inf.rarity = Rarity.Anomalous;
+                inf.type = ItemType.Utility;
+                inf.name = "NIGHT VISION";
+                inf.isEquipable = true;
+                inf.description = "Enables nighttime visibility";
+                break;
 
-                case 21:
-                    inf.tag = ItemTag.Carbine;
-                    inf.rarity = Rarity.Rare;
-                    inf.type = ItemType.Weapon;
-                    inf.name = "CARBINE";
-                    inf.maxUP = 4;
-                    inf.currentUP = inf.maxUP;
-                    inf.damagePoints = 3;
-                    inf.range = 4;
-                    inf.description = "Use:Equip weapon" +
-                        "\n" +
-                        "UP:" + inf.maxUP + "/" + inf.maxUP +
-                        "\t" +
-                        "DP:" + inf.damagePoints +
-                        "\n" +
-                        "RP:" + inf.range;
-                    break;
+            case 26:
+                inf.tag = ItemTag.Tranquilizer;
+                inf.rarity = Rarity.Scarce;
+                inf.type = ItemType.Weapon;
+                inf.name = "TRANQUILIZER";
+                inf.maxUP = 2;
+                inf.currentUP = inf.maxUP;
+                inf.damagePoints = 0;
+                inf.range = 4;
+                inf.description = "Stuns enemies for 1 turn";
+                inf.stats = "\n" + "UP:" + inf.maxUP + "/" + inf.maxUP + "\t" + "DP:" + inf.damagePoints + "\n" + "RP:" + inf.range;
+                break;
 
-                case 22:
-                    inf.tag = ItemTag.Flamethrower;
-                    inf.rarity = Rarity.Rare;
-                    inf.type = ItemType.Weapon;
-                    inf.name = "FLAMETHROWER";
-                    inf.maxUP = 4;
-                    inf.currentUP = inf.maxUP;
-                    inf.damagePoints = 1;
-                    inf.range = 3;
-                    inf.isFlammable = true;
-                    inf.description = "Use:Equip weapon" +
-                        "\n" +
-                        "UP:" + inf.maxUP + "/" + inf.maxUP +
-                        "\t" +
-                        "DP:" + inf.damagePoints +
-                        "\n" +
-                        "RP:" + inf.range;
-                    break;
+            case 27:
+                inf.tag = ItemTag.Carbine;
+                inf.rarity = Rarity.Rare;
+                inf.type = ItemType.Weapon;
+                inf.name = "CARBINE";
+                inf.maxUP = 4;
+                inf.currentUP = inf.maxUP;
+                inf.damagePoints = 3;
+                inf.range = 4;
+                inf.description = "Fires rifle bullets";
+                inf.stats = "\n" + "UP:" + inf.maxUP + "/" + inf.maxUP + "\t" + "DP:" + inf.damagePoints + "\n" + "RP:" + inf.range;
+                break;
 
-                case 23:
-                    inf.tag = ItemTag.HuntingRifle;
-                    inf.rarity = Rarity.Rare;
-                    inf.type = ItemType.Weapon;
-                    inf.name = "HUNTING RIFLE";
-                    inf.maxUP = 3;
-                    inf.currentUP = inf.maxUP;
-                    inf.damagePoints = 5;
-                    inf.range = 10;
-                    inf.description = "Use:Equip weapon" +
-                        "\n" +
-                        "UP:" + inf.maxUP + "/" + inf.maxUP +
-                        "\t" +
-                        "DP:" + inf.damagePoints +
-                        "\n" +
-                        "RP:" + inf.range;
-                    break;
-                */
+            case 28:
+                inf.tag = ItemTag.Flamethrower;
+                inf.rarity = Rarity.Rare;
+                inf.type = ItemType.Weapon;
+                inf.name = "FLAMETHROWER";
+                inf.maxUP = 4;
+                inf.currentUP = inf.maxUP;
+                inf.damagePoints = 1;
+                inf.range = 3;
+                inf.isFlammable = true;
+                inf.description = "Sprays a streak of fire";
+                inf.stats = "\n" + "UP:" + inf.maxUP + "/" + inf.maxUP + "\t" + "DP:" + inf.damagePoints + "\n" + "RP:" + inf.range;
+                break;
+            */
+
+            case 4:
+                inf.tag = ItemTag.HuntingRifle;
+                inf.rarity = Rarity.Rare;
+                inf.type = ItemType.Weapon;
+                inf.name = "HUNTING RIFLE";
+                inf.maxUP = 3;
+                inf.currentUP = inf.maxUP;
+                inf.damagePoints = 5;
+                inf.range = 10;
+                inf.description = "Fires piercing bullets";
+                inf.stats = "\n" + "UP:" + inf.maxUP + "/" + inf.maxUP + "\t" + "DP:" + inf.damagePoints + "\n" + "RP:" + inf.range;
+                break;
         }
         return inf;
     }
