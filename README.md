@@ -1,6 +1,6 @@
 # Exodyssey 2D
 
-This is the repository for **Exodyssey 2D**, a sci-fi turn-based roguelike by Stella Nova Studios.
+This is the repository for **Exodyssey 2D**, a sci-fi turn-based strategy roguelite by Axiomatic Systems. The game is built in Unity 2022.3.14f1.
 
 ## Versions
 
@@ -14,7 +14,7 @@ This is the repository for **Exodyssey 2D**, a sci-fi turn-based roguelike by St
 
 | Update| Tag | Status |
 | :---: | :---: | :---: |
-| Characters | v1.2.0-alpha | Upcoming release |
+| Player | v1.2.0-alpha | Upcoming release |
 | Enemies | [v1.1.5-alpha](https://github.com/stellanovastudios/Exodyssey2D/releases/tag/v1.1.5-alpha) | Latest release |
 | ^ | [v1.1.0-alpha](https://github.com/stellanovastudios/Exodyssey2D/releases/tag/v1.1.0-alpha) | Outdated |
 | Weapons | [v1.0.6-alpha](https://github.com/stellanovastudios/Exodyssey2D/releases/tag/v1.0.6-alpha) | Outdated |
@@ -24,7 +24,7 @@ This is the repository for **Exodyssey 2D**, a sci-fi turn-based roguelike by St
 
 | Update | Tag | Status |
 | :---: | :---: | :---: |
-| Characters | v1.2.1-alpha | Upcoming patch |
+| Player | v1.2.1-alpha | Upcoming patch |
 | Enemies | [v1.1.5-alpha](https://github.com/stellanovastudios/Exodyssey2D/releases/tag/v1.1.5-alpha) | Latest released patch |
 | ^ | v1.1.4-alpha | Outdated |
 | ^ | v1.1.3-alpha | Outdated |

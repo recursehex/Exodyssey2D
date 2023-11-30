@@ -29,7 +29,6 @@ public class WeightedRarityGeneration : MonoBehaviour
                 sumPercent += p;
             }
         }
-
         for (int i = 0; i < nStartElements; i++)
         {
             int rSum = 0;
@@ -43,19 +42,15 @@ public class WeightedRarityGeneration : MonoBehaviour
                 }
                 rSum += rarityPercentages[j];
             }
-
             int nItemsInGroup = ItemIndexDoubleList[j].Count;
             int randomItemInGroupIndex = Random.Range(0, nItemsInGroup);
             int randomItemIndex = ItemIndexDoubleList[j][randomItemInGroupIndex];
-
             GameObject element = elementTemplates[randomItemIndex];
-
             while (true)
             {
                 int x = Random.Range(-4, 4);
                 int y = Random.Range(-4, 4);
                 Vector3Int p = new(x, y, 0);
-
                 if (!tilemapWalls.HasTile(p) && !(x <= -2 && y <= 1 && y >= -1))
                 {
                     Vector3 shiftedDistance = new(x + 0.5f, y + 0.5f, 0);
@@ -72,7 +67,6 @@ public class WeightedRarityGeneration : MonoBehaviour
                         {
                             GameObject instance = Instantiate(element, shiftedDistance, Quaternion.identity);
                             Enemy e = instance.GetComponent<Enemy>();
-
                             e.tilemapGround = tilemapGround;
                             e.tilemapWalls = tilemapWalls;
                             e.info = EnemyInfo.EnemyFactory(randomItemIndex);

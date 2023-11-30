@@ -8,8 +8,6 @@ public enum VehicleTag
     Rover = 0,
     Trailer,
     Buggy,
-    Shuttle,
-    Carrier,
 
     Unknown,
 }
@@ -24,10 +22,6 @@ public class VehicleInfo
 
     public int efficiency;                      // Higher is better
     public float time;                          // Lower is better
-    public bool isLargeVehicle;                 // 0 = car, 1 = large vehicle
-
-    public int maxSeats;                        // Max # of passengers
-    public int currentSeats;
 
     public int maxStorage;                      // Max # of inventory slots
     public int currentStorage;
@@ -87,11 +81,9 @@ public class VehicleInfo
                 inf.tag = VehicleTag.Rover;
                 inf.rarity = Rarity.Scarce;
                 inf.name = "ROVER";
-                inf.maxSeats = 4;
                 inf.maxStorage = 2;
                 inf.efficiency = 2;
                 inf.time = 0.5f;
-                inf.isLargeVehicle = false;
                 inf.maxFuel = 10;
                 inf.currentFuel = inf.maxFuel;
                 inf.maxHP = 2;
@@ -102,11 +94,9 @@ public class VehicleInfo
                 inf.tag = VehicleTag.Trailer;
                 inf.rarity = Rarity.Scarce;
                 inf.name = "TRAILER";
-                inf.maxSeats = 2;
                 inf.maxStorage = 4;
                 inf.efficiency = 1;
                 inf.time = 1.0f;
-                inf.isLargeVehicle = false;
                 inf.maxFuel = 15;
                 inf.currentFuel = inf.maxFuel;
                 inf.maxHP = 3;
@@ -117,44 +107,12 @@ public class VehicleInfo
                 inf.tag = VehicleTag.Buggy;
                 inf.rarity = Rarity.Rare;
                 inf.name = "BUGGY";
-                inf.maxSeats = 2;
                 inf.maxStorage = 0;
                 inf.efficiency = 3;
                 inf.time = 0.25f;
-                inf.isLargeVehicle = false;
                 inf.maxFuel = 5;
                 inf.currentFuel = inf.maxFuel;
                 inf.maxHP = 1;
-                inf.currentHP = inf.maxHP;
-                break;
-
-            case 3:
-                inf.tag = VehicleTag.Shuttle;
-                inf.rarity = Rarity.Anomalous;
-                inf.name = "SHUTTLE";
-                inf.maxSeats = 7;
-                inf.maxStorage = 0;
-                inf.efficiency = 2;
-                inf.time = 1.5f;
-                inf.isLargeVehicle = false;
-                inf.maxFuel = 20;
-                inf.currentFuel = inf.maxFuel;
-                inf.maxHP = 4;
-                inf.currentHP = inf.maxHP;
-                break;
-
-            case 4:
-                inf.tag = VehicleTag.Carrier;
-                inf.rarity = Rarity.Anomalous;
-                inf.name = "CARRIER";
-                inf.maxSeats = 5;
-                inf.maxStorage = 3;
-                inf.efficiency = 1;
-                inf.time = 1.0f;
-                inf.isLargeVehicle = false;
-                inf.maxFuel = 15;
-                inf.currentFuel = inf.maxFuel;
-                inf.maxHP = 4;
                 inf.currentHP = inf.maxHP;
                 break;
         }
