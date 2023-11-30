@@ -126,7 +126,7 @@ public class InventoryUI : MonoBehaviour
     public void ProcessHoverForInventory(Vector3 mousePosition)
     {
         int i = 0;
-        int sensitivityDistance = 50;
+        float sensitivityDistance = 0.5f;
         bool mouseIsOverIcon = false;
 
         GameObject itemName = GameObject.Find("ItemName");

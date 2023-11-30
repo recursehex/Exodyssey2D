@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.Tilemaps;
 
 /// <summary>
@@ -8,12 +7,12 @@ using UnityEngine.Tilemaps;
 /// </summary>
 public class Player : MonoBehaviour
 {
-    public int maxHP = 3;
-    public int maxAP = 3;
-    public int currentHP;
-    public int currentAP;
+    public int maxHealth = 3;
+    public int maxEnergy = 3;
+    public int currentHealth = 3;
+    public int currentEnergy = 3;
 
-    public int damagePoints = 0;
+    public int damage = 0;
 
     public AudioClip playerMove;
     public AudioClip heal;
@@ -25,8 +24,7 @@ public class Player : MonoBehaviour
     public InventoryUI inventoryUI;
     public ItemInfo selectedItem = null;
 
-    public HealthDisplayManager healthDisplayManager;
-    public EnergyDisplayManager energyDisplayManager;
+    public StatsDisplayManager statsDisplayManager;
 
     public bool finishedInit = false;
     public bool isInMovement = false;
@@ -61,9 +59,6 @@ public class Player : MonoBehaviour
         animator = GetComponent<Animator>();
         inventoryUI.SetInventory(inventory);
 
-        currentHP = maxHP;
-        currentAP = maxAP;
-
         finishedInit = true;
     }
 
@@ -82,7 +77,7 @@ public class Player : MonoBehaviour
         path = astar.ComputePath(transform.position, goal, gm);
         if (path != null)
         {
-            ChangeAP(-(path.Count - 1));
+            ChangeEnergy(-(path.Count - 1));
             path.Pop();
             destination = path.Pop();
             SoundManager.instance.PlaySound(playerMove);
@@ -90,12 +85,12 @@ public class Player : MonoBehaviour
     }
 
     /// <summary>
-    /// Calculates area Player can move to in a turn based on currentAP
+    /// Calculates area Player can move to in a turn based on currentEnergy
     /// </summary>
     public Dictionary<Vector3Int, Node> CalculateArea()
     {
         astar.Initialize();
-        return astar.GetReachableAreaByDistance(transform.position, currentAP);
+        return astar.GetReachableAreaByDistance(transform.position, currentEnergy);
     }
 
     /// <summary>
@@ -130,11 +125,11 @@ public class Player : MonoBehaviour
     /// <summary>
     /// Changes HP & updates HP display, use negative to decrease
     /// </summary>
-    public void ChangeHP(int change)
+    public void ChangeHealth(int change)
     {
-        currentHP = Mathf.Clamp(currentHP + change, 0, maxHP);
+        currentHealth = Mathf.Clamp(currentHealth + change, 0, maxHealth);
         // Player is killed
-        if (currentHP == 0)
+        if (currentHealth == 0)
         {
             SoundManager.instance.PlaySound(gameOver);
             SoundManager.instance.musicSource.Stop();
@@ -143,34 +138,35 @@ public class Player : MonoBehaviour
         // Player is damaged
         if (change < 0)
         {
-            healthDisplayManager.DecreaseHealthDisplay(currentHP, maxHP);
+            statsDisplayManager.DecreaseHealthDisplay(currentHealth, maxHealth);
             animator.SetTrigger("playerHit");
-            if (currentHP == 1)
+            // Reduce max energy to simulate weakness
+            if (currentHealth == 1)
             {
-                currentAP = 1;
-                energyDisplayManager.DecreaseEnergyDisplay(currentAP, maxAP);
-                maxAP = 1;
+                currentEnergy = 1;
+                statsDisplayManager.DecreaseEnergyDisplay(currentEnergy, maxEnergy);
+                maxEnergy = 1;
             }
         }
         // Player is healed
         else
         {
-            healthDisplayManager.RestoreHealthDisplay();
+            statsDisplayManager.RestoreHealthDisplay();
             SoundManager.instance.PlaySound(heal);
-            maxAP = 3;
+            maxEnergy = 3;
         }
     }
 
     /// <summary>
-    /// Changes AP & updates AP display, use negative to decrease
+    /// Changes energy & updates energy display, use negative to decrease
     /// </summary>
-    public void ChangeAP(int change)
+    public void ChangeEnergy(int change)
     {
-        currentAP = Mathf.Clamp(currentAP + change, 0, maxAP);
-        // Player action costing AP
+        currentEnergy = Mathf.Clamp(currentEnergy + change, 0, maxEnergy);
+        // Decreased by Player action
         if (change < 0) {
-            energyDisplayManager.DecreaseEnergyDisplay(currentAP, maxAP);
-            if (currentAP == 0)
+            statsDisplayManager.DecreaseEnergyDisplay(currentEnergy, maxEnergy);
+            if (currentEnergy == 0)
             {
                 gm.tiledot.gameObject.SetActive(false);
                 gm.turnTimer.timeRemaining = 0;
@@ -179,18 +175,18 @@ public class Player : MonoBehaviour
         // Restore after end turn and new level
         else
         {
-            energyDisplayManager.RestoreEnergyDisplay(currentHP);
+            statsDisplayManager.RestoreEnergyDisplay(currentHealth);
         }
     }
 
     public void UpdateWeaponUP()
     {
-        // If weapon UP == 0 after use, remove weapon
+        // Remove weapon if weapon UP == 0 after usage
         if (inventoryUI.UpdateWeaponUP())
         {
             inventoryUI.RemoveItem(inventoryUI.GetCurrentSelected());
             inventoryUI.SetCurrentSelected(-1);
-            damagePoints = 0;
+            damage = 0;
         }
     }
 
@@ -205,9 +201,7 @@ public class Player : MonoBehaviour
     public bool AddItem(ItemInfo itemInfo)
     {
         bool itemIsadded = inventory.AddItem(new ItemInventory { itemInfo = itemInfo });
-        if (itemIsadded)
-            inventoryUI.RefreshInventoryItems();
-
+        if (itemIsadded) inventoryUI.RefreshInventoryItems();
         return itemIsadded;
     }
 
@@ -221,12 +215,12 @@ public class Player : MonoBehaviour
         {
             return;
         }
-        ItemInfo anItem = inventory.itemList[itemIdx].itemInfo;
-        AfterItemUse ret = anItem.ClickItem(this, itemIdx);
+        ItemInfo clickedItem = inventory.itemList[itemIdx].itemInfo;
+        AfterItemUse ret = clickedItem.ClickItem(this, itemIdx);
         // Item gets selected since it was unselected before
         if (ret.selectedIdx != -1)
         {
-            selectedItem = anItem;
+            selectedItem = clickedItem;
             SoundManager.instance.PlaySound(select);
         }
         // TurnTimer is started after Player uses a consumable on the first move of a turn

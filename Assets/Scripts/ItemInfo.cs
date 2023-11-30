@@ -84,7 +84,7 @@ public class ItemInfo
     public int maxUP = -1;
     public int currentUP = -1;
 
-    public int damagePoints = -1;               // Set only for weapons
+    public int damage = -1;               // Set only for weapons
     public int range = 0;                       // Maximum distance a Ranged weapon can attack to, 0 = Melee
 
     public bool isEquipable = false;            // Can be equipped by characters, enabling the item & emptying an inventory slot
@@ -105,7 +105,6 @@ public class ItemInfo
         }
         return ret;
     }
-
     /// <summary>
     /// Called when Player clicks on an item in an inventory slot
     /// </summary>
@@ -115,16 +114,15 @@ public class ItemInfo
     public AfterItemUse ClickItem(Player player, int selectedIdx)
     {
         AfterItemUse ret = new();
-
         // Checks by item type category
         switch (type)
         {
             case ItemType.Consumable:
                 // If the consumable is a MedKit
-                if (tag == ItemTag.MedKit && player.currentHP < player.maxHP && player.currentAP > 0)
+                if (tag == ItemTag.MedKit && player.currentHealth < player.maxHealth && player.currentEnergy > 0)
                 {
-                    player.ChangeHP(player.maxHP);
-                    player.ChangeAP(-1);
+                    player.ChangeHealth(player.maxHealth);
+                    player.ChangeEnergy(-1);
                     currentUP--;
                     stats = "\n" + "UP:" + currentUP + "/" + maxUP;
                     ret.consumableWasUsed = true;
@@ -141,13 +139,13 @@ public class ItemInfo
                 // Reset damageToEnemy if weapon is unselected
                 if (selectedIdx == -1)
                 {
-                    player.damagePoints = 0;
+                    player.damage = 0;
                     player.ClearTargetsAndTracers();
                 }
                 // Set damageToEnemy as the damage of the weapon
                 else
                 {
-                    player.damagePoints = damagePoints;
+                    player.damage = damage;
                     player.DrawTargetsAndTracers();
                 }
                 ret.selectedIdx = selectedIdx;
@@ -160,7 +158,6 @@ public class ItemInfo
         }
         return ret;
     }
-
     /// <summary>
     /// Called by UseItem when weapon is selected or unselected
     /// </summary>
@@ -188,9 +185,8 @@ public class ItemInfo
         }
         return true;
     }
-
     /// <summary>
-    /// Ensures damagePoints is reset after Player drops a weapon
+    /// Ensures damage is reset after Player drops a weapon
     /// </summary>
     /// <param name="p"></param>
     /// <returns></returns>
@@ -198,12 +194,11 @@ public class ItemInfo
     {
         if (type == ItemType.Weapon)
         {
-            p.damagePoints = 0;
+            p.damage = 0;
             return true;
         }
         return false;
     }
-
     /// <summary>
     /// Changes UP of a weapon after usage
     /// </summary>
@@ -211,14 +206,13 @@ public class ItemInfo
     public bool UpdateWeaponUP()
     {
         currentUP--;
-        stats = "\n" + "UP:" + currentUP + "/" + maxUP + "\t" + "DP:" + damagePoints;
+        stats = "\n" + "UP:" + currentUP + "/" + maxUP + "\t" + "DP:" + damage;
 
         if (range > 0)
             stats += "\n" + "RP:" + range;
 
         return currentUP == 0;
     }
-
     /// <summary>
     /// Returns percentage for a desired rarity
     /// </summary>
@@ -235,7 +229,6 @@ public class ItemInfo
         };
         return RarityToPercentage;
     }
-
     /// <summary>
     /// Returns info for a desired item 
     /// </summary>
@@ -264,11 +257,11 @@ public class ItemInfo
                 inf.name = "BRANCH";
                 inf.maxUP = 2;
                 inf.currentUP = inf.maxUP;
-                inf.damagePoints = 1;
+                inf.damage = 1;
                 inf.shellDamage = 0;
                 inf.isFlammable = true;
                 inf.description = "Fragile stick";
-                inf.stats = "\n" + "UP:" + inf.maxUP + "/" + inf.maxUP + "\t" + "DP:" + inf.damagePoints + "\n" + "SDP:" + inf.shellDamage;
+                inf.stats = "\n" + "UP:" + inf.maxUP + "/" + inf.maxUP + "\t" + "DP:" + inf.damage + "\n" + "SDP:" + inf.shellDamage;
                 break;
             case 2:
                 inf.tag = ItemTag.DiamondChainsaw;
@@ -278,9 +271,9 @@ public class ItemInfo
                 inf.name = "CHAINSAW";
                 inf.maxUP = 8;
                 inf.currentUP = inf.maxUP;
-                inf.damagePoints = 5;
+                inf.damage = 5;
                 inf.description = "Handheld rock saw";
-                inf.stats = "\n" + "UP:" + inf.maxUP + "/" + inf.maxUP + "\t" + "DP:" + inf.damagePoints;
+                inf.stats = "\n" + "UP:" + inf.maxUP + "/" + inf.maxUP + "\t" + "DP:" + inf.damage;
                 break;
             case 3:
                 inf.tag = ItemTag.PlasmaRailgun;
@@ -290,10 +283,10 @@ public class ItemInfo
                 inf.name = "PLASMA RAILGUN";
                 inf.maxUP = 5;
                 inf.currentUP = inf.maxUP;
-                inf.damagePoints = 10;
+                inf.damage = 10;
                 inf.range = 5;
                 inf.description = "Fires a voltaic plasma bolt";
-                inf.stats = "\n" + "UP:" + inf.maxUP + "/" + inf.maxUP + "\t" + "DP:" + inf.damagePoints + "\n" + "RP:" + inf.range;
+                inf.stats = "\n" + "UP:" + inf.maxUP + "/" + inf.maxUP + "\t" + "DP:" + inf.damage + "\n" + "RP:" + inf.range;
                 break;
             /*
             case 4:
@@ -314,10 +307,10 @@ public class ItemInfo
                 inf.name = "KNIFE";
                 inf.maxUP = 3;
                 inf.currentUP = inf.maxUP;
-                inf.damagePoints = 2;
+                inf.damage = 2;
                 inf.shellDamage = 1;
                 inf.description = "Can stab shelled aliens";
-                inf.stats = "\n" + "UP:" + inf.maxUP + "/" + inf.maxUP + "\t" + "DP:" + inf.damagePoints + "\n" + "SDP:" + inf.shellDamage;
+                inf.stats = "\n" + "UP:" + inf.maxUP + "/" + inf.maxUP + "\t" + "DP:" + inf.damage + "\n" + "SDP:" + inf.shellDamage;
                 break;
 
             case 6:
@@ -327,10 +320,10 @@ public class ItemInfo
                 inf.name = "WRENCH";
                 inf.maxUP = 4;
                 inf.currentUP = inf.maxUP;
-                inf.damagePoints = 2;
+                inf.damage = 2;
                 inf.shellDamage = 0;
                 inf.description = "Useless for shelled aliens";
-                inf.stats = "\n" + "UP:" + inf.maxUP + "/" + inf.maxUP + "\t" + "DP:" + inf.damagePoints + "\n" + "SDP:" + inf.shellDamage;
+                inf.stats = "\n" + "UP:" + inf.maxUP + "/" + inf.maxUP + "\t" + "DP:" + inf.damage + "\n" + "SDP:" + inf.shellDamage;
                 break;
 
             case 7:
@@ -340,10 +333,10 @@ public class ItemInfo
                 inf.maxUP = 6;
                 inf.currentUP = inf.maxUP;
                 inf.name = "MALLET";
-                inf.damagePoints = 3;
+                inf.damage = 3;
                 inf.shellDamage = 0;
                 inf.description = "Bounces off shelled aliens";
-                inf.stats = "\n" + "UP:" + inf.maxUP + "/" + inf.maxUP + "\t" + "DP:" + inf.damagePoints + "\n" + "SDP:" + inf.shellDamage;
+                inf.stats = "\n" + "UP:" + inf.maxUP + "/" + inf.maxUP + "\t" + "DP:" + inf.damage + "\n" + "SDP:" + inf.shellDamage;
                 break;
 
             case 8:
@@ -353,10 +346,10 @@ public class ItemInfo
                 inf.name = "AXE";
                 inf.maxUP = 4;
                 inf.currentUP = inf.maxUP;
-                inf.damagePoints = 4;
+                inf.damage = 4;
                 inf.shellDamage = 2;
                 inf.description = "Can cut shelled aliens";
-                inf.stats = "\n" + "UP:" + inf.maxUP + "/" + inf.maxUP + "\t" + "DP:" + inf.damagePoints + "\n" + "SDP:" + inf.shellDamage;
+                inf.stats = "\n" + "UP:" + inf.maxUP + "/" + inf.maxUP + "\t" + "DP:" + inf.damage + "\n" + "SDP:" + inf.shellDamage;
                 break;
 
             case 9:
@@ -366,10 +359,10 @@ public class ItemInfo
                 inf.name = "ROCK";
                 inf.maxUP = 1;
                 inf.currentUP = inf.maxUP;
-                inf.damagePoints = 1;
+                inf.damage = 1;
                 inf.range = 3;
                 inf.description = "Can be thrown again";
-                inf.stats = "\n" + "UP:" + inf.maxUP + "/" + inf.maxUP + "\t" + "DP:" + inf.damagePoints + "\n" + "RP:" + inf.range;
+                inf.stats = "\n" + "UP:" + inf.maxUP + "/" + inf.maxUP + "\t" + "DP:" + inf.damage + "\n" + "RP:" + inf.range;
                 break;
 
             case 10:
@@ -379,10 +372,10 @@ public class ItemInfo
                 inf.name = "SMOKE GRENADE";
                 inf.maxUP = 1;
                 inf.currentUP = inf.maxUP;
-                inf.damagePoints = 0;
+                inf.damage = 0;
                 inf.range = 3;
                 inf.description = "Stuns nearby enemies for 1 turn";
-                inf.stats = "\n" + "UP:" + inf.maxUP + "/" + inf.maxUP + "\t" + "DP:" + inf.damagePoints + "\n" + "RP:" + inf.range;
+                inf.stats = "\n" + "UP:" + inf.maxUP + "/" + inf.maxUP + "\t" + "DP:" + inf.damage + "\n" + "RP:" + inf.range;
                 break;
 
             case 11:
@@ -392,11 +385,11 @@ public class ItemInfo
                 inf.name = "DYNAMITE";
                 inf.maxUP = 1;
                 inf.currentUP = inf.maxUP;
-                inf.damagePoints = 5;
+                inf.damage = 5;
                 inf.range = 3;
                 inf.isFlammable = true;
                 inf.description = "Fuse lights after landing";
-                inf.stats = "\n" + "UP:" + inf.maxUP + "/" + inf.maxUP + "\t" + "DP:" + inf.damagePoints + "\n" + "RP:" + inf.range;
+                inf.stats = "\n" + "UP:" + inf.maxUP + "/" + inf.maxUP + "\t" + "DP:" + inf.damage + "\n" + "RP:" + inf.range;
                 break;
 
             case 12:
@@ -406,11 +399,11 @@ public class ItemInfo
                 inf.name = "STICKY GRENADE";
                 inf.maxUP = 1;
                 inf.currentUP = inf.maxUP;
-                inf.damagePoints = 3;
+                inf.damage = 3;
                 inf.range = 5;
                 inf.isFlammable = true;
                 inf.description = "Sticks to enemies before detonating";
-                inf.stats = "\n" + "UP:" + inf.maxUP + "/" + inf.maxUP + "\t" + "DP:" + inf.damagePoints + "\n" + "RP:" + inf.range;
+                inf.stats = "\n" + "UP:" + inf.maxUP + "/" + inf.maxUP + "\t" + "DP:" + inf.damage + "\n" + "RP:" + inf.range;
                 break;
 
             case 13:
@@ -569,10 +562,10 @@ public class ItemInfo
                 inf.name = "TRANQUILIZER";
                 inf.maxUP = 2;
                 inf.currentUP = inf.maxUP;
-                inf.damagePoints = 0;
+                inf.damage = 0;
                 inf.range = 4;
                 inf.description = "Stuns enemies for 1 turn";
-                inf.stats = "\n" + "UP:" + inf.maxUP + "/" + inf.maxUP + "\t" + "DP:" + inf.damagePoints + "\n" + "RP:" + inf.range;
+                inf.stats = "\n" + "UP:" + inf.maxUP + "/" + inf.maxUP + "\t" + "DP:" + inf.damage + "\n" + "RP:" + inf.range;
                 break;
 
             case 27:
@@ -582,10 +575,10 @@ public class ItemInfo
                 inf.name = "CARBINE";
                 inf.maxUP = 4;
                 inf.currentUP = inf.maxUP;
-                inf.damagePoints = 3;
+                inf.damage = 3;
                 inf.range = 4;
                 inf.description = "Fires rifle bullets";
-                inf.stats = "\n" + "UP:" + inf.maxUP + "/" + inf.maxUP + "\t" + "DP:" + inf.damagePoints + "\n" + "RP:" + inf.range;
+                inf.stats = "\n" + "UP:" + inf.maxUP + "/" + inf.maxUP + "\t" + "DP:" + inf.damage + "\n" + "RP:" + inf.range;
                 break;
 
             case 28:
@@ -595,11 +588,11 @@ public class ItemInfo
                 inf.name = "FLAMETHROWER";
                 inf.maxUP = 4;
                 inf.currentUP = inf.maxUP;
-                inf.damagePoints = 1;
+                inf.damage = 1;
                 inf.range = 3;
                 inf.isFlammable = true;
                 inf.description = "Sprays a streak of fire";
-                inf.stats = "\n" + "UP:" + inf.maxUP + "/" + inf.maxUP + "\t" + "DP:" + inf.damagePoints + "\n" + "RP:" + inf.range;
+                inf.stats = "\n" + "UP:" + inf.maxUP + "/" + inf.maxUP + "\t" + "DP:" + inf.damage + "\n" + "RP:" + inf.range;
                 break;
             */
 
@@ -610,10 +603,10 @@ public class ItemInfo
                 inf.name = "HUNTING RIFLE";
                 inf.maxUP = 3;
                 inf.currentUP = inf.maxUP;
-                inf.damagePoints = 5;
+                inf.damage = 5;
                 inf.range = 10;
                 inf.description = "Fires piercing bullets";
-                inf.stats = "\n" + "UP:" + inf.maxUP + "/" + inf.maxUP + "\t" + "DP:" + inf.damagePoints + "\n" + "RP:" + inf.range;
+                inf.stats = "\n" + "UP:" + inf.maxUP + "/" + inf.maxUP + "\t" + "DP:" + inf.damage + "\n" + "RP:" + inf.range;
                 break;
         }
         return inf;

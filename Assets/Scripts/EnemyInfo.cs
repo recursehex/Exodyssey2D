@@ -38,11 +38,11 @@ public class EnemyInfo
     public string name;                         // Ingame name of enemy
     public string description;                  // Ingame desc of enemy
 
-    public int maxHP = 1;
-    public int currentHP = 1;
+    public int maxHealth = 1;
+    public int currentHealth = 1;
 
-    public int maxAP = 1;
-    public int currentAP = 1;
+    public int maxEnergy = 1;
+    public int currentEnergy = 1;
 
     public int damagePoints = -1;               // Set only for enemies that do direct attacks
     public int range = 0;                       // Maximum distance a Ranged enemy can attack to, 0 = Melee
@@ -97,10 +97,10 @@ public class EnemyInfo
                 inf.tag = EnemyTag.Crawler;
                 inf.rarity = Rarity.Common;
                 inf.type = EnemyType.Weak;
-                inf.maxHP = 2;
-                inf.currentHP = inf.maxHP;
-                inf.maxAP = 1;
-                inf.currentAP = inf.maxAP;
+                inf.maxHealth = 2;
+                inf.currentHealth = inf.maxHealth;
+                inf.maxEnergy = 1;
+                inf.currentEnergy = inf.maxEnergy;
                 inf.damagePoints = 1;
                 inf.name = "CRAWLER";
                 inf.description = "";
@@ -110,10 +110,10 @@ public class EnemyInfo
                 inf.tag = EnemyTag.Launcher;
                 inf.rarity = Rarity.Limited;
                 inf.type = EnemyType.Mediocre;
-                inf.maxHP = 4;
-                inf.currentHP = inf.maxHP;
-                inf.maxAP = 2;
-                inf.currentAP = inf.maxAP;
+                inf.maxHealth = 4;
+                inf.currentHealth = inf.maxHealth;
+                inf.maxEnergy = 2;
+                inf.currentEnergy = inf.maxEnergy;
                 inf.damagePoints = 2;
                 inf.range = 3;
                 inf.name = "LAUNCHER";

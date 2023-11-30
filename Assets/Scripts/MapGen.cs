@@ -66,7 +66,8 @@ public class MapGen
     {
         int totalTemplates = allTemplates.Count;
         int nGenerated = 0;
-        for (int i = 0; i < 6; i++)
+        int numberOfQuadrants = 6;
+        for (int i = 0; i < numberOfQuadrants; i++)
         {
             if (Random.value > minimumChance)
             {
