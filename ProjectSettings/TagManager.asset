@@ -56,6 +56,9 @@ TagManager:
   - name: Units
     uniqueID: 3975846713
     locked: 0
+  - name: Targets
+    uniqueID: 1731597615
+    locked: 0
   - name: UI
     uniqueID: 1261138627
     locked: 0

@@ -48,8 +48,8 @@ public class Enemy : MonoBehaviour
     {
         SoundManager.instance.PlaySound(playerAttack);
         // NOTE: Eventually add sprite change for enemy on this line using: spriteRenderer.sprite = dmgSprite;
-        info.currentHP -= loss;
-        if (info.currentHP <= 0)
+        info.currentHealth -= loss;
+        if (info.currentHealth <= 0)
         {
             gameObject.SetActive(false);
         }
@@ -72,18 +72,18 @@ public class Enemy : MonoBehaviour
             if (distance <= 0f)
             {
                 // Move one tile closer to Player
-                if (path.Count > 1 && info.currentAP > 0)
+                if (path.Count > 1 && info.currentEnergy > 0)
                 {
                     SoundManager.instance.PlaySound(enemyMove);
                     destination = path.Pop();
-                    info.currentAP--;
+                    info.currentEnergy--;
                 }
                 // Enemy attacks Player if enemy moves to an adjacent tile
-                else if (path.Count == 1 && info.currentAP > 0)
+                else if (path.Count == 1 && info.currentEnergy > 0)
                 {
                     SoundManager.instance.PlaySound(enemyAttack);
                     gm.HandleDamageToPlayer(info.damagePoints);
-                    info.currentAP--;
+                    info.currentEnergy--;
                 }
                 else
                 {
@@ -101,9 +101,9 @@ public class Enemy : MonoBehaviour
         astar.SetAllowDiagonal(false);
         path = astar.ComputePath(transform.position, goal, gm);
         // Compute path to Player
-        if (path != null && info.currentAP > 0 && path.Count > 2) // To stop enemy from colliding into Player
+        if (path != null && info.currentEnergy > 0 && path.Count > 2) // To stop enemy from colliding into Player
         {
-            info.currentAP--;
+            info.currentEnergy--;
             // Remove first tile in path
             path.Pop();
             // Move one tile closer to Player
@@ -123,7 +123,7 @@ public class Enemy : MonoBehaviour
         {
             if (path != null && path.Count == 2)
             {
-                for (int i = 0; i < info.currentAP; i++)
+                for (int i = 0; i < info.currentEnergy; i++)
                 {
                     SoundManager.instance.PlaySound(enemyAttack);
                     gm.HandleDamageToPlayer(info.damagePoints);
@@ -148,9 +148,9 @@ public class Enemy : MonoBehaviour
         return false;
     }
 
-    public void RestoreAP()
+    public void RestoreEnergy()
     {
-        info.currentAP = info.maxAP;
+        info.currentEnergy = info.maxEnergy;
     }
 
     public void SetGameManager(GameManager g)
