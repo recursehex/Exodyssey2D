@@ -123,7 +123,7 @@ public class Player : MonoBehaviour
     }
 
     /// <summary>
-    /// Changes HP & updates HP display, use negative to decrease
+    /// Changes HP and updates HP display, use negative to decrease
     /// </summary>
     public void ChangeHealth(int change)
     {
@@ -158,19 +158,19 @@ public class Player : MonoBehaviour
     }
 
     /// <summary>
-    /// Changes energy & updates energy display, use negative to decrease
+    /// Changes energy and updates energy display, use negative to decrease
     /// </summary>
     public void ChangeEnergy(int change)
     {
         currentEnergy = Mathf.Clamp(currentEnergy + change, 0, maxEnergy);
+        // End turn and stop timer
+        if (currentEnergy == 0)
+            {
+                gm.turnTimer.timeRemaining = 0;
+            }
         // Decreased by Player action
         if (change < 0) {
             statsDisplayManager.DecreaseEnergyDisplay(currentEnergy, maxEnergy);
-            if (currentEnergy == 0)
-            {
-                gm.tiledot.gameObject.SetActive(false);
-                gm.turnTimer.timeRemaining = 0;
-            }
         }
         // Restore after end turn and new level
         else
@@ -210,7 +210,7 @@ public class Player : MonoBehaviour
     /// </summary>
     public void TryClickItem(int itemIdx)
     {
-        // Ensures index is within bounds & inventory has an item
+        // Ensures index is within bounds and inventory has an item
         if (itemIdx >= inventory.itemList.Count || inventory.itemList.Count == 0)
         {
             return;
@@ -229,7 +229,7 @@ public class Player : MonoBehaviour
             gm.turnTimer.timerIsRunning = true;
             gm.needToDrawReachableAreas = true;
         }
-        // Item is removed & inventory is refreshed if UP = 0
+        // Item is removed and inventory is refreshed if UP = 0
         if (ret.needToRemoveItem)
         {
             inventoryUI.RemoveItem(itemIdx);
