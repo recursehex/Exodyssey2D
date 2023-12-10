@@ -27,10 +27,9 @@ public class TurnTimer : MonoBehaviour
         if (timerIsRunning)
         {
             float dt = Time.deltaTime;
-
             if (timeRemaining - dt > 0)
             {
-                timeRemaining -= Time.deltaTime;
+                timeRemaining -= dt;
                 DisplayTime(timeRemaining);
             }
             else

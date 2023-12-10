@@ -61,8 +61,9 @@ public class GameManager : MonoBehaviour
 
     // How long the psuedo-loading screen lasts in seconds
     private readonly float levelStartDelay = 1.5f;
-    // Number of items & enemies, with min & max range for enemies
+    // Number of items
     private int nStartItems;
+    // Number of enemies with minmax range
     private int nStartEnemies;
     // Tile arrays are used for random generation
     public Tile[] groundTiles;
@@ -153,7 +154,7 @@ public class GameManager : MonoBehaviour
         }
         enemies.Clear();
 
-        // Resets Player position & energy
+        // Resets Player position and energy
         player.transform.position = new Vector3(-3.5f, 0.5f, 0f);
         player.ChangeEnergy(player.maxEnergy);
 
@@ -332,7 +333,7 @@ public class GameManager : MonoBehaviour
         }
     }
     /// <summary>
-    /// Calculates each enemy's movement path & gives Player turn back at the end
+    /// Calculates each enemy's movement path then sets Player turn
     /// </summary>
     private void EnemyMovement()
     {
@@ -383,7 +384,7 @@ public class GameManager : MonoBehaviour
         DrawTargetsAndTracers();
     }
     /// <summary>
-    /// Called by EndTurnButton, redraws tile areas, resets timer, & resets energy
+    /// Called by EndTurnButton, redraws tile areas, resets timer, resets energy
     /// </summary>
     public void OnEndTurnPress()
     {
@@ -395,7 +396,6 @@ public class GameManager : MonoBehaviour
             playersTurn = false;
             player.ChangeEnergy(player.maxEnergy);
             needToDrawReachableAreas = true;
-            DrawTileAreaIfNeeded();
             if (enemies.Count == 0) tiledot.gameObject.SetActive(true);
             needToStartEnemyMovement = enemies.Count > 0;
         }
@@ -411,7 +411,7 @@ public class GameManager : MonoBehaviour
         }
     }
     /// <summary>
-    /// Checks what mouse button is clicked & acts
+    /// Acts based on what mouse button is clicked
     /// </summary>
     private void ClickTarget()
     {
@@ -456,7 +456,7 @@ public class GameManager : MonoBehaviour
                 if (!playersTurn || player.currentEnergy == 0) return;
 
                 int idxOfEnemy = GetEnemyIndexAtPosition(clickPoint);
-                // Player movement, if no enemy on clicked tile & if mouse clicks on tile Player is not on
+                // Player movement, if no enemy on clicked tile AND if mouse clicks on tile Player is not on
                 if (isInMovementRange && idxOfEnemy == -1 && shiftedClickPoint != player.transform.position)
                 {
                     endTurnButton.interactable = false;
@@ -466,7 +466,7 @@ public class GameManager : MonoBehaviour
                     ClearTileAreas();
                     turnTimer.StartTimer();
                 }
-                // For attacking an enemy, if enemy is on clicked tile & if Player in range & if Player has weapon
+                // For attacking an enemy, if enemy is on clicked tile AND if Player in range AND if Player has weapon
                 else if (idxOfEnemy >= 0 && (isInMeleeRange || isInRangeForRangedWeapon) && player.damage > 0)
                 {
                     HandleDamageToEnemy(idxOfEnemy);
@@ -525,7 +525,7 @@ public class GameManager : MonoBehaviour
         }
     }
     /// <summary>
-    /// Called when Player takes damage to adjust health & redraw tile areas
+    /// Called when Player takes damage to decrease health and redraw tile areas
     /// </summary>
     public void HandleDamageToPlayer(int dmg)
     {

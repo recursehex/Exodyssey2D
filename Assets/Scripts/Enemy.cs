@@ -37,12 +37,10 @@ public class Enemy : MonoBehaviour
             tilemapWalls = tilemapWalls
         };
     }
-
     public void ExposedStart()
     {
         Start();
     }
-
     // Player attacks enemy
     public void DamageEnemy(int loss)
     {
@@ -54,13 +52,11 @@ public class Enemy : MonoBehaviour
             gameObject.SetActive(false);
         }
     }
-
     void Update()
     {
         if (GameManager.instance.playersTurn) return;
         MoveAlongThePath();
     }
-
     public void MoveAlongThePath()
     {
         if (path != null)
@@ -93,7 +89,6 @@ public class Enemy : MonoBehaviour
             }
         }
     }
-
     public void CalculatePathAndStartMovement(Vector3 goal)
     {
         isInMovement = true;
@@ -133,7 +128,6 @@ public class Enemy : MonoBehaviour
             isInMovement = false;
         }
     }
-
     private bool HasEnemyAtPosition(Vector3 p)
     {
         Vector3 shiftedDistance = new(p.x + 0.5f, p.y + 0.5f, 0);
@@ -147,12 +141,10 @@ public class Enemy : MonoBehaviour
         }
         return false;
     }
-
     public void RestoreEnergy()
     {
         info.currentEnergy = info.maxEnergy;
     }
-
     public void SetGameManager(GameManager g)
     {
         gm = g;
