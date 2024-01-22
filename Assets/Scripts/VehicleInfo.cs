@@ -35,18 +35,18 @@ public class VehicleInfo
     public int maxAP = 1;
     public int currentAP = 1;
 
-    public static int lastVehicleIdx = (int)VehicleTag.Unknown;
+    public static int lastVehicleIndex = (int)VehicleTag.Unknown;
 
     static public List<Rarity> GenerateAllRarities()
     {
-        List<Rarity> ret = new();
+        List<Rarity> vehicleRarityList = new();
 
-        for (int i = 0; i < lastVehicleIdx; i++)
+        for (int i = 0; i < lastVehicleIndex; i++)
         {
-            VehicleInfo item = FactoryFromNumber(i);
-            ret.Add(item.rarity);
+            VehicleInfo vehicle = FactoryFromNumber(i);
+            vehicleRarityList.Add(vehicle.rarity);
         }
-        return ret;
+        return vehicleRarityList;
     }
 
     /// <summary>

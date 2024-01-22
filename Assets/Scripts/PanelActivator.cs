@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class PanelActivator : MonoBehaviour
@@ -8,11 +6,8 @@ public class PanelActivator : MonoBehaviour
     bool isActive;
     public void OpenPanel()
     {
-        if (Panel != null)
-        {
-            isActive = Panel.activeSelf;
-
-            Panel.SetActive(!isActive);
-        }
+        if (Panel == null) return;
+        isActive = Panel.activeSelf;
+        Panel.SetActive(!isActive);
     }
 }

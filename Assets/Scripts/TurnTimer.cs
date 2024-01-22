@@ -24,22 +24,20 @@ public class TurnTimer : MonoBehaviour
 
     void Update()
     {
-        if (timerIsRunning)
+        if (!timerIsRunning) return;
+        float dt = Time.deltaTime;
+        if (timeRemaining - dt > 0)
         {
-            float dt = Time.deltaTime;
-            if (timeRemaining - dt > 0)
-            {
-                timeRemaining -= dt;
-                DisplayTime(timeRemaining);
-            }
-            else
-            {
-                timeRemaining = 0;
-                timerIsRunning = false;
-                timeText.color = new Color((float)(172.0 / 256.0), (float)(22.0 / 256.0), (float)(45.0 / 256.0), 1);
-                DisplayTime(-1);
-                GameManager.instance.OnTurnTimerEnd();
-            }
+            timeRemaining -= dt;
+            DisplayTime(timeRemaining);
+        }
+        else
+        {
+            timeRemaining = 0;
+            timerIsRunning = false;
+            timeText.color = new Color((float)(172.0 / 256.0), (float)(22.0 / 256.0), (float)(45.0 / 256.0), 1);
+            DisplayTime(-1);
+            GameManager.instance.OnTurnTimerEnd();
         }
     }
 

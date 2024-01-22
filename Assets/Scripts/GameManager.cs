@@ -93,13 +93,9 @@ public class GameManager : MonoBehaviour
     // Start is called before the first frame update
     void Awake()
     {
-        if (instance == null)
-            instance = this;
-        else if (instance != this)
-            Destroy(gameObject);
-
+        if (instance == null) instance = this;
+        else if (instance != this) Destroy(gameObject);
         DontDestroyOnLoad(gameObject);
-
         InitGame();
     }
     public static GameManager MyInstance
@@ -141,17 +137,11 @@ public class GameManager : MonoBehaviour
         tilemapWalls.ClearAllTiles();
 
         // Destroys all items on the ground
-        for (int i = 0; i < items.Count; i++)
-        {
-            Destroy(items[i]);
-        }
+        for (int i = 0; i < items.Count; i++) Destroy(items[i]);
         items.Clear();
 
         // Destroys all enemies
-        for (int i = 0; i < enemies.Count; i++)
-        {
-            Destroy(enemies[i]);
-        }
+        for (int i = 0; i < enemies.Count; i++) Destroy(enemies[i]);
         enemies.Clear();
 
         // Resets Player position and energy
@@ -179,8 +169,6 @@ public class GameManager : MonoBehaviour
         WallGeneration();
         EnemyGeneration();
         ItemGeneration();
-
-        //DrawTileAreaIfNeeded();
     }
     /// <summary>
     /// Generates random ground tiles
@@ -235,10 +223,7 @@ public class GameManager : MonoBehaviour
         foreach (GameObject item in items)
         {
             Item i = item.GetComponent<Item>();
-            if (i.transform.position == position)
-            {
-                return i;
-            }
+            if (i.transform.position == position) return i;
         }
         return null;
     }
@@ -246,17 +231,11 @@ public class GameManager : MonoBehaviour
     {
         foreach (GameObject item in items)
         {
-            if (item.GetComponent<Item>().transform.position == position)
-            {
-                return true;
-            }
+            if (item.GetComponent<Item>().transform.position == position) return true;
         }
         foreach (GameObject enemy in enemies)
         {
-            if (enemy.GetComponent<Enemy>().transform.position == position)
-            {
-                return true;
-            }
+            if (enemy.GetComponent<Enemy>().transform.position == position) return true;
         }
         return false;
     }
@@ -290,10 +269,7 @@ public class GameManager : MonoBehaviour
     {
         foreach (GameObject enemy in enemies)
         {
-            if (enemy.GetComponent<Enemy>().transform.position == position)
-            {
-                return true;
-            }
+            if (enemy.GetComponent<Enemy>().transform.position == position) return true;
         }
         return false;
     }
@@ -319,15 +295,11 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (doingSetup || !player.finishedInit)
-            return;
-
+        if (doingSetup || !player.finishedInit) return;
         if (!player.isInMovement)
         {
             DrawTileAreaIfNeeded();
-            if (endTurnButton.interactable == false && playersTurn) {
-                endTurnButton.interactable = true;
-            }
+            if (endTurnButton.interactable == false && playersTurn) endTurnButton.interactable = true;
             ClickTarget();
             EnemyMovement();
         }
@@ -415,99 +387,69 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private void ClickTarget()
     {
+        BoundsInt size = tilemapGround.cellBounds;
+        Vector3 worldPoint = mainCamera.ScreenToWorldPoint(Input.mousePosition);
+        Vector3Int tilePoint = tilemapGround.WorldToCell(worldPoint);
+        Vector3 shiftedClickPoint = new(tilePoint.x + 0.5f, tilePoint.y + 0.5f, 0);
         // If RMB clicks
         if (Input.GetMouseButtonDown(1))
         {
             // This should be for the Player inspecting something
         }
-        // If LMB clicks, begin Player movement system
-        else if (Input.GetMouseButtonDown(0))
+        // If LMB clicks within grid, begin Player movement system
+        else if (Input.GetMouseButtonDown(0) && WithinCellBounds(tilePoint, size) && !tilemapWalls.HasTile(tilePoint) && !player.isInMovement)
         {
-            BoundsInt size = tilemapGround.cellBounds;
-            Vector3 worldPoint = mainCamera.ScreenToWorldPoint(Input.mousePosition);
-            Vector3Int clickPoint = tilemapGround.WorldToCell(worldPoint);
-            Vector3 shiftedClickPoint = new(clickPoint.x + 0.5f, clickPoint.y + 0.5f, 0);
-            if (
-            // If mouse clicks within the grid
-            clickPoint.x >= size.min.x &&
-            clickPoint.x < size.max.x &&
-            clickPoint.y >= size.min.y &&
-            clickPoint.y < size.max.y &&
-            !tilemapWalls.HasTile(clickPoint) && !player.isInMovement)
+            TryAddItem(shiftedClickPoint);
+            // For actions that require energy, first check if it is Player turn
+            if (!playersTurn || player.currentEnergy == 0) return;
+            bool isInMovementRange = IsInMovementRange(tilePoint);
+            bool isInMeleeRange = IsInMeleeRange(shiftedClickPoint);
+            bool isInRangeForRangedWeapon = player.GetWeaponRange() > 0 && IsInRangeForRangedWeapon(shiftedClickPoint);
+            int idxOfEnemy = GetEnemyIndexAtPosition(tilePoint);
+            // Player movement, if no enemy on clicked tile AND if mouse clicks on tile Player is not on
+            if (isInMovementRange && idxOfEnemy == -1 && shiftedClickPoint != player.transform.position)
             {
-                // If click is on Player position
-                if (shiftedClickPoint == player.transform.position)
-                {
-                    // If there is an item on the same tile as Player
-                    Item itemAtPosition = HasItemAtPosition(shiftedClickPoint);
-                    if (itemAtPosition != null)
-                    {
-                        // If an item is there, Player picks it up
-                        if (player.AddItem(itemAtPosition.info))
-                        {
-                            DestroyItemAtPosition(shiftedClickPoint);
-                        }
-                    }
-                }
-                bool isInMovementRange = IsInMovementRange(clickPoint);
-                bool isInMeleeRange = IsInMeleeRange(shiftedClickPoint);
-                bool isInRangeForRangedWeapon = player.GetWeaponRange() > 0 && IsInRangeForRangedWeapon(shiftedClickPoint);
-                // For actions that require energy, first check if it is Player turn
-                if (!playersTurn || player.currentEnergy == 0) return;
-
-                int idxOfEnemy = GetEnemyIndexAtPosition(clickPoint);
-                // Player movement, if no enemy on clicked tile AND if mouse clicks on tile Player is not on
-                if (isInMovementRange && idxOfEnemy == -1 && shiftedClickPoint != player.transform.position)
-                {
-                    endTurnButton.interactable = false;
-                    player.isInMovement = true;
-                    needToDrawReachableAreas = true;
-                    player.CalculatePathAndStartMovement(worldPoint);
-                    ClearTileAreas();
-                    turnTimer.StartTimer();
-                }
-                // For attacking an enemy, if enemy is on clicked tile AND if Player in range AND if Player has weapon
-                else if (idxOfEnemy >= 0 && (isInMeleeRange || isInRangeForRangedWeapon) && player.damage > 0)
-                {
-                    HandleDamageToEnemy(idxOfEnemy);
-                    player.ChangeEnergy(-1);
-                    player.animator.SetTrigger("playerAttack");
-                    player.UpdateWeaponUP();
-                    needToDrawReachableAreas = true;
-                    turnTimer.StartTimer();
-                }
+                endTurnButton.interactable = false;
+                player.isInMovement = true;
+                needToDrawReachableAreas = true;
+                player.CalculatePathAndStartMovement(worldPoint);
+                ClearTileAreas();
+                turnTimer.StartTimer();
+            }
+            // For attacking an enemy, if enemy is on clicked tile AND if Player in range AND if Player has weapon
+            else if (idxOfEnemy >= 0 && (isInMeleeRange || isInRangeForRangedWeapon) && player.damage > 0)
+            {
+                HandleDamageToEnemy(idxOfEnemy);
+                player.ChangeEnergy(-1);
+                player.animator.SetTrigger("playerAttack");
+                player.UpdateWeaponUP();
+                needToDrawReachableAreas = true;
+                turnTimer.StartTimer();
             }
         }
-        // If mouse is hovering over tile
+        // If mouse is hovering over tile and within grid
+        else if (WithinCellBounds(tilePoint, size))
+        {
+            // If mouse is hovering over tileArea
+            if (IsInMovementRange(tilePoint)) tiledot.MoveToPlace(tilePoint);
+        }
+        // If mouse is hovering over UI since UI is outside the grid
         else
         {
-            BoundsInt size = tilemapGround.cellBounds;
-            // Screen MP
-            Vector3 mousePoint = Input.mousePosition;
-            // World MP
-            Vector3 worldPoint = mainCamera.ScreenToWorldPoint(mousePoint);
-            // Tilemap MP
-            Vector3Int tilePoint = tilemapGround.WorldToCell(worldPoint);
-            if (
-                // If mouse is within the grid
-                tilePoint.x >= size.min.x &&
-                tilePoint.x < size.max.x &&
-                tilePoint.y >= size.min.y &&
-                tilePoint.y < size.max.y)
-            {
-                // If mouse is hovering over tileArea
-                if (IsInMovementRange(tilePoint))
-                {
-                    tiledot.MoveToPlace(tilePoint);
-                }
-            }
-            // If mouse is hovering over UI since UI is outside the grid
-            else
-            {
-                // If mouse is hovering over an inventory slot
-                player.ProcessHoverForInventory(worldPoint);
-            }
+            // If mouse is hovering over an inventory slot
+            player.ProcessHoverForInventory(worldPoint);
         }
+    }
+    private void TryAddItem(Vector3 shiftedClickPoint) {
+        // If click is on Player position and item is there
+        if (shiftedClickPoint == player.transform.position && HasItemAtPosition(shiftedClickPoint) is Item itemAtPosition)
+        {
+            // If an item is there, Player picks it up
+            if (player.AddItem(itemAtPosition.info)) DestroyItemAtPosition(shiftedClickPoint);
+        }
+    }
+    public bool WithinCellBounds(Vector3Int tilePoint, BoundsInt size) {
+        return tilePoint.x >= size.min.x && tilePoint.x < size.max.x && tilePoint.y >= size.min.y && tilePoint.y < size.max.y;
     }
     /// <summary>
     /// Called when an enemy takes damage, assumes player.damagePoints > 0
@@ -679,27 +621,24 @@ public class GameManager : MonoBehaviour
     }
     public RangedWeaponCalculation IsInLineOfSight(Vector3 playerPosition, Vector3 objPosition, int weaponRange)
     {
-        RangedWeaponCalculation ret = new();
+        RangedWeaponCalculation rangedWeaponCalculation = new();
         float distanceFromPlayerToEnemy = Mathf.Sqrt(Mathf.Pow(objPosition.x - playerPosition.x, 2) + Mathf.Pow(objPosition.y - playerPosition.y, 2));
-        if (distanceFromPlayerToEnemy > weaponRange)
-        {
-            ret.canTargetEnemy = false;
-        }
-        ret.tracerPath = BresenhamsAlgorithm((int)(playerPosition.x - 0.5f), (int)(playerPosition.y - 0.5f), (int)(objPosition.x - 0.5f), (int)(objPosition.y - 0.5f));
-        foreach (Vector3 tracerPosition in ret.tracerPath)
+        if (distanceFromPlayerToEnemy > weaponRange) rangedWeaponCalculation.canTargetEnemy = false;
+        rangedWeaponCalculation.tracerPath = BresenhamsAlgorithm((int)(playerPosition.x - 0.5f), (int)(playerPosition.y - 0.5f), (int)(objPosition.x - 0.5f), (int)(objPosition.y - 0.5f));
+        foreach (Vector3 tracerPosition in rangedWeaponCalculation.tracerPath)
         {
             Vector3Int tracerPositionInt = new((int)tracerPosition.x, (int)tracerPosition.y, 0);
             if (tilemapWalls.HasTile(tracerPositionInt))
             {
-                ret.canTargetEnemy = false;
+                rangedWeaponCalculation.canTargetEnemy = false;
                 break;
             }
         }
-        return ret;
+        return rangedWeaponCalculation;
     }
     public List<Vector3> BresenhamsAlgorithm(int x0, int y0, int x1, int y1)
     {
-        List<Vector3> ret = new();
+        List<Vector3> pointsOnLine = new();
         int dx = Mathf.Abs(x1 - x0);
         int dy = Mathf.Abs(y1 - y0);
         int sx = (x0 < x1) ? 1 : -1;
@@ -707,7 +646,7 @@ public class GameManager : MonoBehaviour
         int err = dx - dy;
         while (true)
         {
-            ret.Add(new Vector3(x0, y0, 0));
+            pointsOnLine.Add(new Vector3(x0, y0, 0));
             if ((x0 == x1) && (y0 == y1)) break;
             int e2 = 2 * err;
             if (e2 > -dy)
@@ -721,6 +660,6 @@ public class GameManager : MonoBehaviour
                 y0 += sy;
             }
         }
-        return ret;
+        return pointsOnLine;
     }
 }
