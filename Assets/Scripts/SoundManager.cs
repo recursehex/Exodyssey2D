@@ -9,16 +9,14 @@ public class SoundManager : MonoBehaviour
     // Start is called before the first frame update
     void Awake()
     {
-        if (instance == null)
-            instance = this;
-        else if (instance != this)
-            Destroy(gameObject);
-
+        if (instance == null) instance = this;
+        else if (instance != this) Destroy(gameObject);
         DontDestroyOnLoad(gameObject);
     }
 
     public void PlaySound(AudioClip clip)
     {
+        efxSource.pitch = Random.Range(0.95f, 1.05f);
         efxSource.PlayOneShot(clip);
     }
 }

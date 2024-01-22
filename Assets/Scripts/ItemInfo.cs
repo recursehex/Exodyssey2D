@@ -81,8 +81,8 @@ public class ItemInfo
     public string description;          // Ingame desc of item
     public string stats = "";           // Ingame list of durability, damage, shell damage, range
 
-    public int maxDurability = -1;      // Max uses item has
-    public int currentDurability = -1;  // Current uses item has left
+    public int maxUses = -1;            // Max uses item has
+    public int currentUses = -1;        // Current uses item has left
 
     public int damage = -1;             // Set only for weapons
     public int range = 0;               // Maximum distance a Ranged weapon can attack to, 0 = Melee
@@ -93,17 +93,17 @@ public class ItemInfo
 
     public int shellDamage = -1;        // Set only if weapon does different damage to shelled aliens
 
-    public static int lastItemIdx = (int)ItemTag.Unknown;
+    public static int lastItemIndex = (int)ItemTag.Unknown;
 
     static public List<Rarity> GenerateAllRarities()
     {
-        List<Rarity> ret = new();
-        for (int i = 0; i < lastItemIdx; i++)
+        List<Rarity> itemRarityList = new();
+        for (int i = 0; i < lastItemIndex; i++)
         {
             ItemInfo item = ItemFactory(i);
-            ret.Add(item.rarity);
+            itemRarityList.Add(item.rarity);
         }
-        return ret;
+        return itemRarityList;
     }
     /// <summary>
     /// Called when Player clicks on an item in an inventory slot
@@ -113,7 +113,7 @@ public class ItemInfo
     /// <returns></returns>
     public AfterItemUse ClickItem(Player player, int selectedIdx)
     {
-        AfterItemUse ret = new();
+        AfterItemUse afterItemUse = new();
         // Checks by item type category
         switch (type)
         {
@@ -123,9 +123,9 @@ public class ItemInfo
                 {
                     player.ChangeHealth(player.maxHealth);
                     player.ChangeEnergy(-1);
-                    currentDurability--;
-                    stats = "\n" + "UP:" + currentDurability + "/" + maxDurability;
-                    ret.consumableWasUsed = true;
+                    currentUses--;
+                    stats = "\n" + "UP:" + currentUses + "/" + maxUses;
+                    afterItemUse.consumableWasUsed = true;
                 }
                 break;
             // Selects or unselects a weapon
@@ -148,15 +148,12 @@ public class ItemInfo
                     player.damage = damage;
                     player.DrawTargetsAndTracers();
                 }
-                ret.selectedIdx = selectedIdx;
+                afterItemUse.selectedIdx = selectedIdx;
                 break;
         }
         // If the item runs out of UP, it needs to be removed
-        if (currentDurability == 0)
-        {
-            ret.needToRemoveItem = true;
-        }
-        return ret;
+        if (currentUses == 0) afterItemUse.needToRemoveItem = true;
+        return afterItemUse;
     }
     /// <summary>
     /// Called by UseItem when weapon is selected or unselected
@@ -171,17 +168,14 @@ public class ItemInfo
             GameObject.Find("InventoryPressed" + posOld).transform.localScale = Vector3.one;
             return false;
         }
-        else
+        // Unselect old item & select new item
+        if (posOld != -1)
         {
-            // Unselect old item & select new item
-            if (posOld != -1)
-            {
-                GameObject.Find("InventoryPressed" + posOld).transform.localScale = Vector3.one;
-            }
-            if (posNew != -1)
-            {
-                GameObject.Find("InventoryPressed" + posNew).transform.localScale = Vector3.zero;
-            }
+            GameObject.Find("InventoryPressed" + posOld).transform.localScale = Vector3.one;
+        }
+        if (posNew != -1)
+        {
+            GameObject.Find("InventoryPressed" + posNew).transform.localScale = Vector3.zero;
         }
         return true;
     }
@@ -192,12 +186,9 @@ public class ItemInfo
     /// <returns></returns>
     public bool ProcessDamageAfterWeaponDrop(Player p)
     {
-        if (type == ItemType.Weapon)
-        {
-            p.damage = 0;
-            return true;
-        }
-        return false;
+        if (type != ItemType.Weapon) return false;
+        p.damage = 0;
+        return true;
     }
     /// <summary>
     /// Changes UP of a weapon after usage
@@ -205,16 +196,11 @@ public class ItemInfo
     /// <returns></returns>
     public bool UpdateWeaponUP()
     {
-        currentDurability--;
-        stats = "\n" + "UP:" + currentDurability + "/" + maxDurability + "\t" + "DP:" + damage;
-
-        if (shellDamage >= 0)
-            stats += "\n" + "SDP:" + shellDamage;
-
-        if (range > 0)
-            stats += "\n" + "RP:" + range;
-
-        return currentDurability == 0;
+        currentUses--;
+        stats = "\n" + "UP:" + currentUses + "/" + maxUses + "\t" + "DP:" + damage;
+        if (shellDamage >= 0) stats += "\n" + "SDP:" + shellDamage;
+        if (range > 0) stats += "\n" + "RP:" + range;
+        return currentUses == 0;
     }
     /// <summary>
     /// Returns percentage for a desired rarity
@@ -247,24 +233,24 @@ public class ItemInfo
                 inf.rarity = Rarity.Limited;
                 inf.type = ItemType.Consumable;
                 inf.name = "MEDKIT";
-                inf.maxDurability = 1;
-                inf.currentDurability = inf.maxDurability;
+                inf.maxUses = 1;
+                inf.currentUses = inf.maxUses;
                 inf.isFlammable = true;
                 inf.description = "Heals oneself";
-                inf.stats = "\n" + "UP:" + inf.maxDurability + "/" + inf.maxDurability;
+                inf.stats = "\n" + "UP:" + inf.maxUses + "/" + inf.maxUses;
                 break;
             case 1:
                 inf.tag = ItemTag.Branch;
                 inf.rarity = Rarity.Common;
                 inf.type = ItemType.Weapon;
                 inf.name = "BRANCH";
-                inf.maxDurability = 2;
-                inf.currentDurability = inf.maxDurability;
+                inf.maxUses = 2;
+                inf.currentUses = inf.maxUses;
                 inf.damage = 1;
                 inf.shellDamage = 0;
                 inf.isFlammable = true;
                 inf.description = "Fragile stick";
-                inf.stats = "\n" + "UP:" + inf.maxDurability + "/" + inf.maxDurability + "\t" + "DP:" + inf.damage + "\n" + "SDP:" + inf.shellDamage;
+                inf.stats = "\n" + "UP:" + inf.maxUses + "/" + inf.maxUses + "\t" + "DP:" + inf.damage + "\n" + "SDP:" + inf.shellDamage;
                 break;
             case 2:
                 inf.tag = ItemTag.DiamondChainsaw;
@@ -272,11 +258,11 @@ public class ItemInfo
                 //inf.rarity = Rarity.Anomalous;
                 inf.type = ItemType.Weapon;
                 inf.name = "CHAINSAW";
-                inf.maxDurability = 8;
-                inf.currentDurability = inf.maxDurability;
+                inf.maxUses = 8;
+                inf.currentUses = inf.maxUses;
                 inf.damage = 5;
                 inf.description = "Handheld rock saw";
-                inf.stats = "\n" + "UP:" + inf.maxDurability + "/" + inf.maxDurability + "\t" + "DP:" + inf.damage;
+                inf.stats = "\n" + "UP:" + inf.maxUses + "/" + inf.maxUses + "\t" + "DP:" + inf.damage;
                 break;
             case 3:
                 inf.tag = ItemTag.PlasmaRailgun;
@@ -284,12 +270,12 @@ public class ItemInfo
                 inf.rarity = Rarity.Common;
                 inf.type = ItemType.Weapon;
                 inf.name = "PLASMA RAILGUN";
-                inf.maxDurability = 5;
-                inf.currentDurability = inf.maxDurability;
+                inf.maxUses = 5;
+                inf.currentUses = inf.maxUses;
                 inf.damage = 10;
                 inf.range = 5;
                 inf.description = "Fires a voltaic plasma bolt";
-                inf.stats = "\n" + "UP:" + inf.maxDurability + "/" + inf.maxDurability + "\t" + "DP:" + inf.damage + "\n" + "RP:" + inf.range;
+                inf.stats = "\n" + "UP:" + inf.maxUses + "/" + inf.maxUses + "\t" + "DP:" + inf.damage + "\n" + "RP:" + inf.range;
                 break;
             /*
             case 4:
@@ -297,10 +283,10 @@ public class ItemInfo
                 inf.rarity = Rarity.Scarce;
                 inf.type = ItemType.Consumable;
                 inf.name = "TOOLKIT";
-                inf.maxDurability = 1;
-                inf.currentDurability = inf.maxDurability;
+                inf.maxUses = 1;
+                inf.currentUses = inf.maxUses;
                 inf.description = "Repairs vehicles";
-                inf.stats = "\n" + "UP:" + inf.maxDurability;
+                inf.stats = "\n" + "UP:" + inf.maxUses;
                 break;
 
             case 5:
@@ -308,12 +294,12 @@ public class ItemInfo
                 inf.rarity = Rarity.Limited;
                 inf.type = ItemType.Weapon;
                 inf.name = "KNIFE";
-                inf.maxDurability = 3;
-                inf.currentDurability = inf.maxDurability;
+                inf.maxUses = 3;
+                inf.currentUses = inf.maxUses;
                 inf.damage = 2;
                 inf.shellDamage = 1;
                 inf.description = "Can stab shelled aliens";
-                inf.stats = "\n" + "UP:" + inf.maxDurability + "/" + inf.maxDurability + "\t" + "DP:" + inf.damage + "\n" + "SDP:" + inf.shellDamage;
+                inf.stats = "\n" + "UP:" + inf.maxUses + "/" + inf.maxUses + "\t" + "DP:" + inf.damage + "\n" + "SDP:" + inf.shellDamage;
                 break;
 
             case 6:
@@ -321,25 +307,25 @@ public class ItemInfo
                 inf.rarity = Rarity.Scarce;
                 inf.type = ItemType.Weapon;
                 inf.name = "WRENCH";
-                inf.maxDurability = 4;
-                inf.currentDurability = inf.maxDurability;
+                inf.maxUses = 4;
+                inf.currentUses = inf.maxUses;
                 inf.damage = 2;
                 inf.shellDamage = 0;
                 inf.description = "Useless for shelled aliens";
-                inf.stats = "\n" + "UP:" + inf.maxDurability + "/" + inf.maxDurability + "\t" + "DP:" + inf.damage + "\n" + "SDP:" + inf.shellDamage;
+                inf.stats = "\n" + "UP:" + inf.maxUses + "/" + inf.maxUses + "\t" + "DP:" + inf.damage + "\n" + "SDP:" + inf.shellDamage;
                 break;
 
             case 7:
                 inf.tag = ItemTag.Mallet;
                 inf.rarity = Rarity.Rare;
                 inf.type = ItemType.Weapon;
-                inf.maxDurability = 6;
-                inf.currentDurability = inf.maxDurability;
+                inf.maxUses = 6;
+                inf.currentUses = inf.maxUses;
                 inf.name = "MALLET";
                 inf.damage = 3;
                 inf.shellDamage = 0;
                 inf.description = "Bounces off shelled aliens";
-                inf.stats = "\n" + "UP:" + inf.maxDurability + "/" + inf.maxDurability + "\t" + "DP:" + inf.damage + "\n" + "SDP:" + inf.shellDamage;
+                inf.stats = "\n" + "UP:" + inf.maxUses + "/" + inf.maxUses + "\t" + "DP:" + inf.damage + "\n" + "SDP:" + inf.shellDamage;
                 break;
 
             case 8:
@@ -347,12 +333,12 @@ public class ItemInfo
                 inf.rarity = Rarity.Rare;
                 inf.type = ItemType.Weapon;
                 inf.name = "AXE";
-                inf.maxDurability = 4;
-                inf.currentDurability = inf.maxDurability;
+                inf.maxUses = 4;
+                inf.currentUses = inf.maxUses;
                 inf.damage = 4;
                 inf.shellDamage = 2;
                 inf.description = "Can cut shelled aliens";
-                inf.stats = "\n" + "UP:" + inf.maxDurability + "/" + inf.maxDurability + "\t" + "DP:" + inf.damage + "\n" + "SDP:" + inf.shellDamage;
+                inf.stats = "\n" + "UP:" + inf.maxUses + "/" + inf.maxUses + "\t" + "DP:" + inf.damage + "\n" + "SDP:" + inf.shellDamage;
                 break;
 
             case 9:
@@ -360,12 +346,12 @@ public class ItemInfo
                 inf.rarity = Rarity.Common;
                 inf.type = ItemType.Weapon;
                 inf.name = "ROCK";
-                inf.maxDurability = 1;
-                inf.currentDurability = inf.maxDurability;
+                inf.maxUses = 1;
+                inf.currentUses = inf.maxUses;
                 inf.damage = 1;
                 inf.range = 3;
                 inf.description = "Can be thrown again";
-                inf.stats = "\n" + "UP:" + inf.maxDurability + "/" + inf.maxDurability + "\t" + "DP:" + inf.damage + "\n" + "RP:" + inf.range;
+                inf.stats = "\n" + "UP:" + inf.maxUses + "/" + inf.maxUses + "\t" + "DP:" + inf.damage + "\n" + "RP:" + inf.range;
                 break;
 
             case 10:
@@ -373,12 +359,12 @@ public class ItemInfo
                 inf.rarity = Rarity.Scarce;
                 inf.type = ItemType.Weapon;
                 inf.name = "SMOKE GRENADE";
-                inf.maxDurability = 1;
-                inf.currentDurability = inf.maxDurability;
+                inf.maxUses = 1;
+                inf.currentUses = inf.maxUses;
                 inf.damage = 0;
                 inf.range = 3;
                 inf.description = "Stuns nearby enemies for 1 turn";
-                inf.stats = "\n" + "UP:" + inf.maxDurability + "/" + inf.maxDurability + "\t" + "DP:" + inf.damage + "\n" + "RP:" + inf.range;
+                inf.stats = "\n" + "UP:" + inf.maxUses + "/" + inf.maxUses + "\t" + "DP:" + inf.damage + "\n" + "RP:" + inf.range;
                 break;
 
             case 11:
@@ -386,13 +372,13 @@ public class ItemInfo
                 inf.rarity = Rarity.Scarce;
                 inf.type = ItemType.Weapon;
                 inf.name = "DYNAMITE";
-                inf.maxDurability = 1;
-                inf.currentDurability = inf.maxDurability;
+                inf.maxUses = 1;
+                inf.currentUses = inf.maxUses;
                 inf.damage = 5;
                 inf.range = 3;
                 inf.isFlammable = true;
                 inf.description = "Fuse lights after landing";
-                inf.stats = "\n" + "UP:" + inf.maxDurability + "/" + inf.maxDurability + "\t" + "DP:" + inf.damage + "\n" + "RP:" + inf.range;
+                inf.stats = "\n" + "UP:" + inf.maxUses + "/" + inf.maxUses + "\t" + "DP:" + inf.damage + "\n" + "RP:" + inf.range;
                 break;
 
             case 12:
@@ -400,13 +386,13 @@ public class ItemInfo
                 inf.rarity = Rarity.Anomalous;
                 inf.type = ItemType.Weapon;
                 inf.name = "STICKY GRENADE";
-                inf.maxDurability = 1;
-                inf.currentDurability = inf.maxDurability;
+                inf.maxUses = 1;
+                inf.currentUses = inf.maxUses;
                 inf.damage = 3;
                 inf.range = 5;
                 inf.isFlammable = true;
                 inf.description = "Sticks to enemies before detonating";
-                inf.stats = "\n" + "UP:" + inf.maxDurability + "/" + inf.maxDurability + "\t" + "DP:" + inf.damage + "\n" + "RP:" + inf.range;
+                inf.stats = "\n" + "UP:" + inf.maxUses + "/" + inf.maxUses + "\t" + "DP:" + inf.damage + "\n" + "RP:" + inf.range;
                 break;
 
             case 13:
@@ -414,11 +400,11 @@ public class ItemInfo
                 inf.rarity = Rarity.Common;
                 inf.type = ItemType.Consumable;
                 inf.name = "FUSION CELL";
-                inf.maxDurability = 5; // max charge
-                inf.currentDurability = inf.maxDurability; // current charge
+                inf.maxUses = 5; // max charge
+                inf.currentUses = inf.maxUses; // current charge
                 inf.isFlammable = true;
                 inf.description = "Powers vehicles";
-                inf.stats = "\n\" + "UP:" + inf.maxDurability;
+                inf.stats = "\n\" + "UP:" + inf.maxUses;
                 break;
 
             case 14:
@@ -426,11 +412,11 @@ public class ItemInfo
                 inf.rarity = Rarity.Scarce;
                 inf.type = ItemType.Armor;
                 inf.name = "HELMET";
-                inf.maxDurability = 2;
-                inf.currentDurability = inf.maxDurability;
+                inf.maxUses = 2;
+                inf.currentUses = inf.maxUses;
                 inf.isEquipable = true;
                 inf.description = "Absorbs 2 melee DP";
-                inf.stats = "\n\" + "UP:" + inf.maxDurability;
+                inf.stats = "\n\" + "UP:" + inf.maxUses;
                 break;
 
             case 15:
@@ -438,12 +424,12 @@ public class ItemInfo
                 inf.rarity = Rarity.Rare;
                 inf.type = ItemType.Armor;
                 inf.name = "VEST";
-                inf.maxDurability = 3;
-                inf.currentDurability = inf.maxDurability;
+                inf.maxUses = 3;
+                inf.currentUses = inf.maxUses;
                 inf.isEquipable = true;
                 inf.isFlammable = true;
                 inf.description = "Absorbs 3 ranged DP";
-                inf.stats = "\n\" + "UP:" + inf.maxDurability;
+                inf.stats = "\n\" + "UP:" + inf.maxUses;
                 break;
 
             case 16:
@@ -451,11 +437,11 @@ public class ItemInfo
                 inf.rarity = Rarity.Anomalous;
                 inf.type = ItemType.Armor;
                 inf.name = "GRAPHENE SHIELD";
-                inf.maxDurability = 1;
-                inf.currentDurability = inf.maxDurability;
+                inf.maxUses = 1;
+                inf.currentUses = inf.maxUses;
                 inf.isEquipable = true;
                 inf.description = "Blocks all DP except boss DP";
-                inf.stats = "\n\" + "UP:" + inf.maxDurability;
+                inf.stats = "\n\" + "UP:" + inf.maxUses;
                 break;
 
             case 17:
@@ -463,12 +449,12 @@ public class ItemInfo
                 inf.rarity = Rarity.Limited;
                 inf.type = ItemType.Storage;
                 inf.name = "BACKPACK";
-                inf.maxDurability = 1;
-                inf.currentDurability = inf.maxDurability;
+                inf.maxUses = 1;
+                inf.currentUses = inf.maxUses;
                 inf.isEquipable = true;
                 inf.isFlammable = true;
                 inf.description = "Adds 1 inventory slot";
-                inf.stats = "\n\" + "UP:" + inf.maxDurability;
+                inf.stats = "\n\" + "UP:" + inf.maxUses;
                 break;
 
             case 18:
@@ -476,11 +462,11 @@ public class ItemInfo
                 inf.rarity = Rarity.Rare;
                 inf.type = ItemType.Storage;
                 inf.name = "CRATE";
-                inf.maxDurability = 4;
-                inf.currentDurability = inf.maxDurability;
+                inf.maxUses = 4;
+                inf.currentUses = inf.maxUses;
                 inf.isAttachable = true;
                 inf.description = "Adds 4 vehicle storage";
-                inf.stats = "\n\" + "UP:" + inf.maxDurability;
+                inf.stats = "\n\" + "UP:" + inf.maxUses;
                 break;
 
             case 19:
@@ -488,12 +474,12 @@ public class ItemInfo
                 inf.rarity = Rarity.Anomalous;
                 inf.type = ItemType.Storage;
                 inf.name = "BATTERY";
-                inf.maxDurability = 5; // max charge
-                inf.currentDurability = inf.maxDurability; // current charge
+                inf.maxUses = 5; // max charge
+                inf.currentUses = inf.maxUses; // current charge
                 inf.isAttachable = true;
                 inf.isFlammable = true;
                 inf.description = "Adds 5 fuel slots";
-                inf.stats = "\n\" + "UP:" + inf.maxDurability;
+                inf.stats = "\n\" + "UP:" + inf.maxUses;
                 break;
 
             case 20:
@@ -510,11 +496,11 @@ public class ItemInfo
                 inf.rarity = Rarity.Scarce;
                 inf.type = ItemType.Utility;
                 inf.name = "EXTINGUISHER";
-                inf.maxDurability = 4;
-                inf.currentDurability = inf.maxDurability;
+                inf.maxUses = 4;
+                inf.currentUses = inf.maxUses;
                 inf.isFlammable = true;
                 inf.description = "Extinguishes burning tiles";
-                inf.stats = "\n\" + "UP:" + inf.maxDurability;
+                inf.stats = "\n\" + "UP:" + inf.maxUses;
                 break;
 
             case 22:
@@ -531,11 +517,11 @@ public class ItemInfo
                 inf.rarity = Rarity.Rare;
                 inf.type = ItemType.Utility;
                 inf.name = "BLOWTORCH";
-                inf.maxDurability = 4;
-                inf.currentDurability = inf.maxDurability;
+                inf.maxUses = 4;
+                inf.currentUses = inf.maxUses;
                 inf.isFlammable = true;
                 inf.description = "Starts fires on tiles or enemies";
-                inf.stats = "\n\" + "UP:" + inf.maxDurability;
+                inf.stats = "\n\" + "UP:" + inf.maxUses;
                 break;
 
             case 24:
@@ -543,10 +529,10 @@ public class ItemInfo
                 inf.rarity = Rarity.Rare;
                 inf.type = ItemType.Utility;
                 inf.name = "THERMAL IMAGER";
-                inf.maxDurability = 4;
-                inf.currentDurability = inf.maxDurability;
+                inf.maxUses = 4;
+                inf.currentUses = inf.maxUses;
                 inf.description = "Take infrared picture";
-                inf.stats = "\n\" + "UP:" + inf.maxDurability;
+                inf.stats = "\n\" + "UP:" + inf.maxUses;
                 break;
 
             case 25:
@@ -563,12 +549,12 @@ public class ItemInfo
                 inf.rarity = Rarity.Scarce;
                 inf.type = ItemType.Weapon;
                 inf.name = "TRANQUILIZER";
-                inf.maxDurability = 2;
-                inf.currentDurability = inf.maxDurability;
+                inf.maxUses = 2;
+                inf.currentUses = inf.maxUses;
                 inf.damage = 0;
                 inf.range = 4;
                 inf.description = "Stuns enemies for 1 turn";
-                inf.stats = "\n" + "UP:" + inf.maxDurability + "/" + inf.maxDurability + "\t" + "DP:" + inf.damage + "\n" + "RP:" + inf.range;
+                inf.stats = "\n" + "UP:" + inf.maxUses + "/" + inf.maxUses + "\t" + "DP:" + inf.damage + "\n" + "RP:" + inf.range;
                 break;
 
             case 27:
@@ -576,12 +562,12 @@ public class ItemInfo
                 inf.rarity = Rarity.Rare;
                 inf.type = ItemType.Weapon;
                 inf.name = "CARBINE";
-                inf.maxDurability = 4;
-                inf.currentDurability = inf.maxDurability;
+                inf.maxUses = 4;
+                inf.currentUses = inf.maxUses;
                 inf.damage = 3;
                 inf.range = 4;
                 inf.description = "Fires rifle bullets";
-                inf.stats = "\n" + "UP:" + inf.maxDurability + "/" + inf.maxDurability + "\t" + "DP:" + inf.damage + "\n" + "RP:" + inf.range;
+                inf.stats = "\n" + "UP:" + inf.maxUses + "/" + inf.maxUses + "\t" + "DP:" + inf.damage + "\n" + "RP:" + inf.range;
                 break;
 
             case 28:
@@ -589,13 +575,13 @@ public class ItemInfo
                 inf.rarity = Rarity.Rare;
                 inf.type = ItemType.Weapon;
                 inf.name = "FLAMETHROWER";
-                inf.maxDurability = 4;
-                inf.currentDurability = inf.maxDurability;
+                inf.maxUses = 4;
+                inf.currentUses = inf.maxUses;
                 inf.damage = 1;
                 inf.range = 3;
                 inf.isFlammable = true;
                 inf.description = "Sprays a streak of fire";
-                inf.stats = "\n" + "UP:" + inf.maxDurability + "/" + inf.maxDurability + "\t" + "DP:" + inf.damage + "\n" + "RP:" + inf.range;
+                inf.stats = "\n" + "UP:" + inf.maxUses + "/" + inf.maxUses + "\t" + "DP:" + inf.damage + "\n" + "RP:" + inf.range;
                 break;
             */
 
@@ -604,12 +590,12 @@ public class ItemInfo
                 inf.rarity = Rarity.Rare;
                 inf.type = ItemType.Weapon;
                 inf.name = "HUNTING RIFLE";
-                inf.maxDurability = 3;
-                inf.currentDurability = inf.maxDurability;
+                inf.maxUses = 3;
+                inf.currentUses = inf.maxUses;
                 inf.damage = 5;
                 inf.range = 10;
                 inf.description = "Fires piercing bullets";
-                inf.stats = "\n" + "UP:" + inf.maxDurability + "/" + inf.maxDurability + "\t" + "DP:" + inf.damage + "\n" + "RP:" + inf.range;
+                inf.stats = "\n" + "UP:" + inf.maxUses + "/" + inf.maxUses + "\t" + "DP:" + inf.damage + "\n" + "RP:" + inf.range;
                 break;
         }
         return inf;
