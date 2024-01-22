@@ -21,24 +21,24 @@ public class Inventory
         return true;
     }
 
-    public void RemoveItem(int idx)
+    public void RemoveItem(int index)
     {
-        itemList.RemoveAt(idx);
+        itemList.RemoveAt(index);
     }
 
-    public bool ProcessDamageAfterWeaponDrop(Player p, int idx)
+    public bool ProcessDamageAfterWeaponDrop(Player player, int index)
     {
-        return itemList[idx].itemInfo.ProcessDamageAfterWeaponDrop(p);
+        return itemList[index].itemInfo.ProcessDamageAfterWeaponDrop(player);
     }
 
-    public bool UpdateWeaponUP(int idx)
+    public bool UpdateWeaponUP(int index)
     {
-        return itemList[idx].itemInfo.UpdateWeaponUP();
+        return itemList[index].itemInfo.UpdateWeaponUP();
     }
 
-    public int GetWeaponRange(int idx)
+    public int GetWeaponRange(int index)
     {
-        return itemList[idx].itemInfo.range;
+        return itemList[index].itemInfo.range;
     }
 
     public List<ItemInventory> GetItemList()

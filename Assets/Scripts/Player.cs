@@ -173,10 +173,7 @@ public class Player : MonoBehaviour
             statsDisplayManager.DecreaseEnergyDisplay(currentEnergy, maxEnergy);
         }
         // Restore after end turn and new level
-        else
-        {
-            statsDisplayManager.RestoreEnergyDisplay(currentHealth);
-        }
+        else statsDisplayManager.RestoreEnergyDisplay(currentHealth);
     }
 
     public void UpdateWeaponUP()
@@ -211,10 +208,7 @@ public class Player : MonoBehaviour
     public void TryClickItem(int itemIdx)
     {
         // Ensures index is within bounds and inventory has an item
-        if (itemIdx >= inventory.itemList.Count || inventory.itemList.Count == 0)
-        {
-            return;
-        }
+        if (itemIdx >= inventory.itemList.Count || inventory.itemList.Count == 0) return;
         ItemInfo clickedItem = inventory.itemList[itemIdx].itemInfo;
         AfterItemUse ret = clickedItem.ClickItem(this, itemIdx);
         // Item gets selected since it was unselected before
@@ -240,27 +234,16 @@ public class Player : MonoBehaviour
     /// <summary>
     /// Tries to drop item from inventory onto the ground
     /// </summary>
-    public void TryDropItem(int n)
+    public void TryDropItem(int itemIndex)
     {
         // Returns if called when inventory is empty
-        if (inventory.itemList.Count == 0)
-        {
-            return;
-        }
+        if (inventory.itemList.Count == 0) return;
         // Drops item on the ground, returns if an item is occupying the tile
-        if (!GameManager.MyInstance.DropItem(inventory.itemList[n].itemInfo))
-        {
-            return;
-        }
+        if (!GameManager.MyInstance.DropItem(inventory.itemList[itemIndex].itemInfo)) return;
         // Clears targeting if ranged weapon is dropped
-        if (inventoryUI.ProcessDamageAfterWeaponDrop(this, n))
-        {
-            if (GetWeaponRange() > 0)
-            {
-                gm.ClearTargetsAndTracers();
-            }
-        }
-        inventoryUI.RemoveItem(n);
+        if (inventoryUI.ProcessDamageAfterWeaponDrop(this, itemIndex) && GetWeaponRange() > 0) gm.ClearTargetsAndTracers();
+        // Removes item from inventory and plays corresponding sound
+        inventoryUI.RemoveItem(itemIndex);
         SoundManager.instance.PlaySound(playerMove);
     }
 

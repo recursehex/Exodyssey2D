@@ -88,7 +88,6 @@ public class MapGen
                         if (t[y, x] > 0)
                         {
                             Vector3Int p = new(baseX + x, baseY - y, 0);
-
                             tilemapWalls.SetTile(p, wallTiles[Random.Range(0, wallTiles.Length)]);
                         }
                     }

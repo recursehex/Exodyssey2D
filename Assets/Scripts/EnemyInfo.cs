@@ -50,19 +50,17 @@ public class EnemyInfo
     public bool isHunting = true;               // true = will hunt the player, false = will guard nearby items
     public bool isShelled = false;              // false = will not have resistance to Steel Beam and Mallet, true = will have resistance and will be vulnerable to Axe, Honed Gavel, and Shell Piercer
 
-    public static int lastEnemyIdx = (int)EnemyTag.Unknown;
+    public static int lastEnemyIndex = (int)EnemyTag.Unknown;
 
     static public List<Rarity> GenerateAllRarities()
     {
-        List<Rarity> ret = new();
-
-        for (int i = 0; i < lastEnemyIdx; i++)
+        List<Rarity> enemyRarityList = new();
+        for (int i = 0; i < lastEnemyIndex; i++)
         {
             EnemyInfo enemy = EnemyFactory(i);
-            ret.Add(enemy.rarity);
+            enemyRarityList.Add(enemy.rarity);
         }
-
-        return ret;
+        return enemyRarityList;
     }
 
     /// <summary>
