@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -9,19 +7,16 @@ public class TurnTimer : MonoBehaviour
     public float timerLimit = 15;
     public bool timerIsRunning = false;
     public Text timeText;
-
     public void StartTimer()
     {
         timerIsRunning = true;
     }
-
     public void ResetTimer()
     {
         timeRemaining = timerLimit;
         timeText.color = new Color((float)(115.0 / 256.0), (float)(119.0 / 256.0), (float)(160.0 / 256.0), 1);
         DisplayTime(timeRemaining - 1);
     }
-
     void Update()
     {
         if (!timerIsRunning) return;
@@ -40,7 +35,6 @@ public class TurnTimer : MonoBehaviour
             GameManager.instance.OnTurnTimerEnd();
         }
     }
-
     void DisplayTime(float timeToDisplay)
     {
         timeToDisplay += 1;

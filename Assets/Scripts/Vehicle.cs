@@ -1,10 +1,29 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Tilemaps;
 
 public class Vehicle : MonoBehaviour
 {
     public VehicleInfo info;
+
+    private AudioClip vehicleMove;
+
+    #region PATHFINDING
+
+    public Tilemap tilemapGround;
+
+    public Tilemap tilemapWalls;
+
+    private Stack<Vector3Int> path;
+
+    private Vector3Int destination;
+
+    GameManager gm;
+
+    [SerializeField]
+    private AStar astar;
+    #endregion
 
     public bool isInMovement = false;
 
@@ -34,5 +53,24 @@ public class Vehicle : MonoBehaviour
     public void RestoreHP()
     {
         info.currentHP = info.maxHP;
+    }
+
+    private bool HasEnemyAtPosition(Vector3 p)
+    {
+        Vector3 shiftedDistance = new(p.x + 0.5f, p.y + 0.5f, 0);
+        foreach (GameObject obj in gm.enemies)
+        {
+            Enemy e = obj.GetComponent<Enemy>();
+            if (e.transform.position == shiftedDistance)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void SetGameManager(GameManager g)
+    {
+        gm = g;
     }
 }

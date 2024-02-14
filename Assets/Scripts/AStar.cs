@@ -11,28 +11,17 @@ public class AStar
 {
     [SerializeField]
     public Tilemap tilemapGround;
-
     [SerializeField]
     public Tilemap tilemapWalls;
-
     private GameManager gm;
-
     private Node current;
-
     private Stack<Vector3Int> path;
-
     private HashSet<Node> openList;
-
     private HashSet<Node> closedList;
-
     private Dictionary<Vector3Int, Node> allNodes;
-
     private static HashSet<Vector3Int> noDiagonalTiles;
-
     private Vector3Int startPos, goalPos;
-
     private bool allowDiagonal = true;
-
     public static HashSet<Vector3Int> NoDiagonalTiles
     {
         get
@@ -40,35 +29,28 @@ public class AStar
             return noDiagonalTiles;
         }
     }
-
     public void Initialize()
     {
         allNodes = new Dictionary<Vector3Int, Node>();
 
         noDiagonalTiles = new HashSet<Vector3Int>();
     }
-
     public void SetAllowDiagonal(bool f)
     {
         allowDiagonal = f;
     }
-
     public Dictionary<Vector3Int, Node> GetReachableAreaByDistance(Vector3 start, int dst)
     {
         Vector3Int s = tilemapGround.WorldToCell(start);
-
         Dictionary<Vector3Int, Node> res = new();
-
         List<Node> toExamineList = new()
         {
             new Node(s)
         };
-
         // Checks within AP distance limit for reachable tiles, pseudo-recursive
         for (int i = 0; i < dst; i++)
         {
             List<Node> newNeighbors = new();
-
             for (int j = 0; j < toExamineList.Count; j++)
             {
                 List<Node> neighbors = FindNeighbors(toExamineList[j].Position);
@@ -78,71 +60,48 @@ public class AStar
                     res[neighbors[k].Position] = neighbors[k];
                 }
             }
-
             toExamineList = newNeighbors;
         }
         return res;
     }
-
     public Stack<Vector3Int> ComputePath(Vector3 start, Vector3 goal, GameManager g)
     {
         gm = g;
-
         startPos = tilemapGround.WorldToCell(start);
         goalPos = tilemapGround.WorldToCell(goal);
-
         allNodes.Clear();
-
         current = GetNode(startPos);
-
         // Creates an open list for nodes that could be looked at later
         openList = new HashSet<Node>();
-
         // Creates a closed list for examined nodes
         closedList = new HashSet<Node>();
-
         foreach (KeyValuePair<Vector3Int, Node> node in allNodes)
         {
             node.Value.Parent = null;
         }
-
         allNodes.Clear();
-
         // Adds the current node to the open list (has been examined)
         openList.Add(current);
-
         path = null;
-
         while (openList.Count > 0 && path == null)
         {
             List<Node> neighbors = FindNeighbors(current.Position);
-
             ExamineNeighbors(neighbors, current);
-
             UpdateCurrentTile(ref current);
-
             path = GeneratePath(current);
         }
-
-        if (path != null)
-        {
-            return path;
-        }
-
+        if (path != null) return path;
         return null;
     }
-
     private List<Node> FindNeighbors(Vector3Int parentPosition)
     {
         List<Node> neighbors = new();
-
         // These two for loops make sure that all nodes are created around the current node
         for (int x = -1; x <= 1; x++)
         {
             for (int y = -1; y <= 1; y++)
             {
                 Vector3Int p = new(parentPosition.x - x, parentPosition.y - y, parentPosition.z);
-               
                 bool EnemyAtPosition = false;
                 if (gm != null)
                 {
@@ -152,38 +111,31 @@ public class AStar
                 if ((y != 0 || x != 0) && (allowDiagonal || (!allowDiagonal && (y == 0 || x == 0))))
                 {
                     BoundsInt size = tilemapGround.cellBounds;
-
                     // If node is within bounds of the grid and if there is no wall tile and no enemy there and if player has any AP, then add it to the neighbors list
                     if (p.x >= size.min.x && p.x < size.max.x && p.y >= size.min.y && p.y < size.max.y && !tilemapWalls.HasTile(p) && !EnemyAtPosition)
                     {
                         Node neighbor = GetNode(p);
                         neighbors.Add(neighbor);
                     }
-
                 }
             }
         }
         return neighbors;
     }
-
     private void ExamineNeighbors(List<Node> neighbors, Node current)
     {
         for (int i = 0; i < neighbors.Count; i++)
         {
             Node neighbor = neighbors[i];
-
             if (!ConnectedDiagonally(current, neighbor))
             {
                 continue;
             }
-
             int gScore = DetermineGScore(neighbor.Position, current.Position);
-
             if (gScore == 14 && NoDiagonalTiles.Contains(neighbor.Position) && NoDiagonalTiles.Contains(current.Position))
             {
                 continue;
             }
-
             if (openList.Contains(neighbor))
             {
                 if (current.G + gScore < neighbor.G)
@@ -204,26 +156,21 @@ public class AStar
             }
         }
     }
-
     private bool ConnectedDiagonally(Node currentNode, Node neighbor)
     {
         // Gets the direction
         Vector3Int direction = currentNode.Position - neighbor.Position;
-
         // Gets the positions of the nodes
         Vector3Int first = new(currentNode.Position.x + (direction.x * -1), currentNode.Position.y, currentNode.Position.z);
         Vector3Int second = new(currentNode.Position.x, currentNode.Position.y + (direction.y * -1), currentNode.Position.z);
-
         // The nodes are empty
         return true;
     }
-
     private int DetermineGScore(Vector3Int neighbor, Vector3Int current)
     {
         int gScore;
         int x = current.x - neighbor.x;
         int y = current.y - neighbor.y;
-
         if (Math.Abs(x - y) % 2 == 1)
         {
             // The gScore for a vertical or horizontal node is 10
@@ -235,15 +182,12 @@ public class AStar
         }
         return gScore;
     }
-
     private void UpdateCurrentTile(ref Node current)
     {
         // The current node is removed from the openList
         openList.Remove(current);
-
         // The current node is added to the closedList
         closedList.Add(current);
-
         // If the openList has nodes in it, then sort them by F value
         if (openList.Count > 0)
         {
@@ -251,7 +195,6 @@ public class AStar
             current = openList.OrderBy(x => x.F).First();
         }
     }
-
     private Stack<Vector3Int> GeneratePath(Node current)
     {
         // If the current node is the goal, then a path is found
@@ -274,22 +217,17 @@ public class AStar
         }
         return null;
     }
-
     private void CalcValues(Node parent, Node neighbor, Vector3Int goalPos, int cost)
     {
         // Sets the parent node
         neighbor.Parent = parent;
-
         // Calculates this node's g cost, the parent's g cost + what it costs to move to this node
         neighbor.G = parent.G + cost;
-
         // H is calculated, it is the distance from this node to the goal * 10
         neighbor.H = ((Math.Abs((neighbor.Position.x - goalPos.x)) + Math.Abs((neighbor.Position.y - goalPos.y))) * 10);
-
         // F is calculated, it is G + H
         neighbor.F = neighbor.G + neighbor.H;
     }
-
     private Node GetNode(Vector3Int position)
     {
         if (allNodes.ContainsKey(position))
@@ -304,7 +242,6 @@ public class AStar
         }
     }
 }
-
 public class Node
 {
     public int G { get; set; }
