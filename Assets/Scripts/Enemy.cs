@@ -5,29 +5,19 @@ using UnityEngine.Tilemaps;
 public class Enemy : MonoBehaviour
 {
     public EnemyInfo info;
-
     public AudioClip enemyMove;
     public AudioClip enemyAttack;
     public AudioClip playerAttack;
-
     public bool isInMovement = false;
-
     #region PATHFINDING
-
     public Tilemap tilemapGround;
-
     public Tilemap tilemapWalls;
-
     private Stack<Vector3Int> path;
-
     private Vector3Int destination;
-
     GameManager gm;
-
     [SerializeField]
     private AStar astar;
     #endregion
-
     // Start is called before the first frame update
     protected virtual void Start()
     {

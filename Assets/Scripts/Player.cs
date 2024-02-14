@@ -7,44 +7,31 @@ using UnityEngine.Tilemaps;
 /// </summary>
 public class Player : MonoBehaviour
 {
-    public int maxHealth = 3;
-    public int maxEnergy = 3;
-    public int currentHealth = 3;
-    public int currentEnergy = 3;
-
-    public int damage = 0;
-
+    public int MaxHealth { get; private set; } = 3;
+    public int MaxEnergy { get; private set; } = 3;
+    public int CurrentHealth { get; set; } = 3;
+    public int CurrentEnergy { get; set; } = 3;
+    public int DamagePoints { get; set; } = 0;
     public AudioClip playerMove;
     public AudioClip heal;
     public AudioClip select;
     public AudioClip gameOver;
-
     public Animator animator;
     public Inventory inventory;
     public InventoryUI inventoryUI;
     public ItemInfo selectedItem = null;
-
     public StatsDisplayManager statsDisplayManager;
-
     public bool finishedInit = false;
     public bool isInMovement = false;
-
     GameManager gm;
-
     #region PATHFINDING
-
     public Tilemap tilemapGround;
-
     public Tilemap tilemapWalls;
-
     private Stack<Vector3Int> path;
-
     private Vector3Int destination;
-
     [SerializeField]
     private AStar astar;
     #endregion
-
     // Start is called before the first frame update
     protected virtual void Start()
     {
@@ -53,21 +40,16 @@ public class Player : MonoBehaviour
             tilemapGround = tilemapGround,
             tilemapWalls = tilemapWalls
         };
-
         inventory = new Inventory();
-
         animator = GetComponent<Animator>();
         inventoryUI.SetInventory(inventory);
-
         finishedInit = true;
     }
-
     // Update is called once per frame 
     void Update()
     {
         MoveAlongThePath();
     }
-
     /// <summary>
     /// Calculates path for Player to travel to destination for point clicked on
     /// </summary>
@@ -75,61 +57,52 @@ public class Player : MonoBehaviour
     {
         astar.Initialize();
         path = astar.ComputePath(transform.position, goal, gm);
-        if (path != null)
-        {
-            ChangeEnergy(-(path.Count - 1));
-            path.Pop();
-            destination = path.Pop();
-            SoundManager.instance.PlaySound(playerMove);
-        }
+        if (path == null) return;
+        ChangeEnergy(-(path.Count - 1));
+        path.Pop();
+        destination = path.Pop();
+        SoundManager.instance.PlaySound(playerMove);
     }
-
     /// <summary>
     /// Calculates area Player can move to in a turn based on currentEnergy
     /// </summary>
     public Dictionary<Vector3Int, Node> CalculateArea()
     {
         astar.Initialize();
-        return astar.GetReachableAreaByDistance(transform.position, currentEnergy);
+        return astar.GetReachableAreaByDistance(transform.position, CurrentEnergy);
     }
-
     /// <summary>
     /// Moves Player along A* path
     /// </summary>
     public void MoveAlongThePath()
     {
-        if (path != null)
+        if (path == null) return;
+        isInMovement = true;
+        Vector3 shiftedDistance = new(destination.x + 0.5f, destination.y + 0.5f, destination.z);
+        transform.position = Vector3.MoveTowards(transform.position, shiftedDistance, 2 * Time.deltaTime);
+        float distance = Vector3.Distance(shiftedDistance, transform.position);
+        if (distance > 0f) return;
+        if (path.Count > 0)
         {
-            isInMovement = true;
-            Vector3 shiftedDistance = new(destination.x + 0.5f, destination.y + 0.5f, destination.z);
-            transform.position = Vector3.MoveTowards(transform.position, shiftedDistance, 2 * Time.deltaTime);
-            float distance = Vector3.Distance(shiftedDistance, transform.position);
-            if (distance <= 0f)
-            {
-                if (path.Count > 0)
-                {
-                    destination = path.Pop();
-                    SoundManager.instance.PlaySound(playerMove);
-                }
-                else // When Player stops moving
-                {
-                    path = null;
-                    isInMovement = false;
-                    if (gm.PlayerIsOnExitTile()) return;
-                    gm.DrawTargetsAndTracers();
-                }
-            }
+            destination = path.Pop();
+            SoundManager.instance.PlaySound(playerMove);
+        }
+        else // When Player stops moving
+        {
+            path = null;
+            isInMovement = false;
+            if (gm.PlayerIsOnExitTile()) return;
+            gm.DrawTargetsAndTracers();
         }
     }
-
     /// <summary>
     /// Changes HP and updates HP display, use negative to decrease
     /// </summary>
     public void ChangeHealth(int change)
     {
-        currentHealth = Mathf.Clamp(currentHealth + change, 0, maxHealth);
+        CurrentHealth = Mathf.Clamp(CurrentHealth + change, 0, MaxHealth);
         // Player is killed
-        if (currentHealth == 0)
+        if (CurrentHealth == 0)
         {
             SoundManager.instance.PlaySound(gameOver);
             SoundManager.instance.musicSource.Stop();
@@ -138,14 +111,14 @@ public class Player : MonoBehaviour
         // Player is damaged
         if (change < 0)
         {
-            statsDisplayManager.DecreaseHealthDisplay(currentHealth, maxHealth);
+            statsDisplayManager.DecreaseHealthDisplay(CurrentHealth, MaxHealth);
             animator.SetTrigger("playerHit");
             // Reduce max energy to simulate weakness
-            if (currentHealth == 1)
+            if (CurrentHealth == 1)
             {
-                currentEnergy = 1;
-                statsDisplayManager.DecreaseEnergyDisplay(currentEnergy, maxEnergy);
-                maxEnergy = 1;
+                CurrentEnergy = 1;
+                statsDisplayManager.DecreaseEnergyDisplay(CurrentEnergy, MaxEnergy);
+                MaxEnergy = 1;
             }
         }
         // Player is healed
@@ -153,45 +126,44 @@ public class Player : MonoBehaviour
         {
             statsDisplayManager.RestoreHealthDisplay();
             SoundManager.instance.PlaySound(heal);
-            maxEnergy = 3;
+            MaxEnergy = 3;
         }
     }
-
     /// <summary>
     /// Changes energy and updates energy display, use negative to decrease
     /// </summary>
     public void ChangeEnergy(int change)
     {
-        currentEnergy = Mathf.Clamp(currentEnergy + change, 0, maxEnergy);
+        CurrentEnergy = Mathf.Clamp(CurrentEnergy + change, 0, MaxEnergy);
         // End turn and stop timer
-        if (currentEnergy == 0)
-            {
-                gm.turnTimer.timeRemaining = 0;
-            }
+        if (CurrentEnergy == 0)
+        {
+            gm.turnTimer.timeRemaining = 0;
+        }
         // Decreased by Player action
-        if (change < 0) {
-            statsDisplayManager.DecreaseEnergyDisplay(currentEnergy, maxEnergy);
+        if (change < 0)
+        {
+            statsDisplayManager.DecreaseEnergyDisplay(CurrentEnergy, MaxEnergy);
         }
         // Restore after end turn and new level
-        else statsDisplayManager.RestoreEnergyDisplay(currentHealth);
+        else statsDisplayManager.RestoreEnergyDisplay(CurrentHealth);
     }
-
+    /// <summary>
+    /// Changes weapon uses after use, removes weapon if uses == 0
+    /// </summary>
     public void UpdateWeaponUP()
     {
-        // Remove weapon if weapon UP == 0 after usage
         if (inventoryUI.UpdateWeaponUP())
         {
             inventoryUI.RemoveItem(inventoryUI.GetCurrentSelected());
             inventoryUI.SetCurrentSelected(-1);
-            damage = 0;
+            DamagePoints = 0;
         }
     }
-
     public int GetWeaponRange()
     {
         return inventoryUI.GetWeaponRange();
     }
-
     /// <summary>
     /// Adds item to inventory when picked up
     /// </summary>
@@ -201,16 +173,15 @@ public class Player : MonoBehaviour
         if (itemIsadded) inventoryUI.RefreshInventoryItems();
         return itemIsadded;
     }
-
     /// <summary>
     /// Clicks on item in inventory
     /// </summary>
-    public void TryClickItem(int itemIdx)
+    public void TryClickItem(int itemIndex)
     {
         // Ensures index is within bounds and inventory has an item
-        if (itemIdx >= inventory.itemList.Count || inventory.itemList.Count == 0) return;
-        ItemInfo clickedItem = inventory.itemList[itemIdx].itemInfo;
-        AfterItemUse ret = clickedItem.ClickItem(this, itemIdx);
+        if (itemIndex >= inventory.itemList.Count || inventory.itemList.Count == 0) return;
+        ItemInfo clickedItem = inventory.itemList[itemIndex].itemInfo;
+        AfterItemUse ret = clickedItem.ClickItem(this, itemIndex);
         // Item gets selected since it was unselected before
         if (ret.selectedIdx != -1)
         {
@@ -226,11 +197,10 @@ public class Player : MonoBehaviour
         // Item is removed and inventory is refreshed if UP = 0
         if (ret.needToRemoveItem)
         {
-            inventoryUI.RemoveItem(itemIdx);
+            inventoryUI.RemoveItem(itemIndex);
             gm.needToDrawReachableAreas = true;
         }
     }
-
     /// <summary>
     /// Tries to drop item from inventory onto the ground
     /// </summary>
@@ -246,24 +216,24 @@ public class Player : MonoBehaviour
         inventoryUI.RemoveItem(itemIndex);
         SoundManager.instance.PlaySound(playerMove);
     }
-
-    public void ProcessHoverForInventory(Vector3 mp)
+    public void ProcessHoverForInventory(Vector3 mousePosition)
     {
-        inventoryUI.ProcessHoverForInventory(mp);
+        inventoryUI.ProcessHoverForInventory(mousePosition);
     }
-
     // Called by ItemInfo
     public void ClearTargetsAndTracers()
     {
         gm.ClearTargetsAndTracers();
     }
-
     // Called by ItemInfo
     public void DrawTargetsAndTracers()
     {
         gm.DrawTargetsAndTracers();
     }
-
+    public void SetAnimation(string trigger)
+    {
+        animator.SetTrigger(trigger);
+    }
     public void SetGameManager(GameManager g)
     {
         gm = g;

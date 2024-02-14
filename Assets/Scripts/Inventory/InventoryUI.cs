@@ -8,36 +8,33 @@ using System;
 public class InventoryUI : MonoBehaviour
 {
     private Inventory inventory;
-    private int selectedIdx = -1;
+    private int selectedIndex = -1;
     private string cachedName;
     private string cachedDesc;
     public Sprite itemBackground;
-
     public void SetInventory(Inventory inventory)
     {
         this.inventory = inventory;
         RefreshInventoryItems();
     }
-
     public void RemoveItem(int index)
     {
-        if (selectedIdx == -1) return;
-        if (selectedIdx == index)
+        if (selectedIndex == -1) return;
+        if (selectedIndex == index)
         {
-            selectedIdx = -1;
+            selectedIndex = -1;
             GameObject.Find("InventoryPressed0").transform.localScale = Vector3.one;
             GameObject.Find("InventoryPressed1").transform.localScale = Vector3.one;
         }
         else if (index == 0)
         {
-            selectedIdx = 0;
+            selectedIndex = 0;
             GameObject.Find("InventoryPressed1").transform.localScale = Vector3.one;
             GameObject.Find("InventoryPressed0").transform.localScale = Vector3.zero;
         }
         inventory.RemoveItem(index);
         RefreshInventoryItems();
     }
-
     public void RefreshInventoryItems()
     {
         int j = 0;
@@ -59,39 +56,34 @@ public class InventoryUI : MonoBehaviour
             j++;
         }
     }
-
     public bool ProcessDamageAfterWeaponDrop(Player p, int n)
     {
-        if (selectedIdx != n) return false;
-        return inventory.ProcessDamageAfterWeaponDrop(p, selectedIdx);
+        if (selectedIndex != n) return false;
+        return inventory.ProcessDamageAfterWeaponDrop(p, selectedIndex);
     }
-
     public bool UpdateWeaponUP()
     {
-        if (selectedIdx == -1) return false;
-        bool wasUsed = inventory.UpdateWeaponUP(selectedIdx);
-        SetCurrentSelected(selectedIdx);
+        if (selectedIndex == -1) return false;
+        bool wasUsed = inventory.UpdateWeaponUP(selectedIndex);
+        SetCurrentSelected(selectedIndex);
         return wasUsed;
     }
-
     public int GetWeaponRange()
     {
-        if (selectedIdx == -1) return 0;
-        return inventory.GetWeaponRange(selectedIdx);
+        if (selectedIndex == -1) return 0;
+        return inventory.GetWeaponRange(selectedIndex);
     }
-
     public int GetCurrentSelected()
     {
-        return selectedIdx;
+        return selectedIndex;
     }
-
     public void SetCurrentSelected(int itemPosition)
     {
-        selectedIdx = itemPosition;
+        selectedIndex = itemPosition;
         if (itemPosition >= 0)
         {
-            cachedName = inventory.itemList[selectedIdx].itemInfo.name;
-            cachedDesc = inventory.itemList[selectedIdx].itemInfo.description + inventory.itemList[selectedIdx].itemInfo.stats;
+            cachedName = inventory.itemList[selectedIndex].itemInfo.name;
+            cachedDesc = inventory.itemList[selectedIndex].itemInfo.description + inventory.itemList[selectedIndex].itemInfo.stats;
         }
         else
         {
@@ -106,7 +98,6 @@ public class InventoryUI : MonoBehaviour
         descText.text = cachedDesc;
 
     }
-
     /// <summary>
     /// Shows name and desc of an item when hovering over it
     /// </summary>
@@ -134,7 +125,7 @@ public class InventoryUI : MonoBehaviour
             i++;
         }
         if (mouseIsOverIcon) return;
-        if (selectedIdx == -1)
+        if (selectedIndex == -1)
         {
             nameText.text = "";
             descText.text = "";

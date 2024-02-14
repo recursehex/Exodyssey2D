@@ -1,6 +1,6 @@
 # Exodyssey 2D
 
-This is the repository for **Exodyssey 2D**, a sci-fi turn-based strategy roguelite by Axiomatic Systems. The game is built in Unity 2022.3.14f1.
+This is the repository for **Exodyssey 2D**, a sci-fi turn-based strategy roguelike by Axiomatic Systems. The game is built in Unity 2022.3.14f1.
 
 ## Versions
 
