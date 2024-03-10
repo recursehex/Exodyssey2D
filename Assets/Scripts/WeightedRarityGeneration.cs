@@ -4,7 +4,7 @@ using UnityEngine.Tilemaps;
 
 public class WeightedRarityGeneration : MonoBehaviour
 {
-    static public void Generation(Dictionary<Rarity, int> percentMap, List<Rarity> allRarities, int nStartElements, GameObject[] elementTemplates, List<GameObject> elements, Tilemap tilemapWalls, GameManager gm, bool isFromItemClass, Tilemap tilemapGround)
+    public static void Generation(Dictionary<Rarity, int> percentMap, List<Rarity> allRarities, int nStartElements, GameObject[] elementTemplates, List<GameObject> elements, Tilemap tilemapWalls, GameManager gm, bool isFromItemClass, Tilemap tilemapGround)
     {
         int sumPercent = 0;
         List<int> rarityPercentages = new();
@@ -36,10 +36,7 @@ public class WeightedRarityGeneration : MonoBehaviour
             int j;
             for (j = 0; j < rarityPercentages.Count; j++)
             {
-                if (randomPercent <= ((rSum + rarityPercentages[j]) * 100) / sumPercent)
-                {
-                    break;
-                }
+                if (randomPercent <= (rSum + rarityPercentages[j]) * 100 / sumPercent) break;
                 rSum += rarityPercentages[j];
             }
             int nItemsInGroup = ItemIndexDoubleList[j].Count;
@@ -54,7 +51,7 @@ public class WeightedRarityGeneration : MonoBehaviour
                 if (!tilemapWalls.HasTile(p) && !(x <= -2 && y <= 1 && y >= -1))
                 {
                     Vector3 shiftedDistance = new(x + 0.5f, y + 0.5f, 0);
-                    if (!gm.HasElementAtPosition(shiftedDistance))
+                    if (!gm.HasItemAtPosition(shiftedDistance) && !gm.HasEnemyAtPosition(shiftedDistance))
                     {
                         if (isFromItemClass)
                         {

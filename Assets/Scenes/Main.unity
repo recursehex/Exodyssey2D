@@ -707,9 +707,9 @@ MonoBehaviour:
   itemTemplates:
   - {fileID: 5730536483717399719, guid: 449c9aea6710b3947a699d611aea06d5, type: 3}
   - {fileID: 1336611518689343522, guid: 176769378e4b4604a8be4ff8a9b0df0d, type: 3}
+  - {fileID: 2145379877062402088, guid: 076e796f14b824f9ea393fded31f3400, type: 3}
   - {fileID: 142956206023105660, guid: 26546f8ae20dd2d418e1c49d62c10717, type: 3}
   - {fileID: 2145379877062402088, guid: 33186f847f6305748921b5b654aa8c9d, type: 3}
-  - {fileID: 2145379877062402088, guid: 076e796f14b824f9ea393fded31f3400, type: 3}
   - {fileID: 2145379877062402088, guid: ba8e62b527e3c4b2c8c15ddde698b587, type: 3}
   items: []
   tilemapGround: {fileID: 2052983298}
@@ -723,12 +723,12 @@ MonoBehaviour:
   - {fileID: 11400000, guid: c460a9e9d7021bd40861beafe3a92647, type: 2}
   tilemapExit: {fileID: 2025662172}
   endTurnButton: {fileID: 2049175783}
-  needToDrawReachableAreas: 0
-  reachableArea: []
+  needToDrawTileAreas: 0
+  tileAreas: []
   target:
   - {fileID: 3235571212307580798, guid: 0d83749970d77b24286906dba172abc5, type: 3}
   targets: []
-  rangedTargetPositions: []
+  targetPositions: []
   tracer:
   - {fileID: 791884194307863000, guid: c0583b4e855c74b8c82e7b9b5efb5ce9, type: 3}
   tracers: []
