@@ -8,41 +8,41 @@ public class ItemInventory
 	{
 		return itemInfo.tag switch
 		{
-			ItemTag.MedKit => ItemAssets.Instance.medKit,
-			ItemTag.Branch => ItemAssets.Instance.branch,
-			ItemTag.DiamondChainsaw => ItemAssets.Instance.diamondChainsaw,
-			ItemTag.Knife => ItemAssets.Instance.knife,
+			ItemInfo.ItemTag.MedKit => ItemAssets.Instance.medKit,
+			ItemInfo.ItemTag.Branch => ItemAssets.Instance.branch,
+			ItemInfo.ItemTag.DiamondChainsaw => ItemAssets.Instance.diamondChainsaw,
+			ItemInfo.ItemTag.Knife => ItemAssets.Instance.knife,
 			/*
-			ItemTag.ToolKit => ItemAssets.Instance.toolKit,
-			ItemTag.Wrench => ItemAssets.Instance.wrench,
-			ItemTag.Mallet => ItemAssets.Instance.mallet,
-			ItemTag.Axe => ItemAssets.Instance.axe,
-			ItemTag.Rock => ItemAssets.Instance.rock,
-			ItemTag.SmokeGrenade => ItemAssets.Instance.smokeGrenade,
-			ItemTag.Dynamite => ItemAssets.Instance.dynamite,
-			ItemTag.StickyGrenade => ItemAssets.Instance.stickyGrenade,
-			ItemTag.Tranquilizer => ItemAssets.Instance.tranquilizer,
-			ItemTag.Carbine => ItemAssets.Instance.carbine,
-			ItemTag.Flamethrower => ItemAssets.Instance.flamethrower,
+			ItemInfo.ItemTag.ToolKit => ItemAssets.Instance.toolKit,
+			ItemInfo.ItemTag.Wrench => ItemAssets.Instance.wrench,
+			ItemInfo.ItemTag.Mallet => ItemAssets.Instance.mallet,
+			ItemInfo.ItemTag.Axe => ItemAssets.Instance.axe,
+			ItemInfo.ItemTag.Rock => ItemAssets.Instance.rock,
+			ItemInfo.ItemTag.SmokeGrenade => ItemAssets.Instance.smokeGrenade,
+			ItemInfo.ItemTag.Dynamite => ItemAssets.Instance.dynamite,
+			ItemInfo.ItemTag.StickyGrenade => ItemAssets.Instance.stickyGrenade,
+			ItemInfo.ItemTag.Tranquilizer => ItemAssets.Instance.tranquilizer,
+			ItemInfo.ItemTag.Carbine => ItemAssets.Instance.carbine,
+			ItemInfo.ItemTag.Flamethrower => ItemAssets.Instance.flamethrower,
 			*/
-			ItemTag.HuntingRifle => ItemAssets.Instance.huntingRifle,
+			ItemInfo.ItemTag.HuntingRifle => ItemAssets.Instance.huntingRifle,
+			ItemInfo.ItemTag.PlasmaRailgun => ItemAssets.Instance.plasmaRailgun,
 			/*
-			ItemTag.FusionCell => ItemAssets.Instance.fusionCell,
-			ItemTag.Battery => ItemAssets.Instance.battery,
-			ItemTag.Backpack => ItemAssets.Instance.backpack,
-			ItemTag.Crate => ItemAssets.Instance.crate,
-			ItemTag.Lightrod => ItemAssets.Instance.lightrod,
-			ItemTag.Extinguisher => ItemAssets.Instance.extinguisher,
-			ItemTag.Spotlight => ItemAssets.Instance.spotlight,
-			ItemTag.Blowtorch => ItemAssets.Instance.blowtorch,
-			ItemTag.ThermalImager => ItemAssets.Instance.thermalImager,
-			ItemTag.NightVision => ItemAssets.Instance.nightVision;
-			ItemTag.Helmet => ItemAssets.Instance.helmet;
-			ItemTag.Vest => ItemAssets.Instance.vest;
-			ItemTag.GrapheneShield => ItemAssets.Instance.grapheneShield;
+			ItemInfo.ItemTag.FusionCell => ItemAssets.Instance.fusionCell,
+			ItemInfo.ItemTag.Battery => ItemAssets.Instance.battery,
+			ItemInfo.ItemTag.Backpack => ItemAssets.Instance.backpack,
+			ItemInfo.ItemTag.Crate => ItemAssets.Instance.crate,
+			ItemInfo.ItemTag.Lightrod => ItemAssets.Instance.lightrod,
+			ItemInfo.ItemTag.Extinguisher => ItemAssets.Instance.extinguisher,
+			ItemInfo.ItemTag.Spotlight => ItemAssets.Instance.spotlight,
+			ItemInfo.ItemTag.Blowtorch => ItemAssets.Instance.blowtorch,
+			ItemInfo.ItemTag.ThermalImager => ItemAssets.Instance.thermalImager,
+			ItemInfo.ItemTag.NightVision => ItemAssets.Instance.nightVision;
+			ItemInfo.ItemTag.Helmet => ItemAssets.Instance.helmet;
+			ItemInfo.ItemTag.Vest => ItemAssets.Instance.vest;
+			ItemInfo.ItemTag.GrapheneShield => ItemAssets.Instance.grapheneShield;
 			*/
-			ItemTag.PlasmaRailgun => ItemAssets.Instance.plasmaRailgun,
-			ItemTag.Unknown => ItemAssets.Instance.missing,
+			ItemInfo.ItemTag.Unknown => ItemAssets.Instance.missing,
 			_ => ItemAssets.Instance.missing,
 		};
 	}
