@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -15,7 +14,7 @@ public enum VehicleTag
 public class VehicleInfo
 {
     public VehicleTag tag;                      // Name of vehicle
-    public Rarity rarity;                       // Rarity of vehicle
+    public Rarity.RarityTag rarity;             // Rarity of vehicle
 
     public string name;                         // Ingame name of vehicle
     public string description;                  // Ingame desc of vehicle
@@ -35,11 +34,11 @@ public class VehicleInfo
     public int maxAP = 1;
     public int currentAP = 1;
 
-    public static int lastVehicleIndex = (int)VehicleTag.Unknown;
+    private static readonly int lastVehicleIndex = (int)VehicleTag.Unknown;
 
-    static public List<Rarity> GenerateAllRarities()
+    private static List<Rarity.RarityTag> GenerateAllRarities()
     {
-        List<Rarity> vehicleRarityList = new();
+        List<Rarity.RarityTag> vehicleRarityList = new();
 
         for (int i = 0; i < lastVehicleIndex; i++)
         {
@@ -48,24 +47,24 @@ public class VehicleInfo
         }
         return vehicleRarityList;
     }
-
-    /// <summary>
-    /// Returns the percentage for a desired rarity
-    /// </summary>
-    /// <returns></returns>
-    public static Dictionary<Rarity, int> RarityPercentMap()
-    {
-        Dictionary<Rarity, int> RarityToPercentage = new()
-        {
-            [Rarity.Common] = 35,
-            [Rarity.Limited] = 30,
-            [Rarity.Scarce] = 20,
-            [Rarity.Rare] = 10,
-            [Rarity.Anomalous] = 5,
-        };
-        return RarityToPercentage;
-    }
-
+    public static int GetRandomIndexOfSpecifiedRarity(Rarity.RarityTag specifiedRarity)
+	{
+		List<Rarity.RarityTag> vehicleRarityList = GenerateAllRarities();
+		List<int> indicesOfSpecifiedRarity = new();
+		for (int i = 0; i < vehicleRarityList.Count; i++)
+		{
+			if (vehicleRarityList[i] == specifiedRarity)
+			{
+				indicesOfSpecifiedRarity.Add(i);
+			}
+		}
+		if (indicesOfSpecifiedRarity.Count == 0)
+		{
+			return -1;
+		}
+		int randomIndex = Random.Range(0, indicesOfSpecifiedRarity.Count);
+		return indicesOfSpecifiedRarity[randomIndex];
+	}
     /// <summary>
     /// Returns the info for a desired vehicle 
     /// </summary>
@@ -79,7 +78,7 @@ public class VehicleInfo
         {
             case 0:
                 inf.tag = VehicleTag.Rover;
-                inf.rarity = Rarity.Scarce;
+                inf.rarity = Rarity.RarityTag.Scarce;
                 inf.name = "ROVER";
                 inf.maxStorage = 2;
                 inf.efficiency = 2;
@@ -92,7 +91,7 @@ public class VehicleInfo
 
             case 1:
                 inf.tag = VehicleTag.Trailer;
-                inf.rarity = Rarity.Scarce;
+                inf.rarity = Rarity.RarityTag.Scarce;
                 inf.name = "TRAILER";
                 inf.maxStorage = 4;
                 inf.efficiency = 1;
@@ -105,7 +104,7 @@ public class VehicleInfo
 
             case 2:
                 inf.tag = VehicleTag.Buggy;
-                inf.rarity = Rarity.Rare;
+                inf.rarity = Rarity.RarityTag.Rare;
                 inf.name = "BUGGY";
                 inf.maxStorage = 0;
                 inf.efficiency = 3;

@@ -154,10 +154,11 @@ public class Player : MonoBehaviour
 	/// </summary>
 	public void ChangeWeaponDurability(int change)
 	{
-		inventoryUI.ChangeWeaponDurability(change);
+		selectedItem.ChangeDurability(change);
+		inventoryUI.SetCurrentSelected(inventoryUI.SelectedIndex);
 		if (selectedItem.currentUses == 0)
 		{
-			inventoryUI.RemoveItem(inventoryUI.GetCurrentSelected());
+			inventoryUI.RemoveItem(inventoryUI.SelectedIndex);
 			inventoryUI.SetCurrentSelected(-1);
 			selectedItem = null;
 			DamagePoints = 0;
@@ -172,9 +173,9 @@ public class Player : MonoBehaviour
 	/// </summary>
 	public bool AddItem(ItemInfo itemInfo)
 	{
-		bool itemIsadded = inventory.AddItem(new ItemInventory { itemInfo = itemInfo });
-		if (itemIsadded) inventoryUI.RefreshInventoryItems();
-		return itemIsadded;
+		bool itemIsAdded = inventory.AddItem(new ItemInventory { itemInfo = itemInfo });
+		if (itemIsAdded) inventoryUI.RefreshInventoryIcons();
+		return itemIsAdded;
 	}
 	/// <summary>
 	/// Clicks on item in inventory, called by InventoryIcons
@@ -184,9 +185,8 @@ public class Player : MonoBehaviour
 		// Ensures index is within bounds and inventory has an item
 		if (itemIndex >= inventory.itemList.Count || inventory.itemList.Count == 0) return;
 		ItemInfo clickedItem = inventory.itemList[itemIndex].itemInfo;
-		bool wasSelected = ItemInfo.ProcessSelection(inventoryUI.GetCurrentSelected(), itemIndex);
+		bool wasSelected = InventoryUI.ProcessSelection(inventoryUI.SelectedIndex, itemIndex);
 		if (!wasSelected) itemIndex = -1;
-		ItemInfo.selectedItemIndex = itemIndex;
 		inventoryUI.SetCurrentSelected(itemIndex);
 		// Item gets selected since it was unselected before
 		if (selectedItem != null)
@@ -217,7 +217,7 @@ public class Player : MonoBehaviour
 		if (selectedItem?.type is not ItemInfo.ItemType.Consumable) return false;
 		bool wasUsed = MedKitWasUsed();
 		if (selectedItem.currentUses == 0) {
-			inventoryUI.RemoveItem(ItemInfo.selectedItemIndex);
+			inventoryUI.RemoveItem(inventoryUI.SelectedIndex);
 			selectedItem = null;
 			wasUsed = true;
 		}
@@ -229,7 +229,7 @@ public class Player : MonoBehaviour
 		{
 			ChangeHealth(MaxHealth);
 			ChangeEnergy(-1);
-			selectedItem.ChangeConsumableDurability(-1);
+			selectedItem.ChangeDurability(-1);
 			return true;
 		}
 		return false;
@@ -243,9 +243,15 @@ public class Player : MonoBehaviour
 		if (inventory.itemList.Count == 0) return;
 		// Drops item on the ground, returns if an item is occupying the tile
 		if (!GameManager.MyInstance.DropItem(inventory.itemList[itemIndex].itemInfo)) return;
-		// Clears targeting if ranged weapon is dropped
-		if (inventoryUI.ProcessDamageAfterWeaponDrop(this, itemIndex) && GetWeaponRange() > 0) gm.ClearTargetsAndTracers();
+		// Resets damage points if weapon is dropped
+		if (selectedItem.type == ItemInfo.ItemType.Weapon)
+		{
+			DamagePoints = 0;
+			// Clears targeting if ranged weapon is dropped
+			if (GetWeaponRange() > 0) gm.ClearTargetsAndTracers();
+		}
 		// Removes item from inventory and plays corresponding sound
+		selectedItem = null;
 		inventoryUI.RemoveItem(itemIndex);
 		SoundManager.instance.PlaySound(playerMove);
 	}
