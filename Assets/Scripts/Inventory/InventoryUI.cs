@@ -8,14 +8,14 @@ using System;
 public class InventoryUI : MonoBehaviour
 {
 	private Inventory inventory;
-	private int selectedIndex = -1;
+	public int SelectedIndex { get; private set; } = -1;
 	private string cachedName;
 	private string cachedDesc;
 	public Sprite itemBackground;
 	public void SetInventory(Inventory inventory)
 	{
 		this.inventory = inventory;
-		RefreshInventoryItems();
+		RefreshInventoryIcons();
 	}
 	/// <summary>
 	/// Removes item from inventory UI
@@ -23,28 +23,35 @@ public class InventoryUI : MonoBehaviour
 	/// <param name="index"></param>
 	public void RemoveItem(int index)
 	{
-		if (selectedIndex != -1) 
+		if (SelectedIndex != -1) 
 		{
-			if (selectedIndex == index)
+			// Resets icons and inventory text
+			if (SelectedIndex == index)
 			{
-				selectedIndex = -1;
+				SelectedIndex = -1;
 				GameObject.Find("InventoryPressed0").transform.localScale = Vector3.one;
 				GameObject.Find("InventoryPressed1").transform.localScale = Vector3.one;
+				GameObject itemName = GameObject.Find("ItemName");
+				Text nameText = itemName.GetComponent<Text>();
+				GameObject itemDesc = GameObject.Find("ItemDescription");
+				Text descText = itemDesc.GetComponent<Text>();
+				nameText.text = "";
+				descText.text = "";
 			}
 			else if (index == 0)
 			{
-				selectedIndex = 0;
+				SelectedIndex = 0;
 				GameObject.Find("InventoryPressed1").transform.localScale = Vector3.one;
 				GameObject.Find("InventoryPressed0").transform.localScale = Vector3.zero;
 			}
 		}
 		inventory.RemoveItem(index);
-		RefreshInventoryItems();
+		RefreshInventoryIcons();
 	}
 	/// <summary>
 	/// Refreshes items in inventory UI to match changed items
 	/// </summary>
-	public void RefreshInventoryItems()
+	public void RefreshInventoryIcons()
 	{
 		// Cleanup of icons
 		for (int i = 0; i < inventory.InventorySize; i++)
@@ -54,7 +61,7 @@ public class InventoryUI : MonoBehaviour
 		}
 		int iconNumber = 0;
 		// Add item icon
-		foreach (ItemInventory item in inventory.itemList)//GetItemList())
+		foreach (ItemInventory item in inventory.itemList)
 		{
 			if (iconNumber < inventory.InventorySize)
 			{
@@ -64,31 +71,17 @@ public class InventoryUI : MonoBehaviour
 			iconNumber++;
 		}
 	}
-	public bool ProcessDamageAfterWeaponDrop(Player p, int itemIndex)
-	{
-		if (selectedIndex != itemIndex) return false;
-		return inventory.ProcessDamageAfterWeaponDrop(p, selectedIndex);
-	}
 	/// <summary>
-	/// Decreases weapon durability after use if one is selected
+	/// Sets selected index to item index and updates inventory text display
 	/// </summary>
-	public void ChangeWeaponDurability(int change)
+	/// <param name="itemIndex"></param>
+	public void SetCurrentSelected(int itemIndex)
 	{
-		if (selectedIndex == -1) return;
-		inventory.DecreaseWeaponDurability(selectedIndex, change);
-		SetCurrentSelected(selectedIndex);
-	}
-	public int GetCurrentSelected()
-	{
-		return selectedIndex;
-	}
-	public void SetCurrentSelected(int itemPosition)
-	{
-		selectedIndex = itemPosition;
-		if (itemPosition >= 0)
+		SelectedIndex = itemIndex;
+		if (SelectedIndex >= 0)
 		{
-			cachedName = inventory.itemList[selectedIndex].itemInfo.name;
-			cachedDesc = inventory.itemList[selectedIndex].itemInfo.description + inventory.itemList[selectedIndex].itemInfo.stats;
+			cachedName = inventory.itemList[SelectedIndex].itemInfo.name;
+			cachedDesc = inventory.itemList[SelectedIndex].itemInfo.description + inventory.itemList[SelectedIndex].itemInfo.stats;
 		}
 		else
 		{
@@ -102,6 +95,24 @@ public class InventoryUI : MonoBehaviour
 		nameText.text = cachedName;
 		descText.text = cachedDesc;
 
+	}
+	/// <summary>
+	/// Called by ClickItem when item is selected or unselected
+	/// </summary>
+	/// <param name="oldSelectedIndex"></param>
+	/// <param name="newSelectedIndex"></param>
+	public static bool ProcessSelection(int oldSelectedIndex, int newSelectedIndex)
+	{
+		// Unselect old item
+		if (oldSelectedIndex == newSelectedIndex && oldSelectedIndex != -1)
+		{
+			GameObject.Find("InventoryPressed" + oldSelectedIndex).transform.localScale = Vector3.one;
+			return false;
+		}
+		// Unselect old item & select new item
+		if (oldSelectedIndex != -1) GameObject.Find("InventoryPressed" + oldSelectedIndex).transform.localScale = Vector3.one;
+		if (newSelectedIndex != -1) GameObject.Find("InventoryPressed" + newSelectedIndex).transform.localScale = Vector3.zero;
+		return true;
 	}
 	/// <summary>
 	/// Shows name and desc of an item when hovering over it
@@ -130,7 +141,7 @@ public class InventoryUI : MonoBehaviour
 			iconNumber++;
 		}
 		if (mouseIsOverIcon) return;
-		if (selectedIndex == -1)
+		if (SelectedIndex == -1)
 		{
 			nameText.text = "";
 			descText.text = "";
