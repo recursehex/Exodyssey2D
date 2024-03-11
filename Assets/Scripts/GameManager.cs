@@ -167,7 +167,8 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	public void ItemGeneration()
 	{
-		WeightedRarityGeneration.Generation(ItemInfo.RarityPercentMap(), ItemInfo.GenerateAllRarities(), spawnItemCount, itemTemplates, items, tilemapWalls, this, true, null);
+		while (spawnItemCount > 0)
+			if (WeightedRarityGeneration.Generate("Item")) spawnItemCount--;
 	}
 	/// <summary>
 	/// Returns true if no item at Player position, allowing an item in the inventory to be dropped
@@ -231,7 +232,8 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	private void EnemyGeneration()
 	{
-		WeightedRarityGeneration.Generation(EnemyInfo.RarityPercentMap(), EnemyInfo.GenerateAllRarities(), spawnEnemyCount, enemyTemplates, enemies, tilemapWalls, this, false, tilemapGround);
+		while (spawnEnemyCount > 0)
+			if (WeightedRarityGeneration.Generate("Enemy")) spawnEnemyCount--;
 	}
 	/// <summary>
 	/// Returns false if no enemy at position, returns true if found
@@ -510,6 +512,18 @@ public class GameManager : MonoBehaviour
 	private bool IsInRangeForRangedWeapon(Vector3 objPosition)
 	{
 		return targetPositions.Contains(objPosition);
+	}
+	public bool TilemapWallsHasTile(Vector3Int position) 
+	{
+		return tilemapWalls.HasTile(position);
+	}
+	public Tilemap GetTilemapWalls() 
+	{
+		return tilemapWalls;
+	}
+	public Tilemap GetTilemapGround() 
+	{
+		return tilemapGround;
 	}
 	/// <summary>
 	/// Deletes all tile areas, used to reset tile areas

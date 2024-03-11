@@ -27,31 +27,4 @@ public class Inventory
 	{
 		itemList.RemoveAt(index);
 	}
-	/// <summary>
-	/// 
-	/// </summary>
-	/// <param name="player"></param>
-	/// <param name="index"></param>
-	/// <returns></returns>
-	public bool ProcessDamageAfterWeaponDrop(Player player, int index)
-	{
-		return itemList[index].itemInfo.ProcessDamageAfterWeaponDrop(player);
-	}
-	/// <summary>
-	/// Decreases weapon durability after use
-	/// </summary>
-	/// <param name="index"></param>
-	public void DecreaseWeaponDurability(int index, int change)
-	{
-		itemList[index].itemInfo.ChangeWeaponDurability(change);
-	}
-	/// <summary>
-	/// Returns currently select weapon's range
-	/// </summary>
-	/// <param name="index"></param>
-	/// <returns></returns>
-	public int GetWeaponRange(int index)
-	{
-		return itemList[index].itemInfo.range;
-	}
 }
