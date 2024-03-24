@@ -107,7 +107,7 @@ public class Player : MonoBehaviour
 		{
 			SoundManager.instance.PlaySound(gameOver);
 			SoundManager.instance.musicSource.Stop();
-			GameManager.instance.GameOver();
+			gm.GameOver();
 		}
 		// Player is damaged
 		if (change < 0)
@@ -137,15 +137,9 @@ public class Player : MonoBehaviour
 	{
 		CurrentEnergy = Mathf.Clamp(CurrentEnergy + change, 0, MaxEnergy);
 		// End turn and stop timer
-		if (CurrentEnergy == 0)
-		{
-			gm.turnTimer.timeRemaining = 0;
-		}
+		if (CurrentEnergy == 0) gm.turnTimer.timeRemaining = 0;
 		// Decreased by Player action
-		if (change < 0)
-		{
-			statsDisplayManager.DecreaseEnergyDisplay(CurrentEnergy, MaxEnergy);
-		}
+		if (change < 0) statsDisplayManager.DecreaseEnergyDisplay(CurrentEnergy, MaxEnergy);
 		// Restore after end turn and new level
 		else statsDisplayManager.RestoreEnergyDisplay(CurrentHealth);
 	}
