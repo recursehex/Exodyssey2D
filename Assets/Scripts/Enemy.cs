@@ -44,39 +44,34 @@ public class Enemy : MonoBehaviour
     }
     void Update()
     {
-        if (GameManager.instance.playersTurn) return;
+        if (gm.playersTurn) return;
         MoveAlongThePath();
     }
     public void MoveAlongThePath()
     {
-        if (path != null)
+        if (path == null) return;
+        Vector3 shiftedDistance = new(destination.x + 0.5f, destination.y + 0.5f, destination.z);
+        transform.position = Vector3.MoveTowards(transform.position, shiftedDistance, 2 * Time.deltaTime);
+        float distance = Vector3.Distance(shiftedDistance, transform.position);
+        if (distance > 0f) return;
+        // Move one tile closer to Player
+        if (path.Count > 1 && info.currentEnergy > 0)
         {
-            Vector3 shiftedDistance = new(destination.x + 0.5f, destination.y + 0.5f, destination.z);
-            transform.position = Vector3.MoveTowards(transform.position, shiftedDistance, 2 * Time.deltaTime);
-
-            float distance = Vector3.Distance(shiftedDistance, transform.position);
-            if (distance <= 0f)
-            {
-                // Move one tile closer to Player
-                if (path.Count > 1 && info.currentEnergy > 0)
-                {
-                    SoundManager.instance.PlaySound(enemyMove);
-                    destination = path.Pop();
-                    info.currentEnergy--;
-                }
-                // Enemy attacks Player if enemy moves to an adjacent tile
-                else if (path.Count == 1 && info.currentEnergy > 0)
-                {
-                    SoundManager.instance.PlaySound(enemyAttack);
-                    gm.HandleDamageToPlayer(info.damagePoints);
-                    info.currentEnergy--;
-                }
-                else
-                {
-                    path = null;
-                    isInMovement = false;
-                }
-            }
+            SoundManager.instance.PlaySound(enemyMove);
+            destination = path.Pop();
+            info.currentEnergy--;
+        }
+        // Enemy attacks Player if enemy moves to an adjacent tile
+        else if (path.Count == 1 && info.currentEnergy > 0)
+        {
+            SoundManager.instance.PlaySound(enemyAttack);
+            gm.HandleDamageToPlayer(info.damagePoints);
+            info.currentEnergy--;
+        }
+        else
+        {
+            path = null;
+            isInMovement = false;
         }
     }
     public void CalculatePathAndStartMovement(Vector3 goal)
@@ -118,9 +113,9 @@ public class Enemy : MonoBehaviour
             isInMovement = false;
         }
     }
-    private bool HasEnemyAtPosition(Vector3 p)
+    private bool HasEnemyAtPosition(Vector3 position)
     {
-        Vector3 shiftedDistance = new(p.x + 0.5f, p.y + 0.5f, 0);
+        Vector3 shiftedDistance = new(position.x + 0.5f, position.y + 0.5f, 0);
         foreach (GameObject obj in gm.enemies)
         {
             Enemy e = obj.GetComponent<Enemy>();

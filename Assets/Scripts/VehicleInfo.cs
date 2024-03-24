@@ -53,15 +53,9 @@ public class VehicleInfo
 		List<int> indicesOfSpecifiedRarity = new();
 		for (int i = 0; i < vehicleRarityList.Count; i++)
 		{
-			if (vehicleRarityList[i] == specifiedRarity)
-			{
-				indicesOfSpecifiedRarity.Add(i);
-			}
+			if (vehicleRarityList[i] == specifiedRarity) indicesOfSpecifiedRarity.Add(i);
 		}
-		if (indicesOfSpecifiedRarity.Count == 0)
-		{
-			return -1;
-		}
+		if (indicesOfSpecifiedRarity.Count == 0) return -1;
 		int randomIndex = Random.Range(0, indicesOfSpecifiedRarity.Count);
 		return indicesOfSpecifiedRarity[randomIndex];
 	}

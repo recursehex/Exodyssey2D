@@ -100,15 +100,9 @@ public class ItemInfo
 		List<int> indicesOfSpecifiedRarity = new();
 		for (int i = 0; i < itemRarityList.Count; i++)
 		{
-			if (itemRarityList[i] == specifiedRarity)
-			{
-				indicesOfSpecifiedRarity.Add(i);
-			}
+			if (itemRarityList[i] == specifiedRarity) indicesOfSpecifiedRarity.Add(i);
 		}
-		if (indicesOfSpecifiedRarity.Count == 0)
-		{
-			return -1;
-		}
+		if (indicesOfSpecifiedRarity.Count == 0) return -1;
 		int randomIndex = Random.Range(0, indicesOfSpecifiedRarity.Count);
 		return indicesOfSpecifiedRarity[randomIndex];
 	}
@@ -118,12 +112,12 @@ public class ItemInfo
 	public void ChangeDurability(int change) 
 	{
 		currentUses += change;
-		stats = "\nUP:" + currentUses + "/" + maxUses;
+		stats = $"\nUP:{currentUses}/{maxUses}";
 		if (type is ItemType.Weapon) 
 		{
-			stats += "\tDP:" + damagePoints;
-			if (shellDamage >= 0) stats += "\nSDP:" + shellDamage;
-			if (range > 0) stats += "\nRP:" + range;
+			stats += $"\tDP:{damagePoints}";
+			if (shellDamage >= 0) stats += $"\nSDP:{shellDamage}";
+			if (range > 0) stats += $"\nRP:{range}";
 		}
 	}
 	/// <summary>
@@ -145,7 +139,7 @@ public class ItemInfo
 				info.currentUses = info.maxUses;
 				info.isFlammable = true;
 				info.description = "Heals oneself";
-				info.stats = "\nUP:" + info.maxUses + "/" + info.maxUses;
+				info.stats = $"\nUP:{info.maxUses}/{info.maxUses}";
 				break;
 			case 1:
 				info.tag = ItemTag.Branch;
@@ -158,7 +152,7 @@ public class ItemInfo
 				info.shellDamage = 0;
 				info.isFlammable = true;
 				info.description = "Fragile stick";
-				info.stats = "\nUP:" + info.maxUses + "/" + info.maxUses + "\tDP:" + info.damagePoints + "\nSDP:" + info.shellDamage;
+				info.stats = $"\nUP:{info.maxUses}/{info.maxUses}\tDP:{info.damagePoints}\nSDP:{info.shellDamage}";
 				break;
 				
 			case 2:
@@ -171,7 +165,7 @@ public class ItemInfo
 				info.damagePoints = 2;
 				info.shellDamage = 1;
 				info.description = "Can stab shelled aliens";
-				info.stats = "\nUP:" + info.maxUses + "/" + info.maxUses + "\tDP:" + info.damagePoints + "\nSDP:" + info.shellDamage;
+				info.stats = $"\nUP:{info.maxUses}/{info.maxUses}\tDP:{info.damagePoints}\nSDP:{info.shellDamage}";
 				break;
 			
 			case 3:
@@ -184,7 +178,7 @@ public class ItemInfo
 				info.currentUses = info.maxUses;
 				info.damagePoints = 5;
 				info.description = "Handheld rock saw";
-				info.stats = "\nUP:" + info.maxUses + "/" + info.maxUses + "\tDP:" + info.damagePoints;
+				info.stats = $"\nUP:{info.maxUses}/{info.maxUses}\tDP:{info.damagePoints}";
 				break;
 			case 4:
 				info.tag = ItemTag.PlasmaRailgun;
@@ -197,7 +191,7 @@ public class ItemInfo
 				info.damagePoints = 10;
 				info.range = 5;
 				info.description = "Fires a voltaic plasma bolt";
-				info.stats = "\nUP:" + info.maxUses + "/" + info.maxUses + "\tDP:" + info.damagePoints + "\nRP:" + info.range;
+				info.stats = $"\nUP:{info.maxUses}/{info.maxUses}\tDP:{info.damagePoints}\nRP:{info.range}";
 				break;
 			
 			// case 4:
@@ -223,7 +217,7 @@ public class ItemInfo
 				info.damagePoints = 5;
 				info.range = 10;
 				info.description = "Fires piercing bullets";
-				info.stats = "\nUP:" + info.maxUses + "/" + info.maxUses + "\tDP:" + info.damagePoints + "\nRP:" + info.range;
+				info.stats = $"\nUP:{info.maxUses}/{info.maxUses}\tDP:{info.damagePoints}\nRP:{info.range}";
 				break;
 				/*
 				case 6:
@@ -236,7 +230,7 @@ public class ItemInfo
 					info.damagePoints = 2;
 					info.shellDamage = 0;
 					info.description = "Useless for shelled aliens";
-					info.stats = "\nUP:" + info.maxUses + "/" + info.maxUses + "\tDP:" + info.damagePoints + "\nSDP:" + info.shellDamage;
+					info.stats = $"\nUP:{info.maxUses}/{info.maxUses}\tDP:{info.damagePoints}\nSDP:{info.shellDamage}";
 					break;
 
 				case 7:
@@ -249,7 +243,7 @@ public class ItemInfo
 					info.damagePoints = 3;
 					info.shellDamage = 0;
 					info.description = "Bounces off shelled aliens";
-					info.stats = "\nUP:" + info.maxUses + "/" + info.maxUses + "\tDP:" + info.damagePoints + "\nSDP:" + info.shellDamage;
+					info.stats = $"\nUP:{info.maxUses}/{info.maxUses}\tDP:{info.damagePoints}\nSDP:{info.shellDamage}";
 					break;
 
 				case 8:
@@ -262,7 +256,7 @@ public class ItemInfo
 					info.damagePoints = 4;
 					info.shellDamage = 2;
 					info.description = "Can cut shelled aliens";
-					info.stats = "\nUP:" + info.maxUses + "/" + info.maxUses + "\tDP:" + info.damagePoints + "\nSDP:" + info.shellDamage;
+					info.stats = $"\nUP:{info.maxUses}/{info.maxUses}\tDP:{info.damagePoints}\nSDP:{info.shellDamage}";
 					break;
 
 				case 9:
@@ -275,7 +269,7 @@ public class ItemInfo
 					info.damagePoints = 1;
 					info.range = 3;
 					info.description = "Can be thrown again";
-					info.stats = "\nUP:" + info.maxUses + "/" + info.maxUses + "\tDP:" + info.damagePoints + "\nRP:" + info.range;
+					info.stats = $"\nUP:{info.maxUses}/{info.maxUses}\tDP:{info.damagePoints}\nRP:{info.range}";
 					break;
 
 				case 10:
@@ -288,7 +282,7 @@ public class ItemInfo
 					info.damagePoints = 0;
 					info.range = 3;
 					info.description = "Stuns nearby enemies for 1 turn";
-					info.stats = "\nUP:" + info.maxUses + "/" + info.maxUses + "\tDP:" + info.damagePoints + "\nRP:" + info.range;
+					info.stats = $"\nUP:{info.maxUses}/{info.maxUses}\tDP:{info.damagePoints}\nRP:{info.range}";
 					break;
 
 				case 11:
@@ -302,7 +296,7 @@ public class ItemInfo
 					info.range = 3;
 					info.isFlammable = true;
 					info.description = "Fuse lights after landing";
-					info.stats = "\nUP:" + info.maxUses + "/" + info.maxUses + "\tDP:" + info.damagePoints + "\nRP:" + info.range;
+					info.stats = $"\nUP:{info.maxUses}/{info.maxUses}\tDP:{info.damagePoints}\nRP:{info.range}";
 					break;
 
 				case 12:
@@ -316,7 +310,7 @@ public class ItemInfo
 					info.range = 5;
 					info.isFlammable = true;
 					info.description = "Sticks to enemies before detonating";
-					info.stats = "\nUP:" + info.maxUses + "/" + info.maxUses + "\tDP:" + info.damagePoints + "\nRP:" + info.range;
+					info.stats = $"\nUP:{info.maxUses}/{info.maxUses}\tDP:{info.damagePoints}\nRP:{info.range}";
 					break;
 
 				case 13:
@@ -328,7 +322,7 @@ public class ItemInfo
 					info.currentUses = info.maxUses; // current charge
 					info.isFlammable = true;
 					info.description = "Powers vehicles";
-					info.stats = "\n\UP:" + info.maxUses;
+					info.stats = $"\n\UP:{info.maxUses}";
 					break;
 
 				case 14:
@@ -340,7 +334,7 @@ public class ItemInfo
 					info.currentUses = info.maxUses;
 					info.isEquipable = true;
 					info.description = "Absorbs 2 melee DP";
-					info.stats = "\n\UP:" + info.maxUses;
+					info.stats = $"\n\UP:{info.maxUses}";
 					break;
 
 				case 15:
@@ -353,7 +347,7 @@ public class ItemInfo
 					info.isEquipable = true;
 					info.isFlammable = true;
 					info.description = "Absorbs 3 ranged DP";
-					info.stats = "\n\UP:" + info.maxUses;
+					info.stats = $"\n\UP:{info.maxUses}";
 					break;
 
 				case 16:
@@ -365,7 +359,7 @@ public class ItemInfo
 					info.currentUses = info.maxUses;
 					info.isEquipable = true;
 					info.description = "Blocks all DP except boss DP";
-					info.stats = "\n\UP:" + info.maxUses;
+					info.stats = $"\n\UP:{info.maxUses}";
 					break;
 
 				case 17:
@@ -378,7 +372,7 @@ public class ItemInfo
 					info.isEquipable = true;
 					info.isFlammable = true;
 					info.description = "Adds 1 inventory slot";
-					info.stats = "\n\UP:" + info.maxUses;
+					info.stats = $"\n\UP:{info.maxUses}";
 					break;
 
 				case 18:
@@ -390,7 +384,7 @@ public class ItemInfo
 					info.currentUses = info.maxUses;
 					info.isAttachable = true;
 					info.description = "Adds 4 vehicle storage";
-					info.stats = "\n\UP:" + info.maxUses;
+					info.stats = $"\n\UP:{info.maxUses}";
 					break;
 
 				case 19:
@@ -403,7 +397,7 @@ public class ItemInfo
 					info.isAttachable = true;
 					info.isFlammable = true;
 					info.description = "Adds 5 fuel slots";
-					info.stats = "\n\UP:" + info.maxUses;
+					info.stats = $"\n\UP:{info.maxUses}";
 					break;
 
 				case 20:
@@ -445,7 +439,7 @@ public class ItemInfo
 					info.currentUses = info.maxUses;
 					info.isFlammable = true;
 					info.description = "Starts fires on tiles or enemies";
-					info.stats = "\n\UP:" + info.maxUses;
+					info.stats = $"\n\UP:{info.maxUses}";
 					break;
 
 				case 24:
@@ -456,7 +450,7 @@ public class ItemInfo
 					info.maxUses = 4;
 					info.currentUses = info.maxUses;
 					info.description = "Take infrared picture";
-					info.stats = "\n\UP:" + info.maxUses;
+					info.stats = $"\n\UP:{info.maxUses}";
 					break;
 
 				case 25:
@@ -478,7 +472,7 @@ public class ItemInfo
 					info.damagePoints = 0;
 					info.range = 4;
 					info.description = "Stuns enemies for 1 turn";
-					info.stats = "\nUP:" + info.maxUses + "/" + info.maxUses + "\tDP:" + info.damagePoints + "\nRP:" + info.range;
+					info.stats = $"\nUP:{info.maxUses}/{info.maxUses}\tDP:{info.damagePoints}\nRP:{info.range}";
 					break;
 
 				case 27:
@@ -491,7 +485,7 @@ public class ItemInfo
 					info.damagePoints = 3;
 					info.range = 4;
 					info.description = "Fires rifle bullets";
-					info.stats = "\nUP:" + info.maxUses + "/" + info.maxUses + "\tDP:" + info.damagePoints + "\nRP:" + info.range;
+					info.stats = $"\nUP:{info.maxUses}/{info.maxUses}\tDP:{info.damagePoints}\nRP:{info.range}";
 					break;
 
 				case 28:
@@ -505,7 +499,7 @@ public class ItemInfo
 					info.range = 3;
 					info.isFlammable = true;
 					info.description = "Sprays a streak of fire";
-					info.stats = "\nUP:" + info.maxUses + "/" + info.maxUses + "\tDP:" + info.damagePoints + "\nRP:" + info.range;
+					info.stats = $"\nUP:{info.maxUses}/{info.maxUses}\tDP:{info.damagePoints}\nRP:{info.range}";
 					break;
 
 				default:
