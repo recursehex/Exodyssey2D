@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Tilemaps;
-using Unity.VisualScripting;
 
 public class GameManager : MonoBehaviour
 {
@@ -12,8 +11,8 @@ public class GameManager : MonoBehaviour
 	[SerializeField]
 	private Player player;
 	public TileDot tiledot;
+	public GameObject tileArea;
 	public TurnTimer turnTimer;
-	public GameObject[] areaMarking;
 	// Must update when adding new enemy
 	public GameObject[] enemyTemplates;
 	public List<GameObject> enemies = new();
@@ -34,7 +33,7 @@ public class GameManager : MonoBehaviour
 	public List<GameObject> tileAreas = new();
 	private Dictionary<Vector3Int, Node> tileAreasToDraw = null;
 	#region RANGED WEAPON SYSTEM
-	public GameObject[] target;
+	public GameObject target;
 	public List<GameObject> targets = new();
 	public List<Vector3> targetPositions = new();
 	public GameObject[] tracer;
@@ -365,41 +364,17 @@ public class GameManager : MonoBehaviour
 		// If LMB clicks within grid, begin Player movement system
 		else if (Input.GetMouseButtonDown(0) && IsWithinCellBounds(tilePoint, size) && !tilemapWalls.HasTile(tilePoint) && !player.isInMovement)
 		{
+			// If Player clicks on its own tile but energy is not used
 			TryAddItem(shiftedClickPoint);
 			// For actions that require energy, first check if it is Player turn
 			if (!playersTurn || player.CurrentEnergy == 0) return;
+			TryUseItemOnPlayer(shiftedClickPoint);
 			bool isInMovementRange = IsInMovementRange(tilePoint);
-			bool isInMeleeRange = IsInMeleeRange(shiftedClickPoint);
-			bool isInRangeForRangedWeapon = player.GetWeaponRange() > 0 && IsInRangeForRangedWeapon(shiftedClickPoint);
 			int enemyIndex = GetEnemyIndexAtPosition(tilePoint);
-			// Player movement, if no enemy on clicked tile AND if mouse clicks on tile Player is not on
-			if (isInMovementRange && enemyIndex == -1 && shiftedClickPoint != player.transform.position)
-			{
-				endTurnButton.interactable = false;
-				player.isInMovement = true;
-				needToDrawTileAreas = true;
-				player.CalculatePathAndStartMovement(worldPoint);
-				ClearTileAreas();
-				turnTimer.StartTimer();
-			}
-			// For attacking an enemy, if enemy is on clicked tile AND if Player in range AND if Player has weapon
-			else if (enemyIndex >= 0 && (isInMeleeRange || isInRangeForRangedWeapon) && player.DamagePoints > 0)
-			{
-				HandleDamageToEnemy(enemyIndex);
-				player.ChangeEnergy(-1);
-				player.SetAnimation("playerAttack");
-				player.ChangeWeaponDurability(-1);
-				needToDrawTileAreas = true;
-				turnTimer.StartTimer();
-				if (isInRangeForRangedWeapon && player.selectedItem?.currentUses == 0) ClearTargetsAndTracers();
-			}
-			// For acting on the Player, like healing oneself
-			else if (shiftedClickPoint == player.transform.position)
-			{
-				if (!player.ClickOnPlayerToHeal()) return;
-				needToDrawTileAreas = true;
-				turnTimer.StartTimer();
-			}
+			if (TryPlayerMovement(isInMovementRange, enemyIndex, shiftedClickPoint, worldPoint)) return;
+			bool isInMeleeRange = IsInMeleeRange(shiftedClickPoint);
+			bool isInRangedWeaponRange = player.GetWeaponRange() > 0 && IsInRangeForRangedWeapon(shiftedClickPoint);
+			TryPlayerAttack(enemyIndex, isInMeleeRange, isInRangedWeaponRange);
 		}
 		// If mouse is hovering over tile and within grid
 		else if (IsWithinCellBounds(tilePoint, size))
@@ -415,16 +390,67 @@ public class GameManager : MonoBehaviour
 		}
 	}
 	/// <summary>
-	/// Attempts to add item to Player inventory when clicking on tile with item on it
+	/// Tries to add item to Player inventory after clicking on own tile with item on it
 	/// </summary>
 	/// <param name="shiftedClickPoint"></param>
 	private void TryAddItem(Vector3 shiftedClickPoint)
 	{
-		// If click is on Player position and item is there
+		// If click and item is on Player position
 		if (shiftedClickPoint == player.transform.position && GetItemAtPosition(shiftedClickPoint) is Item itemAtPosition)
 		{
-			// If an item is there, Player picks it up
+			// Player picks up item
 			if (player.AddItem(itemAtPosition.info)) DestroyItemAtPosition(shiftedClickPoint);
+		}
+	}
+	/// <summary>
+	/// Tries to use item on Player after clicking on own tile with selected item
+	/// </summary>
+	/// <param name="shiftedClickPoint"></param>
+	private void TryUseItemOnPlayer(Vector3 shiftedClickPoint) 
+	{
+		if (shiftedClickPoint != player.transform.position || !player.ClickOnPlayerToHeal()) return;
+		needToDrawTileAreas = true;
+		turnTimer.StartTimer();
+	}
+	/// <summary>
+	/// Tries to move to clicked tile
+	/// </summary>
+	/// <param name="isInMovementRange"></param>
+	/// <param name="enemyIndex"></param>
+	/// <param name="shiftedClickPoint"></param>
+	/// <param name="worldPoint"></param>
+	/// <returns></returns>
+	private bool TryPlayerMovement(bool isInMovementRange, int enemyIndex, Vector3 shiftedClickPoint, Vector3 worldPoint) 
+	{
+		if (isInMovementRange && enemyIndex == -1 && shiftedClickPoint != player.transform.position)
+		{
+			endTurnButton.interactable = false;
+			player.isInMovement = true;
+			needToDrawTileAreas = true;
+			player.CalculatePathAndStartMovement(worldPoint);
+			ClearTileAreas();
+			turnTimer.StartTimer();
+			return true;
+		}
+		return false;
+	}
+	/// <summary>
+	/// Tries to attack enemy at clicked tile
+	/// </summary>
+	/// <param name="enemyIndex"></param>
+	/// <param name="isInMeleeRange"></param>
+	/// <param name="isInRangedWeaponRange"></param>
+	private void TryPlayerAttack(int enemyIndex, bool isInMeleeRange, bool isInRangedWeaponRange) 
+	{
+		if (enemyIndex >= 0 && (isInMeleeRange || isInRangedWeaponRange) && player.DamagePoints > 0)
+		{
+			HandleDamageToEnemy(enemyIndex);
+			player.ChangeEnergy(-1);
+			player.SetAnimation("playerAttack");
+			player.ChangeWeaponDurability(-1);
+			needToDrawTileAreas = true;
+			turnTimer.StartTimer();
+			if (isInRangedWeaponRange && player.selectedItem?.currentUses == 0) ClearTargetsAndTracers();
 		}
 	}
 	/// <summary>
@@ -457,7 +483,7 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	public void HandleDamageToPlayer(int damage)
 	{
-		player.ChangeHealth(-damage);
+		player.DecreaseHealth(damage);
 		needToDrawTileAreas = true;
 		DrawTileAreaIfNeeded();
 	}
@@ -471,6 +497,10 @@ public class GameManager : MonoBehaviour
 		ClearTileAreas();
 		ClearTargetsAndTracers();
 	}
+	/// <summary>
+	/// Returns true if Player is on exit tile and resets grid for next level
+	/// </summary>
+	/// <returns></returns>
 	public bool PlayerIsOnExitTile()
 	{
 		if (!tilemapExit.HasTile(Vector3Int.FloorToInt(player.transform.position))) return false;
@@ -513,6 +543,11 @@ public class GameManager : MonoBehaviour
 	{
 		return targetPositions.Contains(objPosition);
 	}
+	/// <summary>
+	/// Retrurns true if tilemapWalls has tile at input position
+	/// </summary>
+	/// <param name="position"></param>
+	/// <returns></returns>
 	public bool TilemapWallsHasTile(Vector3Int position) 
 	{
 		return tilemapWalls.HasTile(position);
@@ -549,7 +584,7 @@ public class GameManager : MonoBehaviour
 				foreach (KeyValuePair<Vector3Int, Node> node in tileAreasToDraw)
 				{
 					Vector3 shiftedDistance = new(node.Value.Position.x + 0.5f, node.Value.Position.y + 0.5f, node.Value.Position.z);
-					GameObject instance = Instantiate(areaMarking[0], shiftedDistance, Quaternion.identity);
+					GameObject instance = Instantiate(tileArea, shiftedDistance, Quaternion.identity);
 					tileAreas.Add(instance);
 				}
 			}
@@ -596,9 +631,8 @@ public class GameManager : MonoBehaviour
 				if (canTargetEnemy)
 				{
 					Vector3 targetPosition = e.transform.position;
-					GameObject targetChoice = target[0];
 					Vector3 shiftedDistance = new(targetPosition.x + 0.0f, targetPosition.y + 0.0f, enemyPoint.z);
-					GameObject instance = Instantiate(targetChoice, shiftedDistance, Quaternion.identity);
+					GameObject instance = Instantiate(target, shiftedDistance, Quaternion.identity);
 					targets.Add(instance);
 					targetPositions.Add(shiftedDistance);
 				}
@@ -618,7 +652,7 @@ public class GameManager : MonoBehaviour
 		}
 		return true;
 	}
-	private List<Vector3> BresenhamsAlgorithm(int x0, int y0, int x1, int y1)
+	private static List<Vector3> BresenhamsAlgorithm(int x0, int y0, int x1, int y1)
 	{
 		List<Vector3> pointsOnLine = new();
 		int dx = Mathf.Abs(x1 - x0);

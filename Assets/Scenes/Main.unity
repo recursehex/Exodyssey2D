@@ -697,9 +697,8 @@ MonoBehaviour:
   playersTurn: 1
   player: {fileID: 569674968}
   tiledot: {fileID: 823962498}
+  tileArea: {fileID: 4013333899691673706, guid: df0561ba1ff27154e957b6aa734c0248, type: 3}
   turnTimer: {fileID: 2083751133}
-  areaMarking:
-  - {fileID: 4013333899691673706, guid: df0561ba1ff27154e957b6aa734c0248, type: 3}
   enemyTemplates:
   - {fileID: 8301553589233551289, guid: 3a66190a890058e44bc0653995faf798, type: 3}
   - {fileID: 283541130281458624, guid: 9844e1c572099de4493431c23e68fee5, type: 3}
@@ -725,8 +724,7 @@ MonoBehaviour:
   endTurnButton: {fileID: 2049175783}
   needToDrawTileAreas: 0
   tileAreas: []
-  target:
-  - {fileID: 3235571212307580798, guid: 0d83749970d77b24286906dba172abc5, type: 3}
+  target: {fileID: 3235571212307580798, guid: 0d83749970d77b24286906dba172abc5, type: 3}
   targets: []
   targetPositions: []
   tracer:

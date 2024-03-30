@@ -54,20 +54,6 @@ public class Vehicle : MonoBehaviour
         info.currentHP = info.maxHP;
     }
 
-    private bool HasEnemyAtPosition(Vector3 p)
-    {
-        Vector3 shiftedDistance = new(p.x + 0.5f, p.y + 0.5f, 0);
-        foreach (GameObject obj in gm.enemies)
-        {
-            Enemy e = obj.GetComponent<Enemy>();
-            if (e.transform.position == shiftedDistance)
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-
     public void SetGameManager(GameManager g)
     {
         gm = g;

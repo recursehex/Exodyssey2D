@@ -79,8 +79,8 @@ public class ItemInfo
 	public int currentUses = -1;        // Current uses item has left
 	public int damagePoints = -1;       // Set only for weapons
 	public int range = 0;               // Maximum distance a Ranged weapon can attack to, 0 = Melee
-	public bool isEquipable = false;    // Can be equipped by characters, enabling the item & emptying an inventory slot
-	public bool isAttachable = false;   // Can be attached to vehicles, enabling the item
+	public bool isEquipable = false;    // Can be equipped by characters, enabling the item and removing it from inventory
+	public bool isAttachable = false;   // Can be attached to vehicles, enabling the item and removing it from inventory
 	public bool isFlammable = false;    // Will be destroyed by fire and helps it to spread
 	public int shellDamage = -1;        // Set only if weapon does different damage to shelled aliens
 	private static readonly int lastItemIndex = (int)ItemTag.Unknown;
