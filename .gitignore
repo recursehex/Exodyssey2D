@@ -79,6 +79,8 @@ crashlytics-build.properties
 
 # .vscode
 .vscode
+**/.vscode
 
 # .vsconfig
 .vsconfig
+**/.vsconfig

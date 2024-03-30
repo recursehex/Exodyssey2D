@@ -1,9 +1,8 @@
 using System.Collections.Generic;
-using UnityEngine;
 
-public class Profession
+public struct Profession
 {
-	private enum ProfessionTag 
+	public enum ProfessionTag 
 	{
 		Medic = 0,
 		Mechanic,
@@ -13,19 +12,16 @@ public class Profession
 		Ranger,
 		Unknown
 	}
+	public ProfessionTag Tag { get; set; }
+	public int Level { get; set; }
 	
-	private int Level { get; set; } = 1;	// Level of item from 1 to 3
-	
-	public static Profession ProfessionFactory(int n, Player player) 
+	public static List<Profession> professions = new()
 	{
-		Profession info = new();
-		switch (n) 
-		{
-			case 0:
-				break;
-			default:
-				break;
-		}
-		return info;
-	}
+		new() { Tag = ProfessionTag.Medic, Level = 1 },
+		new() { Tag = ProfessionTag.Mechanic, Level = 1 },
+		new() { Tag = ProfessionTag.Hunter, Level = 1 },
+		new() { Tag = ProfessionTag.Hiker, Level = 1 },
+		new() { Tag = ProfessionTag.Navigator, Level = 1 },
+		new() { Tag = ProfessionTag.Ranger, Level = 1 },
+	};
 }

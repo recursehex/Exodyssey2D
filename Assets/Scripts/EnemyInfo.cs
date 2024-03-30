@@ -29,26 +29,19 @@ public class EnemyInfo
 
 		Unknown,
 	}
-	private EnemyTag tag;                        // Name of enemy
-	private Rarity.RarityTag rarity;                       // Rarity of enemy
-	private EnemyType type;                      // Type of enemy
-
+	private EnemyTag tag;						// Name of enemy
+	private Rarity.RarityTag rarity;			// Rarity of enemy
+	private EnemyType type;						// Type of enemy
 	public string name;                         // Ingame name of enemy
-
 	public int maxHealth = 1;
 	public int currentHealth = 1;
-
 	public int maxEnergy = 1;
 	public int currentEnergy = 1;
-
 	public int damagePoints = -1;               // Set only for enemies that do direct attacks
 	public int range = 0;                       // Maximum distance a Ranged enemy can attack to, 0 = Melee
-
 	public bool isHunting = true;               // true = will hunt the player, false = will guard nearby items
 	public bool isShelled = false;              // false = will not have resistance to Steel Beam and Mallet, true = will have resistance and will be vulnerable to Axe, Honed Gavel, and Shell Piercer
-
 	private static readonly int lastEnemyIndex = (int)EnemyTag.Unknown;
-
 	private static List<Rarity.RarityTag> GenerateAllRarities()
 	{
 		List<Rarity.RarityTag> enemyRarityList = new();
