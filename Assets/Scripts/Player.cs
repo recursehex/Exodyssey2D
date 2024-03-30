@@ -97,11 +97,11 @@ public class Player : MonoBehaviour
 		}
 	}
 	/// <summary>
-	/// Changes HP and updates HP display, use negative to decrease
+	/// Decreases CurrentHealth by damage and updates Health display
 	/// </summary>
-	public void ChangeHealth(int change)
+	public void DecreaseHealth(int damage)
 	{
-		CurrentHealth = Mathf.Clamp(CurrentHealth + change, 0, MaxHealth);
+		CurrentHealth = Mathf.Clamp(CurrentHealth - damage, 0, MaxHealth);
 		// Player is killed
 		if (CurrentHealth == 0)
 		{
@@ -110,7 +110,7 @@ public class Player : MonoBehaviour
 			gm.GameOver();
 		}
 		// Player is damaged
-		if (change < 0)
+		if (damage > 0)
 		{
 			statsDisplayManager.DecreaseHealthDisplay(CurrentHealth, MaxHealth);
 			animator.SetTrigger("playerHit");
@@ -122,13 +122,16 @@ public class Player : MonoBehaviour
 				MaxEnergy = 1;
 			}
 		}
-		// Player is healed
-		else
-		{
-			statsDisplayManager.RestoreHealthDisplay();
-			SoundManager.instance.PlaySound(heal);
-			MaxEnergy = 3;
-		}
+	}
+	/// <summary>
+	/// Restores Health
+	/// </summary>
+	public void RestoreHealth() 
+	{
+		CurrentHealth = Mathf.Clamp(CurrentHealth + 3, 0, MaxHealth);
+		statsDisplayManager.RestoreHealthDisplay();
+		SoundManager.instance.PlaySound(heal);
+		MaxEnergy = 3;
 	}
 	/// <summary>
 	/// Changes energy and updates energy display, use negative to decrease
@@ -154,6 +157,7 @@ public class Player : MonoBehaviour
 		{
 			inventoryUI.RemoveItem(inventoryUI.SelectedIndex);
 			inventoryUI.SetCurrentSelected(-1);
+			gm.ClearTargetsAndTracers();
 			selectedItem = null;
 			DamagePoints = 0;
 		}
@@ -176,6 +180,9 @@ public class Player : MonoBehaviour
 	/// </summary>
 	public void TryClickItem(int itemIndex)
 	{
+		
+		// FIX BUGS HERE
+		
 		// Ensures index is within bounds and inventory has an item
 		if (itemIndex >= inventory.itemList.Count || inventory.itemList.Count == 0) return;
 		ItemInfo clickedItem = inventory.itemList[itemIndex].itemInfo;
@@ -186,7 +193,7 @@ public class Player : MonoBehaviour
 		if (selectedItem != null)
 		{
 			selectedItem = null;
-			ClearTargetsAndTracers();
+			gm.ClearTargetsAndTracers();
 		}
 		selectedItem = clickedItem;
 		SoundManager.instance.PlaySound(select);
@@ -194,13 +201,13 @@ public class Player : MonoBehaviour
 		if (itemIndex == -1)
 		{
 			DamagePoints = 0;
-			ClearTargetsAndTracers();
+			gm.ClearTargetsAndTracers();
 		}
 		// Set damageToEnemy as the damage of the weapon
 		else
 		{
 			DamagePoints = clickedItem.damagePoints;
-			if (clickedItem.range > 0) DrawTargetsAndTracers();
+			if (clickedItem.range > 0) gm.DrawTargetsAndTracers();
 		}
 	}
 	/// <summary>
@@ -221,7 +228,7 @@ public class Player : MonoBehaviour
 	{
 		if (selectedItem.tag == ItemInfo.ItemTag.MedKit && CurrentHealth < MaxHealth && CurrentEnergy > 0)
 		{
-			ChangeHealth(MaxHealth);
+			RestoreHealth();
 			ChangeEnergy(-1);
 			selectedItem.ChangeDurability(-1);
 			return true;
@@ -252,16 +259,6 @@ public class Player : MonoBehaviour
 	public void ProcessHoverForInventory(Vector3 mousePosition)
 	{
 		inventoryUI.ProcessHoverForInventory(mousePosition);
-	}
-	// Called by ItemInfo
-	public void ClearTargetsAndTracers()
-	{
-		gm.ClearTargetsAndTracers();
-	}
-	// Called by ItemInfo
-	public void DrawTargetsAndTracers()
-	{
-		gm.DrawTargetsAndTracers();
 	}
 	public void SetAnimation(string trigger)
 	{
