@@ -724,11 +724,10 @@ MonoBehaviour:
   endTurnButton: {fileID: 2049175783}
   needToDrawTileAreas: 0
   tileAreas: []
-  target: {fileID: 3235571212307580798, guid: 0d83749970d77b24286906dba172abc5, type: 3}
+  targetTemplate: {fileID: 3235571212307580798, guid: 0d83749970d77b24286906dba172abc5, type: 3}
   targets: []
   targetPositions: []
-  tracer:
-  - {fileID: 791884194307863000, guid: c0583b4e855c74b8c82e7b9b5efb5ce9, type: 3}
+  tracerTemplate: {fileID: 3235571212307580798, guid: de10de49d7c9041c0a48f6db8a694380, type: 3}
   tracers: []
   dayText: {fileID: 551613595}
   levelText: {fileID: 1100001971}

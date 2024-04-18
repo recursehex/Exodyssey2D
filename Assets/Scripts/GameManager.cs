@@ -33,10 +33,10 @@ public class GameManager : MonoBehaviour
 	public List<GameObject> tileAreas = new();
 	private Dictionary<Vector3Int, Node> tileAreasToDraw = null;
 	#region RANGED WEAPON SYSTEM
-	public GameObject target;
+	public GameObject targetTemplate;
 	public List<GameObject> targets = new();
 	public List<Vector3> targetPositions = new();
-	public GameObject[] tracer;
+	public GameObject tracerTemplate;
 	public List<GameObject> tracers = new();
 	private List<Vector3> tracerPath = new();
 	#endregion
@@ -75,10 +75,7 @@ public class GameManager : MonoBehaviour
 	{
 		get
 		{
-			if (instance == null)
-			{
-				instance = FindObjectOfType<GameManager>();
-			}
+			if (instance == null) instance = FindObjectOfType<GameManager>();
 			return instance;
 		}
 	}
@@ -134,7 +131,7 @@ public class GameManager : MonoBehaviour
 		Invoke(nameof(HideLevelLoadScreen), levelStartDelay);
 		spawnItemCount = Random.Range(5, 10);
 		spawnEnemyCount = Random.Range(1 + (int)(level * 0.5), 3 + (int)(level * 0.5));
-		mapGenerator = new MapGen();
+		mapGenerator = new();
 		GroundGeneration();
 		WallGeneration();
 		EnemyGeneration();
@@ -167,7 +164,7 @@ public class GameManager : MonoBehaviour
 	public void ItemGeneration()
 	{
 		while (spawnItemCount > 0)
-			if (WeightedRarityGeneration.Generate("Item")) spawnItemCount--;
+			if (WeightedRarityGeneration.Generate('I')) spawnItemCount--;
 	}
 	/// <summary>
 	/// Returns true if no item at Player position, allowing an item in the inventory to be dropped
@@ -232,7 +229,7 @@ public class GameManager : MonoBehaviour
 	private void EnemyGeneration()
 	{
 		while (spawnEnemyCount > 0)
-			if (WeightedRarityGeneration.Generate("Enemy")) spawnEnemyCount--;
+			if (WeightedRarityGeneration.Generate('E')) spawnEnemyCount--;
 	}
 	/// <summary>
 	/// Returns false if no enemy at position, returns true if found
@@ -408,7 +405,7 @@ public class GameManager : MonoBehaviour
 	/// <param name="shiftedClickPoint"></param>
 	private void TryUseItemOnPlayer(Vector3 shiftedClickPoint) 
 	{
-		if (shiftedClickPoint != player.transform.position || !player.ClickOnPlayerToHeal()) return;
+		if (shiftedClickPoint != player.transform.position || !player.ClickOnPlayerToUseItem()) return;
 		needToDrawTileAreas = true;
 		turnTimer.StartTimer();
 	}
@@ -447,7 +444,7 @@ public class GameManager : MonoBehaviour
 			HandleDamageToEnemy(enemyIndex);
 			player.ChangeEnergy(-1);
 			player.SetAnimation("playerAttack");
-			player.ChangeWeaponDurability(-1);
+			player.DecreaseWeaponDurability();
 			needToDrawTileAreas = true;
 			turnTimer.StartTimer();
 			if (isInRangedWeaponRange && player.selectedItem?.currentUses == 0) ClearTargetsAndTracers();
@@ -622,9 +619,8 @@ public class GameManager : MonoBehaviour
 				{
 					foreach (Vector3 tracerPosition in tracerPath)
 					{
-						GameObject tracerChoice = tracer[0];
 						Vector3 shiftedDistance = new(tracerPosition.x + 0.0f, tracerPosition.y + 0.0f, enemyPoint.z);
-						GameObject instance = Instantiate(tracerChoice, shiftedDistance, Quaternion.identity);
+						GameObject instance = Instantiate(tracerTemplate, shiftedDistance, Quaternion.identity);
 						tracers.Add(instance);
 					}
 				}
@@ -632,7 +628,7 @@ public class GameManager : MonoBehaviour
 				{
 					Vector3 targetPosition = e.transform.position;
 					Vector3 shiftedDistance = new(targetPosition.x + 0.0f, targetPosition.y + 0.0f, enemyPoint.z);
-					GameObject instance = Instantiate(target, shiftedDistance, Quaternion.identity);
+					GameObject instance = Instantiate(targetTemplate, shiftedDistance, Quaternion.identity);
 					targets.Add(instance);
 					targetPositions.Add(shiftedDistance);
 				}

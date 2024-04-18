@@ -124,7 +124,7 @@ public class Player : MonoBehaviour
 		}
 	}
 	/// <summary>
-	/// Restores Health
+	/// Restores Player Health to MaxHealth
 	/// </summary>
 	public void RestoreHealth() 
 	{
@@ -147,11 +147,11 @@ public class Player : MonoBehaviour
 		else statsDisplayManager.RestoreEnergyDisplay(CurrentHealth);
 	}
 	/// <summary>
-	/// Changes weapon uses after use, removes weapon if uses == 0
+	/// Decreases weapon durability by 1, removes weapon if uses == 0
 	/// </summary>
-	public void ChangeWeaponDurability(int change)
+	public void DecreaseWeaponDurability()
 	{
-		selectedItem.ChangeDurability(change);
+		selectedItem.DecreaseDurability();
 		inventoryUI.SetCurrentSelected(inventoryUI.SelectedIndex);
 		if (selectedItem.currentUses == 0)
 		{
@@ -180,44 +180,47 @@ public class Player : MonoBehaviour
 	/// </summary>
 	public void TryClickItem(int itemIndex)
 	{
-		
-		// FIX BUGS HERE
-		
 		// Ensures index is within bounds and inventory has an item
 		if (itemIndex >= inventory.itemList.Count || inventory.itemList.Count == 0) return;
+	
 		ItemInfo clickedItem = inventory.itemList[itemIndex].itemInfo;
 		bool wasSelected = InventoryUI.ProcessSelection(inventoryUI.SelectedIndex, itemIndex);
-		if (!wasSelected) itemIndex = -1;
-		inventoryUI.SetCurrentSelected(itemIndex);
-		// Item gets selected since it was unselected before
-		if (selectedItem != null)
+		
+		// If item is selected, update selection, otherwise reset
+		if (wasSelected)
 		{
-			selectedItem = null;
-			gm.ClearTargetsAndTracers();
+			inventoryUI.SetCurrentSelected(itemIndex);
+			selectedItem = clickedItem;
+			SoundManager.instance.PlaySound(select);
+			DamagePoints = clickedItem.damagePoints;
+
+			// Only draw targets if ranged weapon is selected
+			if (clickedItem.range > 0)
+			{
+				gm.DrawTargetsAndTracers();
+			}
+			else	// Clear targets for all other items
+			{
+				gm.ClearTargetsAndTracers();
+			}
 		}
-		selectedItem = clickedItem;
-		SoundManager.instance.PlaySound(select);
-		// Sets damage points when weapon is selected or unselected
-		if (itemIndex == -1)
+		else	// Item was unselected
 		{
+			inventoryUI.SetCurrentSelected(-1);
+			selectedItem = null;
 			DamagePoints = 0;
 			gm.ClearTargetsAndTracers();
-		}
-		// Set damageToEnemy as the damage of the weapon
-		else
-		{
-			DamagePoints = clickedItem.damagePoints;
-			if (clickedItem.range > 0) gm.DrawTargetsAndTracers();
 		}
 	}
 	/// <summary>
 	/// Handles when ClickTarget() clicks on Player
 	/// </summary>
-	public bool ClickOnPlayerToHeal()
+	public bool ClickOnPlayerToUseItem()
 	{
 		if (selectedItem?.type is not ItemInfo.ItemType.Consumable) return false;
 		bool wasUsed = MedKitWasUsed();
-		if (selectedItem.currentUses == 0) {
+		if (selectedItem.currentUses == 0)
+		{
 			inventoryUI.RemoveItem(inventoryUI.SelectedIndex);
 			selectedItem = null;
 			wasUsed = true;
@@ -230,7 +233,7 @@ public class Player : MonoBehaviour
 		{
 			RestoreHealth();
 			ChangeEnergy(-1);
-			selectedItem.ChangeDurability(-1);
+			selectedItem.DecreaseDurability();
 			return true;
 		}
 		return false;

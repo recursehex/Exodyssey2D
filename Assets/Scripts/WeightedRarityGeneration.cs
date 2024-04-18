@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class WeightedRarityGeneration : MonoBehaviour
 {
-	public static bool Generate(string elementType)
+	public static bool Generate(char elementType)
 	{
 		int roll = Random.Range(1, 101);
 		int cumulative = 0;
@@ -19,11 +19,11 @@ public class WeightedRarityGeneration : MonoBehaviour
 				if (GameManager.instance.HasItemAtPosition(shiftedPosition) || GameManager.instance.HasEnemyAtPosition(shiftedPosition)) return false;
 				switch (elementType) 
 				{
-					case "Item":
+					case 'I':
 						return GenerateItem(rarity, shiftedPosition);
-					case "Enemy":
+					case 'E':
 						return GenerateEnemy(rarity, shiftedPosition);
-					case "Vehicle":
+					case 'V':
 						break;
 					default:
 						break;
