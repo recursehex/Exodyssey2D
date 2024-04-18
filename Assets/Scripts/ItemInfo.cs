@@ -107,11 +107,11 @@ public class ItemInfo
 		return indicesOfSpecifiedRarity[randomIndex];
 	}
 	/// <summary>
-	/// Changes item durabilty and description after use
+	/// Decreases item durability by 1 and updates description
 	/// </summary>
-	public void ChangeDurability(int change) 
+	public void DecreaseDurability() 
 	{
-		currentUses += change;
+		currentUses--;
 		stats = $"\nUP:{currentUses}/{maxUses}";
 		if (type is ItemType.Weapon) 
 		{
