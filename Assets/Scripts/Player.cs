@@ -24,7 +24,8 @@ public class Player : MonoBehaviour
 	public StatsDisplayManager statsDisplayManager;
 	public bool finishedInit = false;
 	public bool isInMovement = false;
-	GameManager gm;
+	public GameManager gameManager;
+	public SoundManager soundManager;
 	#region PATHFINDING
 	public Tilemap tilemapGround;
 	public Tilemap tilemapWalls;
@@ -57,12 +58,15 @@ public class Player : MonoBehaviour
 	public void CalculatePathAndStartMovement(Vector3 goal)
 	{
 		astar.Initialize();
-		path = astar.ComputePath(transform.position, goal, gm);
-		if (path == null) return;
+		path = astar.ComputePath(transform.position, goal, gameManager);
+		if (path == null)
+		{
+			return;
+		}
 		ChangeEnergy(-(path.Count - 1));
 		path.Pop();
 		destination = path.Pop();
-		SoundManager.instance.PlaySound(playerMove);
+		soundManager.PlaySound(playerMove);
 	}
 	/// <summary>
 	/// Calculates area Player can move to in a turn based on currentEnergy
@@ -77,23 +81,32 @@ public class Player : MonoBehaviour
 	/// </summary>
 	public void MoveAlongThePath()
 	{
-		if (path == null) return;
+		if (path == null)
+		{
+			return;
+		}
 		isInMovement = true;
 		Vector3 shiftedDistance = new(destination.x + 0.5f, destination.y + 0.5f, destination.z);
 		transform.position = Vector3.MoveTowards(transform.position, shiftedDistance, 2 * Time.deltaTime);
 		float distance = Vector3.Distance(shiftedDistance, transform.position);
-		if (distance > 0f) return;
+		if (distance > 0f)
+		{
+			return;
+		}
 		if (path.Count > 0)
 		{
 			destination = path.Pop();
-			SoundManager.instance.PlaySound(playerMove);
+			soundManager.PlaySound(playerMove);
 		}
 		else // When Player stops moving
 		{
 			path = null;
 			isInMovement = false;
-			if (gm.PlayerIsOnExitTile()) return;
-			gm.DrawTargetsAndTracers();
+			if (gameManager.PlayerIsOnExitTile())
+			{
+				return;
+			}
+			gameManager.DrawTargetsAndTracers();
 		}
 	}
 	/// <summary>
@@ -105,9 +118,9 @@ public class Player : MonoBehaviour
 		// Player is killed
 		if (CurrentHealth == 0)
 		{
-			SoundManager.instance.PlaySound(gameOver);
-			SoundManager.instance.musicSource.Stop();
-			gm.GameOver();
+			soundManager.PlaySound(gameOver);
+			soundManager.musicSource.Stop();
+			gameManager.GameOver();
 		}
 		// Player is damaged
 		if (damage > 0)
@@ -130,7 +143,7 @@ public class Player : MonoBehaviour
 	{
 		CurrentHealth = Mathf.Clamp(CurrentHealth + 3, 0, MaxHealth);
 		statsDisplayManager.RestoreHealthDisplay();
-		SoundManager.instance.PlaySound(heal);
+		soundManager.PlaySound(heal);
 		MaxEnergy = 3;
 	}
 	/// <summary>
@@ -140,11 +153,20 @@ public class Player : MonoBehaviour
 	{
 		CurrentEnergy = Mathf.Clamp(CurrentEnergy + change, 0, MaxEnergy);
 		// End turn and stop timer
-		if (CurrentEnergy == 0) gm.turnTimer.timeRemaining = 0;
+		if (CurrentEnergy == 0)
+		{
+			gameManager.turnTimer.timeRemaining = 0;
+		}
 		// Decreased by Player action
-		if (change < 0) statsDisplayManager.DecreaseEnergyDisplay(CurrentEnergy, MaxEnergy);
+		if (change < 0)
+		{
+			statsDisplayManager.DecreaseEnergyDisplay(CurrentEnergy, MaxEnergy);
+		}
 		// Restore after end turn and new level
-		else statsDisplayManager.RestoreEnergyDisplay(CurrentHealth);
+		else
+		{
+			statsDisplayManager.RestoreEnergyDisplay(CurrentHealth);
+		}
 	}
 	/// <summary>
 	/// Decreases weapon durability by 1, removes weapon if uses == 0
@@ -157,7 +179,7 @@ public class Player : MonoBehaviour
 		{
 			inventoryUI.RemoveItem(inventoryUI.SelectedIndex);
 			inventoryUI.SetCurrentSelected(-1);
-			gm.ClearTargetsAndTracers();
+			gameManager.ClearTargetsAndTracers();
 			selectedItem = null;
 			DamagePoints = 0;
 		}
@@ -172,7 +194,10 @@ public class Player : MonoBehaviour
 	public bool AddItem(ItemInfo itemInfo)
 	{
 		bool itemIsAdded = inventory.AddItem(new ItemInventory { itemInfo = itemInfo });
-		if (itemIsAdded) inventoryUI.RefreshInventoryIcons();
+		if (itemIsAdded)
+		{
+			inventoryUI.RefreshInventoryIcons();
+		}
 		return itemIsAdded;
 	}
 	/// <summary>
@@ -181,7 +206,10 @@ public class Player : MonoBehaviour
 	public void TryClickItem(int itemIndex)
 	{
 		// Ensures index is within bounds and inventory has an item
-		if (itemIndex >= inventory.itemList.Count || inventory.itemList.Count == 0) return;
+		if (itemIndex >= inventory.itemList.Count || inventory.itemList.Count == 0)
+		{
+			return;
+		}
 	
 		ItemInfo clickedItem = inventory.itemList[itemIndex].itemInfo;
 		bool wasSelected = InventoryUI.ProcessSelection(inventoryUI.SelectedIndex, itemIndex);
@@ -191,17 +219,17 @@ public class Player : MonoBehaviour
 		{
 			inventoryUI.SetCurrentSelected(itemIndex);
 			selectedItem = clickedItem;
-			SoundManager.instance.PlaySound(select);
+			soundManager.PlaySound(select);
 			DamagePoints = clickedItem.damagePoints;
 
 			// Only draw targets if ranged weapon is selected
 			if (clickedItem.range > 0)
 			{
-				gm.DrawTargetsAndTracers();
+				gameManager.DrawTargetsAndTracers();
 			}
 			else	// Clear targets for all other items
 			{
-				gm.ClearTargetsAndTracers();
+				gameManager.ClearTargetsAndTracers();
 			}
 		}
 		else	// Item was unselected
@@ -209,7 +237,7 @@ public class Player : MonoBehaviour
 			inventoryUI.SetCurrentSelected(-1);
 			selectedItem = null;
 			DamagePoints = 0;
-			gm.ClearTargetsAndTracers();
+			gameManager.ClearTargetsAndTracers();
 		}
 	}
 	/// <summary>
@@ -217,7 +245,10 @@ public class Player : MonoBehaviour
 	/// </summary>
 	public bool ClickOnPlayerToUseItem()
 	{
-		if (selectedItem?.type is not ItemInfo.ItemType.Consumable) return false;
+		if (selectedItem?.type is not ItemInfo.ItemType.Consumable)
+		{
+			return false;
+		}
 		bool wasUsed = MedKitWasUsed();
 		if (selectedItem.currentUses == 0)
 		{
@@ -244,20 +275,29 @@ public class Player : MonoBehaviour
 	public void TryDropItem(int itemIndex)
 	{
 		// Returns if called when inventory is empty
-		if (inventory.itemList.Count == 0) return;
+		if (inventory.itemList.Count == 0)
+		{
+			return;
+		}
 		// Drops item on the ground, returns if an item is occupying the tile
-		if (!GameManager.MyInstance.DropItem(inventory.itemList[itemIndex].itemInfo)) return;
+		if (!gameManager.DropItem(inventory.itemList[itemIndex].itemInfo))
+		{
+			return;
+		}
 		// Resets damage points if weapon is dropped
 		if (selectedItem.type == ItemInfo.ItemType.Weapon)
 		{
 			DamagePoints = 0;
 			// Clears targeting if ranged weapon is dropped
-			if (GetWeaponRange() > 0) gm.ClearTargetsAndTracers();
+			if (GetWeaponRange() > 0)
+			{
+				gameManager.ClearTargetsAndTracers();
+			}
 		}
 		// Removes item from inventory and plays corresponding sound
 		selectedItem = null;
 		inventoryUI.RemoveItem(itemIndex);
-		SoundManager.instance.PlaySound(playerMove);
+		soundManager.PlaySound(playerMove);
 	}
 	public void ProcessHoverForInventory(Vector3 mousePosition)
 	{
@@ -266,9 +306,5 @@ public class Player : MonoBehaviour
 	public void SetAnimation(string trigger)
 	{
 		animator.SetTrigger(trigger);
-	}
-	public void SetGameManager(GameManager g)
-	{
-		gm = g;
 	}
 }

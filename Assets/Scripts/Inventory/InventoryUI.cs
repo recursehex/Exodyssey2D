@@ -110,8 +110,14 @@ public class InventoryUI : MonoBehaviour
 			return false;
 		}
 		// Unselect old item & select new item
-		if (oldSelectedIndex != -1) GameObject.Find("InventoryPressed" + oldSelectedIndex).transform.localScale = Vector3.one;
-		if (newSelectedIndex != -1) GameObject.Find("InventoryPressed" + newSelectedIndex).transform.localScale = Vector3.zero;
+		if (oldSelectedIndex != -1)
+		{
+			GameObject.Find("InventoryPressed" + oldSelectedIndex).transform.localScale = Vector3.one;
+		}
+		if (newSelectedIndex != -1)
+		{
+			GameObject.Find("InventoryPressed" + newSelectedIndex).transform.localScale = Vector3.zero;
+		}
 		return true;
 	}
 	/// <summary>
@@ -140,7 +146,10 @@ public class InventoryUI : MonoBehaviour
 			}
 			iconNumber++;
 		}
-		if (mouseIsOverIcon) return;
+		if (mouseIsOverIcon)
+		{
+			return;
+		}
 		if (SelectedIndex == -1)
 		{
 			nameText.text = "";
