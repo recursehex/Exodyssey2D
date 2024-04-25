@@ -66,8 +66,14 @@ public class GameManager : MonoBehaviour
 	// Start is called before the first frame update
 	void Awake()
 	{
-		if (instance == null) instance = this;
-		else if (instance != this) Destroy(gameObject);
+		if (instance == null)
+		{
+			instance = this;
+		}
+		else if (instance != this)
+		{
+			Destroy(gameObject);
+		}
 		DontDestroyOnLoad(gameObject);
 		InitGame();
 	}
@@ -75,16 +81,16 @@ public class GameManager : MonoBehaviour
 	{
 		get
 		{
-			if (instance == null) instance = FindObjectOfType<GameManager>();
+			if (instance == null)
+			{
+				instance = FindObjectOfType<GameManager>();
+			}
 			return instance;
 		}
 	}
 	private void Start()
 	{
 		mainCamera = Camera.main;
-		player.tilemapGround = tilemapGround;
-		player.tilemapWalls = tilemapWalls;
-		player.SetGameManager(this);
 	}
 	/// <summary>
 	/// Resets grid state after Player enters new level
@@ -99,20 +105,32 @@ public class GameManager : MonoBehaviour
 			day++;
 			dayText.text = "DAY " + day;
 		}
+		
+		// Resets turn timer and end turn button
 		turnTimer.timerIsRunning = false;
 		turnTimer.ResetTimer();
 		endTurnButton.interactable = true;
+		
 		// Clears tilemap tiles before generating new tiles
 		tilemapGround.ClearAllTiles();
 		tilemapWalls.ClearAllTiles();
+		
 		// Destroys all items on the ground
-		for (int i = 0; i < items.Count; i++) Destroy(items[i]);
+		for (int i = 0; i < items.Count; i++)
+		{
+			Destroy(items[i]);
+		}
 		items.Clear();
+		
 		// Destroys all enemies
-		for (int i = 0; i < enemies.Count; i++) Destroy(enemies[i]);
+		for (int i = 0; i < enemies.Count; i++)
+		{
+			Destroy(enemies[i]);
+		}
 		enemies.Clear();
+		
 		// Resets Player position and energy
-		player.transform.position = new Vector3(-3.5f, 0.5f, 0f);
+		player.transform.position = new(-3.5f, 0.5f, 0f);
 		player.ChangeEnergy(player.MaxEnergy);
 		InitGame();
 		DrawTargetsAndTracers();
@@ -164,7 +182,12 @@ public class GameManager : MonoBehaviour
 	public void ItemGeneration()
 	{
 		while (spawnItemCount > 0)
-			if (WeightedRarityGeneration.Generate('I')) spawnItemCount--;
+		{
+			if (WeightedRarityGeneration.GenerateItem())//Generate('I'))
+			{
+				spawnItemCount--;
+			}
+		}
 	}
 	/// <summary>
 	/// Returns true if no item at Player position, allowing an item in the inventory to be dropped
@@ -173,7 +196,10 @@ public class GameManager : MonoBehaviour
 	/// <returns></returns>
 	public bool DropItem(ItemInfo info)
 	{
-		if (HasItemAtPosition(player.transform.position)) return false;
+		if (HasItemAtPosition(player.transform.position))
+		{
+			return false;
+		}
 		int index = (int)info.tag;
 		GameObject instance = Instantiate(itemTemplates[index], player.transform.position, Quaternion.identity);
 		instance.GetComponent<Item>().info = info;
@@ -189,7 +215,10 @@ public class GameManager : MonoBehaviour
 	{
 		foreach (GameObject item in items)
 		{
-			if (item.GetComponent<Item>().transform.position == position) return true;
+			if (item.GetComponent<Item>().transform.position == position)
+			{
+				return true;
+			}
 		}
 		return false;
 	}
@@ -203,7 +232,10 @@ public class GameManager : MonoBehaviour
 		foreach (GameObject item in items)
 		{
 			Item i = item.GetComponent<Item>();
-			if (i.transform.position == position) return i;
+			if (i.transform.position == position)
+			{
+				return i;
+			}
 		}
 		return null;
 	}
@@ -229,7 +261,12 @@ public class GameManager : MonoBehaviour
 	private void EnemyGeneration()
 	{
 		while (spawnEnemyCount > 0)
-			if (WeightedRarityGeneration.Generate('E')) spawnEnemyCount--;
+		{
+			if (WeightedRarityGeneration.GenerateEnemy())//Generate('E'))
+			{
+				spawnEnemyCount--;
+			}
+		}
 	}
 	/// <summary>
 	/// Returns false if no enemy at position, returns true if found
@@ -238,7 +275,10 @@ public class GameManager : MonoBehaviour
 	{
 		foreach (GameObject enemy in enemies)
 		{
-			if (enemy.GetComponent<Enemy>().transform.position == position) return true;
+			if (enemy.GetComponent<Enemy>().transform.position == position)
+			{
+				return true;
+			}
 		}
 		return false;
 	}
@@ -264,9 +304,18 @@ public class GameManager : MonoBehaviour
 	// Update is called once per frame
 	void Update()
 	{
-		if (doingSetup || !player.finishedInit || player.isInMovement) return;
+		if (doingSetup || !player.finishedInit || player.isInMovement)
+		{
+			return;
+		}
+		
 		DrawTileAreaIfNeeded();
-		if (endTurnButton.interactable == false && playersTurn) endTurnButton.interactable = true;
+		
+		if (endTurnButton.interactable == false && playersTurn)
+		{
+			endTurnButton.interactable = true;
+		}
+		
 		ClickTarget();
 		EnemyMovement();
 	}
@@ -327,7 +376,10 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	public void OnEndTurnPress()
 	{
-		if (player.isInMovement) return;
+		if (player.isInMovement)
+		{
+			return;
+		}
 		endTurnButton.interactable = false;
 		turnTimer.timerIsRunning = false;
 		turnTimer.ResetTimer();
@@ -342,7 +394,10 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	private void UpdateEnemyEnergy()
 	{
-		foreach (GameObject enemy in enemies) enemy.GetComponent<Enemy>().RestoreEnergy();
+		foreach (GameObject enemy in enemies)
+		{
+			enemy.GetComponent<Enemy>().RestoreEnergy();
+		}
 	}
 	/// <summary>
 	/// Acts based on what mouse button is clicked
@@ -363,12 +418,22 @@ public class GameManager : MonoBehaviour
 		{
 			// If Player clicks on its own tile but energy is not used
 			TryAddItem(shiftedClickPoint);
+			
 			// For actions that require energy, first check if it is Player turn
-			if (!playersTurn || player.CurrentEnergy == 0) return;
+			if (!playersTurn || player.CurrentEnergy == 0)
+			{
+				return;
+			}
+			
 			TryUseItemOnPlayer(shiftedClickPoint);
 			bool isInMovementRange = IsInMovementRange(tilePoint);
 			int enemyIndex = GetEnemyIndexAtPosition(tilePoint);
-			if (TryPlayerMovement(isInMovementRange, enemyIndex, shiftedClickPoint, worldPoint)) return;
+			
+			if (TryPlayerMovement(isInMovementRange, enemyIndex, shiftedClickPoint, worldPoint))
+			{
+				return;
+			}
+			
 			bool isInMeleeRange = IsInMeleeRange(shiftedClickPoint);
 			bool isInRangedWeaponRange = player.GetWeaponRange() > 0 && IsInRangeForRangedWeapon(shiftedClickPoint);
 			TryPlayerAttack(enemyIndex, isInMeleeRange, isInRangedWeaponRange);
@@ -377,7 +442,10 @@ public class GameManager : MonoBehaviour
 		else if (IsWithinCellBounds(tilePoint, size))
 		{
 			// If mouse is hovering over tileArea
-			if (IsInMovementRange(tilePoint)) tiledot.MoveToPlace(tilePoint);
+			if (IsInMovementRange(tilePoint))
+			{
+				tiledot.MoveToPlace(tilePoint);
+			}
 		}
 		// If mouse is hovering over UI since UI is outside the grid
 		else
@@ -396,7 +464,10 @@ public class GameManager : MonoBehaviour
 		if (shiftedClickPoint == player.transform.position && GetItemAtPosition(shiftedClickPoint) is Item itemAtPosition)
 		{
 			// Player picks up item
-			if (player.AddItem(itemAtPosition.info)) DestroyItemAtPosition(shiftedClickPoint);
+			if (player.AddItem(itemAtPosition.info))
+			{
+				DestroyItemAtPosition(shiftedClickPoint);
+			}
 		}
 	}
 	/// <summary>
@@ -405,7 +476,10 @@ public class GameManager : MonoBehaviour
 	/// <param name="shiftedClickPoint"></param>
 	private void TryUseItemOnPlayer(Vector3 shiftedClickPoint) 
 	{
-		if (shiftedClickPoint != player.transform.position || !player.ClickOnPlayerToUseItem()) return;
+		if (shiftedClickPoint != player.transform.position || !player.ClickOnPlayerToUseItem())
+		{
+			return;
+		}
 		needToDrawTileAreas = true;
 		turnTimer.StartTimer();
 	}
@@ -447,7 +521,10 @@ public class GameManager : MonoBehaviour
 			player.DecreaseWeaponDurability();
 			needToDrawTileAreas = true;
 			turnTimer.StartTimer();
-			if (isInRangedWeaponRange && player.selectedItem?.currentUses == 0) ClearTargetsAndTracers();
+			if (isInRangedWeaponRange && player.selectedItem?.currentUses == 0)
+			{
+				ClearTargetsAndTracers();
+			}
 		}
 	}
 	/// <summary>
@@ -500,7 +577,10 @@ public class GameManager : MonoBehaviour
 	/// <returns></returns>
 	public bool PlayerIsOnExitTile()
 	{
-		if (!tilemapExit.HasTile(Vector3Int.FloorToInt(player.transform.position))) return false;
+		if (!tilemapExit.HasTile(Vector3Int.FloorToInt(player.transform.position)))
+		{
+			return false;
+		}
 		ResetForNextLevel();
 		return true;
 	}
@@ -562,8 +642,14 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	private void ClearTileAreas()
 	{
-		if (tileAreas.Count == 0) return;
-		foreach (GameObject tileArea in tileAreas) Destroy(tileArea);
+		if (tileAreas.Count == 0)
+		{
+			return;
+		}
+		foreach (GameObject tileArea in tileAreas)
+		{
+			Destroy(tileArea);
+		}
 		tileAreas.Clear();
 		tileAreasToDraw = null;
 	}
@@ -595,12 +681,18 @@ public class GameManager : MonoBehaviour
 	}
 	private void ClearTargets()
 	{
-		foreach (GameObject target in targets) Destroy(target);
+		foreach (GameObject target in targets)
+		{
+			Destroy(target);
+		}
 		targets.Clear();
 	}
 	private void ClearTracers()
 	{
-		foreach (GameObject tracer in tracers) Destroy(tracer);
+		foreach (GameObject tracer in tracers)
+		{
+			Destroy(tracer);
+		}
 		tracers.Clear();
 	}
 	public void DrawTargetsAndTracers()
@@ -639,12 +731,18 @@ public class GameManager : MonoBehaviour
 	private bool IsInLineOfSight(Vector3 playerPosition, Vector3 objPosition, int weaponRange)
 	{
 		float distanceFromPlayerToEnemy = Mathf.Sqrt(Mathf.Pow(objPosition.x - playerPosition.x, 2) + Mathf.Pow(objPosition.y - playerPosition.y, 2));
-		if (distanceFromPlayerToEnemy > weaponRange) return false;
+		if (distanceFromPlayerToEnemy > weaponRange)
+		{
+			return false;
+		}
 		tracerPath = BresenhamsAlgorithm((int)(playerPosition.x - 0.5f), (int)(playerPosition.y - 0.5f), (int)(objPosition.x - 0.5f), (int)(objPosition.y - 0.5f));
 		foreach (Vector3 tracerPosition in tracerPath)
 		{
 			Vector3Int tracerPositionInt = new((int)tracerPosition.x, (int)tracerPosition.y, 0);
-			if (tilemapWalls.HasTile(tracerPositionInt)) return false;
+			if (tilemapWalls.HasTile(tracerPositionInt))
+			{
+				return false;
+			}
 		}
 		return true;
 	}
@@ -659,7 +757,10 @@ public class GameManager : MonoBehaviour
 		while (true)
 		{
 			pointsOnLine.Add(new Vector3(x0, y0, 0));
-			if ((x0 == x1) && (y0 == y1)) break;
+			if ((x0 == x1) && (y0 == y1))
+			{
+				break;
+			}
 			int e2 = 2 * err;
 			if (e2 > -dy)
 			{

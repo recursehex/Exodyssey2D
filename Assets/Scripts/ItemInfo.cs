@@ -102,7 +102,10 @@ public class ItemInfo
 		{
 			if (itemRarityList[i] == specifiedRarity) indicesOfSpecifiedRarity.Add(i);
 		}
-		if (indicesOfSpecifiedRarity.Count == 0) return -1;
+		if (indicesOfSpecifiedRarity.Count == 0)
+		{
+			return -1;
+		}
 		int randomIndex = Random.Range(0, indicesOfSpecifiedRarity.Count);
 		return indicesOfSpecifiedRarity[randomIndex];
 	}

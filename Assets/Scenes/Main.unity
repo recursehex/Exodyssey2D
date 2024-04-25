@@ -3915,6 +3915,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 917007481830541330, guid: 657e2a86062317544ade4b449a68bdf5, type: 3}
+      propertyPath: gameManager
+      value: 
+      objectReference: {fileID: 423806396}
+    - target: {fileID: 917007481830541330, guid: 657e2a86062317544ade4b449a68bdf5, type: 3}
       propertyPath: inventoryUI
       value: 
       objectReference: {fileID: 524301576}
@@ -3926,6 +3930,10 @@ PrefabInstance:
       propertyPath: pressSound2
       value: 
       objectReference: {fileID: 8300000, guid: f6aaac83be9e0493493aace800b76619, type: 3}
+    - target: {fileID: 917007481830541330, guid: 657e2a86062317544ade4b449a68bdf5, type: 3}
+      propertyPath: soundManager
+      value: 
+      objectReference: {fileID: 215762111}
     - target: {fileID: 917007481830541330, guid: 657e2a86062317544ade4b449a68bdf5, type: 3}
       propertyPath: tilemapWalls
       value: 
