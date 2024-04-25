@@ -15,7 +15,10 @@ public class Inventory
 	/// <returns></returns>
 	public bool AddItem(ItemInventory item)
 	{
-		if (itemList.Count >= InventorySize) return false;
+		if (itemList.Count >= InventorySize)
+		{
+			return false;
+		}
 		itemList.Add(item);
 		return true;
 	}
