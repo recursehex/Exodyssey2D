@@ -707,9 +707,10 @@ MonoBehaviour:
   - {fileID: 5730536483717399719, guid: 449c9aea6710b3947a699d611aea06d5, type: 3}
   - {fileID: 1336611518689343522, guid: 176769378e4b4604a8be4ff8a9b0df0d, type: 3}
   - {fileID: 2145379877062402088, guid: 076e796f14b824f9ea393fded31f3400, type: 3}
+  - {fileID: 2145379877062402088, guid: 5330247c7099b4f6eba5d8daa116a07a, type: 3}
   - {fileID: 142956206023105660, guid: 26546f8ae20dd2d418e1c49d62c10717, type: 3}
-  - {fileID: 2145379877062402088, guid: 33186f847f6305748921b5b654aa8c9d, type: 3}
   - {fileID: 2145379877062402088, guid: ba8e62b527e3c4b2c8c15ddde698b587, type: 3}
+  - {fileID: 2145379877062402088, guid: 33186f847f6305748921b5b654aa8c9d, type: 3}
   items: []
   tilemapGround: {fileID: 2052983298}
   tilemapWalls: {fileID: 1335406084}
@@ -852,11 +853,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   medKit: {fileID: 21300000, guid: e63fa49fd71466949a49c86ab02643bb, type: 3}
-  plasmaRailgun: {fileID: 21300000, guid: 893e014505199464f95bf7b4ac775a80, type: 3}
   branch: {fileID: 21300000, guid: 77498a5f92be416449a3dbf6e241737c, type: 3}
+  knife: {fileID: 21300000, guid: 0dc086c1ca50045f38730aa9f1109c37, type: 3}
+  wrench: {fileID: 21300000, guid: ed0ee08a68f0b4c81b24ff5c2ba753e6, type: 3}
   diamondChainsaw: {fileID: 21300000, guid: 902c95ac0d6b08143854f794969f02ff, type: 3}
   huntingRifle: {fileID: 21300000, guid: d38d13e653a2c42e382135c5afbd03f1, type: 3}
-  knife: {fileID: 21300000, guid: 0dc086c1ca50045f38730aa9f1109c37, type: 3}
+  plasmaRailgun: {fileID: 21300000, guid: 893e014505199464f95bf7b4ac775a80, type: 3}
   missing: {fileID: 21300000, guid: 444ca3841fdde9a41ad47e59ee6e79ec, type: 3}
 --- !u!4 &514509758
 Transform:

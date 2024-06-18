@@ -50,6 +50,10 @@ public class Player : MonoBehaviour
 	// Update is called once per frame 
 	void Update()
 	{
+		if (!gameManager.playersTurn)
+		{
+			return;
+		}
 		MoveAlongThePath();
 	}
 	/// <summary>
@@ -175,6 +179,7 @@ public class Player : MonoBehaviour
 	{
 		selectedItem.DecreaseDurability();
 		inventoryUI.SetCurrentSelected(inventoryUI.SelectedIndex);
+		// When weapon durability reaches 0
 		if (selectedItem.currentUses == 0)
 		{
 			inventoryUI.RemoveItem(inventoryUI.SelectedIndex);
@@ -186,7 +191,7 @@ public class Player : MonoBehaviour
 	}
 	public int GetWeaponRange()
 	{
-		return selectedItem == null ? -1 : selectedItem.range;
+		return selectedItem == null ? 0 : selectedItem.range;
 	}
 	/// <summary>
 	/// Adds item to inventory when picked up
@@ -206,7 +211,8 @@ public class Player : MonoBehaviour
 	public void TryClickItem(int itemIndex)
 	{
 		// Ensures index is within bounds and inventory has an item
-		if (itemIndex >= inventory.itemList.Count || inventory.itemList.Count == 0)
+		if (itemIndex >= inventory.itemList.Count
+			|| inventory.itemList.Count == 0)
 		{
 			return;
 		}
@@ -260,7 +266,9 @@ public class Player : MonoBehaviour
 	}
 	private bool MedKitWasUsed() 
 	{
-		if (selectedItem.tag == ItemInfo.ItemTag.MedKit && CurrentHealth < MaxHealth && CurrentEnergy > 0)
+		if (selectedItem.tag is ItemInfo.ItemTag.MedKit
+			&& CurrentHealth < MaxHealth
+			&& CurrentEnergy > 0)
 		{
 			RestoreHealth();
 			ChangeEnergy(-1);
@@ -285,7 +293,7 @@ public class Player : MonoBehaviour
 			return;
 		}
 		// Resets damage points if weapon is dropped
-		if (selectedItem.type == ItemInfo.ItemType.Weapon)
+		if (selectedItem.type is ItemInfo.ItemType.Weapon)
 		{
 			DamagePoints = 0;
 			// Clears targeting if ranged weapon is dropped
