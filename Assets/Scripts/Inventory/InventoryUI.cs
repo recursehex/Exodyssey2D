@@ -104,7 +104,8 @@ public class InventoryUI : MonoBehaviour
 	public static bool ProcessSelection(int oldSelectedIndex, int newSelectedIndex)
 	{
 		// Unselect old item
-		if (oldSelectedIndex == newSelectedIndex && oldSelectedIndex != -1)
+		if (oldSelectedIndex == newSelectedIndex
+			&& oldSelectedIndex != -1)
 		{
 			GameObject.Find("InventoryPressed" + oldSelectedIndex).transform.localScale = Vector3.one;
 			return false;
@@ -137,7 +138,8 @@ public class InventoryUI : MonoBehaviour
 		{
 			Image icon = GameObject.Find("InventoryIcon" + iconNumber).GetComponent<Image>();
 			Vector3 iconPosition = icon.transform.position;
-			if (Math.Abs(iconPosition.x - mousePosition.x) <= sensitivityDistance && Math.Abs(iconPosition.y - mousePosition.y) <= sensitivityDistance)
+			if (Math.Abs(iconPosition.x - mousePosition.x) <= sensitivityDistance
+				&& Math.Abs(iconPosition.y - mousePosition.y) <= sensitivityDistance)
 			{
 				mouseIsOverIcon = true;
 				nameText.text = item.itemInfo.name;

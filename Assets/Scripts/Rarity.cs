@@ -1,26 +1,12 @@
-using System.Collections.Generic;
-
-public struct Rarity 
+namespace Exodyssey.Rarity
 {
-	public enum RarityTag
+	// Number represents chance of element being generated
+	public enum Rarity
 	{
-		Common = 0, // white
-		Limited,    // green
-		Scarce,     // yellow
-		Rare,       // blue
-		Anomalous,  // purple
-
-		Unknown,
+		Common = 35,     // white
+		Limited = 30,    // green
+		Scarce = 20,     // yellow
+		Rare = 10,       // blue
+		Anomalous = 5,   // purple
 	}
-	public RarityTag Tag { get; set; }
-	public int Chance { get; set; }
-	
-	public static List<Rarity> rarities = new()
-	{
-		new() { Tag = RarityTag.Common, Chance = 35 },
-		new() { Tag = RarityTag.Limited, Chance = 30 },
-		new() { Tag = RarityTag.Scarce, Chance = 20 },
-		new() { Tag = RarityTag.Rare, Chance = 10 },
-		new() { Tag = RarityTag.Anomalous, Chance = 5 },
-	};
 }

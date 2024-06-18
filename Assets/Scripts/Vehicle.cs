@@ -18,7 +18,7 @@ public class Vehicle : MonoBehaviour
 
     private Vector3Int destination;
 
-    GameManager gm;
+    GameManager gameManager;
 
     [SerializeField]
     private AStar astar;
@@ -39,23 +39,23 @@ public class Vehicle : MonoBehaviour
     }
 
     /// <summary>
-    /// Changes vehicle's HP, use negative to decrease
+    /// Changes vehicle's Health, use negative to decrease
     /// </summary>
-    public void ChangeHP(int change)
+    public void ChangeHealth(int change)
     {
-        info.currentHP = Mathf.Clamp(info.currentHP + change, 0, info.maxHP);
+        info.currentHealth = Mathf.Clamp(info.currentHealth + change, 0, info.maxHealth);
     }
 
     /// <summary>
-    /// Resets vehicle's HP to maxHP
+    /// Resets vehicle's Health to maxHealth
     /// </summary>
-    public void RestoreHP()
+    public void RestoreHealth()
     {
-        info.currentHP = info.maxHP;
+        info.currentHealth = info.maxHealth;
     }
 
     public void SetGameManager(GameManager g)
     {
-        gm = g;
+        gameManager = g;
     }
 }
