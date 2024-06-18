@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using Exodyssey.Rarity;
 
 public class EnemyInfo
 {
@@ -29,22 +30,34 @@ public class EnemyInfo
 
 		Unknown,
 	}
-	private EnemyTag tag;						// Name of enemy
-	private Rarity.RarityTag rarity;			// Rarity of enemy
-	private EnemyType type;						// Type of enemy
-	public string name;                         // Ingame name of enemy
+	// Name of enemy
+	private EnemyTag tag = EnemyTag.Unknown;
+	// Rarity of enemy
+	private Rarity rarity = Rarity.Common;
+	// Type of enemy
+	private EnemyType type = EnemyType.Unknown;
+	// Ingame name of enemy
+	public string name = "UNKNOWN";
+	// Maximum health
 	public int maxHealth = 1;
+	// Current health
 	public int currentHealth = 1;
+	// Maximum energy
 	public int maxEnergy = 1;
+	// Current energy
 	public int currentEnergy = 1;
-	public int damagePoints = -1;               // Set only for enemies that do direct attacks
-	public int range = 0;                       // Maximum distance a Ranged enemy can attack to, 0 = Melee
-	public bool isHunting = true;               // true = will hunt the player, false = will guard nearby items
-	public bool isShelled = false;              // false = will not have resistance to Steel Beam and Mallet, true = will have resistance and will be vulnerable to Axe, Honed Gavel, and Shell Piercer
+	// Set only for enemies that do direct attacks
+	public int damagePoints = -1;
+	// Maximum distance a ranged enemy can attack to, 0 = melee
+	public int range = 0;
+	// true = will hunt the player, false = will guard nearby items
+	public bool isHunting = true;
+	// true = resistant to certain types of damage, false = not
+	public bool isArmored = false;
 	private static readonly int lastEnemyIndex = (int)EnemyTag.Unknown;
-	private static List<Rarity.RarityTag> GenerateAllRarities()
+	private static List<Rarity> GenerateAllRarities()
 	{
-		List<Rarity.RarityTag> enemyRarityList = new();
+		List<Rarity> enemyRarityList = new();
 		for (int i = 0; i < lastEnemyIndex; i++)
 		{
 			EnemyInfo enemy = EnemyFactory(i);
@@ -52,13 +65,16 @@ public class EnemyInfo
 		}
 		return enemyRarityList;
 	}
-	public static int GetRandomIndexOfSpecifiedRarity(Rarity.RarityTag specifiedRarity)
+	public static int GetRandomIndexOfSpecifiedRarity(Rarity specifiedRarity)
 	{
-		List<Rarity.RarityTag> enemyRarityList = GenerateAllRarities();
+		List<Rarity> enemyRarityList = GenerateAllRarities();
 		List<int> indicesOfSpecifiedRarity = new();
 		for (int i = 0; i < enemyRarityList.Count; i++)
 		{
-			if (enemyRarityList[i] == specifiedRarity) indicesOfSpecifiedRarity.Add(i);
+			if (enemyRarityList[i] == specifiedRarity) 
+			{
+				indicesOfSpecifiedRarity.Add(i);
+			}
 		}
 		if (indicesOfSpecifiedRarity.Count == 0)
 		{
@@ -75,12 +91,11 @@ public class EnemyInfo
 	public static EnemyInfo EnemyFactory(int n)
 	{
 		EnemyInfo info = new();
-
 		switch (n)
 		{
 			case 0:
 				info.tag = EnemyTag.Crawler;
-				info.rarity = Rarity.RarityTag.Common;
+				info.rarity = Rarity.Common;
 				info.type = EnemyType.Weak;
 				info.maxHealth = 2;
 				info.currentHealth = info.maxHealth;
@@ -92,7 +107,7 @@ public class EnemyInfo
 				break;
 			case 1:
 				info.tag = EnemyTag.Launcher;
-				info.rarity = Rarity.RarityTag.Limited;
+				info.rarity = Rarity.Limited;
 				info.type = EnemyType.Mediocre;
 				info.maxHealth = 4;
 				info.currentHealth = info.maxHealth;

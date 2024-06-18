@@ -10,11 +10,11 @@ public class ItemInventory
 		{
 			ItemInfo.ItemTag.MedKit => ItemAssets.Instance.medKit,
 			ItemInfo.ItemTag.Branch => ItemAssets.Instance.branch,
-			ItemInfo.ItemTag.DiamondChainsaw => ItemAssets.Instance.diamondChainsaw,
 			ItemInfo.ItemTag.Knife => ItemAssets.Instance.knife,
+			ItemInfo.ItemTag.Wrench => ItemAssets.Instance.wrench,
+			ItemInfo.ItemTag.DiamondChainsaw => ItemAssets.Instance.diamondChainsaw,
 			/*
 			ItemInfo.ItemTag.ToolKit => ItemAssets.Instance.toolKit,
-			ItemInfo.ItemTag.Wrench => ItemAssets.Instance.wrench,
 			ItemInfo.ItemTag.Mallet => ItemAssets.Instance.mallet,
 			ItemInfo.ItemTag.Axe => ItemAssets.Instance.axe,
 			ItemInfo.ItemTag.Rock => ItemAssets.Instance.rock,

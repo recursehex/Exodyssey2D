@@ -1,17 +1,18 @@
 using UnityEngine;
+using Exodyssey.Rarity;
 
 public static class WeightedRarityGeneration
 {
 	private static Rarity chosenRarity;
 	private static Vector3 chosenShiftedPosition;
-	private static bool Generate()
+	private static bool GenerateRarityAndPosition()
 	{
 		int roll = Random.Range(1, 101);
 		int cumulative = 0;
 		
-		foreach (Rarity rarity in Rarity.rarities)
+		foreach (Rarity rarity in System.Enum.GetValues(typeof(Rarity)))
 		{
-			cumulative += rarity.Chance;
+			cumulative += (int)rarity;
 			
 			if (roll <= cumulative)
 			{
@@ -19,14 +20,18 @@ public static class WeightedRarityGeneration
 				int y = Random.Range(-4, 4);
 				Vector3Int position = new(x, y, 0);
 				
-				if (GameManager.instance.TilemapWallsHasTile(position) || (x <= -2 && y <= 1 && y >= -1))
+				// Fails if wall tile is at selected position
+				if (GameManager.instance.TilemapWallsHasTile(position)
+					|| (x <= -2 && y <= 1 && y >= -1))
 				{
 					return false;
 				}
 				
 				Vector3 shiftedPosition = new(x + 0.5f, y + 0.5f, 0);
 				
-				if (GameManager.instance.HasItemAtPosition(shiftedPosition) || GameManager.instance.HasEnemyAtPosition(shiftedPosition))
+				// Fails if item or enemy is at selected position
+				if (GameManager.instance.HasItemAtPosition(shiftedPosition)
+					|| GameManager.instance.HasEnemyAtPosition(shiftedPosition))
 				{
 					return false;
 				}
@@ -40,13 +45,14 @@ public static class WeightedRarityGeneration
 	}
 	public static bool GenerateItem()
 	{
-		if (!Generate()) 
+		if (!GenerateRarityAndPosition()) 
 		{
 			return false;
 		}
 		
-		int randomItemIndex = ItemInfo.GetRandomIndexOfSpecifiedRarity(chosenRarity.Tag);
+		int randomItemIndex = ItemInfo.GetRandomIndexOfSpecifiedRarity(chosenRarity);
 		
+		// Fails if no items of chosen rarity
 		if (randomItemIndex == -1)
 		{
 			return false;
@@ -61,13 +67,14 @@ public static class WeightedRarityGeneration
 	}
 	public static bool GenerateEnemy()
 	{
-		if (!Generate()) 
+		if (!GenerateRarityAndPosition()) 
 		{
 			return false;
 		}
 		
-		int randomEnemyIndex = EnemyInfo.GetRandomIndexOfSpecifiedRarity(chosenRarity.Tag);
+		int randomEnemyIndex = EnemyInfo.GetRandomIndexOfSpecifiedRarity(chosenRarity);
 		
+		// Fails if no enemies of chosen rarity
 		if (randomEnemyIndex == -1)
 		{
 			return false;
