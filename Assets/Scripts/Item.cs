@@ -2,9 +2,9 @@ using UnityEngine;
 
 public class Item : MonoBehaviour
 {
-    public ItemInfo info;
+    public ItemInfo Info;
     public Item()
     {
-        info = new ItemInfo();
+        Info = new ItemInfo();
     }
 }

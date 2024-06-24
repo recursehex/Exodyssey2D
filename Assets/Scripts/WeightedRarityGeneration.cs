@@ -3,41 +3,41 @@ using Exodyssey.Rarity;
 
 public static class WeightedRarityGeneration
 {
-	private static Rarity chosenRarity;
-	private static Vector3 chosenShiftedPosition;
+	private static Rarity ChosenRarity;
+	private static Vector3 ChosenShiftedPosition;
 	private static bool GenerateRarityAndPosition()
 	{
 		int roll = Random.Range(1, 101);
 		int cumulative = 0;
 		
-		foreach (Rarity rarity in System.Enum.GetValues(typeof(Rarity)))
+		foreach (Rarity Rarity in System.Enum.GetValues(typeof(Rarity)))
 		{
-			cumulative += (int)rarity;
+			cumulative += (int)Rarity;
 			
 			if (roll <= cumulative)
 			{
 				int x = Random.Range(-4, 4);
 				int y = Random.Range(-4, 4);
-				Vector3Int position = new(x, y, 0);
+				Vector3Int Position = new(x, y, 0);
 				
 				// Fails if wall tile is at selected position
-				if (GameManager.instance.TilemapWallsHasTile(position)
+				if (GameManager.Instance.TilemapWallsHasTile(Position)
 					|| (x <= -2 && y <= 1 && y >= -1))
 				{
 					return false;
 				}
 				
-				Vector3 shiftedPosition = new(x + 0.5f, y + 0.5f, 0);
+				Vector3 ShiftedPosition = new(x + 0.5f, y + 0.5f, 0);
 				
 				// Fails if item or enemy is at selected position
-				if (GameManager.instance.HasItemAtPosition(shiftedPosition)
-					|| GameManager.instance.HasEnemyAtPosition(shiftedPosition))
+				if (GameManager.Instance.HasItemAtPosition(ShiftedPosition)
+					|| GameManager.Instance.HasEnemyAtPosition(ShiftedPosition))
 				{
 					return false;
 				}
 				
-				chosenRarity = rarity;
-				chosenShiftedPosition = shiftedPosition;
+				ChosenRarity = Rarity;
+				ChosenShiftedPosition = ShiftedPosition;
 				return true;
 			}
 		}
@@ -50,7 +50,7 @@ public static class WeightedRarityGeneration
 			return false;
 		}
 		
-		int randomItemIndex = ItemInfo.GetRandomIndexOfSpecifiedRarity(chosenRarity);
+		int randomItemIndex = ItemInfo.GetRandomIndexOfSpecifiedRarity(ChosenRarity);
 		
 		// Fails if no items of chosen rarity
 		if (randomItemIndex == -1)
@@ -58,11 +58,11 @@ public static class WeightedRarityGeneration
 			return false;
 		}
 		
-		GameObject element = GameManager.instance.itemTemplates[randomItemIndex];
-		GameObject instance = GameObject.Instantiate(element, chosenShiftedPosition, Quaternion.identity);
-		Item item = instance.GetComponent<Item>();
-		item.info = ItemInfo.ItemFactory(randomItemIndex);
-		GameManager.instance.items.Add(instance);
+		GameObject Element = GameManager.Instance.ItemTemplates[randomItemIndex];
+		GameObject ItemInstance = GameObject.Instantiate(Element, ChosenShiftedPosition, Quaternion.identity);
+		Item Item = ItemInstance.GetComponent<Item>();
+		Item.Info = ItemInfo.ItemFactory(randomItemIndex);
+		GameManager.Instance.Items.Add(ItemInstance);
 		return true;
 	}
 	public static bool GenerateEnemy()
@@ -72,7 +72,7 @@ public static class WeightedRarityGeneration
 			return false;
 		}
 		
-		int randomEnemyIndex = EnemyInfo.GetRandomIndexOfSpecifiedRarity(chosenRarity);
+		int randomEnemyIndex = EnemyInfo.GetRandomIndexOfSpecifiedRarity(ChosenRarity);
 		
 		// Fails if no enemies of chosen rarity
 		if (randomEnemyIndex == -1)
@@ -80,15 +80,15 @@ public static class WeightedRarityGeneration
 			return false;
 		}
 		
-		GameObject element = GameManager.instance.enemyTemplates[randomEnemyIndex];
-		GameObject instance = GameObject.Instantiate(element, chosenShiftedPosition, Quaternion.identity);
-		Enemy enemy = instance.GetComponent<Enemy>();
-		enemy.tilemapGround = GameManager.instance.GetTilemapGround();
-		enemy.tilemapWalls = GameManager.instance.GetTilemapWalls();
-		enemy.info = EnemyInfo.EnemyFactory(randomEnemyIndex);
-		enemy.SetGameManager(GameManager.instance);
-		enemy.SetSoundManager(SoundManager.instance);
-		GameManager.instance.enemies.Add(instance);
+		GameObject Element = GameManager.Instance.EnemyTemplates[randomEnemyIndex];
+		GameObject EnemyInstance = GameObject.Instantiate(Element, ChosenShiftedPosition, Quaternion.identity);
+		Enemy Enemy = EnemyInstance.GetComponent<Enemy>();
+		Enemy.TilemapGround = GameManager.Instance.GetTilemapGround();
+		Enemy.TilemapWalls = GameManager.Instance.GetTilemapWalls();
+		Enemy.Info = EnemyInfo.EnemyFactory(randomEnemyIndex);
+		Enemy.SetGameManager(GameManager.Instance);
+		Enemy.SetSoundManager(SoundManager.Instance);
+		GameManager.Instance.Enemies.Add(EnemyInstance);
 		return true;
 	}
 }

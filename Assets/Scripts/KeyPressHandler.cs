@@ -3,20 +3,20 @@ using UnityEngine.UI;
 
 public class KeyPressHandler : MonoBehaviour
 {
-    public KeyCode primaryKey;
-    public KeyCode secondaryKey;
-    private Button button;
+    public KeyCode PrimaryKey;
+    public KeyCode SecondaryKey;
+    private Button Button;
 
     void Awake()
     {
-        button = GetComponent<Button>();
+        Button = GetComponent<Button>();
     }
 
     void Update()
     {
-        if ((Input.GetKeyDown(primaryKey) || Input.GetKeyDown(secondaryKey)) && button.interactable)
+        if ((Input.GetKeyDown(PrimaryKey) || Input.GetKeyDown(SecondaryKey)) && Button.interactable)
         {
-            button.onClick.Invoke();
+            Button.onClick.Invoke();
         }
     }
 }

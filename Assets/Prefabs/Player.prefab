@@ -195,17 +195,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5ccd60190159ec14897fc334e10b629a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerMove: {fileID: 8300000, guid: 892962212a4b74d1c9f578a3b6ea6439, type: 3}
-  heal: {fileID: 8300000, guid: 062161c1897a54088a5430f8c197e1b8, type: 3}
-  select: {fileID: 8300000, guid: f6aaac83be9e0493493aace800b76619, type: 3}
-  gameOver: {fileID: 8300000, guid: e2beefeb2273f4efe992adf5b8d67c29, type: 3}
-  animator: {fileID: 0}
-  inventoryUI: {fileID: 0}
-  statsDisplayManager: {fileID: 0}
+  PlayerMove: {fileID: 8300000, guid: 892962212a4b74d1c9f578a3b6ea6439, type: 3}
+  Heal: {fileID: 8300000, guid: 062161c1897a54088a5430f8c197e1b8, type: 3}
+  Select: {fileID: 8300000, guid: f6aaac83be9e0493493aace800b76619, type: 3}
+  GameOver: {fileID: 8300000, guid: e2beefeb2273f4efe992adf5b8d67c29, type: 3}
+  Animator: {fileID: 0}
+  InventoryUI: {fileID: 0}
+  StatsDisplayManager: {fileID: 0}
   finishedInit: 0
   isInMovement: 0
-  tilemapGround: {fileID: 0}
-  tilemapWalls: {fileID: 0}
+  GameManager: {fileID: 0}
+  SoundManager: {fileID: 0}
+  TilemapGround: {fileID: 0}
+  TilemapWalls: {fileID: 0}
 --- !u!1839735485 &917007481621583912
 Tilemap:
   m_ObjectHideFlags: 0

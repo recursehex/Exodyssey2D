@@ -3,14 +3,14 @@ using UnityEngine.EventSystems;
 
 public class RightClickDrop : MonoBehaviour, IPointerClickHandler
 {
-    public int idx = 0;
-    public void OnPointerClick(PointerEventData eventData)
+    public int index = 0;
+    public void OnPointerClick(PointerEventData EventData)
     {
-        Player p = GameObject.Find("Player").GetComponent<Player>();
+        Player Player = GameObject.Find("Player").GetComponent<Player>();
 
-        if (eventData.button == PointerEventData.InputButton.Right)
+        if (EventData.button == PointerEventData.InputButton.Right)
         {
-            p.TryDropItem(idx);
+            Player.TryDropItem(index);
         }
     }
 }

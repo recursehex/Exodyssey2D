@@ -7,12 +7,12 @@ public class ItemAssets : MonoBehaviour
 	{
 		Instance = this;
 	}
-	public Sprite medKit;
-	public Sprite branch;
-	public Sprite knife;
-	public Sprite wrench;
-	public Sprite diamondChainsaw;
-	public Sprite huntingRifle;
-	public Sprite plasmaRailgun;
-	public Sprite missing;
+	public Sprite MedKit;
+	public Sprite Branch;
+	public Sprite Knife;
+	public Sprite Wrench;
+	public Sprite DiamondChainsaw;
+	public Sprite HuntingRifle;
+	public Sprite PlasmaRailgun;
+	public Sprite Missing;
 }

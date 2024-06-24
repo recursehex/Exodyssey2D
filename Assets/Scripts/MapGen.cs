@@ -25,7 +25,7 @@ public class MapGen
    {1, 0, 1} ,
    {0, 0, 1}
 };
-    readonly List<int[,]> allTemplates;
+    readonly List<int[,]> AllTemplates;
     readonly int[,] quadrants = new int[6, 2]
     {
         {-4, 4} ,
@@ -38,7 +38,7 @@ public class MapGen
 
     public MapGen()
     {
-        allTemplates = new List<int[,]>
+        AllTemplates = new List<int[,]>
         {
             template1,
             template2,
@@ -62,33 +62,33 @@ public class MapGen
 
     readonly float minimumChance = 0.15f;
 
-    public void GenerateMap(Tilemap tilemapWalls, Tile[] wallTiles)
+    public void GenerateMap(Tilemap TilemapWalls, Tile[] WallTiles)
     {
-        int totalTemplates = allTemplates.Count;
-        int nGenerated = 0;
+        int totalTemplates = AllTemplates.Count;
+        int numberGenerated = 0;
         int numberOfQuadrants = 6;
         for (int i = 0; i < numberOfQuadrants; i++)
         {
             if (Random.value > minimumChance)
             {
-                nGenerated++;
+                numberGenerated++;
                 int templateIdx = Random.Range(0, totalTemplates);
                 int baseX = quadrants[i, 0];
                 int baseY = quadrants[i, 1];
-                int[,] t = allTemplates[templateIdx];
+                int[,] template = AllTemplates[templateIdx];
                 int nRotations = Random.Range(0, 4);
                 for (int r = 0; r < nRotations; r++)
                 {
-                    t = Rotate3by3(t);
+                    template = Rotate3by3(template);
                 }
                 for (int x = 0; x < 3; x++)
                 {
                     for (int y = 0; y < 3; y++)
                     {
-                        if (t[y, x] > 0)
+                        if (template[y, x] > 0)
                         {
-                            Vector3Int p = new(baseX + x, baseY - y, 0);
-                            tilemapWalls.SetTile(p, wallTiles[Random.Range(0, wallTiles.Length)]);
+                            Vector3Int Position = new(baseX + x, baseY - y, 0);
+                            TilemapWalls.SetTile(Position, WallTiles[Random.Range(0, WallTiles.Length)]);
                         }
                     }
                 }
