@@ -9,248 +9,248 @@ using System.Linq;
 /// </summary>
 public class AStar
 {
-    [SerializeField]
-    public Tilemap tilemapGround;
-    [SerializeField]
-    public Tilemap tilemapWalls;
-    private GameManager gm;
-    private Node current;
-    private Stack<Vector3Int> path;
-    private HashSet<Node> openList;
-    private HashSet<Node> closedList;
-    private Dictionary<Vector3Int, Node> allNodes;
-    private static HashSet<Vector3Int> noDiagonalTiles;
-    private Vector3Int startPos, goalPos;
-    private bool allowDiagonal = true;
-    public static HashSet<Vector3Int> NoDiagonalTiles
-    {
-        get
-        {
-            return noDiagonalTiles;
-        }
-    }
-    public void Initialize()
-    {
-        allNodes = new Dictionary<Vector3Int, Node>();
+	public Tilemap TilemapGround;
+	public Tilemap TilemapWalls;
+	private GameManager GameManager;
+	private Node Current;
+	private Stack<Vector3Int> Path;
+	private HashSet<Node> OpenList;
+	private HashSet<Node> ClosedList;
+	private Dictionary<Vector3Int, Node> AllNodes;
+	private static HashSet<Vector3Int> NoDiagonalTiles { get; set;}
+	private Vector3Int StartPosition, GoalPosition;
+	private bool allowDiagonal = true;
+	// public static HashSet<Vector3Int> NoDiagonalTiles
+	// {
+	//     get
+	//     {
+	//         return noDiagonalTiles;
+	//     }
+	// }
+	public void Initialize()
+	{
+		AllNodes = new Dictionary<Vector3Int, Node>();
+		NoDiagonalTiles = new HashSet<Vector3Int>();
+	}
+	public void SetAllowDiagonal(bool flag)
+	{
+		allowDiagonal = flag;
+	}
+	public Dictionary<Vector3Int, Node> GetReachableAreaByDistance(Vector3 Start, int distance)
+	{
+		Vector3Int StartInt = TilemapGround.WorldToCell(Start);
+		Dictionary<Vector3Int, Node> ReachableArea = new();
+		List<Node> ToExamineList = new()
+		{
+			new Node(StartInt)
+		};
+		// Checks within AP distance limit for reachable tiles, pseudo-recursive
+		for (int i = 0; i < distance; i++)
+		{
+			List<Node> NewNeighbors = new();
+			for (int j = 0; j < ToExamineList.Count; j++)
+			{
+				List<Node> Neighbors = FindNeighbors(ToExamineList[j].Position);
+				for (int k = 0; k < Neighbors.Count; k++)
+				{
+					NewNeighbors.Add(Neighbors[k]);
+					ReachableArea[Neighbors[k].Position] = Neighbors[k];
+				}
+			}
+			ToExamineList = NewNeighbors;
+		}
+		return ReachableArea;
+	}
+	public Stack<Vector3Int> ComputePath(Vector3 Start, Vector3 Goal, GameManager G)
+	{
+		GameManager = G;
+		StartPosition = TilemapGround.WorldToCell(Start);
+		GoalPosition = TilemapGround.WorldToCell(Goal);
+		AllNodes.Clear();
+		Current = GetNode(StartPosition);
+		// Creates an open list for nodes that could be looked at later
+		OpenList = new HashSet<Node>();
+		// Creates a closed list for examined nodes
+		ClosedList = new HashSet<Node>();
+		foreach (KeyValuePair<Vector3Int, Node> Node in AllNodes)
+		{
+			Node.Value.Parent = null;
+		}
+		AllNodes.Clear();
+		// Adds the current node to the open list (has been examined)
+		OpenList.Add(Current);
+		Path = null;
+		while (OpenList.Count > 0 && Path == null)
+		{
+			List<Node> Neighbors = FindNeighbors(Current.Position);
+			ExamineNeighbors(Neighbors, Current);
+			UpdateCurrentTile(ref Current);
+			Path = GeneratePath(Current);
+		}
+		if (Path != null)
+		{
+			return Path;
+		}
+		return null;
+	}
+	private List<Node> FindNeighbors(Vector3Int ParentPosition)
+	{
+		List<Node> Neighbors = new();
+		// These two for loops make sure that all nodes are created around the current node
+		for (int x = -1; x <= 1; x++)
+		{
+			for (int y = -1; y <= 1; y++)
+			{
+				Vector3Int Position = new(ParentPosition.x - x, ParentPosition.y - y, ParentPosition.z);
+				bool EnemyAtPosition = false;
+				if (GameManager != null)
+				{
+					Vector3 EnemyPosition = new(ParentPosition.x - x + 0.5f, ParentPosition.y - y + 0.5f, ParentPosition.z);
+					EnemyAtPosition = GameManager.HasEnemyAtPosition(EnemyPosition);
+				}
+				if ((y != 0 || x != 0) && (allowDiagonal || (!allowDiagonal && (y == 0 || x == 0))))
+				{
+					BoundsInt Size = TilemapGround.cellBounds;
+					// If node is within bounds of the grid and if there is no wall tile and no enemy there and if player has any AP, then add it to the neighbors list
+					if (Position.x >= Size.min.x && Position.x < Size.max.x && Position.y >= Size.min.y && Position.y < Size.max.y && !TilemapWalls.HasTile(Position) && !EnemyAtPosition)
+					{
+						Node Neighbor = GetNode(Position);
+						Neighbors.Add(Neighbor);
+					}
+				}
+			}
+		}
+		return Neighbors;
+	}
+	private void ExamineNeighbors(List<Node> Neighbors, Node Current)
+	{
+		for (int i = 0; i < Neighbors.Count; i++)
+		{
+			Node Neighbor = Neighbors[i];
+			if (!ConnectedDiagonally(Current, Neighbor))
+			{
+				continue;
+			}
+			int gScore = DetermineGScore(Neighbor.Position, Current.Position);
+			if (gScore == 14 && NoDiagonalTiles.Contains(Neighbor.Position) && NoDiagonalTiles.Contains(Current.Position))
+			{
+				continue;
+			}
+			if (OpenList.Contains(Neighbor))
+			{
+				if (Current.G + gScore < Neighbor.G)
+				{
+					CalcValues(Current, Neighbor, GoalPosition, gScore);
+				}
+			}
+			else if (!ClosedList.Contains(Neighbor))
+			{
+				CalcValues(Current, Neighbor, GoalPosition, gScore);
 
-        noDiagonalTiles = new HashSet<Vector3Int>();
-    }
-    public void SetAllowDiagonal(bool f)
-    {
-        allowDiagonal = f;
-    }
-    public Dictionary<Vector3Int, Node> GetReachableAreaByDistance(Vector3 start, int dst)
-    {
-        Vector3Int s = tilemapGround.WorldToCell(start);
-        Dictionary<Vector3Int, Node> res = new();
-        List<Node> toExamineList = new()
-        {
-            new Node(s)
-        };
-        // Checks within AP distance limit for reachable tiles, pseudo-recursive
-        for (int i = 0; i < dst; i++)
-        {
-            List<Node> newNeighbors = new();
-            for (int j = 0; j < toExamineList.Count; j++)
-            {
-                List<Node> neighbors = FindNeighbors(toExamineList[j].Position);
-                for (int k = 0; k < neighbors.Count; k++)
-                {
-                    newNeighbors.Add(neighbors[k]);
-                    res[neighbors[k].Position] = neighbors[k];
-                }
-            }
-            toExamineList = newNeighbors;
-        }
-        return res;
-    }
-    public Stack<Vector3Int> ComputePath(Vector3 start, Vector3 goal, GameManager g)
-    {
-        gm = g;
-        startPos = tilemapGround.WorldToCell(start);
-        goalPos = tilemapGround.WorldToCell(goal);
-        allNodes.Clear();
-        current = GetNode(startPos);
-        // Creates an open list for nodes that could be looked at later
-        openList = new HashSet<Node>();
-        // Creates a closed list for examined nodes
-        closedList = new HashSet<Node>();
-        foreach (KeyValuePair<Vector3Int, Node> node in allNodes)
-        {
-            node.Value.Parent = null;
-        }
-        allNodes.Clear();
-        // Adds the current node to the open list (has been examined)
-        openList.Add(current);
-        path = null;
-        while (openList.Count > 0 && path == null)
-        {
-            List<Node> neighbors = FindNeighbors(current.Position);
-            ExamineNeighbors(neighbors, current);
-            UpdateCurrentTile(ref current);
-            path = GeneratePath(current);
-        }
-        if (path != null) return path;
-        return null;
-    }
-    private List<Node> FindNeighbors(Vector3Int parentPosition)
-    {
-        List<Node> neighbors = new();
-        // These two for loops make sure that all nodes are created around the current node
-        for (int x = -1; x <= 1; x++)
-        {
-            for (int y = -1; y <= 1; y++)
-            {
-                Vector3Int p = new(parentPosition.x - x, parentPosition.y - y, parentPosition.z);
-                bool EnemyAtPosition = false;
-                if (gm != null)
-                {
-                    Vector3 pForEnemy = new(parentPosition.x - x + 0.5f, parentPosition.y - y + 0.5f, parentPosition.z);
-                    EnemyAtPosition = gm.HasEnemyAtPosition(pForEnemy);
-                }
-                if ((y != 0 || x != 0) && (allowDiagonal || (!allowDiagonal && (y == 0 || x == 0))))
-                {
-                    BoundsInt size = tilemapGround.cellBounds;
-                    // If node is within bounds of the grid and if there is no wall tile and no enemy there and if player has any AP, then add it to the neighbors list
-                    if (p.x >= size.min.x && p.x < size.max.x && p.y >= size.min.y && p.y < size.max.y && !tilemapWalls.HasTile(p) && !EnemyAtPosition)
-                    {
-                        Node neighbor = GetNode(p);
-                        neighbors.Add(neighbor);
-                    }
-                }
-            }
-        }
-        return neighbors;
-    }
-    private void ExamineNeighbors(List<Node> neighbors, Node current)
-    {
-        for (int i = 0; i < neighbors.Count; i++)
-        {
-            Node neighbor = neighbors[i];
-            if (!ConnectedDiagonally(current, neighbor))
-            {
-                continue;
-            }
-            int gScore = DetermineGScore(neighbor.Position, current.Position);
-            if (gScore == 14 && NoDiagonalTiles.Contains(neighbor.Position) && NoDiagonalTiles.Contains(current.Position))
-            {
-                continue;
-            }
-            if (openList.Contains(neighbor))
-            {
-                if (current.G + gScore < neighbor.G)
-                {
-                    CalcValues(current, neighbor, goalPos, gScore);
-                }
-            }
-            else if (!closedList.Contains(neighbor))
-            {
-                CalcValues(current, neighbor, goalPos, gScore);
+				// An extra check for openList containing the neighbor
+				if (!OpenList.Contains(Neighbor))
+				{
+					// Node is added to the openList
+					OpenList.Add(Neighbor);
+				}
+			}
+		}
+	}
+	private bool ConnectedDiagonally(Node CurrentNode, Node Neighbor)
+	{
+		// Gets the direction
+		Vector3Int direction = CurrentNode.Position - Neighbor.Position;
+		// Gets the positions of the nodes
+		Vector3Int first = new(CurrentNode.Position.x + (direction.x * -1), CurrentNode.Position.y, CurrentNode.Position.z);
+		Vector3Int second = new(CurrentNode.Position.x, CurrentNode.Position.y + (direction.y * -1), CurrentNode.Position.z);
+		// The nodes are empty
+		return true;
+	}
+	private int DetermineGScore(Vector3Int Neighbor, Vector3Int Current)
+	{
+		int gScore;
+		int x = Current.x - Neighbor.x;
+		int y = Current.y - Neighbor.y;
+		if (Math.Abs(x - y) % 2 == 1)
+		{
+			// The gScore for a vertical or horizontal node is 10
+			gScore = 10;
+		}
+		else
+		{
+			gScore = 14;
+		}
+		return gScore;
+	}
+	private void UpdateCurrentTile(ref Node Current)
+	{
+		// The current node is removed from the openList
+		OpenList.Remove(Current);
+		// The current node is added to the closedList
+		ClosedList.Add(Current);
+		// If the openList has nodes in it, then sort them by F value
+		if (OpenList.Count > 0)
+		{
+			// Orders the list by the F value to make it easier to pick the node with the lowest F value
+			Current = OpenList.OrderBy(x => x.F).First();
+		}
+	}
+	private Stack<Vector3Int> GeneratePath(Node Current)
+	{
+		// If the current node is the goal, then a path is found
+		if (Current.Position == GoalPosition)
+		{
+			// Creates a stack to contain the final path
+			Stack<Vector3Int> FinalPath = new();
 
-                // An extra check for openList containing the neighbor
-                if (!openList.Contains(neighbor))
-                {
-                    // Node is added to the openList
-                    openList.Add(neighbor);
-                }
-            }
-        }
-    }
-    private bool ConnectedDiagonally(Node currentNode, Node neighbor)
-    {
-        // Gets the direction
-        Vector3Int direction = currentNode.Position - neighbor.Position;
-        // Gets the positions of the nodes
-        Vector3Int first = new(currentNode.Position.x + (direction.x * -1), currentNode.Position.y, currentNode.Position.z);
-        Vector3Int second = new(currentNode.Position.x, currentNode.Position.y + (direction.y * -1), currentNode.Position.z);
-        // The nodes are empty
-        return true;
-    }
-    private int DetermineGScore(Vector3Int neighbor, Vector3Int current)
-    {
-        int gScore;
-        int x = current.x - neighbor.x;
-        int y = current.y - neighbor.y;
-        if (Math.Abs(x - y) % 2 == 1)
-        {
-            // The gScore for a vertical or horizontal node is 10
-            gScore = 10;
-        }
-        else
-        {
-            gScore = 14;
-        }
-        return gScore;
-    }
-    private void UpdateCurrentTile(ref Node current)
-    {
-        // The current node is removed from the openList
-        openList.Remove(current);
-        // The current node is added to the closedList
-        closedList.Add(current);
-        // If the openList has nodes in it, then sort them by F value
-        if (openList.Count > 0)
-        {
-            // Orders the list by the F value to make it easier to pick the node with the lowest F value
-            current = openList.OrderBy(x => x.F).First();
-        }
-    }
-    private Stack<Vector3Int> GeneratePath(Node current)
-    {
-        // If the current node is the goal, then a path is found
-        if (current.Position == goalPos)
-        {
-            // Creates a stack to contain the final path
-            Stack<Vector3Int> finalPath = new();
-
-            // Adds the nodes to the final path
-            while (current != null)
-            {
-                // Adds the current node to the final path
-                finalPath.Push(current.Position);
-                // Find the parent of the node, this retraces the whole path back to the start,
-                // by doing so, a complete path is formed
-                current = current.Parent;
-            }
-            // Returns the complete path
-            return finalPath;
-        }
-        return null;
-    }
-    private void CalcValues(Node parent, Node neighbor, Vector3Int goalPos, int cost)
-    {
-        // Sets the parent node
-        neighbor.Parent = parent;
-        // Calculates this node's g cost, the parent's g cost + what it costs to move to this node
-        neighbor.G = parent.G + cost;
-        // H is calculated, it is the distance from this node to the goal * 10
-        neighbor.H = ((Math.Abs((neighbor.Position.x - goalPos.x)) + Math.Abs((neighbor.Position.y - goalPos.y))) * 10);
-        // F is calculated, it is G + H
-        neighbor.F = neighbor.G + neighbor.H;
-    }
-    private Node GetNode(Vector3Int position)
-    {
-        if (allNodes.ContainsKey(position))
-        {
-            return allNodes[position];
-        }
-        else
-        {
-            Node node = new(position);
-            allNodes.Add(position, node);
-            return node;
-        }
-    }
+			// Adds the nodes to the final path
+			while (Current != null)
+			{
+				// Adds the current node to the final path
+				FinalPath.Push(Current.Position);
+				// Find the parent of the node, this retraces the whole path back to the start,
+				// by doing so, a complete path is formed
+				Current = Current.Parent;
+			}
+			// Returns the complete path
+			return FinalPath;
+		}
+		return null;
+	}
+	private void CalcValues(Node Parent, Node Neighbor, Vector3Int GoalPos, int cost)
+	{
+		// Sets the parent node
+		Neighbor.Parent = Parent;
+		// Calculates this node's g cost, the parent's g cost + what it costs to move to this node
+		Neighbor.G = Parent.G + cost;
+		// H is calculated, it is the distance from this node to the goal * 10
+		Neighbor.H = (Math.Abs(Neighbor.Position.x - GoalPos.x) + Math.Abs(Neighbor.Position.y - GoalPos.y)) * 10;
+		// F is calculated, it is G + H
+		Neighbor.F = Neighbor.G + Neighbor.H;
+	}
+	private Node GetNode(Vector3Int Position)
+	{
+		if (AllNodes.ContainsKey(Position))
+		{
+			return AllNodes[Position];
+		}
+		else
+		{
+			Node Node = new(Position);
+			AllNodes.Add(Position, Node);
+			return Node;
+		}
+	}
 }
 public class Node
 {
-    public int G { get; set; }
-    public int H { get; set; }
-    public int F { get; set; }
-    public Node Parent { get; set; }
-    public Vector3Int Position { get; set; }
-    public Node(Vector3Int position)
-    {
-        this.Position = position;
-    }
+	public int G { get; set; }
+	public int H { get; set; }
+	public int F { get; set; }
+	public Node Parent { get; set; }
+	public Vector3Int Position { get; set; }
+	public Node(Vector3Int Position)
+	{
+		this.Position = Position;
+	}
 }

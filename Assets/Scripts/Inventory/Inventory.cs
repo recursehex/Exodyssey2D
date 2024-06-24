@@ -2,24 +2,24 @@ using System.Collections.Generic;
 
 public class Inventory
 {
-	public List<ItemInventory> itemList;
+	public List<ItemInventory> InventoryList;
 	public int InventorySize { get; private set;} = 2;
 	public Inventory()
 	{
-		itemList = new List<ItemInventory>();
+		InventoryList = new List<ItemInventory>();
 	}
 	/// <summary>
 	/// Returns true if Item was successfully added, returns false if inventory is full
 	/// </summary>
 	/// <param name="item"></param>
 	/// <returns></returns>
-	public bool AddItem(ItemInventory item)
+	public bool AddItem(ItemInventory Item)
 	{
-		if (itemList.Count >= InventorySize)
+		if (InventoryList.Count >= InventorySize)
 		{
 			return false;
 		}
-		itemList.Add(item);
+		InventoryList.Add(Item);
 		return true;
 	}
 	/// <summary>
@@ -28,6 +28,6 @@ public class Inventory
 	/// <param name="index"></param>
 	public void RemoveItem(int index)
 	{
-		itemList.RemoveAt(index);
+		InventoryList.RemoveAt(index);
 	}
 }

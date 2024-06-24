@@ -2,18 +2,18 @@ using UnityEngine;
 
 public class SoundManager : MonoBehaviour
 {
-	public AudioSource efxSource;
-	public AudioSource musicSource;
-	public static SoundManager instance = null;
+	public AudioSource EfxSource;
+	public AudioSource MusicSource;
+	public static SoundManager Instance = null;
 
 	// Start is called before the first frame update
 	void Awake()
 	{
-		if (instance == null)
+		if (Instance == null)
 		{
-			instance = this;
+			Instance = this;
 		}
-		else if (instance != this)
+		else if (Instance != this)
 		{
 			Destroy(gameObject);
 		}
@@ -22,7 +22,7 @@ public class SoundManager : MonoBehaviour
 
 	public void PlaySound(AudioClip clip)
 	{
-		efxSource.pitch = Random.Range(0.95f, 1.05f);
-		efxSource.PlayOneShot(clip);
+		EfxSource.pitch = Random.Range(0.95f, 1.05f);
+		EfxSource.PlayOneShot(clip);
 	}
 }

@@ -12,45 +12,45 @@ public class Player : MonoBehaviour
 	public int CurrentHealth { get; set; } = 3;
 	public int CurrentEnergy { get; set; } = 3;
 	public int DamagePoints { get; set; } = 0;
-	public Profession profession;
-	public AudioClip playerMove;
-	public AudioClip heal;
-	public AudioClip select;
-	public AudioClip gameOver;
-	public Animator animator;
-	public Inventory inventory;
-	public InventoryUI inventoryUI;
-	public ItemInfo selectedItem = null;
-	public StatsDisplayManager statsDisplayManager;
+	public Profession Profession;
+	public AudioClip PlayerMove;
+	public AudioClip Heal;
+	public AudioClip Select;
+	public AudioClip GameOver;
+	public Animator Animator;
+	public Inventory Inventory;
+	public InventoryUI InventoryUI;
+	public ItemInfo SelectedItem = null;
+	public StatsDisplayManager StatsDisplayManager;
 	public bool finishedInit = false;
 	public bool isInMovement = false;
-	public GameManager gameManager;
-	public SoundManager soundManager;
+	public GameManager GameManager;
+	public SoundManager SoundManager;
 	#region PATHFINDING
-	public Tilemap tilemapGround;
-	public Tilemap tilemapWalls;
-	private Stack<Vector3Int> path;
-	private Vector3Int destination;
+	public Tilemap TilemapGround;
+	public Tilemap TilemapWalls;
+	private Stack<Vector3Int> Path;
+	private Vector3Int Destination;
 	[SerializeField]
-	private AStar astar;
+	private AStar AStar;
 	#endregion
 	// Start is called before the first frame update
 	protected virtual void Start()
 	{
-		astar = new AStar
+		AStar = new AStar
 		{
-			tilemapGround = tilemapGround,
-			tilemapWalls = tilemapWalls
+			TilemapGround = TilemapGround,
+			TilemapWalls = TilemapWalls
 		};
-		inventory = new Inventory();
-		animator = GetComponent<Animator>();
-		inventoryUI.SetInventory(inventory);
+		Inventory = new Inventory();
+		Animator = GetComponent<Animator>();
+		InventoryUI.SetInventory(Inventory);
 		finishedInit = true;
 	}
 	// Update is called once per frame 
 	void Update()
 	{
-		if (!gameManager.playersTurn)
+		if (!GameManager.playersTurn)
 		{
 			return;
 		}
@@ -59,58 +59,58 @@ public class Player : MonoBehaviour
 	/// <summary>
 	/// Calculates path for Player to travel to destination for point clicked on
 	/// </summary>
-	public void CalculatePathAndStartMovement(Vector3 goal)
+	public void CalculatePathAndStartMovement(Vector3 Goal)
 	{
-		astar.Initialize();
-		path = astar.ComputePath(transform.position, goal, gameManager);
-		if (path == null)
+		AStar.Initialize();
+		Path = AStar.ComputePath(transform.position, Goal, GameManager);
+		if (Path == null)
 		{
 			return;
 		}
-		ChangeEnergy(-(path.Count - 1));
-		path.Pop();
-		destination = path.Pop();
-		soundManager.PlaySound(playerMove);
+		ChangeEnergy(-(Path.Count - 1));
+		Path.Pop();
+		Destination = Path.Pop();
+		SoundManager.PlaySound(PlayerMove);
 	}
 	/// <summary>
 	/// Calculates area Player can move to in a turn based on currentEnergy
 	/// </summary>
 	public Dictionary<Vector3Int, Node> CalculateArea()
 	{
-		astar.Initialize();
-		return astar.GetReachableAreaByDistance(transform.position, CurrentEnergy);
+		AStar.Initialize();
+		return AStar.GetReachableAreaByDistance(transform.position, CurrentEnergy);
 	}
 	/// <summary>
 	/// Moves Player along A* path
 	/// </summary>
 	public void MoveAlongThePath()
 	{
-		if (path == null)
+		if (Path == null)
 		{
 			return;
 		}
 		isInMovement = true;
-		Vector3 shiftedDistance = new(destination.x + 0.5f, destination.y + 0.5f, destination.z);
-		transform.position = Vector3.MoveTowards(transform.position, shiftedDistance, 2 * Time.deltaTime);
-		float distance = Vector3.Distance(shiftedDistance, transform.position);
+		Vector3 ShiftedDistance = new(Destination.x + 0.5f, Destination.y + 0.5f, Destination.z);
+		transform.position = Vector3.MoveTowards(transform.position, ShiftedDistance, 2 * Time.deltaTime);
+		float distance = Vector3.Distance(ShiftedDistance, transform.position);
 		if (distance > 0f)
 		{
 			return;
 		}
-		if (path.Count > 0)
+		if (Path.Count > 0)
 		{
-			destination = path.Pop();
-			soundManager.PlaySound(playerMove);
+			Destination = Path.Pop();
+			SoundManager.PlaySound(PlayerMove);
 		}
 		else // When Player stops moving
 		{
-			path = null;
+			Path = null;
 			isInMovement = false;
-			if (gameManager.PlayerIsOnExitTile())
+			if (GameManager.PlayerIsOnExitTile())
 			{
 				return;
 			}
-			gameManager.DrawTargetsAndTracers();
+			GameManager.DrawTargetsAndTracers();
 		}
 	}
 	/// <summary>
@@ -122,20 +122,20 @@ public class Player : MonoBehaviour
 		// Player is killed
 		if (CurrentHealth == 0)
 		{
-			soundManager.PlaySound(gameOver);
-			soundManager.musicSource.Stop();
-			gameManager.GameOver();
+			SoundManager.PlaySound(GameOver);
+			SoundManager.MusicSource.Stop();
+			GameManager.GameOver();
 		}
 		// Player is damaged
 		if (damage > 0)
 		{
-			statsDisplayManager.DecreaseHealthDisplay(CurrentHealth, MaxHealth);
-			animator.SetTrigger("playerHit");
+			StatsDisplayManager.DecreaseHealthDisplay(CurrentHealth, MaxHealth);
+			Animator.SetTrigger("playerHit");
 			// Reduce max energy to simulate weakness
 			if (CurrentHealth == 1)
 			{
 				CurrentEnergy = 1;
-				statsDisplayManager.DecreaseEnergyDisplay(CurrentEnergy, MaxEnergy);
+				StatsDisplayManager.DecreaseEnergyDisplay(CurrentEnergy, MaxEnergy);
 				MaxEnergy = 1;
 			}
 		}
@@ -146,8 +146,8 @@ public class Player : MonoBehaviour
 	public void RestoreHealth() 
 	{
 		CurrentHealth = Mathf.Clamp(CurrentHealth + 3, 0, MaxHealth);
-		statsDisplayManager.RestoreHealthDisplay();
-		soundManager.PlaySound(heal);
+		StatsDisplayManager.RestoreHealthDisplay();
+		SoundManager.PlaySound(Heal);
 		MaxEnergy = 3;
 	}
 	/// <summary>
@@ -159,17 +159,17 @@ public class Player : MonoBehaviour
 		// End turn and stop timer
 		if (CurrentEnergy == 0)
 		{
-			gameManager.turnTimer.timeRemaining = 0;
+			GameManager.TurnTimer.timeRemaining = 0;
 		}
 		// Decreased by Player action
 		if (change < 0)
 		{
-			statsDisplayManager.DecreaseEnergyDisplay(CurrentEnergy, MaxEnergy);
+			StatsDisplayManager.DecreaseEnergyDisplay(CurrentEnergy, MaxEnergy);
 		}
 		// Restore after end turn and new level
 		else
 		{
-			statsDisplayManager.RestoreEnergyDisplay(CurrentHealth);
+			StatsDisplayManager.RestoreEnergyDisplay(CurrentHealth);
 		}
 	}
 	/// <summary>
@@ -177,31 +177,31 @@ public class Player : MonoBehaviour
 	/// </summary>
 	public void DecreaseWeaponDurability()
 	{
-		selectedItem.DecreaseDurability();
-		inventoryUI.SetCurrentSelected(inventoryUI.SelectedIndex);
+		SelectedItem.DecreaseDurability();
+		InventoryUI.SetCurrentSelected(InventoryUI.SelectedIndex);
 		// When weapon durability reaches 0
-		if (selectedItem.currentUses == 0)
+		if (SelectedItem.currentUses == 0)
 		{
-			inventoryUI.RemoveItem(inventoryUI.SelectedIndex);
-			inventoryUI.SetCurrentSelected(-1);
-			gameManager.ClearTargetsAndTracers();
-			selectedItem = null;
+			InventoryUI.RemoveItem(InventoryUI.SelectedIndex);
+			InventoryUI.SetCurrentSelected(-1);
+			GameManager.ClearTargetsAndTracers();
+			SelectedItem = null;
 			DamagePoints = 0;
 		}
 	}
 	public int GetWeaponRange()
 	{
-		return selectedItem == null ? 0 : selectedItem.range;
+		return SelectedItem == null ? 0 : SelectedItem.range;
 	}
 	/// <summary>
 	/// Adds item to inventory when picked up
 	/// </summary>
-	public bool AddItem(ItemInfo itemInfo)
+	public bool AddItem(ItemInfo ItemInfo)
 	{
-		bool itemIsAdded = inventory.AddItem(new ItemInventory { itemInfo = itemInfo });
+		bool itemIsAdded = Inventory.AddItem(new ItemInventory { ItemInfo = ItemInfo });
 		if (itemIsAdded)
 		{
-			inventoryUI.RefreshInventoryIcons();
+			InventoryUI.RefreshInventoryIcons();
 		}
 		return itemIsAdded;
 	}
@@ -211,39 +211,41 @@ public class Player : MonoBehaviour
 	public void TryClickItem(int itemIndex)
 	{
 		// Ensures index is within bounds and inventory has an item
-		if (itemIndex >= inventory.itemList.Count
-			|| inventory.itemList.Count == 0)
+		if (itemIndex >= Inventory.InventoryList.Count
+			|| Inventory.InventoryList.Count == 0)
 		{
 			return;
 		}
 	
-		ItemInfo clickedItem = inventory.itemList[itemIndex].itemInfo;
-		bool wasSelected = InventoryUI.ProcessSelection(inventoryUI.SelectedIndex, itemIndex);
+		ItemInfo ClickedItem = Inventory.InventoryList[itemIndex].ItemInfo;
+		bool wasSelected = InventoryUI.ProcessSelection(InventoryUI.SelectedIndex, itemIndex);
 		
 		// If item is selected, update selection, otherwise reset
 		if (wasSelected)
 		{
-			inventoryUI.SetCurrentSelected(itemIndex);
-			selectedItem = clickedItem;
-			soundManager.PlaySound(select);
-			DamagePoints = clickedItem.damagePoints;
+			InventoryUI.SetCurrentSelected(itemIndex);
+			SelectedItem = ClickedItem;
+			SoundManager.PlaySound(Select);
+			DamagePoints = ClickedItem.damagePoints;
 
 			// Only draw targets if ranged weapon is selected
-			if (clickedItem.range > 0)
+			if (ClickedItem.range > 0)
 			{
-				gameManager.DrawTargetsAndTracers();
+				GameManager.DrawTargetsAndTracers();
 			}
-			else	// Clear targets for all other items
+			// Clear targets for all other items
+			else
 			{
-				gameManager.ClearTargetsAndTracers();
+				GameManager.ClearTargetsAndTracers();
 			}
 		}
-		else	// Item was unselected
+		// Item was deselected
+		else
 		{
-			inventoryUI.SetCurrentSelected(-1);
-			selectedItem = null;
+			InventoryUI.SetCurrentSelected(-1);
+			SelectedItem = null;
 			DamagePoints = 0;
-			gameManager.ClearTargetsAndTracers();
+			GameManager.ClearTargetsAndTracers();
 		}
 	}
 	/// <summary>
@@ -251,28 +253,36 @@ public class Player : MonoBehaviour
 	/// </summary>
 	public bool ClickOnPlayerToUseItem()
 	{
-		if (selectedItem?.type is not ItemInfo.ItemType.Consumable)
+		if (SelectedItem?.Type is not ItemInfo.Types.Consumable)
 		{
 			return false;
 		}
 		bool wasUsed = MedKitWasUsed();
-		if (selectedItem.currentUses == 0)
+		if (SelectedItem.currentUses == 0)
 		{
-			inventoryUI.RemoveItem(inventoryUI.SelectedIndex);
-			selectedItem = null;
+			InventoryUI.RemoveItem(InventoryUI.SelectedIndex);
+			SelectedItem = null;
 			wasUsed = true;
 		}
 		return wasUsed;
 	}
 	private bool MedKitWasUsed() 
 	{
-		if (selectedItem.tag is ItemInfo.ItemTag.MedKit
+		if (SelectedItem.Tag is ItemInfo.Tags.MedKit
 			&& CurrentHealth < MaxHealth
 			&& CurrentEnergy > 0)
 		{
 			RestoreHealth();
-			ChangeEnergy(-1);
-			selectedItem.DecreaseDurability();
+			// Uses energy if profession is not medic
+			if (Profession.Tag is not Profession.Tags.Medic)
+			{
+				ChangeEnergy(-1);
+			}
+			// Uses MedKit if profession is not medic level 2
+			if (!(Profession.Level >= 2 && Profession.Tag is Profession.Tags.Medic))
+			{
+				SelectedItem.DecreaseDurability();
+			}
 			return true;
 		}
 		return false;
@@ -283,36 +293,36 @@ public class Player : MonoBehaviour
 	public void TryDropItem(int itemIndex)
 	{
 		// Returns if called when inventory is empty
-		if (inventory.itemList.Count == 0)
+		if (Inventory.InventoryList.Count == 0)
 		{
 			return;
 		}
 		// Drops item on the ground, returns if an item is occupying the tile
-		if (!gameManager.DropItem(inventory.itemList[itemIndex].itemInfo))
+		if (!GameManager.DropItem(Inventory.InventoryList[itemIndex].ItemInfo))
 		{
 			return;
 		}
 		// Resets damage points if weapon is dropped
-		if (selectedItem.type is ItemInfo.ItemType.Weapon)
+		if (SelectedItem.Type is ItemInfo.Types.Weapon)
 		{
 			DamagePoints = 0;
 			// Clears targeting if ranged weapon is dropped
 			if (GetWeaponRange() > 0)
 			{
-				gameManager.ClearTargetsAndTracers();
+				GameManager.ClearTargetsAndTracers();
 			}
 		}
 		// Removes item from inventory and plays corresponding sound
-		selectedItem = null;
-		inventoryUI.RemoveItem(itemIndex);
-		soundManager.PlaySound(playerMove);
+		SelectedItem = null;
+		InventoryUI.RemoveItem(itemIndex);
+		SoundManager.PlaySound(PlayerMove);
 	}
-	public void ProcessHoverForInventory(Vector3 mousePosition)
+	public void ProcessHoverForInventory(Vector3 MousePosition)
 	{
-		inventoryUI.ProcessHoverForInventory(mousePosition);
+		InventoryUI.ProcessHoverForInventory(MousePosition);
 	}
 	public void SetAnimation(string trigger)
 	{
-		animator.SetTrigger(trigger);
+		Animator.SetTrigger(trigger);
 	}
 }
