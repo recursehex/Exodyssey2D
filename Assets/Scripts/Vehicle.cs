@@ -4,24 +4,24 @@ using UnityEngine.Tilemaps;
 
 public class Vehicle : MonoBehaviour
 {
-    public VehicleInfo info;
+    public VehicleInfo Info;
 
-    private AudioClip vehicleMove;
+    private AudioClip VehicleMove;
 
     #region PATHFINDING
 
-    public Tilemap tilemapGround;
+    public Tilemap TilemapGround;
 
-    public Tilemap tilemapWalls;
+    public Tilemap TilemapWalls;
 
     private Stack<Vector3Int> path;
 
     private Vector3Int destination;
 
-    GameManager gameManager;
+    GameManager GameManager;
 
     [SerializeField]
-    private AStar astar;
+    private AStar AStar;
     #endregion
 
     public bool isInMovement = false;
@@ -43,7 +43,7 @@ public class Vehicle : MonoBehaviour
     /// </summary>
     public void ChangeHealth(int change)
     {
-        info.currentHealth = Mathf.Clamp(info.currentHealth + change, 0, info.maxHealth);
+        Info.currentHealth = Mathf.Clamp(Info.currentHealth + change, 0, Info.maxHealth);
     }
 
     /// <summary>
@@ -51,11 +51,11 @@ public class Vehicle : MonoBehaviour
     /// </summary>
     public void RestoreHealth()
     {
-        info.currentHealth = info.maxHealth;
+        Info.currentHealth = Info.maxHealth;
     }
 
-    public void SetGameManager(GameManager g)
+    public void SetGameManager(GameManager G)
     {
-        gameManager = g;
+        GameManager = G;
     }
 }

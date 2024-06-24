@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 public struct Profession
 {
-	public enum ProfessionTag 
+	public enum Tags
 	{
 		Medic = 0,
 		Mechanic,
@@ -12,16 +12,16 @@ public struct Profession
 		Ranger,
 		Unknown
 	}
-	public ProfessionTag Tag { get; set; }
+	public Tags Tag { get; set; }
 	public int Level { get; set; }
 	
 	public static List<Profession> professions = new()
 	{
-		new() { Tag = ProfessionTag.Medic, Level = 1 },
-		new() { Tag = ProfessionTag.Mechanic, Level = 1 },
-		new() { Tag = ProfessionTag.Hunter, Level = 1 },
-		new() { Tag = ProfessionTag.Hiker, Level = 1 },
-		new() { Tag = ProfessionTag.Navigator, Level = 1 },
-		new() { Tag = ProfessionTag.Ranger, Level = 1 },
+		new() { Tag = Tags.Medic, Level = 1 },
+		new() { Tag = Tags.Mechanic, Level = 1 },
+		new() { Tag = Tags.Hunter, Level = 1 },
+		new() { Tag = Tags.Hiker, Level = 1 },
+		new() { Tag = Tags.Navigator, Level = 1 },
+		new() { Tag = Tags.Ranger, Level = 1 },
 	};
 }

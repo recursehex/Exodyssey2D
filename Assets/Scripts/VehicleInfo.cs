@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Exodyssey.Rarity;
 
-public enum VehicleTag
+public enum Tags
 {
 	// CARS
 	Rover = 0,
@@ -16,9 +16,9 @@ public enum VehicleTag
 public class VehicleInfo
 {
 	// Name of vehicle
-	public VehicleTag tag = VehicleTag.Unknown;
+	public Tags Tag = Tags.Unknown;
 	// Rarity of vehicle
-	public Rarity rarity = Rarity.Common;
+	public Rarity Rarity = Rarity.Common;
 	// Ingame name of vehicle
 	public string name = "UNKNOWN";
 	// Ingame description of vehicle
@@ -39,49 +39,46 @@ public class VehicleInfo
 	public int currentHealth = 1;
 	// If vehicle can drive offroad
 	public bool canOffroad = false;
-	private static readonly int lastVehicleIndex = (int)VehicleTag.Unknown;
+	private static readonly int lastVehicleIndex = (int)Tags.Unknown;
 	private static List<Rarity> GenerateAllRarities()
 	{
-		List<Rarity> vehicleRarityList = new();
-
+		List<Rarity> VehicleRarityList = new();
 		for (int i = 0; i < lastVehicleIndex; i++)
 		{
-			VehicleInfo vehicle = FactoryFromNumber(i);
-			vehicleRarityList.Add(vehicle.rarity);
+			VehicleInfo Vehicle = FactoryFromNumber(i);
+			VehicleRarityList.Add(Vehicle.Rarity);
 		}
-		return vehicleRarityList;
+		return VehicleRarityList;
 	}
-	public static int GetRandomIndexOfSpecifiedRarity(Rarity specifiedRarity)
+	public static int GetRandomIndexOfSpecifiedRarity(Rarity SpecifiedRarity)
 	{
-		List<Rarity> vehicleRarityList = GenerateAllRarities();
-		List<int> indicesOfSpecifiedRarity = new();
-		for (int i = 0; i < vehicleRarityList.Count; i++)
+		List<Rarity> VehicleRarityList = GenerateAllRarities();
+		List<int> IndicesOfSpecifiedRarity = new();
+		for (int i = 0; i < VehicleRarityList.Count; i++)
 		{
-			if (vehicleRarityList[i] == specifiedRarity)
+			if (VehicleRarityList[i] == SpecifiedRarity)
 			{
-				indicesOfSpecifiedRarity.Add(i);
+				IndicesOfSpecifiedRarity.Add(i);
 			}
 		}
-		if (indicesOfSpecifiedRarity.Count == 0)
+		if (IndicesOfSpecifiedRarity.Count == 0)
 		{
 			return -1;
 		}
-		int randomIndex = Random.Range(0, indicesOfSpecifiedRarity.Count);
-		return indicesOfSpecifiedRarity[randomIndex];
+		int randomIndex = Random.Range(0, IndicesOfSpecifiedRarity.Count);
+		return IndicesOfSpecifiedRarity[randomIndex];
 	}
 	/// <summary>
 	/// Returns the info for a desired vehicle 
 	/// </summary>
-	/// <param name="n"></param>
-	/// <returns></returns>
 	public static VehicleInfo FactoryFromNumber(int n)
 	{
 		VehicleInfo info = new();
 		switch (n)
 		{
 			case 0:
-				info.tag = VehicleTag.Rover;
-				info.rarity = Rarity.Scarce;
+				info.Tag = Tags.Rover;
+				info.Rarity = Rarity.Scarce;
 				info.name = "ROVER";
 				info.description = "Standard ISA vehicle for long range exploration";
 				info.storage = 2;
@@ -93,8 +90,8 @@ public class VehicleInfo
 				info.currentHealth = info.maxHealth;
 				break;
 			case 1:
-				info.tag = VehicleTag.Trailer;
-				info.rarity = Rarity.Scarce;
+				info.Tag = Tags.Trailer;
+				info.Rarity = Rarity.Scarce;
 				info.name = "TRAILER";
 				info.description = "Has a storage bay to transport supplies";
 				info.storage = 4;
@@ -106,8 +103,8 @@ public class VehicleInfo
 				info.currentHealth = info.maxHealth;
 				break;
 			case 2:
-				info.tag = VehicleTag.Buggy;
-				info.rarity = Rarity.Rare;
+				info.Tag = Tags.Buggy;
+				info.Rarity = Rarity.Rare;
 				info.name = "BUGGY";
 				info.description = "Lightweight and efficient, built for scouting missions";
 				info.storage = 0;
@@ -120,8 +117,8 @@ public class VehicleInfo
 				info.canOffroad = true;
 				break;
 			case 3:
-				info.tag = VehicleTag.Carrier;
-				info.rarity = Rarity.Anomalous;
+				info.Tag = Tags.Carrier;
+				info.Rarity = Rarity.Anomalous;
 				info.name = "CARRIER";
 				info.description = "An armored transport vehicle, protecting its crew";
 				info.storage = 4;

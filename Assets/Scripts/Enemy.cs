@@ -4,44 +4,44 @@ using UnityEngine.Tilemaps;
 
 public class Enemy : MonoBehaviour
 {
-	public EnemyInfo info;
-	public AudioClip enemyMove;
-	public AudioClip enemyAttack;
-	public AudioClip playerAttack;
+	public EnemyInfo Info;
+	public AudioClip EnemyMove;
+	public AudioClip EnemyAttack;
+	public AudioClip PlayerAttack;
 	public bool isInMovement = false;
 	#region PATHFINDING
-	public Tilemap tilemapGround;
-	public Tilemap tilemapWalls;
-	private Stack<Vector3Int> path;
-	private Vector3Int destination;
-	GameManager gameManager;
-	SoundManager soundManager;
+	public Tilemap TilemapGround;
+	public Tilemap TilemapWalls;
+	private Stack<Vector3Int> Path;
+	private Vector3Int Destination;
+	GameManager GameManager;
+	SoundManager SoundManager;
 	[SerializeField]
-	private AStar astar;
+	private AStar AStar;
 	#endregion
 	// Start is called before the first frame update
 	protected virtual void Start()
 	{
-		astar = new AStar
+		AStar = new AStar
 		{
-			tilemapGround = tilemapGround,
-			tilemapWalls = tilemapWalls
+			TilemapGround = TilemapGround,
+			TilemapWalls = TilemapWalls
 		};
 	}
 	// Player attacks enemy
 	public void DamageEnemy(int loss)
 	{
-		soundManager.PlaySound(playerAttack);
-		// NOTE: Eventually add sprite change for enemy on this line using: spriteRenderer.sprite = dmgSprite;
-		info.currentHealth -= loss;
-		if (info.currentHealth <= 0)
+		SoundManager.PlaySound(PlayerAttack);
+		// NOTE: Eventually add sprite change for enemy on this line using: spriteRenderer.sprite = damagedSprite;
+		Info.currentHealth -= loss;
+		if (Info.currentHealth <= 0)
 		{
 			gameObject.SetActive(false);
 		}
 	}
 	void Update()
 	{
-		if (gameManager.playersTurn)
+		if (GameManager.playersTurn)
 		{
 			return;
 		}
@@ -49,83 +49,84 @@ public class Enemy : MonoBehaviour
 	}
 	public void MoveAlongThePath()
 	{
-		if (path == null)
+		if (Path == null)
 		{
 			return;
 		}
-		Vector3 shiftedDistance = new(destination.x + 0.5f, destination.y + 0.5f, destination.z);
-		transform.position = Vector3.MoveTowards(transform.position, shiftedDistance, 2 * Time.deltaTime);
-		float distance = Vector3.Distance(shiftedDistance, transform.position);
+		Vector3 ShiftedDistance = new(Destination.x + 0.5f, Destination.y + 0.5f, Destination.z);
+		transform.position = Vector3.MoveTowards(transform.position, ShiftedDistance, 2 * Time.deltaTime);
+		float distance = Vector3.Distance(ShiftedDistance, transform.position);
 		if (distance > 0f)
 		{
 			return;
 		}
 		// Move one tile closer to Player
-		if (path.Count > 1 && info.currentEnergy > 0)
+		if (Path.Count > 1 && Info.currentEnergy > 0)
 		{
-			soundManager.PlaySound(enemyMove);
-			destination = path.Pop();
-			info.currentEnergy--;
+			SoundManager.PlaySound(EnemyMove);
+			Destination = Path.Pop();
+			Info.currentEnergy--;
 		}
 		// Enemy attacks Player if enemy moves to an adjacent tile
-		else if (path.Count == 1 && info.currentEnergy > 0)
+		else if (Path.Count == 1 && Info.currentEnergy > 0)
 		{
-			soundManager.PlaySound(enemyAttack);
-			gameManager.HandleDamageToPlayer(info.damagePoints);
-			info.currentEnergy--;
+			SoundManager.PlaySound(EnemyAttack);
+			GameManager.HandleDamageToPlayer(Info.damagePoints);
+			Info.currentEnergy--;
 		}
 		else
 		{
-			path = null;
+			Path = null;
 			isInMovement = false;
 		}
 	}
-	public void CalculatePathAndStartMovement(Vector3 goal)
+	public void CalculatePathAndStartMovement(Vector3 Goal)
 	{
 		isInMovement = true;
-		astar.Initialize();
-		astar.SetAllowDiagonal(false);
-		path = astar.ComputePath(transform.position, goal, gameManager);
+		AStar.Initialize();
+		AStar.SetAllowDiagonal(false);
+		Path = AStar.ComputePath(transform.position, Goal, GameManager);
 		// Compute path to Player
-		if (path != null && info.currentEnergy > 0 && path.Count > 2) // To stop enemy from colliding into Player
+		if (Path != null && Info.currentEnergy > 0 && Path.Count > 2) // To stop enemy from colliding into Player
 		{
-			info.currentEnergy--;
+			Info.currentEnergy--;
 			// Remove first tile in path
-			path.Pop();
+			Path.Pop();
 			// Move one tile closer to Player
-			Vector3Int tryDistance = path.Pop();
-			if (!HasEnemyAtPosition(tryDistance))
+			Vector3Int TryDistance = Path.Pop();
+			if (!HasEnemyAtPosition(TryDistance))
 			{
-				destination = tryDistance;
+				Destination = TryDistance;
 			}
 			else
 			{
-				path = null;
+				Path = null;
 				isInMovement = false;
 			}
-			soundManager.PlaySound(enemyMove);
+			SoundManager.PlaySound(EnemyMove);
 		}
-		else // If enemy is adjacent to Player, attack
+		// If enemy is adjacent to Player, attack
+		else
 		{
-			if (path != null && path.Count == 2)
+			if (Path != null && Path.Count == 2)
 			{
-				for (int i = 0; i < info.currentEnergy; i++)
+				for (int i = 0; i < Info.currentEnergy; i++)
 				{
-					soundManager.PlaySound(enemyAttack);
-					gameManager.HandleDamageToPlayer(info.damagePoints);
+					SoundManager.PlaySound(EnemyAttack);
+					GameManager.HandleDamageToPlayer(Info.damagePoints);
 				}
 			}
-			path = null;
+			Path = null;
 			isInMovement = false;
 		}
 	}
-	private bool HasEnemyAtPosition(Vector3 position)
+	private bool HasEnemyAtPosition(Vector3 Position)
 	{
-		Vector3 shiftedDistance = new(position.x + 0.5f, position.y + 0.5f, 0);
-		foreach (GameObject obj in gameManager.enemies)
+		Vector3 ShiftedDistance = new(Position.x + 0.5f, Position.y + 0.5f, 0);
+		foreach (GameObject Enemy in GameManager.Enemies)
 		{
-			Enemy e = obj.GetComponent<Enemy>();
-			if (e.transform.position == shiftedDistance)
+			Enemy ChosenEnemy = Enemy.GetComponent<Enemy>();
+			if (ChosenEnemy.transform.position == ShiftedDistance)
 			{
 				return true;
 			}
@@ -134,14 +135,14 @@ public class Enemy : MonoBehaviour
 	}
 	public void RestoreEnergy()
 	{
-		info.currentEnergy = info.maxEnergy;
+		Info.currentEnergy = Info.maxEnergy;
 	}
-	public void SetGameManager(GameManager g)
+	public void SetGameManager(GameManager G)
 	{
-		gameManager = g;
+		GameManager = G;
 	}
-	public void SetSoundManager(SoundManager s)
+	public void SetSoundManager(SoundManager S)
 	{
-		soundManager = s;
+		SoundManager = S;
 	}
 }

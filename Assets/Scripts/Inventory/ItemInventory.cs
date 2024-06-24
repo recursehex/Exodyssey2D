@@ -2,48 +2,48 @@ using UnityEngine;
 
 public class ItemInventory
 {
-	public ItemInfo itemInfo;
+	public ItemInfo ItemInfo;
 
 	public Sprite GetSprite()
 	{
-		return itemInfo.tag switch
+		return ItemInfo.Tag switch
 		{
-			ItemInfo.ItemTag.MedKit => ItemAssets.Instance.medKit,
-			ItemInfo.ItemTag.Branch => ItemAssets.Instance.branch,
-			ItemInfo.ItemTag.Knife => ItemAssets.Instance.knife,
-			ItemInfo.ItemTag.Wrench => ItemAssets.Instance.wrench,
-			ItemInfo.ItemTag.DiamondChainsaw => ItemAssets.Instance.diamondChainsaw,
+			ItemInfo.Tags.MedKit => ItemAssets.Instance.MedKit,
+			ItemInfo.Tags.Branch => ItemAssets.Instance.Branch,
+			ItemInfo.Tags.Knife => ItemAssets.Instance.Knife,
+			ItemInfo.Tags.Wrench => ItemAssets.Instance.Wrench,
+			ItemInfo.Tags.DiamondChainsaw => ItemAssets.Instance.DiamondChainsaw,
 			/*
-			ItemInfo.ItemTag.ToolKit => ItemAssets.Instance.toolKit,
-			ItemInfo.ItemTag.Mallet => ItemAssets.Instance.mallet,
-			ItemInfo.ItemTag.Axe => ItemAssets.Instance.axe,
-			ItemInfo.ItemTag.Rock => ItemAssets.Instance.rock,
-			ItemInfo.ItemTag.SmokeGrenade => ItemAssets.Instance.smokeGrenade,
-			ItemInfo.ItemTag.Dynamite => ItemAssets.Instance.dynamite,
-			ItemInfo.ItemTag.StickyGrenade => ItemAssets.Instance.stickyGrenade,
-			ItemInfo.ItemTag.Tranquilizer => ItemAssets.Instance.tranquilizer,
-			ItemInfo.ItemTag.Carbine => ItemAssets.Instance.carbine,
-			ItemInfo.ItemTag.Flamethrower => ItemAssets.Instance.flamethrower,
+			ItemInfo.Tags.ToolKit => ItemAssets.Instance.ToolKit,
+			ItemInfo.Tags.Mallet => ItemAssets.Instance.Mallet,
+			ItemInfo.Tags.Axe => ItemAssets.Instance.Axe,
+			ItemInfo.Tags.Rock => ItemAssets.Instance.Rock,
+			ItemInfo.Tags.SmokeGrenade => ItemAssets.Instance.SmokeGrenade,
+			ItemInfo.Tags.Dynamite => ItemAssets.Instance.Dynamite,
+			ItemInfo.Tags.StickyGrenade => ItemAssets.Instance.StickyGrenade,
+			ItemInfo.Tags.Tranquilizer => ItemAssets.Instance.Tranquilizer,
+			ItemInfo.Tags.Carbine => ItemAssets.Instance.Carbine,
+			ItemInfo.Tags.Flamethrower => ItemAssets.Instance.Flamethrower,
 			*/
-			ItemInfo.ItemTag.HuntingRifle => ItemAssets.Instance.huntingRifle,
-			ItemInfo.ItemTag.PlasmaRailgun => ItemAssets.Instance.plasmaRailgun,
+			ItemInfo.Tags.HuntingRifle => ItemAssets.Instance.HuntingRifle,
+			ItemInfo.Tags.PlasmaRailgun => ItemAssets.Instance.PlasmaRailgun,
 			/*
-			ItemInfo.ItemTag.FusionCell => ItemAssets.Instance.fusionCell,
-			ItemInfo.ItemTag.Battery => ItemAssets.Instance.battery,
-			ItemInfo.ItemTag.Backpack => ItemAssets.Instance.backpack,
-			ItemInfo.ItemTag.Crate => ItemAssets.Instance.crate,
-			ItemInfo.ItemTag.Lightrod => ItemAssets.Instance.lightrod,
-			ItemInfo.ItemTag.Extinguisher => ItemAssets.Instance.extinguisher,
-			ItemInfo.ItemTag.Spotlight => ItemAssets.Instance.spotlight,
-			ItemInfo.ItemTag.Blowtorch => ItemAssets.Instance.blowtorch,
-			ItemInfo.ItemTag.ThermalImager => ItemAssets.Instance.thermalImager,
-			ItemInfo.ItemTag.NightVision => ItemAssets.Instance.nightVision;
-			ItemInfo.ItemTag.Helmet => ItemAssets.Instance.helmet;
-			ItemInfo.ItemTag.Vest => ItemAssets.Instance.vest;
-			ItemInfo.ItemTag.GrapheneShield => ItemAssets.Instance.grapheneShield;
+			ItemInfo.Tags.FusionCell => ItemAssets.Instance.FusionCell,
+			ItemInfo.Tags.Battery => ItemAssets.Instance.Battery,
+			ItemInfo.Tags.Backpack => ItemAssets.Instance.Backpack,
+			ItemInfo.Tags.Crate => ItemAssets.Instance.Crate,
+			ItemInfo.Tags.Lightrod => ItemAssets.Instance.Lightrod,
+			ItemInfo.Tags.Extinguisher => ItemAssets.Instance.Extinguisher,
+			ItemInfo.Tags.Spotlight => ItemAssets.Instance.Spotlight,
+			ItemInfo.Tags.Blowtorch => ItemAssets.Instance.Blowtorch,
+			ItemInfo.Tags.ThermalImager => ItemAssets.Instance.ThermalImager,
+			ItemInfo.Tags.NightVision => ItemAssets.Instance.NightVision;
+			ItemInfo.Tags.Helmet => ItemAssets.Instance.Helmet;
+			ItemInfo.Tags.Vest => ItemAssets.Instance.Vest;
+			ItemInfo.Tags.GrapheneShield => ItemAssets.Instance.GrapheneShield;
 			*/
-			ItemInfo.ItemTag.Unknown => ItemAssets.Instance.missing,
-			_ => ItemAssets.Instance.missing,
+			ItemInfo.Tags.Unknown => ItemAssets.Instance.Missing,
+			_ => ItemAssets.Instance.Missing,
 		};
 	}
 }

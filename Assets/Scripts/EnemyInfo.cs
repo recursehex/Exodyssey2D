@@ -4,7 +4,7 @@ using Exodyssey.Rarity;
 
 public class EnemyInfo
 {
-	private enum EnemyTag
+	private enum Tags
 	{
 		// WEAK
 		Crawler = 0,
@@ -21,7 +21,7 @@ public class EnemyInfo
 
 		Unknown,
 	}
-	private enum EnemyType
+	private enum Types
 	{
 		Weak = 0,
 		Mediocre,
@@ -31,11 +31,11 @@ public class EnemyInfo
 		Unknown,
 	}
 	// Name of enemy
-	private EnemyTag tag = EnemyTag.Unknown;
+	private Tags Tag = Tags.Unknown;
 	// Rarity of enemy
-	private Rarity rarity = Rarity.Common;
+	private Rarity Rarity = Rarity.Common;
 	// Type of enemy
-	private EnemyType type = EnemyType.Unknown;
+	private Types Type = Types.Unknown;
 	// Ingame name of enemy
 	public string name = "UNKNOWN";
 	// Maximum health
@@ -54,34 +54,34 @@ public class EnemyInfo
 	public bool isHunting = true;
 	// true = resistant to certain types of damage, false = not
 	public bool isArmored = false;
-	private static readonly int lastEnemyIndex = (int)EnemyTag.Unknown;
+	private static readonly int lastEnemyIndex = (int)Tags.Unknown;
 	private static List<Rarity> GenerateAllRarities()
 	{
-		List<Rarity> enemyRarityList = new();
+		List<Rarity> EnemyRarityList = new();
 		for (int i = 0; i < lastEnemyIndex; i++)
 		{
-			EnemyInfo enemy = EnemyFactory(i);
-			enemyRarityList.Add(enemy.rarity);
+			EnemyInfo Enemy = EnemyFactory(i);
+			EnemyRarityList.Add(Enemy.Rarity);
 		}
-		return enemyRarityList;
+		return EnemyRarityList;
 	}
-	public static int GetRandomIndexOfSpecifiedRarity(Rarity specifiedRarity)
+	public static int GetRandomIndexOfSpecifiedRarity(Rarity SpecifiedRarity)
 	{
-		List<Rarity> enemyRarityList = GenerateAllRarities();
-		List<int> indicesOfSpecifiedRarity = new();
-		for (int i = 0; i < enemyRarityList.Count; i++)
+		List<Rarity> EnemyRarityList = GenerateAllRarities();
+		List<int> IndicesOfSpecifiedRarity = new();
+		for (int i = 0; i < EnemyRarityList.Count; i++)
 		{
-			if (enemyRarityList[i] == specifiedRarity) 
+			if (EnemyRarityList[i] == SpecifiedRarity) 
 			{
-				indicesOfSpecifiedRarity.Add(i);
+				IndicesOfSpecifiedRarity.Add(i);
 			}
 		}
-		if (indicesOfSpecifiedRarity.Count == 0)
+		if (IndicesOfSpecifiedRarity.Count == 0)
 		{
 			return -1;
 		}
-		int randomIndex = Random.Range(0, indicesOfSpecifiedRarity.Count);
-		return indicesOfSpecifiedRarity[randomIndex];
+		int randomIndex = Random.Range(0, IndicesOfSpecifiedRarity.Count);
+		return IndicesOfSpecifiedRarity[randomIndex];
 	}
 	/// <summary>
 	/// Returns info for a desired enemy 
@@ -94,9 +94,9 @@ public class EnemyInfo
 		switch (n)
 		{
 			case 0:
-				info.tag = EnemyTag.Crawler;
-				info.rarity = Rarity.Common;
-				info.type = EnemyType.Weak;
+				info.Tag = Tags.Crawler;
+				info.Rarity = Rarity.Common;
+				info.Type = Types.Weak;
 				info.maxHealth = 2;
 				info.currentHealth = info.maxHealth;
 				info.maxEnergy = 1;
@@ -106,9 +106,9 @@ public class EnemyInfo
 				info.isHunting = true;
 				break;
 			case 1:
-				info.tag = EnemyTag.Launcher;
-				info.rarity = Rarity.Limited;
-				info.type = EnemyType.Mediocre;
+				info.Tag = Tags.Launcher;
+				info.Rarity = Rarity.Limited;
+				info.Type = Types.Mediocre;
 				info.maxHealth = 4;
 				info.currentHealth = info.maxHealth;
 				info.maxEnergy = 2;

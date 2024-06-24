@@ -379,8 +379,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e5684f9bcd3ae6e4d9e8fa64cf58a640, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  efxSource: {fileID: 215762113}
-  musicSource: {fileID: 215762112}
+  EfxSource: {fileID: 215762113}
+  MusicSource: {fileID: 215762113}
 --- !u!82 &215762112
 AudioSource:
   m_ObjectHideFlags: 0
@@ -695,15 +695,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playersTurn: 1
-  player: {fileID: 569674968}
-  tiledot: {fileID: 823962498}
-  tileArea: {fileID: 4013333899691673706, guid: df0561ba1ff27154e957b6aa734c0248, type: 3}
-  turnTimer: {fileID: 2083751133}
-  enemyTemplates:
+  Player: {fileID: 569674968}
+  Tiledot: {fileID: 823962498}
+  TileArea: {fileID: 4013333899691673706, guid: df0561ba1ff27154e957b6aa734c0248, type: 3}
+  TurnTimer: {fileID: 2083751133}
+  EnemyTemplates:
   - {fileID: 8301553589233551289, guid: 3a66190a890058e44bc0653995faf798, type: 3}
   - {fileID: 283541130281458624, guid: 9844e1c572099de4493431c23e68fee5, type: 3}
-  enemies: []
-  itemTemplates:
+  Enemies: []
+  ItemTemplates:
   - {fileID: 5730536483717399719, guid: 449c9aea6710b3947a699d611aea06d5, type: 3}
   - {fileID: 1336611518689343522, guid: 176769378e4b4604a8be4ff8a9b0df0d, type: 3}
   - {fileID: 2145379877062402088, guid: 076e796f14b824f9ea393fded31f3400, type: 3}
@@ -711,28 +711,28 @@ MonoBehaviour:
   - {fileID: 142956206023105660, guid: 26546f8ae20dd2d418e1c49d62c10717, type: 3}
   - {fileID: 2145379877062402088, guid: ba8e62b527e3c4b2c8c15ddde698b587, type: 3}
   - {fileID: 2145379877062402088, guid: 33186f847f6305748921b5b654aa8c9d, type: 3}
-  items: []
-  tilemapGround: {fileID: 2052983298}
-  tilemapWalls: {fileID: 1335406084}
-  groundTiles:
+  Items: []
+  TilemapGround: {fileID: 2052983298}
+  TilemapWalls: {fileID: 1335406084}
+  GroundTiles:
   - {fileID: 11400000, guid: bc0b0f7e95da3be4ca78e2f9f5b7fc51, type: 2}
   - {fileID: 11400000, guid: 6d5ac7c2a11ac224f8879914a994d0bd, type: 2}
   - {fileID: 11400000, guid: 04f411d322f2dd14280a7181840f87f4, type: 2}
-  wallTiles:
+  WallTiles:
   - {fileID: 11400000, guid: 3cfd4d96da0b6c74aa5e5d9dc2c69628, type: 2}
   - {fileID: 11400000, guid: c460a9e9d7021bd40861beafe3a92647, type: 2}
-  tilemapExit: {fileID: 2025662172}
-  endTurnButton: {fileID: 2049175783}
+  TilemapExit: {fileID: 2025662172}
+  EndTurnButton: {fileID: 2049175783}
   needToDrawTileAreas: 0
-  tileAreas: []
-  targetTemplate: {fileID: 3235571212307580798, guid: 0d83749970d77b24286906dba172abc5, type: 3}
-  targets: []
-  targetPositions: []
-  tracerTemplate: {fileID: 3235571212307580798, guid: de10de49d7c9041c0a48f6db8a694380, type: 3}
-  tracers: []
-  dayText: {fileID: 551613595}
-  levelText: {fileID: 1100001971}
-  levelImage: {fileID: 1910730414}
+  TileAreas: []
+  TargetTemplate: {fileID: 3235571212307580798, guid: 0d83749970d77b24286906dba172abc5, type: 3}
+  Targets: []
+  TargetPositions: []
+  TracerTemplate: {fileID: 3235571212307580798, guid: de10de49d7c9041c0a48f6db8a694380, type: 3}
+  Tracers: []
+  DayText: {fileID: 551613595}
+  LevelText: {fileID: 1100001971}
+  LevelImage: {fileID: 1910730414}
 --- !u!4 &423806397
 Transform:
   m_ObjectHideFlags: 0
@@ -852,14 +852,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5ea46a8a2944f9b4a8d34b9eb20731f8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  medKit: {fileID: 21300000, guid: e63fa49fd71466949a49c86ab02643bb, type: 3}
-  branch: {fileID: 21300000, guid: 77498a5f92be416449a3dbf6e241737c, type: 3}
-  knife: {fileID: 21300000, guid: 0dc086c1ca50045f38730aa9f1109c37, type: 3}
-  wrench: {fileID: 21300000, guid: ed0ee08a68f0b4c81b24ff5c2ba753e6, type: 3}
-  diamondChainsaw: {fileID: 21300000, guid: 902c95ac0d6b08143854f794969f02ff, type: 3}
-  huntingRifle: {fileID: 21300000, guid: d38d13e653a2c42e382135c5afbd03f1, type: 3}
-  plasmaRailgun: {fileID: 21300000, guid: 893e014505199464f95bf7b4ac775a80, type: 3}
-  missing: {fileID: 21300000, guid: 444ca3841fdde9a41ad47e59ee6e79ec, type: 3}
+  MedKit: {fileID: 21300000, guid: e63fa49fd71466949a49c86ab02643bb, type: 3}
+  Branch: {fileID: 21300000, guid: 77498a5f92be416449a3dbf6e241737c, type: 3}
+  Knife: {fileID: 21300000, guid: 0dc086c1ca50045f38730aa9f1109c37, type: 3}
+  Wrench: {fileID: 21300000, guid: ed0ee08a68f0b4c81b24ff5c2ba753e6, type: 3}
+  DiamondChainsaw: {fileID: 21300000, guid: 902c95ac0d6b08143854f794969f02ff, type: 3}
+  HuntingRifle: {fileID: 21300000, guid: d38d13e653a2c42e382135c5afbd03f1, type: 3}
+  PlasmaRailgun: {fileID: 21300000, guid: 893e014505199464f95bf7b4ac775a80, type: 3}
+  Missing: {fileID: 21300000, guid: 444ca3841fdde9a41ad47e59ee6e79ec, type: 3}
 --- !u!4 &514509758
 Transform:
   m_ObjectHideFlags: 0
@@ -1081,7 +1081,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6695f5c0fc680b340a5cf1f0b5532bc7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  itemBackground: {fileID: 21300000, guid: 8487a9df15f34be4296e0965ac9b8b37, type: 3}
+  ItemBackground: {fileID: 21300000, guid: 8487a9df15f34be4296e0965ac9b8b37, type: 3}
 --- !u!1 &551613593
 GameObject:
   m_ObjectHideFlags: 0
@@ -1759,10 +1759,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6fc1f5d780415439794ae0194faf1a4b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  healthFull: {fileID: 21300000, guid: eab09a1e645ad4d598db0dee9411f910, type: 3}
-  healthEmpty: {fileID: 21300000, guid: 3d1250fdc21314966bd8183519db050c, type: 3}
-  energyFull: {fileID: 21300000, guid: 5c7441192283643ea90660e41a3cc1c7, type: 3}
-  energyEmpty: {fileID: 21300000, guid: 2cf21b4f8e47249ef804ff7f93afd6fe, type: 3}
+  HealthFull: {fileID: 21300000, guid: eab09a1e645ad4d598db0dee9411f910, type: 3}
+  HealthEmpty: {fileID: 21300000, guid: 3d1250fdc21314966bd8183519db050c, type: 3}
+  EnergyFull: {fileID: 21300000, guid: 5c7441192283643ea90660e41a3cc1c7, type: 3}
+  EnergyEmpty: {fileID: 21300000, guid: 2cf21b4f8e47249ef804ff7f93afd6fe, type: 3}
 --- !u!4 &1238732183
 Transform:
   m_ObjectHideFlags: 0
@@ -1947,7 +1947,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6fad177fb4e4c964cb53b9a929752fcd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  idx: 1
+  index: 0
 --- !u!114 &1318703599
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1960,8 +1960,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 09ecd49b09aa73b4f8d10999458e42f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  primaryKey: 50
-  secondaryKey: 258
+  PrimaryKey: 50
+  SecondaryKey: 258
 --- !u!114 &1318703600
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2572,7 +2572,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6fad177fb4e4c964cb53b9a929752fcd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  idx: 0
+  index: 0
 --- !u!114 &1888353602
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2585,8 +2585,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 09ecd49b09aa73b4f8d10999458e42f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  primaryKey: 49
-  secondaryKey: 257
+  PrimaryKey: 49
+  SecondaryKey: 257
 --- !u!114 &1888353603
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3266,8 +3266,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 09ecd49b09aa73b4f8d10999458e42f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  primaryKey: 101
-  secondaryKey: 13
+  PrimaryKey: 101
+  SecondaryKey: 13
 --- !u!114 &2049175783
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3619,8 +3619,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 09ecd49b09aa73b4f8d10999458e42f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  primaryKey: 27
-  secondaryKey: 0
+  PrimaryKey: 27
+  SecondaryKey: 0
 --- !u!114 &2071582132
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3781,7 +3781,7 @@ MonoBehaviour:
   timeRemaining: 15
   timerLimit: 15
   timerIsRunning: 0
-  timeText: {fileID: 2083751134}
+  TimeText: {fileID: 2083751134}
 --- !u!114 &2083751134
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3885,6 +3885,10 @@ PrefabInstance:
       value: Player
       objectReference: {fileID: 0}
     - target: {fileID: 917007481830541330, guid: 657e2a86062317544ade4b449a68bdf5, type: 3}
+      propertyPath: Heal
+      value: 
+      objectReference: {fileID: 8300000, guid: 062161c1897a54088a5430f8c197e1b8, type: 3}
+    - target: {fileID: 917007481830541330, guid: 657e2a86062317544ade4b449a68bdf5, type: 3}
       propertyPath: heal
       value: 
       objectReference: {fileID: 8300000, guid: 062161c1897a54088a5430f8c197e1b8, type: 3}
@@ -3893,9 +3897,17 @@ PrefabInstance:
       value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 917007481830541330, guid: 657e2a86062317544ade4b449a68bdf5, type: 3}
+      propertyPath: Select
+      value: 
+      objectReference: {fileID: 8300000, guid: f6aaac83be9e0493493aace800b76619, type: 3}
+    - target: {fileID: 917007481830541330, guid: 657e2a86062317544ade4b449a68bdf5, type: 3}
       propertyPath: select
       value: 
       objectReference: {fileID: 8300000, guid: f6aaac83be9e0493493aace800b76619, type: 3}
+    - target: {fileID: 917007481830541330, guid: 657e2a86062317544ade4b449a68bdf5, type: 3}
+      propertyPath: Animator
+      value: 
+      objectReference: {fileID: 1730963098}
     - target: {fileID: 917007481830541330, guid: 657e2a86062317544ade4b449a68bdf5, type: 3}
       propertyPath: animator
       value: 
@@ -3905,6 +3917,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 8300000, guid: e2beefeb2273f4efe992adf5b8d67c29, type: 3}
     - target: {fileID: 917007481830541330, guid: 657e2a86062317544ade4b449a68bdf5, type: 3}
+      propertyPath: PlayerMove
+      value: 
+      objectReference: {fileID: 8300000, guid: 892962212a4b74d1c9f578a3b6ea6439, type: 3}
+    - target: {fileID: 917007481830541330, guid: 657e2a86062317544ade4b449a68bdf5, type: 3}
       propertyPath: healthText
       value: 
       objectReference: {fileID: 0}
@@ -3912,6 +3928,14 @@ PrefabInstance:
       propertyPath: playerMove
       value: 
       objectReference: {fileID: 8300000, guid: 892962212a4b74d1c9f578a3b6ea6439, type: 3}
+    - target: {fileID: 917007481830541330, guid: 657e2a86062317544ade4b449a68bdf5, type: 3}
+      propertyPath: GameManager
+      value: 
+      objectReference: {fileID: 423806396}
+    - target: {fileID: 917007481830541330, guid: 657e2a86062317544ade4b449a68bdf5, type: 3}
+      propertyPath: InventoryUI
+      value: 
+      objectReference: {fileID: 524301576}
     - target: {fileID: 917007481830541330, guid: 657e2a86062317544ade4b449a68bdf5, type: 3}
       propertyPath: enemyDamage
       value: 0
@@ -3933,6 +3957,14 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 8300000, guid: f6aaac83be9e0493493aace800b76619, type: 3}
     - target: {fileID: 917007481830541330, guid: 657e2a86062317544ade4b449a68bdf5, type: 3}
+      propertyPath: SoundManager
+      value: 
+      objectReference: {fileID: 215762111}
+    - target: {fileID: 917007481830541330, guid: 657e2a86062317544ade4b449a68bdf5, type: 3}
+      propertyPath: TilemapWalls
+      value: 
+      objectReference: {fileID: 1335406084}
+    - target: {fileID: 917007481830541330, guid: 657e2a86062317544ade4b449a68bdf5, type: 3}
       propertyPath: soundManager
       value: 
       objectReference: {fileID: 215762111}
@@ -3941,6 +3973,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1335406084}
     - target: {fileID: 917007481830541330, guid: 657e2a86062317544ade4b449a68bdf5, type: 3}
+      propertyPath: TilemapGround
+      value: 
+      objectReference: {fileID: 2052983298}
+    - target: {fileID: 917007481830541330, guid: 657e2a86062317544ade4b449a68bdf5, type: 3}
       propertyPath: tilemapGround
       value: 
       objectReference: {fileID: 2052983298}
@@ -3948,6 +3984,10 @@ PrefabInstance:
       propertyPath: actionPointText
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 917007481830541330, guid: 657e2a86062317544ade4b449a68bdf5, type: 3}
+      propertyPath: StatsDisplayManager
+      value: 
+      objectReference: {fileID: 1238732182}
     - target: {fileID: 917007481830541330, guid: 657e2a86062317544ade4b449a68bdf5, type: 3}
       propertyPath: statsDisplayManager
       value: 
