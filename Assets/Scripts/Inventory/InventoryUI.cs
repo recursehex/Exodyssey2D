@@ -33,9 +33,9 @@ public class InventoryUI : MonoBehaviour
 				GameObject ItemName = GameObject.Find("ItemName");
 				Text NameText = ItemName.GetComponent<Text>();
 				GameObject ItemDesc = GameObject.Find("ItemDescription");
-				Text descText = ItemDesc.GetComponent<Text>();
+				Text DescText = ItemDesc.GetComponent<Text>();
 				NameText.text = "";
-				descText.text = "";
+				DescText.text = "";
 			}
 			else if (index == 0)
 			{

@@ -6,7 +6,7 @@ public class Inventory
 	public int InventorySize { get; private set;} = 2;
 	public Inventory()
 	{
-		InventoryList = new List<ItemInventory>();
+		InventoryList = new();
 	}
 	/// <summary>
 	/// Returns true if Item was successfully added, returns false if inventory is full

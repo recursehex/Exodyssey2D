@@ -20,17 +20,15 @@ public class AStar
 	private static HashSet<Vector3Int> NoDiagonalTiles { get; set;}
 	private Vector3Int StartPosition, GoalPosition;
 	private bool allowDiagonal = true;
-	// public static HashSet<Vector3Int> NoDiagonalTiles
-	// {
-	//     get
-	//     {
-	//         return noDiagonalTiles;
-	//     }
-	// }
+	public AStar(Tilemap TilemapGround, Tilemap TilemapWalls) 
+	{
+		this.TilemapGround = TilemapGround;
+		this.TilemapWalls = TilemapWalls;
+	}
 	public void Initialize()
 	{
-		AllNodes = new Dictionary<Vector3Int, Node>();
-		NoDiagonalTiles = new HashSet<Vector3Int>();
+		AllNodes = new();
+		NoDiagonalTiles = new();
 	}
 	public void SetAllowDiagonal(bool flag)
 	{
@@ -42,7 +40,7 @@ public class AStar
 		Dictionary<Vector3Int, Node> ReachableArea = new();
 		List<Node> ToExamineList = new()
 		{
-			new Node(StartInt)
+			new(StartInt)
 		};
 		// Checks within AP distance limit for reachable tiles, pseudo-recursive
 		for (int i = 0; i < distance; i++)
@@ -69,9 +67,9 @@ public class AStar
 		AllNodes.Clear();
 		Current = GetNode(StartPosition);
 		// Creates an open list for nodes that could be looked at later
-		OpenList = new HashSet<Node>();
+		OpenList = new();
 		// Creates a closed list for examined nodes
-		ClosedList = new HashSet<Node>();
+		ClosedList = new();
 		foreach (KeyValuePair<Vector3Int, Node> Node in AllNodes)
 		{
 			Node.Value.Parent = null;
@@ -108,11 +106,17 @@ public class AStar
 					Vector3 EnemyPosition = new(ParentPosition.x - x + 0.5f, ParentPosition.y - y + 0.5f, ParentPosition.z);
 					EnemyAtPosition = GameManager.HasEnemyAtPosition(EnemyPosition);
 				}
-				if ((y != 0 || x != 0) && (allowDiagonal || (!allowDiagonal && (y == 0 || x == 0))))
+				if ((y != 0 || x != 0)
+					&& (allowDiagonal || (!allowDiagonal && (y == 0 || x == 0))))
 				{
 					BoundsInt Size = TilemapGround.cellBounds;
 					// If node is within bounds of the grid and if there is no wall tile and no enemy there and if player has any AP, then add it to the neighbors list
-					if (Position.x >= Size.min.x && Position.x < Size.max.x && Position.y >= Size.min.y && Position.y < Size.max.y && !TilemapWalls.HasTile(Position) && !EnemyAtPosition)
+					if (Position.x >= Size.min.x
+						&& Position.x < Size.max.x
+						&& Position.y >= Size.min.y
+						&& Position.y < Size.max.y
+						&& !TilemapWalls.HasTile(Position)
+						&& !EnemyAtPosition)
 					{
 						Node Neighbor = GetNode(Position);
 						Neighbors.Add(Neighbor);
@@ -132,7 +136,9 @@ public class AStar
 				continue;
 			}
 			int gScore = DetermineGScore(Neighbor.Position, Current.Position);
-			if (gScore == 14 && NoDiagonalTiles.Contains(Neighbor.Position) && NoDiagonalTiles.Contains(Current.Position))
+			if (gScore == 14
+				&& NoDiagonalTiles.Contains(Neighbor.Position)
+				&& NoDiagonalTiles.Contains(Current.Position))
 			{
 				continue;
 			}
