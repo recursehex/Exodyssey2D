@@ -38,7 +38,7 @@ public class MapGen
 
     public MapGen()
     {
-        AllTemplates = new List<int[,]>
+        AllTemplates = new()
         {
             template1,
             template2,

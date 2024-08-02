@@ -3,6 +3,11 @@ using UnityEngine;
 public class ItemInventory
 {
 	public ItemInfo ItemInfo;
+    
+    public ItemInventory(ItemInfo ItemInfo) 
+	{
+		this.ItemInfo = ItemInfo;
+	}
 
 	public Sprite GetSprite()
 	{

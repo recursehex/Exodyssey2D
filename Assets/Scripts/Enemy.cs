@@ -22,11 +22,7 @@ public class Enemy : MonoBehaviour
 	// Start is called before the first frame update
 	protected virtual void Start()
 	{
-		AStar = new AStar
-		{
-			TilemapGround = TilemapGround,
-			TilemapWalls = TilemapWalls
-		};
+		AStar = new(TilemapGround, TilemapWalls);
 	}
 	// Player attacks enemy
 	public void DamageEnemy(int loss)
@@ -94,7 +90,8 @@ public class Enemy : MonoBehaviour
 			Path.Pop();
 			// Move one tile closer to Player
 			Vector3Int TryDistance = Path.Pop();
-			if (!HasEnemyAtPosition(TryDistance))
+			Vector3 ShiftedTryDistance = new(TryDistance.x + 0.5f, TryDistance.y + 0.5f, 0);
+			if (!GameManager.HasEnemyAtPosition(ShiftedTryDistance))
 			{
 				Destination = TryDistance;
 			}
@@ -119,19 +116,6 @@ public class Enemy : MonoBehaviour
 			Path = null;
 			isInMovement = false;
 		}
-	}
-	private bool HasEnemyAtPosition(Vector3 Position)
-	{
-		Vector3 ShiftedDistance = new(Position.x + 0.5f, Position.y + 0.5f, 0);
-		foreach (GameObject Enemy in GameManager.Enemies)
-		{
-			Enemy ChosenEnemy = Enemy.GetComponent<Enemy>();
-			if (ChosenEnemy.transform.position == ShiftedDistance)
-			{
-				return true;
-			}
-		}
-		return false;
 	}
 	public void RestoreEnergy()
 	{

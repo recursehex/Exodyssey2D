@@ -131,7 +131,7 @@ public class GameManager : MonoBehaviour
 		
 		// Resets Player position and energy
 		Player.transform.position = new(-3.5f, 0.5f, 0f);
-		Player.ChangeEnergy(Player.MaxEnergy);
+		Player.RestoreEnergy();
 		InitGame();
 		DrawTargetsAndTracers();
 		Tiledot.gameObject.SetActive(true);
@@ -382,7 +382,7 @@ public class GameManager : MonoBehaviour
 		TurnTimer.timerIsRunning = false;
 		TurnTimer.ResetTimer();
 		playersTurn = false;
-		Player.ChangeEnergy(Player.MaxEnergy);
+		Player.RestoreEnergy();
 		needToDrawTileAreas = true;
 		if (Enemies.Count == 0)
 		{
@@ -516,7 +516,7 @@ public class GameManager : MonoBehaviour
 			&& Player.DamagePoints > 0)
 		{
 			HandleDamageToEnemy(enemyIndex);
-			Player.ChangeEnergy(-1);
+			Player.DecreaseEnergy(1);
 			Player.SetAnimation("playerAttack");
 			Player.DecreaseWeaponDurability();
 			needToDrawTileAreas = true;
@@ -568,7 +568,7 @@ public class GameManager : MonoBehaviour
 	public void OnTurnTimerEnd()
 	{
 		Tiledot.gameObject.SetActive(false);
-		Player.ChangeEnergy(-Player.MaxEnergy);
+		Player.DecreaseEnergy(Player.MaxEnergy);
 		ClearTileAreas();
 		ClearTargetsAndTracers();
 	}
@@ -763,7 +763,7 @@ public class GameManager : MonoBehaviour
 		int err = dx - dy;
 		while (true)
 		{
-			PointsOnLine.Add(new Vector3(x0, y0, 0));
+			PointsOnLine.Add(new(x0, y0, 0));
 			if ((x0 == x1) && (y0 == y1))
 			{
 				break;

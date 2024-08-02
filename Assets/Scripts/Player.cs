@@ -12,7 +12,7 @@ public class Player : MonoBehaviour
 	public int CurrentHealth { get; set; } = 3;
 	public int CurrentEnergy { get; set; } = 3;
 	public int DamagePoints { get; set; } = 0;
-	public Profession Profession;
+	public Profession Profession = new(Profession.Tags.Unknown, 0);
 	public AudioClip PlayerMove;
 	public AudioClip Heal;
 	public AudioClip Select;
@@ -37,12 +37,8 @@ public class Player : MonoBehaviour
 	// Start is called before the first frame update
 	protected virtual void Start()
 	{
-		AStar = new AStar
-		{
-			TilemapGround = TilemapGround,
-			TilemapWalls = TilemapWalls
-		};
-		Inventory = new Inventory();
+		AStar = new(TilemapGround, TilemapWalls);
+		Inventory = new();
 		Animator = GetComponent<Animator>();
 		InventoryUI.SetInventory(Inventory);
 		finishedInit = true;
@@ -67,7 +63,7 @@ public class Player : MonoBehaviour
 		{
 			return;
 		}
-		ChangeEnergy(-(Path.Count - 1));
+		DecreaseEnergy(Path.Count - 1);
 		Path.Pop();
 		Destination = Path.Pop();
 		SoundManager.PlaySound(PlayerMove);
@@ -127,17 +123,14 @@ public class Player : MonoBehaviour
 			GameManager.GameOver();
 		}
 		// Player is damaged
-		if (damage > 0)
+		StatsDisplayManager.DecreaseHealthDisplay(CurrentHealth, MaxHealth);
+		Animator.SetTrigger("playerHit");
+		// Reduce max energy to simulate weakness
+		if (CurrentHealth == 1)
 		{
-			StatsDisplayManager.DecreaseHealthDisplay(CurrentHealth, MaxHealth);
-			Animator.SetTrigger("playerHit");
-			// Reduce max energy to simulate weakness
-			if (CurrentHealth == 1)
-			{
-				CurrentEnergy = 1;
-				StatsDisplayManager.DecreaseEnergyDisplay(CurrentEnergy, MaxEnergy);
-				MaxEnergy = 1;
-			}
+			CurrentEnergy = 1;
+			StatsDisplayManager.DecreaseEnergyDisplay(CurrentEnergy, MaxEnergy);
+			MaxEnergy = 1;
 		}
 	}
 	/// <summary>
@@ -145,32 +138,31 @@ public class Player : MonoBehaviour
 	/// </summary>
 	public void RestoreHealth() 
 	{
-		CurrentHealth = Mathf.Clamp(CurrentHealth + 3, 0, MaxHealth);
+		CurrentHealth = MaxHealth;
 		StatsDisplayManager.RestoreHealthDisplay();
 		SoundManager.PlaySound(Heal);
 		MaxEnergy = 3;
 	}
 	/// <summary>
-	/// Changes energy and updates energy display, use negative to decrease
+	/// Decreases CurrentEnergy and updates energy display
 	/// </summary>
-	public void ChangeEnergy(int change)
+	public void DecreaseEnergy(int decrement)
 	{
-		CurrentEnergy = Mathf.Clamp(CurrentEnergy + change, 0, MaxEnergy);
-		// End turn and stop timer
+		CurrentEnergy = Mathf.Clamp(CurrentEnergy - decrement, 0, MaxEnergy);
+		StatsDisplayManager.DecreaseEnergyDisplay(CurrentEnergy, MaxEnergy);
+		// End turn and stop timer if CurrentEnergy reaches 0
 		if (CurrentEnergy == 0)
 		{
 			GameManager.TurnTimer.timeRemaining = 0;
 		}
-		// Decreased by Player action
-		if (change < 0)
-		{
-			StatsDisplayManager.DecreaseEnergyDisplay(CurrentEnergy, MaxEnergy);
-		}
-		// Restore after end turn and new level
-		else
-		{
-			StatsDisplayManager.RestoreEnergyDisplay(CurrentHealth);
-		}
+	}
+	/// <summary>
+	/// Restores Player Energy to MaxEnergy
+	/// </summary>
+	public void RestoreEnergy() 
+	{
+		CurrentEnergy = MaxEnergy;
+		StatsDisplayManager.RestoreEnergyDisplay(CurrentHealth);
 	}
 	/// <summary>
 	/// Decreases weapon durability by 1, removes weapon if uses == 0
@@ -198,7 +190,7 @@ public class Player : MonoBehaviour
 	/// </summary>
 	public bool AddItem(ItemInfo ItemInfo)
 	{
-		bool itemIsAdded = Inventory.AddItem(new ItemInventory { ItemInfo = ItemInfo });
+		bool itemIsAdded = Inventory.AddItem(new(ItemInfo));
 		if (itemIsAdded)
 		{
 			InventoryUI.RefreshInventoryIcons();
@@ -216,10 +208,8 @@ public class Player : MonoBehaviour
 		{
 			return;
 		}
-	
 		ItemInfo ClickedItem = Inventory.InventoryList[itemIndex].ItemInfo;
 		bool wasSelected = InventoryUI.ProcessSelection(InventoryUI.SelectedIndex, itemIndex);
-		
 		// If item is selected, update selection, otherwise reset
 		if (wasSelected)
 		{
@@ -276,7 +266,7 @@ public class Player : MonoBehaviour
 			// Uses energy if profession is not medic
 			if (Profession.Tag is not Profession.Tags.Medic)
 			{
-				ChangeEnergy(-1);
+				DecreaseEnergy(1);
 			}
 			// Uses MedKit if profession is not medic level 2
 			if (!(Profession.Level >= 2 && Profession.Tag is Profession.Tags.Medic))

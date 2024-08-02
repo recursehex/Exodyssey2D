@@ -3909,6 +3909,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1730963098}
     - target: {fileID: 917007481830541330, guid: 657e2a86062317544ade4b449a68bdf5, type: 3}
+      propertyPath: GameOver
+      value: 
+      objectReference: {fileID: 8300000, guid: e2beefeb2273f4efe992adf5b8d67c29, type: 3}
+    - target: {fileID: 917007481830541330, guid: 657e2a86062317544ade4b449a68bdf5, type: 3}
       propertyPath: animator
       value: 
       objectReference: {fileID: 1730963098}
