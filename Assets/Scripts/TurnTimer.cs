@@ -7,6 +7,8 @@ public class TurnTimer : MonoBehaviour
 	public float timerLimit = 15;
 	public bool timerIsRunning = false;
 	public Text TimeText;
+	private Color NormalColor = new((float)(115.0 / 256.0), (float)(119.0 / 256.0), (float)(160.0 / 256.0), 1);
+	private Color OutOfTimeColor = new((float)(172.0 / 256.0), (float)(22.0 / 256.0), (float)(45.0 / 256.0), 1);
 	public void StartTimer()
 	{
 		timerIsRunning = true;
@@ -14,7 +16,7 @@ public class TurnTimer : MonoBehaviour
 	public void ResetTimer()
 	{
 		timeRemaining = timerLimit;
-		TimeText.color = new Color((float)(115.0 / 256.0), (float)(119.0 / 256.0), (float)(160.0 / 256.0), 1);
+		TimeText.color = NormalColor;
 		DisplayTime(timeRemaining - 1);
 	}
 	void Update()
@@ -33,7 +35,7 @@ public class TurnTimer : MonoBehaviour
 		{
 			timeRemaining = 0;
 			timerIsRunning = false;
-			TimeText.color = new Color((float)(172.0 / 256.0), (float)(22.0 / 256.0), (float)(45.0 / 256.0), 1);
+			TimeText.color = OutOfTimeColor;
 			DisplayTime(-1);
 			GameManager.Instance.OnTurnTimerEnd();
 		}

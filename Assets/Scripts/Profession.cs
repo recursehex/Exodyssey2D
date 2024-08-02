@@ -14,7 +14,11 @@ public struct Profession
 	}
 	public Tags Tag { get; set; }
 	public int Level { get; set; }
-	
+	public Profession(Tags Tag, int Level)
+	{
+		this.Tag = Tag;
+		this.Level = Level;
+	}
 	public static List<Profession> professions = new()
 	{
 		new() { Tag = Tags.Medic, Level = 1 },
