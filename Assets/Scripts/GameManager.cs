@@ -8,8 +8,7 @@ public class GameManager : MonoBehaviour
 	private Camera MainCamera;
 	public static GameManager Instance;
 	public bool playersTurn = true;
-	[SerializeField]
-	private Player Player;
+	[SerializeField] private Player Player;
 	public TileDot Tiledot;
 	public GameObject TileArea;
 	public TurnTimer TurnTimer;
@@ -19,15 +18,12 @@ public class GameManager : MonoBehaviour
 	// Must update when adding new item
 	public GameObject[] ItemTemplates;
 	public List<GameObject> Items = new();
-	[SerializeField]
-	private Tilemap TilemapGround;
-	[SerializeField]
-	private Tilemap TilemapWalls;
+	[SerializeField] private Tilemap TilemapGround;
+	[SerializeField] private Tilemap TilemapWalls;
 	// Tile arrays are used for random generation
 	public Tile[] GroundTiles;
 	public Tile[] WallTiles;
-	[SerializeField]
-	private Tilemap TilemapExit;
+	[SerializeField] private Tilemap TilemapExit;
 	public Button EndTurnButton;
 	public bool needToDrawTileAreas = false;
 	public List<GameObject> TileAreas = new();
@@ -41,12 +37,9 @@ public class GameManager : MonoBehaviour
 	private List<Vector3> TracerPath = new();
 	#endregion
 	#region LOADING SCREEN
-	[SerializeField]
-	private Text DayText;
-	[SerializeField]
-	private Text LevelText;
-	[SerializeField]
-	private GameObject LevelImage;
+	[SerializeField] private Text DayText;
+	[SerializeField] private Text LevelText;
+	[SerializeField] private GameObject LevelImage;
 	// How long the psuedo-loading screen lasts in seconds
 	private readonly float levelStartDelay = 1.5f;
 	// Level # is for each unit of the day, with 5 per day, e.g. level 5 means day 2
@@ -513,7 +506,7 @@ public class GameManager : MonoBehaviour
 	{
 		if (enemyIndex >= 0
 			&& (isInMeleeRange || isInRangedWeaponRange)
-			&& Player.DamagePoints > 0)
+			&& Player.SelectedItem?.Type is ItemInfo.Types.Weapon)
 		{
 			HandleDamageToEnemy(enemyIndex);
 			Player.DecreaseEnergy(1);
@@ -546,11 +539,19 @@ public class GameManager : MonoBehaviour
 		GameObject Enemy = Enemies[index];
 		Enemy DamagedEnemy = Enemy.GetComponent<Enemy>();
 		DamagedEnemy.DamageEnemy(Player.DamagePoints);
+		// If enemy is dead
 		if (DamagedEnemy.Info.currentHealth <= 0)
 		{
 			Enemies.RemoveAt(index);
 			Destroy(Enemy);
 			DrawTargetsAndTracers();
+			return;
+		}
+		// If weapon is stunning
+		if (Player.SelectedItem.isStunning)
+		{
+			// Enemy cannot move for 1 turn
+			DamagedEnemy.Info.isStunned = true;
 		}
 	}
 	/// <summary>

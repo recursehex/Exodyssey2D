@@ -32,7 +32,7 @@ public class ItemInfo
 		//StickyGrenade,
 
 		// RANGED
-		//Tranquilizer,
+		Tranquilizer,
 		//Carbine,
 		//Flamethrower,
 		HuntingRifle,
@@ -97,6 +97,8 @@ public class ItemInfo
 	public bool isAttachable = false;
 	// Whether item is flammable, can be destroyed by fire and helps it spread
 	public bool isFlammable = false;
+	// Whether item stuns enemies when used
+	public bool isStunning = false;
 	private static readonly int lastItemIndex = (int)Tags.Unknown;
 	private static List<Rarity> GenerateAllRarities()
 	{
@@ -216,6 +218,19 @@ public class ItemInfo
 				info.stats = $"\nUP:{info.maxUses}/{info.maxUses}\tDP:{info.damagePoints}";
 				break;
 			case 5:
+				info.Tag = Tags.Tranquilizer;
+				info.Rarity = Rarity.Scarce;
+				info.Type = Types.Weapon;
+				info.name = "TRANQUILIZER";
+				info.maxUses = 2;
+				info.currentUses = info.maxUses;
+				info.damagePoints = 0;
+				info.range = 4;
+				info.isStunning = true;
+				info.description = "Stuns enemies for 1 turn";
+				info.stats = $"\nUP:{info.maxUses}/{info.maxUses}\tDP:{info.damagePoints}\nRP:{info.range}";
+				break;
+			case 6:
 				info.Tag = Tags.HuntingRifle;
 				info.Rarity = Rarity.Rare;
 				info.Type = Types.Weapon;
@@ -227,7 +242,7 @@ public class ItemInfo
 				info.description = "Fires armor piercing rounds";
 				info.stats = $"\nUP:{info.maxUses}/{info.maxUses}\tDP:{info.damagePoints}\nRP:{info.range}";
 				break;
-			case 6:
+			case 7:
 				info.Tag = Tags.PlasmaRailgun;
 				info.Rarity = Rarity.Anomalous;
 				info.Type = Types.Weapon;
@@ -259,6 +274,7 @@ public class ItemInfo
 				info.name = "MALLET";
 				info.damagePoints = 3;
 				info.armorDamage = 0;
+				info.isStunning = true;
 				info.description = "Bounces off armor";
 				info.stats = $"\nUP:{info.maxUses}/{info.maxUses}\tDP:{info.damagePoints}\nADP:{info.armorDamage}";
 				break;
@@ -295,6 +311,7 @@ public class ItemInfo
 				info.currentUses = info.maxUses;
 				info.damagePoints = 0;
 				info.range = 3;
+				info.isStunning = true;
 				info.description = "Stuns nearby enemies for 1 turn";
 				info.stats = $"\nUP:{info.maxUses}/{info.maxUses}\tDP:{info.damagePoints}\nRP:{info.range}";
 				break;
@@ -459,18 +476,6 @@ public class ItemInfo
 				info.name = "NIGHT VISION";
 				info.isEquipable = true;
 				info.description = "Enables nighttime visibility";
-				break;
-			case 26:
-				info.Tag = Tags.Tranquilizer;
-				info.Rarity = Rarity.Scarce;
-				info.Type = Types.Weapon;
-				info.name = "TRANQUILIZER";
-				info.maxUses = 2;
-				info.currentUses = info.maxUses;
-				info.damagePoints = 0;
-				info.range = 4;
-				info.description = "Stuns enemies for 1 turn";
-				info.stats = $"\nUP:{info.maxUses}/{info.maxUses}\tDP:{info.damagePoints}\nRP:{info.range}";
 				break;
 			case 27:
 				info.Tag = Tags.Carbine;

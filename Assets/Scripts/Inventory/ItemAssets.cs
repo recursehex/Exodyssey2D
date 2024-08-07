@@ -12,6 +12,7 @@ public class ItemAssets : MonoBehaviour
 	public Sprite Knife;
 	public Sprite Wrench;
 	public Sprite DiamondChainsaw;
+	public Sprite Tranquilizer;
 	public Sprite HuntingRifle;
 	public Sprite PlasmaRailgun;
 	public Sprite Missing;

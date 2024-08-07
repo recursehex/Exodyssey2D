@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -31,7 +32,6 @@ public class Player : MonoBehaviour
 	public Tilemap TilemapWalls;
 	private Stack<Vector3Int> Path;
 	private Vector3Int Destination;
-	[SerializeField]
 	private AStar AStar;
 	#endregion
 	// Start is called before the first frame update
@@ -42,15 +42,6 @@ public class Player : MonoBehaviour
 		Animator = GetComponent<Animator>();
 		InventoryUI.SetInventory(Inventory);
 		finishedInit = true;
-	}
-	// Update is called once per frame 
-	void Update()
-	{
-		if (!GameManager.playersTurn)
-		{
-			return;
-		}
-		MoveAlongThePath();
 	}
 	/// <summary>
 	/// Calculates path for Player to travel to destination for point clicked on
@@ -66,7 +57,40 @@ public class Player : MonoBehaviour
 		DecreaseEnergy(Path.Count - 1);
 		Path.Pop();
 		Destination = Path.Pop();
-		SoundManager.PlaySound(PlayerMove);
+		isInMovement = true;
+		MoveAlongThePath();
+	}
+	/// <summary>
+	/// Moves Player along A* path
+	/// </summary>
+	public async void MoveAlongThePath()
+	{
+		while (Path != null && Path.Count >= 0)
+		{
+			SoundManager.PlaySound(PlayerMove);
+			Vector3 ShiftedDistance = new(Destination.x + 0.5f, Destination.y + 0.5f, Destination.z);
+			while (Vector3.Distance(transform.position, ShiftedDistance) > 0f)
+			{
+				transform.position = Vector3.MoveTowards(transform.position, ShiftedDistance, 2 * Time.deltaTime);
+				await Task.Yield();
+			}
+			if (Path != null && Path.Count > 0)
+			{
+				Destination = Path.Pop();	
+			}
+			else
+			{
+				break;
+			}
+		}
+		// When Player stops moving
+		Path = null;
+		isInMovement = false;
+		if (GameManager.PlayerIsOnExitTile())
+		{
+			return;
+		}
+		GameManager.DrawTargetsAndTracers();
 	}
 	/// <summary>
 	/// Calculates area Player can move to in a turn based on currentEnergy
@@ -75,39 +99,6 @@ public class Player : MonoBehaviour
 	{
 		AStar.Initialize();
 		return AStar.GetReachableAreaByDistance(transform.position, CurrentEnergy);
-	}
-	/// <summary>
-	/// Moves Player along A* path
-	/// </summary>
-	public void MoveAlongThePath()
-	{
-		if (Path == null)
-		{
-			return;
-		}
-		isInMovement = true;
-		Vector3 ShiftedDistance = new(Destination.x + 0.5f, Destination.y + 0.5f, Destination.z);
-		transform.position = Vector3.MoveTowards(transform.position, ShiftedDistance, 2 * Time.deltaTime);
-		float distance = Vector3.Distance(ShiftedDistance, transform.position);
-		if (distance > 0f)
-		{
-			return;
-		}
-		if (Path.Count > 0)
-		{
-			Destination = Path.Pop();
-			SoundManager.PlaySound(PlayerMove);
-		}
-		else // When Player stops moving
-		{
-			Path = null;
-			isInMovement = false;
-			if (GameManager.PlayerIsOnExitTile())
-			{
-				return;
-			}
-			GameManager.DrawTargetsAndTracers();
-		}
 	}
 	/// <summary>
 	/// Decreases CurrentHealth by damage and updates Health display
@@ -119,8 +110,9 @@ public class Player : MonoBehaviour
 		if (CurrentHealth == 0)
 		{
 			SoundManager.PlaySound(GameOver);
-			SoundManager.MusicSource.Stop();
 			GameManager.GameOver();
+			SoundManager.Instance.FadeOutMusic(2.0f);
+			return;
 		}
 		// Player is damaged
 		StatsDisplayManager.DecreaseHealthDisplay(CurrentHealth, MaxHealth);
