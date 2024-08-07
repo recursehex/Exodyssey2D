@@ -54,6 +54,8 @@ public class EnemyInfo
 	public bool isHunting = true;
 	// true = resistant to certain types of damage, false = not
 	public bool isArmored = false;
+	// true = currently stunned, false = not
+	public bool isStunned = false;
 	private static readonly int lastEnemyIndex = (int)Tags.Unknown;
 	private static List<Rarity> GenerateAllRarities()
 	{

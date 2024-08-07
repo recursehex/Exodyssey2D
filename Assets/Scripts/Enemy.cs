@@ -1,4 +1,6 @@
+using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -16,7 +18,6 @@ public class Enemy : MonoBehaviour
 	private Vector3Int Destination;
 	GameManager GameManager;
 	SoundManager SoundManager;
-	[SerializeField]
 	private AStar AStar;
 	#endregion
 	// Start is called before the first frame update
@@ -24,68 +25,25 @@ public class Enemy : MonoBehaviour
 	{
 		AStar = new(TilemapGround, TilemapWalls);
 	}
-	// Player attacks enemy
-	public void DamageEnemy(int loss)
-	{
-		SoundManager.PlaySound(PlayerAttack);
-		// NOTE: Eventually add sprite change for enemy on this line using: spriteRenderer.sprite = damagedSprite;
-		Info.currentHealth -= loss;
-		if (Info.currentHealth <= 0)
-		{
-			gameObject.SetActive(false);
-		}
-	}
-	void Update()
-	{
-		if (GameManager.playersTurn)
-		{
-			return;
-		}
-		MoveAlongThePath();
-	}
-	public void MoveAlongThePath()
-	{
-		if (Path == null)
-		{
-			return;
-		}
-		Vector3 ShiftedDistance = new(Destination.x + 0.5f, Destination.y + 0.5f, Destination.z);
-		transform.position = Vector3.MoveTowards(transform.position, ShiftedDistance, 2 * Time.deltaTime);
-		float distance = Vector3.Distance(ShiftedDistance, transform.position);
-		if (distance > 0f)
-		{
-			return;
-		}
-		// Move one tile closer to Player
-		if (Path.Count > 1 && Info.currentEnergy > 0)
-		{
-			SoundManager.PlaySound(EnemyMove);
-			Destination = Path.Pop();
-			Info.currentEnergy--;
-		}
-		// Enemy attacks Player if enemy moves to an adjacent tile
-		else if (Path.Count == 1 && Info.currentEnergy > 0)
-		{
-			SoundManager.PlaySound(EnemyAttack);
-			GameManager.HandleDamageToPlayer(Info.damagePoints);
-			Info.currentEnergy--;
-		}
-		else
-		{
-			Path = null;
-			isInMovement = false;
-		}
-	}
+	/// <summary>
+	/// Calculates path for Enemy to move to and handles first move of turn
+	/// </summary>
 	public void CalculatePathAndStartMovement(Vector3 Goal)
 	{
-		isInMovement = true;
+		// Stuns enemy for one turn
+		if (Info.isStunned)
+		{
+			Info.isStunned = false;
+			return;
+		}
 		AStar.Initialize();
 		AStar.SetAllowDiagonal(false);
 		Path = AStar.ComputePath(transform.position, Goal, GameManager);
-		// Compute path to Player
-		if (Path != null && Info.currentEnergy > 0 && Path.Count > 2) // To stop enemy from colliding into Player
+		// Compute path to Player and prevent enemy from colliding into Player
+		if (Path != null && Info.currentEnergy > 0 && Path.Count > 2)
 		{
 			Info.currentEnergy--;
+			isInMovement = true;
 			// Remove first tile in path
 			Path.Pop();
 			// Move one tile closer to Player
@@ -94,27 +52,74 @@ public class Enemy : MonoBehaviour
 			if (!GameManager.HasEnemyAtPosition(ShiftedTryDistance))
 			{
 				Destination = TryDistance;
+				MoveAlongThePath();
 			}
 			else
 			{
 				Path = null;
 				isInMovement = false;
 			}
-			SoundManager.PlaySound(EnemyMove);
 		}
 		// If enemy is adjacent to Player, attack
+		else if (Path != null && Path.Count == 2)
+		{
+			while (Info.currentEnergy > 0)
+			{
+				Info.currentEnergy--;
+				SoundManager.PlaySound(EnemyAttack);
+				GameManager.HandleDamageToPlayer(Info.damagePoints);
+			}
+		}
+		// If no path to Player, do not start moving
 		else
 		{
-			if (Path != null && Path.Count == 2)
-			{
-				for (int i = 0; i < Info.currentEnergy; i++)
-				{
-					SoundManager.PlaySound(EnemyAttack);
-					GameManager.HandleDamageToPlayer(Info.damagePoints);
-				}
-			}
 			Path = null;
 			isInMovement = false;
+		}
+	}
+	/// <summary>
+	/// Moves Enemy along A* path
+	/// </summary>
+	private async void MoveAlongThePath()
+	{
+		while (Path != null && Path.Count > 0)
+		{
+			SoundManager.PlaySound(EnemyMove);
+			Vector3 ShiftedDistance = new(Destination.x + 0.5f, Destination.y + 0.5f, Destination.z);
+			// Move one tile closer to Player
+			while (Vector3.Distance(transform.position, ShiftedDistance) > 0f)
+			{
+				transform.position = Vector3.MoveTowards(transform.position, ShiftedDistance, 2 * Time.deltaTime);
+				await Task.Yield();
+			}
+			// Pop next tile in path
+			if (Path.Count > 1 && Info.currentEnergy > 0)
+			{
+				Info.currentEnergy--;
+				Destination = Path.Pop();
+			}
+			// Enemy attacks Player if enemy moves to an adjacent tile
+			else if (Path.Count == 1 && Info.currentEnergy > 0)
+			{
+				Info.currentEnergy--;
+				SoundManager.PlaySound(EnemyAttack);
+				GameManager.HandleDamageToPlayer(Info.damagePoints);
+			}
+			else
+			{
+				Path = null;
+				isInMovement = false;
+			}
+		}
+	}
+	public void DamageEnemy(int damage)
+	{
+		SoundManager.PlaySound(PlayerAttack);
+		// NOTE: Eventually add sprite change for enemy on this line using: spriteRenderer.sprite = damagedSprite;
+		Info.currentHealth -= damage;
+		if (Info.currentHealth <= 0)
+		{
+			gameObject.SetActive(false);
 		}
 	}
 	public void RestoreEnergy()

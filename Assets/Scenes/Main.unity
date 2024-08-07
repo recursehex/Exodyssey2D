@@ -380,7 +380,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   EfxSource: {fileID: 215762113}
-  MusicSource: {fileID: 215762113}
+  MusicSource: {fileID: 215762112}
 --- !u!82 &215762112
 AudioSource:
   m_ObjectHideFlags: 0
@@ -709,6 +709,7 @@ MonoBehaviour:
   - {fileID: 2145379877062402088, guid: 076e796f14b824f9ea393fded31f3400, type: 3}
   - {fileID: 2145379877062402088, guid: 5330247c7099b4f6eba5d8daa116a07a, type: 3}
   - {fileID: 142956206023105660, guid: 26546f8ae20dd2d418e1c49d62c10717, type: 3}
+  - {fileID: 2145379877062402088, guid: c764a49bc54304cfea3d5623e9e61bb7, type: 3}
   - {fileID: 2145379877062402088, guid: ba8e62b527e3c4b2c8c15ddde698b587, type: 3}
   - {fileID: 2145379877062402088, guid: 33186f847f6305748921b5b654aa8c9d, type: 3}
   Items: []
@@ -857,6 +858,7 @@ MonoBehaviour:
   Knife: {fileID: 21300000, guid: 0dc086c1ca50045f38730aa9f1109c37, type: 3}
   Wrench: {fileID: 21300000, guid: ed0ee08a68f0b4c81b24ff5c2ba753e6, type: 3}
   DiamondChainsaw: {fileID: 21300000, guid: 902c95ac0d6b08143854f794969f02ff, type: 3}
+  Tranquilizer: {fileID: 21300000, guid: 6a4c2cd8540b043b4b7116cfd06e7e73, type: 3}
   HuntingRifle: {fileID: 21300000, guid: d38d13e653a2c42e382135c5afbd03f1, type: 3}
   PlasmaRailgun: {fileID: 21300000, guid: 893e014505199464f95bf7b4ac775a80, type: 3}
   Missing: {fileID: 21300000, guid: 444ca3841fdde9a41ad47e59ee6e79ec, type: 3}
