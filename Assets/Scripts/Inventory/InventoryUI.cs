@@ -7,42 +7,34 @@ using System;
 /// </summary>
 public class InventoryUI : MonoBehaviour
 {
-	private Inventory Inventory;
+	public Inventory Inventory;
+	[SerializeField] private Sprite ItemBackground;
+	[SerializeField] private GameObject InventoryPressed0;
+	[SerializeField] private GameObject InventoryPressed1;
+	[SerializeField] private GameObject ItemName;
+	[SerializeField] private GameObject ItemDesc;
 	public int SelectedIndex { get; private set; } = -1;
 	private string cachedName;
 	private string cachedDesc;
-	public Sprite ItemBackground;
-	public void SetInventory(Inventory Inventory)
-	{
-		this.Inventory = Inventory;
-		RefreshInventoryIcons();
-	}
 	/// <summary>
 	/// Removes item from inventory UI
 	/// </summary>
 	public void RemoveItem(int index)
 	{
-		if (SelectedIndex != -1) 
+		// Resets icons and inventory text
+		if (SelectedIndex == index)
 		{
-			// Resets icons and inventory text
-			if (SelectedIndex == index)
-			{
-				SelectedIndex = -1;
-				GameObject.Find("InventoryPressed0").transform.localScale = Vector3.one;
-				GameObject.Find("InventoryPressed1").transform.localScale = Vector3.one;
-				GameObject ItemName = GameObject.Find("ItemName");
-				Text NameText = ItemName.GetComponent<Text>();
-				GameObject ItemDesc = GameObject.Find("ItemDescription");
-				Text DescText = ItemDesc.GetComponent<Text>();
-				NameText.text = "";
-				DescText.text = "";
-			}
-			else if (index == 0)
-			{
-				SelectedIndex = 0;
-				GameObject.Find("InventoryPressed1").transform.localScale = Vector3.one;
-				GameObject.Find("InventoryPressed0").transform.localScale = Vector3.zero;
-			}
+			SelectedIndex = -1;
+			InventoryPressed0.transform.localScale = Vector3.one;
+			InventoryPressed1.transform.localScale = Vector3.one;
+			ItemName.GetComponent<Text>().text = "";
+			ItemDesc.GetComponent<Text>().text = "";
+		}
+		else if (index == 0 && SelectedIndex != -1)
+		{
+			SelectedIndex = 0;
+			InventoryPressed1.transform.localScale = Vector3.one;
+			InventoryPressed0.transform.localScale = Vector3.zero;
 		}
 		Inventory.RemoveItem(index);
 		RefreshInventoryIcons();
@@ -52,22 +44,19 @@ public class InventoryUI : MonoBehaviour
 	/// </summary>
 	public void RefreshInventoryIcons()
 	{
-		// Cleanup of icons
 		for (int i = 0; i < Inventory.InventorySize; i++)
 		{
 			Image Icon = GameObject.Find("InventoryIcon" + i).GetComponent<Image>();
-			Icon.sprite = ItemBackground;
-		}
-		int iconNumber = 0;
-		// Add item icon
-		foreach (ItemInventory Item in Inventory.InventoryList)
-		{
-			if (iconNumber < Inventory.InventorySize)
+			if (i < Inventory.InventoryList.Count)
 			{
-				Image icon = GameObject.Find("InventoryIcon" + iconNumber).GetComponent<Image>();
-				icon.sprite = Item.GetSprite();
+				// Add item icon
+				Icon.sprite = Inventory.InventoryList[i].GetSprite();
 			}
-			iconNumber++;
+			else
+			{
+				// Cleanup of icons
+				Icon.sprite = ItemBackground;
+			}
 		}
 	}
 	/// <summary>
@@ -78,21 +67,17 @@ public class InventoryUI : MonoBehaviour
 		SelectedIndex = itemIndex;
 		if (SelectedIndex >= 0)
 		{
-			cachedName = Inventory.InventoryList[SelectedIndex].ItemInfo.name;
-			cachedDesc = Inventory.InventoryList[SelectedIndex].ItemInfo.description + Inventory.InventoryList[SelectedIndex].ItemInfo.stats;
+			cachedName = Inventory.InventoryList[SelectedIndex].Info.name;
+			cachedDesc = Inventory.InventoryList[SelectedIndex].Info.description
+			+ Inventory.InventoryList[SelectedIndex].Info.stats;
 		}
 		else
 		{
 			cachedName = "";
 			cachedDesc = "";
 		}
-		GameObject ItemName = GameObject.Find("ItemName");
-		Text NameText = ItemName.GetComponent<Text>();
-		GameObject ItemDesc = GameObject.Find("ItemDescription");
-		Text DescText = ItemDesc.GetComponent<Text>();
-		NameText.text = cachedName;
-		DescText.text = cachedDesc;
-
+		ItemName.GetComponent<Text>().text = cachedName;
+		ItemDesc.GetComponent<Text>().text = cachedDesc;
 	}
 	/// <summary>
 	/// Called by ClickItem when item is selected or deselected
@@ -125,9 +110,7 @@ public class InventoryUI : MonoBehaviour
 		int iconNumber = 0;
 		float sensitivityDistance = 0.5f;
 		bool mouseIsOverIcon = false;
-		GameObject ItemName = GameObject.Find("ItemName");
 		Text NameText = ItemName.GetComponent<Text>();
-		GameObject ItemDesc = GameObject.Find("ItemDescription");
 		Text DescText = ItemDesc.GetComponent<Text>();
 		foreach (ItemInventory Item in Inventory.InventoryList)
 		{
@@ -137,8 +120,8 @@ public class InventoryUI : MonoBehaviour
 				&& Math.Abs(IconPosition.y - MousePosition.y) <= sensitivityDistance)
 			{
 				mouseIsOverIcon = true;
-				NameText.text = Item.ItemInfo.name;
-				DescText.text = Item.ItemInfo.description + Item.ItemInfo.stats;
+				NameText.text = Item.Info.name;
+				DescText.text = Item.Info.description + Item.Info.stats;
 				break;
 			}
 			iconNumber++;

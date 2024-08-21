@@ -39,14 +39,14 @@ public class Player : MonoBehaviour
 	{
 		AStar = new(TilemapGround, TilemapWalls);
 		Inventory = new();
+		InventoryUI.Inventory = Inventory;
 		Animator = GetComponent<Animator>();
-		InventoryUI.SetInventory(Inventory);
 		finishedInit = true;
 	}
 	/// <summary>
 	/// Calculates path for Player to travel to destination for point clicked on
 	/// </summary>
-	public void CalculatePathAndStartMovement(Vector3 Goal)
+	public void ComputePathAndStartMovement(Vector3 Goal)
 	{
 		AStar.Initialize();
 		Path = AStar.ComputePath(transform.position, Goal, GameManager);
@@ -58,12 +58,12 @@ public class Player : MonoBehaviour
 		Path.Pop();
 		Destination = Path.Pop();
 		isInMovement = true;
-		MoveAlongThePath();
+		MoveAlongPath();
 	}
 	/// <summary>
 	/// Moves Player along A* path
 	/// </summary>
-	public async void MoveAlongThePath()
+	private async void MoveAlongPath()
 	{
 		while (Path != null && Path.Count >= 0)
 		{
@@ -178,11 +178,11 @@ public class Player : MonoBehaviour
 		return SelectedItem == null ? 0 : SelectedItem.range;
 	}
 	/// <summary>
-	/// Adds item to inventory when picked up
+	/// Adds item to inventory when picked up, returns false if inventory is full
 	/// </summary>
-	public bool AddItem(ItemInfo ItemInfo)
+	public bool TryAddItem(ItemInfo ItemInfo)
 	{
-		bool itemIsAdded = Inventory.AddItem(new(ItemInfo));
+		bool itemIsAdded = Inventory.TryAddItem(new(ItemInfo));
 		if (itemIsAdded)
 		{
 			InventoryUI.RefreshInventoryIcons();
@@ -200,7 +200,7 @@ public class Player : MonoBehaviour
 		{
 			return;
 		}
-		ItemInfo ClickedItem = Inventory.InventoryList[itemIndex].ItemInfo;
+		ItemInfo ClickedItem = Inventory.InventoryList[itemIndex].Info;
 		bool wasSelected = InventoryUI.ProcessSelection(InventoryUI.SelectedIndex, itemIndex);
 		// If item is selected, update selection, otherwise reset
 		if (wasSelected)
@@ -209,7 +209,6 @@ public class Player : MonoBehaviour
 			SelectedItem = ClickedItem;
 			SoundManager.PlaySound(Select);
 			DamagePoints = ClickedItem.damagePoints;
-
 			// Only draw targets if ranged weapon is selected
 			if (ClickedItem.range > 0)
 			{
@@ -231,7 +230,7 @@ public class Player : MonoBehaviour
 		}
 	}
 	/// <summary>
-	/// Handles when ClickTarget() clicks on Player
+	/// Handles when ClickTarget() clicks on Player, returns false if item is not consumable or was not used
 	/// </summary>
 	public bool ClickOnPlayerToUseItem()
 	{
@@ -248,6 +247,9 @@ public class Player : MonoBehaviour
 		}
 		return wasUsed;
 	}
+	/// <summary>
+	/// Returns true if MedKit was used to heal Player
+	/// </summary>
 	private bool MedKitWasUsed() 
 	{
 		if (SelectedItem.Tag is ItemInfo.Tags.MedKit
@@ -270,7 +272,7 @@ public class Player : MonoBehaviour
 		return false;
 	}
 	/// <summary>
-	/// Tries to drop item from inventory onto the ground
+	/// Tries to drop item from inventory onto the ground, called by InventoryIcons
 	/// </summary>
 	public void TryDropItem(int itemIndex)
 	{
@@ -279,13 +281,8 @@ public class Player : MonoBehaviour
 		{
 			return;
 		}
-		// Drops item on the ground, returns if an item is occupying the tile
-		if (!GameManager.DropItem(Inventory.InventoryList[itemIndex].ItemInfo))
-		{
-			return;
-		}
 		// Resets damage points if weapon is dropped
-		if (SelectedItem.Type is ItemInfo.Types.Weapon)
+		if (SelectedItem?.Type is ItemInfo.Types.Weapon)
 		{
 			DamagePoints = 0;
 			// Clears targeting if ranged weapon is dropped
@@ -294,17 +291,23 @@ public class Player : MonoBehaviour
 				GameManager.ClearTargetsAndTracers();
 			}
 		}
-		// Removes item from inventory and plays corresponding sound
+		// Put dropped item in temp slot out of inventory
+		ItemInfo DroppedItem = Inventory.InventoryList[itemIndex].Info;
+		// Remove dropped item from inventory
 		SelectedItem = null;
 		InventoryUI.RemoveItem(itemIndex);
+		Item ItemAtPosition = GameManager.GetItemAtPosition(transform.position);
+		// If there is item at Player's position
+		if (ItemAtPosition != null)
+		{
+			// Add ground item to inventory
+			TryAddItem(ItemAtPosition.Info);
+			GameManager.Items.Remove(ItemAtPosition);
+			Destroy(ItemAtPosition.gameObject);
+		}
+		// Drop item onto ground from temp slot
+		GameManager.InstantiateNewItem(DroppedItem, transform.position);
+		// Removes item from inventory and plays corresponding sound
 		SoundManager.PlaySound(PlayerMove);
-	}
-	public void ProcessHoverForInventory(Vector3 MousePosition)
-	{
-		InventoryUI.ProcessHoverForInventory(MousePosition);
-	}
-	public void SetAnimation(string trigger)
-	{
-		Animator.SetTrigger(trigger);
 	}
 }
