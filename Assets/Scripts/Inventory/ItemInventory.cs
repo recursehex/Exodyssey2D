@@ -2,16 +2,14 @@ using UnityEngine;
 
 public class ItemInventory
 {
-	public ItemInfo ItemInfo;
-	
-	public ItemInventory(ItemInfo ItemInfo) 
+	public ItemInfo Info;
+	public ItemInventory(ItemInfo Info) 
 	{
-		this.ItemInfo = ItemInfo;
+		this.Info = Info;
 	}
-
 	public Sprite GetSprite()
 	{
-		return ItemInfo.Tag switch
+		return Info.Tag switch
 		{
 			ItemInfo.Tags.MedKit => ItemAssets.Instance.MedKit,
 			ItemInfo.Tags.Branch => ItemAssets.Instance.Branch,

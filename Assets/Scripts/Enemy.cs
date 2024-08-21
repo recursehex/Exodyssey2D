@@ -11,24 +11,28 @@ public class Enemy : MonoBehaviour
 	public AudioClip EnemyAttack;
 	public AudioClip PlayerAttack;
 	public bool isInMovement = false;
+	public GameManager GameManager;
+	public SoundManager SoundManager;
 	#region PATHFINDING
 	public Tilemap TilemapGround;
 	public Tilemap TilemapWalls;
 	private Stack<Vector3Int> Path;
 	private Vector3Int Destination;
-	GameManager GameManager;
-	SoundManager SoundManager;
 	private AStar AStar;
 	#endregion
 	// Start is called before the first frame update
 	protected virtual void Start()
 	{
+		GameManager = GameManager.Instance;
+		SoundManager = SoundManager.Instance;
+		TilemapGround = GameManager.Instance.TilemapGround;
+		TilemapWalls = GameManager.Instance.TilemapWalls;
 		AStar = new(TilemapGround, TilemapWalls);
 	}
 	/// <summary>
 	/// Calculates path for Enemy to move to and handles first move of turn
 	/// </summary>
-	public void CalculatePathAndStartMovement(Vector3 Goal)
+	public void ComputePathAndStartMovement(Vector3 Goal)
 	{
 		// Stuns enemy for one turn
 		if (Info.isStunned)
@@ -52,7 +56,7 @@ public class Enemy : MonoBehaviour
 			if (!GameManager.HasEnemyAtPosition(ShiftedTryDistance))
 			{
 				Destination = TryDistance;
-				MoveAlongThePath();
+				MoveAlongPath();
 			}
 			else
 			{
@@ -80,7 +84,7 @@ public class Enemy : MonoBehaviour
 	/// <summary>
 	/// Moves Enemy along A* path
 	/// </summary>
-	private async void MoveAlongThePath()
+	private async void MoveAlongPath()
 	{
 		while (Path != null && Path.Count > 0)
 		{
@@ -112,7 +116,7 @@ public class Enemy : MonoBehaviour
 			}
 		}
 	}
-	public void DamageEnemy(int damage)
+	public void DecreaseHealth(int damage)
 	{
 		SoundManager.PlaySound(PlayerAttack);
 		// NOTE: Eventually add sprite change for enemy on this line using: spriteRenderer.sprite = damagedSprite;
@@ -125,13 +129,5 @@ public class Enemy : MonoBehaviour
 	public void RestoreEnergy()
 	{
 		Info.currentEnergy = Info.maxEnergy;
-	}
-	public void SetGameManager(GameManager G)
-	{
-		GameManager = G;
-	}
-	public void SetSoundManager(SoundManager S)
-	{
-		SoundManager = S;
 	}
 }

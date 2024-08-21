@@ -11,9 +11,7 @@ public class Inventory
 	/// <summary>
 	/// Returns true if Item was successfully added, returns false if inventory is full
 	/// </summary>
-	/// <param name="item"></param>
-	/// <returns></returns>
-	public bool AddItem(ItemInventory Item)
+	public bool TryAddItem(ItemInventory Item)
 	{
 		if (InventoryList.Count >= InventorySize)
 		{
@@ -25,7 +23,6 @@ public class Inventory
 	/// <summary>
 	/// Removes item from inventory at specified index
 	/// </summary>
-	/// <param name="index"></param>
 	public void RemoveItem(int index)
 	{
 		InventoryList.RemoveAt(index);

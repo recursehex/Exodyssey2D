@@ -31,11 +31,11 @@ public class EnemyInfo
 		Unknown,
 	}
 	// Name of enemy
-	private Tags Tag = Tags.Unknown;
+	// private Tags Tag = Tags.Unknown;
 	// Rarity of enemy
 	private Rarity Rarity = Rarity.Common;
 	// Type of enemy
-	private Types Type = Types.Unknown;
+	// private Types Type = Types.Unknown;
 	// Ingame name of enemy
 	public string name = "UNKNOWN";
 	// Maximum health
@@ -96,9 +96,9 @@ public class EnemyInfo
 		switch (n)
 		{
 			case 0:
-				info.Tag = Tags.Crawler;
+				// info.Tag = Tags.Crawler;
 				info.Rarity = Rarity.Common;
-				info.Type = Types.Weak;
+				// info.Type = Types.Weak;
 				info.maxHealth = 2;
 				info.currentHealth = info.maxHealth;
 				info.maxEnergy = 1;
@@ -108,9 +108,9 @@ public class EnemyInfo
 				info.isHunting = true;
 				break;
 			case 1:
-				info.Tag = Tags.Launcher;
+				// info.Tag = Tags.Launcher;
 				info.Rarity = Rarity.Limited;
-				info.Type = Types.Mediocre;
+				// info.Type = Types.Mediocre;
 				info.maxHealth = 4;
 				info.currentHealth = info.maxHealth;
 				info.maxEnergy = 2;
