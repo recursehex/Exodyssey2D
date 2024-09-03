@@ -106,36 +106,37 @@ public class GameManager : MonoBehaviour
 			day++;
 			DayText.text = "DAY " + day;
 		}
-		
 		// Resets turn timer and end turn button
 		TurnTimer.timerIsRunning = false;
 		TurnTimer.ResetTimer();
 		EndTurnButton.interactable = true;
-		
-		// Clears tilemap tiles before generating new tiles
+		// Clears tiles, items, and enemies
 		TilemapGround.ClearAllTiles();
 		TilemapWalls.ClearAllTiles();
-		
-		// Destroys all items on the ground
-		foreach (Item Item in Items)
-		{
-			Destroy(Item.gameObject);
-		}
-		Items.Clear();
-		
-		// Destroys all enemies
-		foreach (Enemy Enemy in Enemies)
-		{
-			Destroy(Enemy.gameObject);
-		}
-		Enemies.Clear();
-		
+		DestroyAllItems();
+		DestroyAllEnemies();
 		// Resets Player position and energy
 		Player.transform.position = new(-3.5f, 0.5f, 0f);
 		Player.RestoreEnergy();
 		InitGame();
 		DrawTargetsAndTracers();
 		Tiledot.gameObject.SetActive(true);
+	}
+	private void DestroyAllItems()
+	{
+		foreach (Item Item in Items)
+		{
+			Destroy(Item.gameObject);
+		}
+		Items.Clear();
+	}
+	private void DestroyAllEnemies()
+	{
+		foreach (Enemy Enemy in Enemies)
+		{
+			DestroyEnemy(Enemy);
+		}
+		Enemies.Clear();
 	}
 	/// <summary>
 	/// Begins grid state generation
@@ -215,7 +216,7 @@ public class GameManager : MonoBehaviour
 		return Items.Find(Item => Item.transform.position == Position);
 	}
 	/// <summary>
-	/// Removes item when picked up or when new level starts
+	/// Removes item when picked up
 	/// </summary>
 	private void DestroyItemAtPosition(Vector3 Position)
 	{
@@ -327,7 +328,7 @@ public class GameManager : MonoBehaviour
 	private void SetPlayersTurn()
 	{
 		enemiesInMovement = false;
-		UpdateEnemyEnergy();
+		RestoreAllEnemyEnergy();
 		TurnTimer.ResetTimer();
 		playersTurn = true;
 		EndTurnButton.interactable = true;
@@ -358,9 +359,31 @@ public class GameManager : MonoBehaviour
 		needToStartEnemyMovement = Enemies.Count > 0;
 	}
 	/// <summary>
+	/// Called when the turn timer ends to stop Player from acting
+	/// </summary>
+	public void OnTurnTimerEnd()
+	{
+		Tiledot.gameObject.SetActive(false);
+		Player.DecreaseEnergy(Player.MaxEnergy);
+		ClearTileAreas();
+		ClearTargetsAndTracers();
+	}
+	/// <summary>
+	/// Returns true if Player is on exit tile and resets grid for next level
+	/// </summary>
+	public bool PlayerIsOnExitTile()
+	{
+		if (!TilemapExit.HasTile(Vector3Int.FloorToInt(Player.transform.position)))
+		{
+			return false;
+		}
+		ResetForNextLevel();
+		return true;
+	}
+	/// <summary>
 	/// Resets every enemy's energy when Player turn ends
 	/// </summary>
-	private void UpdateEnemyEnergy()
+	private void RestoreAllEnemyEnergy()
 	{
 		foreach (Enemy Enemy in Enemies)
 		{
@@ -376,13 +399,8 @@ public class GameManager : MonoBehaviour
 		Vector3 WorldPoint = MainCamera.ScreenToWorldPoint(Input.mousePosition);
 		Vector3Int TilePoint = TilemapGround.WorldToCell(WorldPoint);
 		Vector3 ShiftedClickPoint = new(TilePoint.x + 0.5f, TilePoint.y + 0.5f, 0);
-		// If RMB clicks
-		if (Input.GetMouseButtonDown(1))
-		{
-			// This should be for the Player inspecting something
-		}
 		// If LMB clicks within grid, begin Player movement system
-		else if (Input.GetMouseButtonDown(0)
+		if (Input.GetMouseButtonDown(0)
 			&& !Player.isInMovement
 			&& IsWithinCellBounds(TilePoint, CellBounds)
 			&& !TilemapWalls.HasTile(TilePoint))
@@ -509,7 +527,7 @@ public class GameManager : MonoBehaviour
 		if (DamagedEnemy.Info.currentHealth <= 0)
 		{
 			Enemies.RemoveAt(index);
-			Destroy(DamagedEnemy.gameObject);
+			DestroyEnemy(DamagedEnemy);
 			DrawTargetsAndTracers();
 			return;
 		}
@@ -518,7 +536,14 @@ public class GameManager : MonoBehaviour
 		{
 			// Enemy cannot move for 1 turn
 			DamagedEnemy.Info.isStunned = true;
+			DamagedEnemy.StunIcon.SetActive(true);
+			DrawTargetsAndTracers();
 		}
+	}
+	private void DestroyEnemy(Enemy Enemy)
+	{
+		Destroy(Enemy.StunIcon);
+		Destroy(Enemy.gameObject);
 	}
 	/// <summary>
 	/// Called when Player takes damage to decrease health and redraw tile areas
@@ -528,28 +553,6 @@ public class GameManager : MonoBehaviour
 		Player.DecreaseHealth(damage);
 		needToDrawTileAreas = true;
 		DrawTileAreaIfNeeded();
-	}
-	/// <summary>
-	/// Called when the turn timer ends to stop Player from acting
-	/// </summary>
-	public void OnTurnTimerEnd()
-	{
-		Tiledot.gameObject.SetActive(false);
-		Player.DecreaseEnergy(Player.MaxEnergy);
-		ClearTileAreas();
-		ClearTargetsAndTracers();
-	}
-	/// <summary>
-	/// Returns true if Player is on exit tile and resets grid for next level
-	/// </summary>
-	public bool PlayerIsOnExitTile()
-	{
-		if (!TilemapExit.HasTile(Vector3Int.FloorToInt(Player.transform.position)))
-		{
-			return false;
-		}
-		ResetForNextLevel();
-		return true;
 	}
 	/// <summary>
 	/// Returns -1 if no enemy is present at selected position
@@ -655,24 +658,26 @@ public class GameManager : MonoBehaviour
 			TargetPositions.Clear();
 			foreach (Enemy Enemy in Enemies)
 			{
+				// Don't draw targets and tracers if enemy is currently stunned
+				if (Enemy.StunIcon.activeSelf)
+				{
+					continue;
+				}
 				Vector3 EnemyPoint = Enemy.transform.position;
 				bool canTargetEnemy = IsInLineOfSight(Player.transform.position, EnemyPoint, weaponRange);
 				if (TracerPath.Count > 0)
 				{
 					foreach (Vector3 tracerPosition in TracerPath)
 					{
-						Vector3 ShiftedDistance = new(tracerPosition.x + 0.0f, tracerPosition.y + 0.0f, EnemyPoint.z);
-						GameObject Tracer = Instantiate(TracerTemplate, ShiftedDistance, Quaternion.identity);
+						GameObject Tracer = Instantiate(TracerTemplate, tracerPosition, Quaternion.identity);
 						Tracers.Add(Tracer);
 					}
 				}
 				if (canTargetEnemy)
 				{
-					Vector3 TargetPosition = Enemy.transform.position;
-					Vector3 ShiftedDistance = new(TargetPosition.x + 0.0f, TargetPosition.y + 0.0f, EnemyPoint.z);
-					GameObject Target = Instantiate(TargetTemplate, ShiftedDistance, Quaternion.identity);
+					GameObject Target = Instantiate(TargetTemplate, Enemy.transform.position, Quaternion.identity);
 					Targets.Add(Target);
-					TargetPositions.Add(ShiftedDistance);
+					TargetPositions.Add(Enemy.transform.position);
 				}
 			}
 			TracerPath.Clear();

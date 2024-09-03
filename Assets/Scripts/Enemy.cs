@@ -11,6 +11,7 @@ public class Enemy : MonoBehaviour
 	public AudioClip EnemyAttack;
 	public AudioClip PlayerAttack;
 	public bool isInMovement = false;
+	public GameObject StunIcon;
 	public GameManager GameManager;
 	public SoundManager SoundManager;
 	#region PATHFINDING
@@ -28,6 +29,7 @@ public class Enemy : MonoBehaviour
 		TilemapGround = GameManager.Instance.TilemapGround;
 		TilemapWalls = GameManager.Instance.TilemapWalls;
 		AStar = new(TilemapGround, TilemapWalls);
+		StunIcon = Instantiate(StunIcon, transform.position, Quaternion.identity);
 	}
 	/// <summary>
 	/// Calculates path for Enemy to move to and handles first move of turn
@@ -40,6 +42,7 @@ public class Enemy : MonoBehaviour
 			Info.isStunned = false;
 			return;
 		}
+		StunIcon.SetActive(false);
 		AStar.Initialize();
 		AStar.SetAllowDiagonal(false);
 		Path = AStar.ComputePath(transform.position, Goal, GameManager);
@@ -113,6 +116,7 @@ public class Enemy : MonoBehaviour
 			{
 				Path = null;
 				isInMovement = false;
+				StunIcon.transform.position = transform.position;
 			}
 		}
 	}
