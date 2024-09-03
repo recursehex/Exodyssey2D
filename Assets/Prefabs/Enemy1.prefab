@@ -197,5 +197,8 @@ MonoBehaviour:
   EnemyAttack: {fileID: 8300000, guid: 114514a3b3697484ebaa08f7fbf842d3, type: 3}
   PlayerAttack: {fileID: 8300000, guid: 4c2332bc8245b474dad63074059bb755, type: 3}
   isInMovement: 0
+  StunIcon: {fileID: 3235571212307580798, guid: 3ae0f58fc0b5f4902a8f32dcf904d104, type: 3}
+  GameManager: {fileID: 0}
+  SoundManager: {fileID: 0}
   TilemapGround: {fileID: 0}
   TilemapWalls: {fileID: 0}
