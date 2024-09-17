@@ -40,6 +40,33 @@ public class InventoryUI : MonoBehaviour
 		RefreshInventoryIcons();
 	}
 	/// <summary>
+	/// Deselects item in inventory UI if selected item is dropped
+	/// </summary>
+	public void DeselectItem(int index)
+	{
+		SelectedIndex = -1;
+		GameObject.Find("InventoryPressed" + index).transform.localScale = Vector3.one;
+		ItemName.GetComponent<Text>().text = "";
+		ItemDesc.GetComponent<Text>().text = "";
+	}
+	/// <summary>
+	/// Refreshes inventory text, called by TryDropItem
+	/// </summary>
+	public void RefreshText()
+	{
+		if (SelectedIndex != -1)
+		{
+			ItemName.GetComponent<Text>().text = Inventory.InventoryList[SelectedIndex].Info.name;
+			ItemDesc.GetComponent<Text>().text = Inventory.InventoryList[SelectedIndex].Info.description
+			+ Inventory.InventoryList[SelectedIndex].Info.stats;
+		}
+		else
+		{
+			ItemName.GetComponent<Text>().text = "";
+			ItemDesc.GetComponent<Text>().text = "";
+		}
+	}
+	/// <summary>
 	/// Refreshes items in inventory UI to match changed items
 	/// </summary>
 	public void RefreshInventoryIcons()
