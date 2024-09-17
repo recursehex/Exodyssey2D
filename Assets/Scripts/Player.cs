@@ -293,18 +293,27 @@ public class Player : MonoBehaviour
 		}
 		// Put dropped item in temp slot out of inventory
 		ItemInfo DroppedItem = Inventory.InventoryList[itemIndex].Info;
-		// Remove dropped item from inventory
-		SelectedItem = null;
-		InventoryUI.RemoveItem(itemIndex);
+		if (DroppedItem == SelectedItem)
+		{
+			SelectedItem = null;
+			InventoryUI.DeselectItem(itemIndex);
+		}
 		Item ItemAtPosition = GameManager.GetItemAtPosition(transform.position);
 		// If there is item at Player's position
 		if (ItemAtPosition != null)
 		{
-			// Add ground item to inventory
-			TryAddItem(ItemAtPosition.Info);
+			// Swap dropped item with ground item
+			Inventory.InventoryList[itemIndex].Info = ItemAtPosition.Info;
 			GameManager.Items.Remove(ItemAtPosition);
 			Destroy(ItemAtPosition.gameObject);
+			InventoryUI.RefreshInventoryIcons();
 		}
+		// Remove dropped item from inventory
+		else
+		{
+			InventoryUI.RemoveItem(itemIndex);
+		}
+		InventoryUI.RefreshText();
 		// Drop item onto ground from temp slot
 		GameManager.InstantiateNewItem(DroppedItem, transform.position);
 		// Removes item from inventory and plays corresponding sound

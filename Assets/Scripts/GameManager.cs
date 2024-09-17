@@ -677,7 +677,7 @@ public class GameManager : MonoBehaviour
 				{
 					GameObject Target = Instantiate(TargetTemplate, Enemy.transform.position, Quaternion.identity);
 					Targets.Add(Target);
-					TargetPositions.Add(Enemy.transform.position);
+					TargetPositions.Add(Target.transform.position);
 				}
 			}
 			TracerPath.Clear();

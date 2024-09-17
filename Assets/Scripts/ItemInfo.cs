@@ -181,7 +181,6 @@ public class ItemInfo
 				info.description = "Fragile stick";
 				info.stats = $"\nUP:{info.maxUses}/{info.maxUses}\tDP:{info.damagePoints}\nADP:{info.armorDamage}";
 				break;
-				
 			case 2:
 				info.Tag = Tags.Knife;
 				info.Rarity = Rarity.Limited;
