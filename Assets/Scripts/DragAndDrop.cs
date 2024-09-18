@@ -1,10 +1,16 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.Tilemaps;
 using UnityEngine.UI;
 
 public class DragAndDrop : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
-	public int inventoryIndex;
+	[SerializeField] private  int inventoryIndex;
+	[SerializeField] private  Image ItemImage;
+	[SerializeField] private Sprite ItemBackgroundSprite;
+	[SerializeField] private Player Player;
+	[SerializeField] private Tilemap TilemapGround;
 	private bool isDraggable = true;
 	private Vector3 OriginalPosition;
 	private Transform ParentAfterDrag;
@@ -12,10 +18,6 @@ public class DragAndDrop : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
 	private RectTransform RectTransform;
 	private CanvasGroup CanvasGroup;
 	private Button Button;
-	public Image ItemImage;
-	public Sprite ItemBackgroundSprite;
-	public Player Player;
-	
 	void Awake()
 	{
 		RectTransform = GetComponent<RectTransform>();
@@ -65,8 +67,15 @@ public class DragAndDrop : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
 		{
 			return;
 		}
-		// Try to drop the item
-		Player.TryDropItem(inventoryIndex);
+		// Get cell bounds and int position of dragged item
+		BoundsInt CellBounds = TilemapGround.cellBounds;
+		Vector3Int RectTransformInt = Vector3Int.FloorToInt(RectTransform.localPosition);
+		// Drop item if let go within cell bounds
+		if (CellBounds.Contains(RectTransformInt))
+		{
+			// Try to drop the item
+			Player.TryDropItem(inventoryIndex);
+		}
 		// Return the icon to its original position
 		RectTransform.localPosition = OriginalPosition;
 		transform.SetParent(ParentAfterDrag);
@@ -81,7 +90,7 @@ public class DragAndDrop : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
 			StartCoroutine(EnableButtonAfterFrame());
 		}
 	}
-	private System.Collections.IEnumerator EnableButtonAfterFrame()
+	private IEnumerator EnableButtonAfterFrame()
 	{
 		// Wait for the next frame
 		yield return null;
