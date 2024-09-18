@@ -721,6 +721,7 @@ MonoBehaviour:
   ItemImage: {fileID: 307119240}
   ItemBackgroundSprite: {fileID: 21300000, guid: 8487a9df15f34be4296e0965ac9b8b37, type: 3}
   Player: {fileID: 569674968}
+  TilemapGround: {fileID: 2052983298}
 --- !u!114 &307119238
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1024,7 +1025,7 @@ MonoBehaviour:
   DiamondChainsaw: {fileID: 21300000, guid: 902c95ac0d6b08143854f794969f02ff, type: 3}
   Tranquilizer: {fileID: 21300000, guid: 6a4c2cd8540b043b4b7116cfd06e7e73, type: 3}
   HuntingRifle: {fileID: 21300000, guid: d38d13e653a2c42e382135c5afbd03f1, type: 3}
-  PlasmaRailgun: {fileID: 21300000, guid: 893e014505199464f95bf7b4ac775a80, type: 3}
+  PlasmaRailgun: {fileID: 21300000, guid: 44a709f75a513444f93f80c9cfb4310a, type: 3}
   Missing: {fileID: 21300000, guid: 444ca3841fdde9a41ad47e59ee6e79ec, type: 3}
 --- !u!4 &514509758
 Transform:
@@ -2196,6 +2197,7 @@ MonoBehaviour:
   ItemImage: {fileID: 1318703596}
   ItemBackgroundSprite: {fileID: 21300000, guid: 8487a9df15f34be4296e0965ac9b8b37, type: 3}
   Player: {fileID: 569674968}
+  TilemapGround: {fileID: 2052983298}
 --- !u!1 &1335406081
 GameObject:
   m_ObjectHideFlags: 0
