@@ -18,7 +18,7 @@ public static class WeightedRarityGeneration
 				int y = Random.Range(-4, 4);
 				Vector3Int Position = new(x, y, 0);
 				// Fails if wall tile is at selected position
-				if (GameManager.Instance.TilemapWalls.HasTile(Position)
+				if (GameManager.Instance.HasWallAtPosition(Position)
 					|| (x <= -2 && y <= 1 && y >= -1))
 				{
 					return false;
@@ -49,10 +49,8 @@ public static class WeightedRarityGeneration
 		{
 			return false;
 		}
-		GameObject Element = GameManager.Instance.ItemTemplates[randomItemIndex];
-		Item Item = GameObject.Instantiate(Element, ChosenPosition, Quaternion.identity).GetComponent<Item>();
-		Item.Info = ItemInfo.ItemFactory(randomItemIndex);
-		GameManager.Instance.Items.Add(Item);
+		ItemInfo Info = ItemInfo.ItemFactory(randomItemIndex);
+		GameManager.Instance.InstantiateNewItem(Info, ChosenPosition);
 		return true;
 	}
 	public static bool GenerateEnemy()
@@ -67,10 +65,8 @@ public static class WeightedRarityGeneration
 		{
 			return false;
 		}
-		GameObject Element = GameManager.Instance.EnemyTemplates[randomEnemyIndex];
-		Enemy Enemy = GameObject.Instantiate(Element, ChosenPosition, Quaternion.identity).GetComponent<Enemy>();
-		Enemy.Info = EnemyInfo.EnemyFactory(randomEnemyIndex);
-		GameManager.Instance.Enemies.Add(Enemy);
+		EnemyInfo Info = EnemyInfo.EnemyFactory(randomEnemyIndex);
+		GameManager.Instance.InstantiateNewEnemy(Info, ChosenPosition);
 		return true;
 	}
 }

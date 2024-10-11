@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -10,13 +9,13 @@ public class Enemy : MonoBehaviour
 	public AudioClip EnemyMove;
 	public AudioClip EnemyAttack;
 	public AudioClip PlayerAttack;
-	public bool isInMovement = false;
+	public bool IsInMovement { get; private set; }= false;
 	public GameObject StunIcon;
 	public GameManager GameManager;
 	public SoundManager SoundManager;
 	#region PATHFINDING
-	public Tilemap TilemapGround;
-	public Tilemap TilemapWalls;
+	private Tilemap TilemapGround;
+	private Tilemap TilemapWalls;
 	private Stack<Vector3Int> Path;
 	private Vector3Int Destination;
 	private AStar AStar;
@@ -26,10 +25,13 @@ public class Enemy : MonoBehaviour
 	{
 		GameManager = GameManager.Instance;
 		SoundManager = SoundManager.Instance;
-		TilemapGround = GameManager.Instance.TilemapGround;
-		TilemapWalls = GameManager.Instance.TilemapWalls;
-		AStar = new(TilemapGround, TilemapWalls);
 		StunIcon = Instantiate(StunIcon, transform.position, Quaternion.identity);
+	}
+	public void Initialize(Tilemap TilemapGround, Tilemap TilemapWalls)
+	{
+		this.TilemapGround = TilemapGround;
+		this.TilemapWalls = TilemapWalls;
+		AStar = new(this.TilemapGround, this.TilemapWalls);
 	}
 	/// <summary>
 	/// Calculates path for Enemy to move to and handles first move of turn
@@ -37,9 +39,9 @@ public class Enemy : MonoBehaviour
 	public void ComputePathAndStartMovement(Vector3 Goal)
 	{
 		// Stuns enemy for one turn
-		if (Info.isStunned)
+		if (Info.IsStunned)
 		{
-			Info.isStunned = false;
+			Info.IsStunned = false;
 			return;
 		}
 		StunIcon.SetActive(false);
@@ -47,10 +49,10 @@ public class Enemy : MonoBehaviour
 		AStar.SetAllowDiagonal(false);
 		Path = AStar.ComputePath(transform.position, Goal, GameManager);
 		// Compute path to Player and prevent enemy from colliding into Player
-		if (Path != null && Info.currentEnergy > 0 && Path.Count > 2)
+		if (Path != null && Info.CurrentEnergy > 0 && Path.Count > 2)
 		{
-			Info.currentEnergy--;
-			isInMovement = true;
+			Info.DecrementEnergy();
+			IsInMovement = true;
 			// Remove first tile in path
 			Path.Pop();
 			// Move one tile closer to Player
@@ -64,24 +66,24 @@ public class Enemy : MonoBehaviour
 			else
 			{
 				Path = null;
-				isInMovement = false;
+				IsInMovement = false;
 			}
 		}
 		// If enemy is adjacent to Player, attack
 		else if (Path != null && Path.Count == 2)
 		{
-			while (Info.currentEnergy > 0)
+			while (Info.CurrentEnergy > 0)
 			{
-				Info.currentEnergy--;
+				Info.DecrementEnergy();
 				SoundManager.PlaySound(EnemyAttack);
-				GameManager.HandleDamageToPlayer(Info.damagePoints);
+				GameManager.HandleDamageToPlayer(Info.DamagePoints);
 			}
 		}
 		// If no path to Player, do not start moving
 		else
 		{
 			Path = null;
-			isInMovement = false;
+			IsInMovement = false;
 		}
 	}
 	/// <summary>
@@ -100,22 +102,22 @@ public class Enemy : MonoBehaviour
 				await Task.Yield();
 			}
 			// Pop next tile in path
-			if (Path.Count > 1 && Info.currentEnergy > 0)
+			if (Path.Count > 1 && Info.CurrentEnergy > 0)
 			{
-				Info.currentEnergy--;
+				Info.DecrementEnergy();
 				Destination = Path.Pop();
 			}
 			// Enemy attacks Player if enemy moves to an adjacent tile
-			else if (Path.Count == 1 && Info.currentEnergy > 0)
+			else if (Path.Count == 1 && Info.CurrentEnergy > 0)
 			{
-				Info.currentEnergy--;
+				Info.DecrementEnergy();
 				SoundManager.PlaySound(EnemyAttack);
-				GameManager.HandleDamageToPlayer(Info.damagePoints);
+				GameManager.HandleDamageToPlayer(Info.DamagePoints);
 			}
 			else
 			{
 				Path = null;
-				isInMovement = false;
+				IsInMovement = false;
 				StunIcon.transform.position = transform.position;
 			}
 		}
@@ -124,14 +126,14 @@ public class Enemy : MonoBehaviour
 	{
 		SoundManager.PlaySound(PlayerAttack);
 		// NOTE: Eventually add sprite change for enemy on this line using: spriteRenderer.sprite = damagedSprite;
-		Info.currentHealth -= damage;
-		if (Info.currentHealth <= 0)
+		Info.DecreaseHealthBy(damage);
+		if (Info.CurrentHealth <= 0)
 		{
 			gameObject.SetActive(false);
 		}
 	}
 	public void RestoreEnergy()
 	{
-		Info.currentEnergy = Info.maxEnergy;
+		Info.RestoreEnergy();
 	}
 }

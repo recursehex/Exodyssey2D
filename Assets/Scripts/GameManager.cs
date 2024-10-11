@@ -5,53 +5,53 @@ using UnityEngine.Tilemaps;
 
 public class GameManager : MonoBehaviour
 {
-	private Camera MainCamera;
 	public static GameManager Instance;
-	private bool doingSetup;
-	public bool playersTurn = true;
-	public Player Player;
-	public TileDot Tiledot;
-	public GameObject TileArea;
-	public TurnTimer TurnTimer;
-	public Button EndTurnButton;
+	[SerializeField] private Camera MainCamera;
+	[SerializeField] private bool doingSetup;
+	[SerializeField] private bool playersTurn = true;
+	[SerializeField] private Player Player;
+	[SerializeField] private TileDot Tiledot;
+	[SerializeField] private GameObject TileArea;
+	[SerializeField] private TurnTimer TurnTimer;
+	[SerializeField] private Button EndTurnButton;
 	private MapGen MapGenerator;
 	#region ENEMIES
 	// Must update when adding new enemy
-	public GameObject[] EnemyTemplates;
-	public List<Enemy> Enemies = new();
+	[SerializeField] private GameObject[] EnemyTemplates;
+	[SerializeField] private List<Enemy> Enemies = new();
 	// Number of enemies spawned in a level
-	private int spawnEnemyCount;
-	private bool needToStartEnemyMovement = false;
-	private bool enemiesInMovement = false;
-	private int indexOfMovingEnemy = -1;
+	[SerializeField] private int spawnEnemyCount;
+	[SerializeField] private bool needToStartEnemyMovement = false;
+	[SerializeField] private bool enemiesInMovement = false;
+	[SerializeField] private int indexOfMovingEnemy = -1;
 	#endregion
 	#region ITEMS
 	// Must update when adding new item
-	public GameObject[] ItemTemplates;
-	public List<Item> Items = new();
+	[SerializeField] private GameObject[] ItemTemplates;
+	[SerializeField] private List<Item> Items = new();
 	// Number of items spawned in a level
-	private int spawnItemCount;
+	[SerializeField] private int spawnItemCount;
 	#endregion
 	#region TILEMAPS
-	public Tilemap TilemapGround;
-	public Tilemap TilemapWalls;
+	[SerializeField] private Tilemap TilemapGround;
+	[SerializeField] private Tilemap TilemapWalls;
 	// Tile arrays are used for random generation
-	public Tile[] GroundTiles;
-	public Tile[] WallTiles;
-	public Tilemap TilemapExit;
+	[SerializeField] private Tile[] GroundTiles;
+	[SerializeField] private Tile[] WallTiles;
+	[SerializeField] private Tilemap TilemapExit;
 	#endregion
 	#region TILEAREAS
-	public bool needToDrawTileAreas = false;
-	public List<GameObject> TileAreas = new();
+	[SerializeField] private bool needToDrawTileAreas = false;
+	[SerializeField] private List<GameObject> TileAreas = new();
 	private Dictionary<Vector3Int, Node> TileAreasToDraw = null;
 	#endregion
 	#region RANGED WEAPON SYSTEM
-	public GameObject TargetTemplate;
-	public List<GameObject> Targets = new();
-	public List<Vector3> TargetPositions = new();
-	public GameObject TracerTemplate;
-	public List<GameObject> Tracers = new();
-	private List<Vector3> TracerPath = new();
+	[SerializeField] private GameObject TargetTemplate;
+	[SerializeField] private List<GameObject> Targets = new();
+	[SerializeField] private List<Vector3> TargetPositions = new();
+	[SerializeField] private GameObject TracerTemplate;
+	[SerializeField] private List<GameObject> Tracers = new();
+	[SerializeField] private List<Vector3> TracerPath = new();
 	#endregion
 	#region LOADING SCREEN
 	[SerializeField] private Text DayText;
@@ -61,8 +61,8 @@ public class GameManager : MonoBehaviour
 	private readonly float levelStartDelay = 1.5f;
 	// Level # is for each unit of the day, with 5 per day, e.g. level 5 means day 2
 	private readonly string[] timeOfDayNames = { "DAWN", "NOON", "AFTERNOON", "DUSK", "NIGHT" };
-	private int level = 0;
-	private int day = 1;
+	[SerializeField] private int level = 0;
+	[SerializeField] private int day = 1;
 	#endregion
 	// Start is called before the first frame update
 	void Awake()
@@ -78,20 +78,30 @@ public class GameManager : MonoBehaviour
 		DontDestroyOnLoad(gameObject);
 		InitGame();
 	}
-	public static GameManager MyInstance
-	{
-		get
-		{
-			if (Instance == null)
-			{
-				Instance = FindObjectOfType<GameManager>();
-			}
-			return Instance;
-		}
-	}
 	private void Start()
 	{
 		MainCamera = Camera.main;
+	}
+	// Update is called once per frame
+	void Update()
+	{
+		if (doingSetup
+			|| !Player.FinishedInit
+			|| Player.IsInMovement)
+		{
+			return;
+		}
+		
+		DrawTileAreaIfNeeded();
+		
+		if (EndTurnButton.interactable == false
+			&& playersTurn)
+		{
+			EndTurnButton.interactable = true;
+		}
+		
+		MouseInput();
+		EnemyMovement();
 	}
 	/// <summary>
 	/// Resets grid state after Player enters new level
@@ -104,12 +114,12 @@ public class GameManager : MonoBehaviour
 		if (level % 5 == 0)
 		{
 			day++;
-			DayText.text = "DAY " + day;
+			DayText.text = $"DAY {day}";
 		}
 		// Resets turn timer and end turn button
 		TurnTimer.timerIsRunning = false;
 		TurnTimer.ResetTimer();
-		EndTurnButton.interactable = true;
+		// EndTurnButton.interactable = true;
 		// Clears tiles, items, and enemies
 		TilemapGround.ClearAllTiles();
 		TilemapWalls.ClearAllTiles();
@@ -121,22 +131,6 @@ public class GameManager : MonoBehaviour
 		InitGame();
 		DrawTargetsAndTracers();
 		Tiledot.gameObject.SetActive(true);
-	}
-	private void DestroyAllItems()
-	{
-		foreach (Item Item in Items)
-		{
-			Destroy(Item.gameObject);
-		}
-		Items.Clear();
-	}
-	private void DestroyAllEnemies()
-	{
-		foreach (Enemy Enemy in Enemies)
-		{
-			DestroyEnemy(Enemy);
-		}
-		Enemies.Clear();
 	}
 	/// <summary>
 	/// Begins grid state generation
@@ -156,6 +150,26 @@ public class GameManager : MonoBehaviour
 		WallGeneration();
 		EnemyGeneration();
 		ItemGeneration();
+	}
+	private void HideLevelLoadScreen()
+	{
+		LevelImage.SetActive(false);
+		LevelText.gameObject.SetActive(false);
+		DayText.gameObject.SetActive(false);
+		EndTurnButton.interactable = true;
+		doingSetup = false;
+	}
+	/// <summary>
+	/// Called when Player dies
+	/// </summary>
+	public void GameOver()
+	{
+		DayText.gameObject.SetActive(true);
+		LevelText.gameObject.SetActive(true);
+		DayText.text = "YOU DIED";
+		LevelText.text = day == 1 ? "AFTER 1 DAY" : $"AFTER {(level / 5) + 1} DAYS";
+		LevelImage.SetActive(true);
+		enabled = false;
 	}
 	/// <summary>
 	/// Generates random ground tiles
@@ -178,6 +192,7 @@ public class GameManager : MonoBehaviour
 	{
 		MapGenerator.GenerateMap(TilemapWalls, WallTiles);
 	}
+	#region ITEM METHODS
 	/// <summary>
 	/// Spawns items for each level
 	/// </summary>
@@ -192,14 +207,14 @@ public class GameManager : MonoBehaviour
 		}
 	}
 	/// <summary>
-	/// Instantiates item at Player's position when dropped
+	/// Instantiates Item at Position
 	/// </summary>
-	public void InstantiateNewItem(ItemInfo NewItemInfo, Vector3 position)
+	public void InstantiateNewItem(ItemInfo NewItemInfo, Vector3 Position)
 	{
 		int index = (int)NewItemInfo.Tag;
-		Item DroppedItem = Instantiate(ItemTemplates[index], position, Quaternion.identity).GetComponent<Item>();
-		DroppedItem.Info = NewItemInfo;
-		Items.Add(DroppedItem);
+		Item NewItem = Instantiate(ItemTemplates[index], Position, Quaternion.identity).GetComponent<Item>();
+		NewItem.Info = NewItemInfo;
+		Items.Add(NewItem);
 	}
 	/// <summary>
 	/// Returns false if no item at position, returns true if found
@@ -216,6 +231,13 @@ public class GameManager : MonoBehaviour
 		return Items.Find(Item => Item.transform.position == Position);
 	}
 	/// <summary>
+	/// Removes item at Position
+	/// </summary>
+	public void RemoveItemAtPosition(Item ItemAtPosition)
+	{
+		Items.Remove(ItemAtPosition);
+	}
+	/// <summary>
 	/// Removes item when picked up
 	/// </summary>
 	private void DestroyItemAtPosition(Vector3 Position)
@@ -224,6 +246,19 @@ public class GameManager : MonoBehaviour
 		Items.Remove(Item);
 		Destroy(Item.gameObject);
 	}
+	/// <summary>
+	/// Destroys all items on the grid
+	/// </summary>
+	private void DestroyAllItems()
+	{
+		foreach (Item Item in Items)
+		{
+			Destroy(Item.gameObject);
+		}
+		Items.Clear();
+	}
+	#endregion
+	#region ENEMY METHODS
 	/// <summary>
 	/// Spawns enemies for each level
 	/// </summary>
@@ -238,51 +273,57 @@ public class GameManager : MonoBehaviour
 		}
 	}
 	/// <summary>
+	/// Instantiates Enemy at Position
+	/// </summary>
+	public void InstantiateNewEnemy(EnemyInfo NewEnemyInfo, Vector3 Position)
+	{
+		int index = (int)NewEnemyInfo.Tag;
+		Enemy NewEnemy = Instantiate(EnemyTemplates[index], Position, Quaternion.identity).GetComponent<Enemy>();
+		NewEnemy.Initialize(TilemapGround, TilemapWalls);
+		NewEnemy.Info = NewEnemyInfo;
+		Enemies.Add(NewEnemy);
+	}
+	/// <summary>
 	/// Returns false if no enemy at position, returns true if found
 	/// </summary>
 	public bool HasEnemyAtPosition(Vector3 Position)
 	{
 		return Enemies.Find(Enemy => Enemy.transform.position == Position) != null;
 	}
-	private void HideLevelLoadScreen()
+	/// <summary>
+	/// Returns -1 if no enemy is present at selected position
+	/// or index of enemy if enemy is present
+	/// </summary>
+	private int GetEnemyIndexAtPosition(Vector3Int Position)
 	{
-		LevelImage.SetActive(false);
-		LevelText.gameObject.SetActive(false);
-		DayText.gameObject.SetActive(false);
-		doingSetup = false;
+		Vector3 TargetPosition = Position + new Vector3(0.5f, 0.5f, 0);
+		return Enemies.FindIndex(Enemy => Enemy.transform.position == TargetPosition);
+	}
+	private void DestroyEnemy(Enemy Enemy)
+	{
+		Destroy(Enemy.StunIcon);
+		Destroy(Enemy.gameObject);
 	}
 	/// <summary>
-	/// Called when Player dies
+	/// Destroy all enemies on the grid
 	/// </summary>
-	public void GameOver()
+	private void DestroyAllEnemies()
 	{
-		DayText.gameObject.SetActive(true);
-		LevelText.gameObject.SetActive(true);
-		DayText.text = "YOU DIED";
-		LevelText.text = day == 1 ? "AFTER 1 DAY" : "AFTER " + ((level / 5) + 1) + " DAYS";
-		LevelImage.SetActive(true);
-		enabled = false;
+		foreach (Enemy Enemy in Enemies)
+		{
+			DestroyEnemy(Enemy);
+		}
+		Enemies.Clear();
 	}
-	// Update is called once per frame
-	void Update()
+	/// <summary>
+	/// Resets every enemy's energy when Player turn ends
+	/// </summary>
+	private void RestoreAllEnemyEnergy()
 	{
-		if (doingSetup
-			|| !Player.finishedInit
-			|| Player.isInMovement)
+		foreach (Enemy Enemy in Enemies)
 		{
-			return;
+			Enemy.RestoreEnergy();
 		}
-		
-		DrawTileAreaIfNeeded();
-		
-		if (EndTurnButton.interactable == false
-			&& playersTurn)
-		{
-			EndTurnButton.interactable = true;
-		}
-		
-		MouseInput();
-		EnemyMovement();
 	}
 	/// <summary>
 	/// Calculates each enemy's movement path then sets Player turn
@@ -311,7 +352,7 @@ public class GameManager : MonoBehaviour
 		}
 		// Enemy movement
 		if (enemiesInMovement
-			&& !Enemies[indexOfMovingEnemy].isInMovement)
+			&& !Enemies[indexOfMovingEnemy].IsInMovement)
 		{
 			if (indexOfMovingEnemy < Enemies.Count - 1)
 			{
@@ -319,13 +360,13 @@ public class GameManager : MonoBehaviour
 				Enemies[indexOfMovingEnemy].ComputePathAndStartMovement(Player.transform.position);
 				return;
 			}
-			SetPlayersTurn();
+			EndEnemyTurn();
 		}
 	}
 	/// <summary>
 	/// Once enemies stopped moving
 	/// </summary>
-	private void SetPlayersTurn()
+	private void EndEnemyTurn()
 	{
 		enemiesInMovement = false;
 		RestoreAllEnemyEnergy();
@@ -338,11 +379,49 @@ public class GameManager : MonoBehaviour
 		DrawTargetsAndTracers();
 	}
 	/// <summary>
+	/// Called when an enemy takes damage, assumes player.DamagePoints > 0
+	/// </summary>
+	private void HandleDamageToEnemy(int index)
+	{
+		Enemy DamagedEnemy = Enemies[index];
+		DamagedEnemy.DecreaseHealth(Player.DamagePoints);
+		// If enemy is dead
+		if (DamagedEnemy.Info.CurrentHealth <= 0)
+		{
+			Enemies.RemoveAt(index);
+			DestroyEnemy(DamagedEnemy);
+			DrawTargetsAndTracers();
+			return;
+		}
+		// If weapon is stunning
+		if (Player.SelectedItemInfo.IsStunning)
+		{
+			// Enemy cannot move for 1 turn
+			DamagedEnemy.Info.IsStunned = true;
+			DamagedEnemy.StunIcon.SetActive(true);
+			DrawTargetsAndTracers();
+		}
+	}
+	/// <summary>
+	/// Returns true if there is a wall at a position
+	/// </summary>
+	public bool HasWallAtPosition(Vector3Int Position)
+	{
+		return TilemapWalls.HasTile(Position);
+	}
+	#endregion
+	#region PLAYER METHODS
+	public void EndTurnTimer()
+	{
+		TurnTimer.timeRemaining = 0;
+		TurnTimer.timerIsRunning = false;
+	}
+	/// <summary>
 	/// Called by EndTurnButton, redraws tile areas, resets timer, resets energy
 	/// </summary>
 	public void OnEndTurnPress()
 	{
-		if (Player.isInMovement)
+		if (Player.IsInMovement)
 		{
 			return;
 		}
@@ -381,16 +460,6 @@ public class GameManager : MonoBehaviour
 		return true;
 	}
 	/// <summary>
-	/// Resets every enemy's energy when Player turn ends
-	/// </summary>
-	private void RestoreAllEnemyEnergy()
-	{
-		foreach (Enemy Enemy in Enemies)
-		{
-			Enemy.RestoreEnergy();
-		}
-	}
-	/// <summary>
 	/// Acts based on what mouse button is clicked
 	/// </summary>
 	private void MouseInput()
@@ -401,7 +470,7 @@ public class GameManager : MonoBehaviour
 		Vector3 ShiftedClickPoint = new(TilePoint.x + 0.5f, TilePoint.y + 0.5f, 0);
 		// If LMB clicks within grid, begin Player movement system
 		if (Input.GetMouseButtonDown(0)
-			&& !Player.isInMovement
+			&& !Player.IsInMovement
 			&& IsWithinCellBounds(TilePoint, CellBounds)
 			&& !TilemapWalls.HasTile(TilePoint))
 		{
@@ -478,7 +547,7 @@ public class GameManager : MonoBehaviour
 			&& ShiftedClickPoint != Player.transform.position)
 		{
 			EndTurnButton.interactable = false;
-			Player.isInMovement = true;
+			Player.IsInMovement = true;
 			needToDrawTileAreas = true;
 			Player.ComputePathAndStartMovement(WorldPoint);
 			ClearTileAreas();
@@ -494,7 +563,7 @@ public class GameManager : MonoBehaviour
 	{
 		if (enemyIndex >= 0
 			&& (isInMeleeRange || isInRangedWeaponRange)
-			&& Player.SelectedItem?.Type is ItemInfo.Types.Weapon)
+			&& Player.SelectedItemInfo?.Type is ItemInfo.Types.Weapon)
 		{
 			HandleDamageToEnemy(enemyIndex);
 			Player.DecreaseEnergy(1);
@@ -503,7 +572,7 @@ public class GameManager : MonoBehaviour
 			needToDrawTileAreas = true;
 			TurnTimer.StartTimer();
 			if (isInRangedWeaponRange
-				&& Player.SelectedItem?.currentUses == 0)
+				&& Player.SelectedItemInfo?.CurrentUses == 0)
 			{
 				ClearTargetsAndTracers();
 			}
@@ -517,35 +586,6 @@ public class GameManager : MonoBehaviour
 		return CellBounds.Contains(TilePoint);
 	}
 	/// <summary>
-	/// Called when an enemy takes damage, assumes player.DamagePoints > 0
-	/// </summary>
-	private void HandleDamageToEnemy(int index)
-	{
-		Enemy DamagedEnemy = Enemies[index];
-		DamagedEnemy.DecreaseHealth(Player.DamagePoints);
-		// If enemy is dead
-		if (DamagedEnemy.Info.currentHealth <= 0)
-		{
-			Enemies.RemoveAt(index);
-			DestroyEnemy(DamagedEnemy);
-			DrawTargetsAndTracers();
-			return;
-		}
-		// If weapon is stunning
-		if (Player.SelectedItem.isStunning)
-		{
-			// Enemy cannot move for 1 turn
-			DamagedEnemy.Info.isStunned = true;
-			DamagedEnemy.StunIcon.SetActive(true);
-			DrawTargetsAndTracers();
-		}
-	}
-	private void DestroyEnemy(Enemy Enemy)
-	{
-		Destroy(Enemy.StunIcon);
-		Destroy(Enemy.gameObject);
-	}
-	/// <summary>
 	/// Called when Player takes damage to decrease health and redraw tile areas
 	/// </summary>
 	public void HandleDamageToPlayer(int damage)
@@ -553,15 +593,6 @@ public class GameManager : MonoBehaviour
 		Player.DecreaseHealth(damage);
 		needToDrawTileAreas = true;
 		DrawTileAreaIfNeeded();
-	}
-	/// <summary>
-	/// Returns -1 if no enemy is present at selected position
-	/// or index of enemy if enemy is present
-	/// </summary>
-	private int GetEnemyIndexAtPosition(Vector3Int Position)
-	{
-		Vector3 TargetPosition = Position + new Vector3(0.5f, 0.5f, 0);
-		return Enemies.FindIndex(Enemy => Enemy.transform.position == TargetPosition);
 	}
 	/// <summary>
 	/// Checks if tile is within range based on Player energy
@@ -584,6 +615,8 @@ public class GameManager : MonoBehaviour
 	{
 		return TargetPositions.Contains(ObjectPosition);
 	}
+	#endregion
+	#region TILEAREAS
 	/// <summary>
 	/// Deletes all tile areas, used to reset tile areas
 	/// </summary>
@@ -605,7 +638,7 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	private void DrawTileAreaIfNeeded()
 	{
-		if (!Player.isInMovement
+		if (!Player.IsInMovement
 			&& needToDrawTileAreas
 			&& playersTurn)
 		{
@@ -623,6 +656,8 @@ public class GameManager : MonoBehaviour
 			needToDrawTileAreas = false;
 		}
 	}
+	#endregion
+	#region TARGETS AND TRACERS
 	public void ClearTargetsAndTracers()
 	{
 		ClearTargets();
@@ -658,8 +693,8 @@ public class GameManager : MonoBehaviour
 			TargetPositions.Clear();
 			foreach (Enemy Enemy in Enemies)
 			{
-				// Don't draw targets and tracers if enemy is currently stunned
-				if (Enemy.StunIcon.activeSelf)
+				// Don't draw targets and tracers if enemy is currently stunned and using stunning ranged weapon
+				if (Enemy.StunIcon.activeSelf && Player.SelectedItemInfo.IsStunning)
 				{
 					continue;
 				}
@@ -738,4 +773,5 @@ public class GameManager : MonoBehaviour
 		}
 		return PointsOnLine;
 	}
+	#endregion
 }

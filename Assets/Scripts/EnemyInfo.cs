@@ -4,7 +4,7 @@ using Exodyssey.Rarity;
 
 public class EnemyInfo
 {
-	private enum Tags
+	public enum Tags
 	{
 		// WEAK
 		Crawler = 0,
@@ -21,7 +21,7 @@ public class EnemyInfo
 
 		Unknown,
 	}
-	private enum Types
+	public enum Types
 	{
 		Weak = 0,
 		Mediocre,
@@ -31,32 +31,33 @@ public class EnemyInfo
 		Unknown,
 	}
 	// Name of enemy
-	// private Tags Tag = Tags.Unknown;
+	public Tags Tag = Tags.Unknown;
 	// Rarity of enemy
 	private Rarity Rarity = Rarity.Common;
 	// Type of enemy
 	// private Types Type = Types.Unknown;
 	// Ingame name of enemy
-	public string name = "UNKNOWN";
+	public string Name { get; private set; } = "UNKNOWN";
 	// Maximum health
-	public int maxHealth = 1;
+	private int maxHealth = 1;
 	// Current health
-	public int currentHealth = 1;
+	public int CurrentHealth { get; private set; } = 1;
 	// Maximum energy
-	public int maxEnergy = 1;
+	public int MaxEnergy = 1;
 	// Current energy
-	public int currentEnergy = 1;
+	public int CurrentEnergy { get; private set; } = 1;
 	// Set only for enemies that do direct attacks
-	public int damagePoints = -1;
+	public int DamagePoints { get; private set; } = -1;
 	// Maximum distance a ranged enemy can attack to, 0 = melee
-	public int range = 0;
+	public int Range { get; private set; } = 0;
 	// true = will hunt the player, false = will guard nearby items
-	public bool isHunting = true;
+	public bool IsHunting { get; private set; } = true;
 	// true = resistant to certain types of damage, false = not
-	public bool isArmored = false;
+	public bool IsArmored { get; private set; }= false;
 	// true = currently stunned, false = not
-	public bool isStunned = false;
+	public bool IsStunned { get; set; } = false;
 	private static readonly int lastEnemyIndex = (int)Tags.Unknown;
+	private static readonly List<Rarity> EnemyRarityList = GenerateAllRarities();
 	private static List<Rarity> GenerateAllRarities()
 	{
 		List<Rarity> EnemyRarityList = new();
@@ -69,7 +70,6 @@ public class EnemyInfo
 	}
 	public static int GetRandomIndexOfSpecifiedRarity(Rarity SpecifiedRarity)
 	{
-		List<Rarity> EnemyRarityList = GenerateAllRarities();
 		List<int> IndicesOfSpecifiedRarity = new();
 		for (int i = 0; i < EnemyRarityList.Count; i++)
 		{
@@ -85,42 +85,52 @@ public class EnemyInfo
 		int randomIndex = Random.Range(0, IndicesOfSpecifiedRarity.Count);
 		return IndicesOfSpecifiedRarity[randomIndex];
 	}
+	public void DecreaseHealthBy(int amount)
+	{
+		CurrentHealth -= amount;
+	}
+	public void DecrementEnergy()
+	{
+		CurrentEnergy--;
+	}
+	public void RestoreEnergy()
+	{
+		CurrentEnergy = MaxEnergy;
+	}
 	/// <summary>
 	/// Returns info for a desired enemy 
 	/// </summary>
-	/// <param name="n"></param>
-	/// <returns></returns>
 	public static EnemyInfo EnemyFactory(int n)
 	{
-		EnemyInfo info = new();
+		EnemyInfo Info = new();
 		switch (n)
 		{
 			case 0:
-				// info.Tag = Tags.Crawler;
-				info.Rarity = Rarity.Common;
-				// info.Type = Types.Weak;
-				info.maxHealth = 2;
-				info.currentHealth = info.maxHealth;
-				info.maxEnergy = 1;
-				info.currentEnergy = info.maxEnergy;
-				info.damagePoints = 1;
-				info.name = "CRAWLER";
-				info.isHunting = true;
+				Info.Tag = Tags.Crawler;
+				Info.Rarity = Rarity.Common;
+				// Info.Type = Types.Weak;
+				Info.maxHealth = 2;
+				Info.CurrentHealth = Info.maxHealth;
+				Info.MaxEnergy = 1;
+				Info.CurrentEnergy = Info.MaxEnergy;
+				Info.DamagePoints = 1;
+				Info.Name = "CRAWLER";
+				Info.IsHunting = true;
 				break;
 			case 1:
-				// info.Tag = Tags.Launcher;
-				info.Rarity = Rarity.Limited;
-				// info.Type = Types.Mediocre;
-				info.maxHealth = 4;
-				info.currentHealth = info.maxHealth;
-				info.maxEnergy = 2;
-				info.currentEnergy = info.maxEnergy;
-				info.damagePoints = 2;
-				info.range = 3;
-				info.name = "LAUNCHER";
-				info.isHunting = false;
+				Info.Tag = Tags.Launcher;
+				Info.Rarity = Rarity.Limited;
+				// Info.Type = Types.Mediocre;
+				Info.maxHealth = 4;
+				Info.CurrentHealth = Info.maxHealth;
+				Info.MaxEnergy = 2;
+				Info.CurrentEnergy = Info.MaxEnergy;
+				Info.DamagePoints = 2;
+				Info.Range = 3;
+				Info.Name = "LAUNCHER";
+				Info.IsHunting = false;
 				break;
 		}
-		return info;
+		return Info;
 	}
 }

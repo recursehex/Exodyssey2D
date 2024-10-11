@@ -10,9 +10,9 @@ public class Player : MonoBehaviour
 {
 	public int MaxHealth { get; private set; } = 3;
 	public int MaxEnergy { get; private set; } = 3;
-	public int CurrentHealth { get; set; } = 3;
-	public int CurrentEnergy { get; set; } = 3;
-	public int DamagePoints { get; set; } = 0;
+	public int CurrentHealth { get; private set; } = 3;
+	public int CurrentEnergy { get; private set; } = 3;
+	public int DamagePoints { get; private set; } = 0;
 	public Profession Profession = new(Profession.Tags.Unknown, 0);
 	public AudioClip PlayerMove;
 	public AudioClip Heal;
@@ -21,10 +21,10 @@ public class Player : MonoBehaviour
 	public Animator Animator;
 	public Inventory Inventory;
 	public InventoryUI InventoryUI;
-	public ItemInfo SelectedItem = null;
+	public ItemInfo SelectedItemInfo = null;
 	public StatsDisplayManager StatsDisplayManager;
-	public bool finishedInit = false;
-	public bool isInMovement = false;
+	public bool FinishedInit { get; private set; } = false;
+	public bool IsInMovement { get; set; } = false;
 	public GameManager GameManager;
 	public SoundManager SoundManager;
 	#region PATHFINDING
@@ -41,7 +41,7 @@ public class Player : MonoBehaviour
 		Inventory = new();
 		InventoryUI.Inventory = Inventory;
 		Animator = GetComponent<Animator>();
-		finishedInit = true;
+		FinishedInit = true;
 	}
 	/// <summary>
 	/// Calculates path for Player to travel to destination for point clicked on
@@ -57,7 +57,7 @@ public class Player : MonoBehaviour
 		DecreaseEnergy(Path.Count - 1);
 		Path.Pop();
 		Destination = Path.Pop();
-		isInMovement = true;
+		IsInMovement = true;
 		MoveAlongPath();
 	}
 	/// <summary>
@@ -85,7 +85,7 @@ public class Player : MonoBehaviour
 		}
 		// When Player stops moving
 		Path = null;
-		isInMovement = false;
+		IsInMovement = false;
 		if (GameManager.PlayerIsOnExitTile())
 		{
 			return;
@@ -145,7 +145,7 @@ public class Player : MonoBehaviour
 		// End turn and stop timer if CurrentEnergy reaches 0
 		if (CurrentEnergy == 0)
 		{
-			GameManager.TurnTimer.timeRemaining = 0;
+			GameManager.EndTurnTimer();
 		}
 	}
 	/// <summary>
@@ -161,21 +161,21 @@ public class Player : MonoBehaviour
 	/// </summary>
 	public void DecreaseWeaponDurability()
 	{
-		SelectedItem.DecreaseDurability();
+		SelectedItemInfo.DecreaseDurability();
 		InventoryUI.SetCurrentSelected(InventoryUI.SelectedIndex);
 		// When weapon durability reaches 0
-		if (SelectedItem.currentUses == 0)
+		if (SelectedItemInfo.CurrentUses == 0)
 		{
 			InventoryUI.RemoveItem(InventoryUI.SelectedIndex);
 			InventoryUI.SetCurrentSelected(-1);
 			GameManager.ClearTargetsAndTracers();
-			SelectedItem = null;
+			SelectedItemInfo = null;
 			DamagePoints = 0;
 		}
 	}
 	public int GetWeaponRange()
 	{
-		return SelectedItem == null ? 0 : SelectedItem.range;
+		return SelectedItemInfo == null ? 0 : SelectedItemInfo.Range;
 	}
 	/// <summary>
 	/// Adds item to inventory when picked up, returns false if inventory is full
@@ -206,11 +206,11 @@ public class Player : MonoBehaviour
 		if (wasSelected)
 		{
 			InventoryUI.SetCurrentSelected(itemIndex);
-			SelectedItem = ClickedItem;
+			SelectedItemInfo = ClickedItem;
 			SoundManager.PlaySound(Select);
-			DamagePoints = ClickedItem.damagePoints;
+			DamagePoints = ClickedItem.DamagePoints;
 			// Only draw targets if ranged weapon is selected
-			if (ClickedItem.range > 0)
+			if (ClickedItem.Range > 0)
 			{
 				GameManager.DrawTargetsAndTracers();
 			}
@@ -224,7 +224,7 @@ public class Player : MonoBehaviour
 		else
 		{
 			InventoryUI.SetCurrentSelected(-1);
-			SelectedItem = null;
+			SelectedItemInfo = null;
 			DamagePoints = 0;
 			GameManager.ClearTargetsAndTracers();
 		}
@@ -234,15 +234,15 @@ public class Player : MonoBehaviour
 	/// </summary>
 	public bool ClickOnPlayerToUseItem()
 	{
-		if (SelectedItem?.Type is not ItemInfo.Types.Consumable)
+		if (SelectedItemInfo?.Type is not ItemInfo.Types.Consumable)
 		{
 			return false;
 		}
 		bool wasUsed = MedKitWasUsed();
-		if (SelectedItem.currentUses == 0)
+		if (SelectedItemInfo.CurrentUses == 0)
 		{
 			InventoryUI.RemoveItem(InventoryUI.SelectedIndex);
-			SelectedItem = null;
+			SelectedItemInfo = null;
 			wasUsed = true;
 		}
 		return wasUsed;
@@ -252,7 +252,7 @@ public class Player : MonoBehaviour
 	/// </summary>
 	private bool MedKitWasUsed() 
 	{
-		if (SelectedItem.Tag is ItemInfo.Tags.MedKit
+		if (SelectedItemInfo.Tag is ItemInfo.Tags.MedKit
 			&& CurrentHealth < MaxHealth
 			&& CurrentEnergy > 0)
 		{
@@ -265,7 +265,7 @@ public class Player : MonoBehaviour
 			// Uses MedKit if profession is not medic level 2
 			if (!(Profession.Level >= 2 && Profession.Tag is Profession.Tags.Medic))
 			{
-				SelectedItem.DecreaseDurability();
+				SelectedItemInfo.DecreaseDurability();
 			}
 			return true;
 		}
@@ -282,7 +282,8 @@ public class Player : MonoBehaviour
 			return;
 		}
 		// Resets damage points if weapon is dropped
-		if (SelectedItem?.Type is ItemInfo.Types.Weapon)
+		if (SelectedItemInfo == Inventory.InventoryList[itemIndex].Info
+			&& Inventory.InventoryList[itemIndex].Info?.Type is ItemInfo.Types.Weapon)
 		{
 			DamagePoints = 0;
 			// Clears targeting if ranged weapon is dropped
@@ -292,10 +293,10 @@ public class Player : MonoBehaviour
 			}
 		}
 		// Put dropped item in temp slot out of inventory
-		ItemInfo DroppedItem = Inventory.InventoryList[itemIndex].Info;
-		if (DroppedItem == SelectedItem)
+		ItemInfo DroppedItemInfo = Inventory.InventoryList[itemIndex].Info;
+		if (DroppedItemInfo == SelectedItemInfo)
 		{
-			SelectedItem = null;
+			SelectedItemInfo = null;
 			InventoryUI.DeselectItem(itemIndex);
 		}
 		Item ItemAtPosition = GameManager.GetItemAtPosition(transform.position);
@@ -304,7 +305,7 @@ public class Player : MonoBehaviour
 		{
 			// Swap dropped item with ground item
 			Inventory.InventoryList[itemIndex].Info = ItemAtPosition.Info;
-			GameManager.Items.Remove(ItemAtPosition);
+			GameManager.RemoveItemAtPosition(ItemAtPosition);
 			Destroy(ItemAtPosition.gameObject);
 			InventoryUI.RefreshInventoryIcons();
 		}
@@ -315,7 +316,7 @@ public class Player : MonoBehaviour
 		}
 		InventoryUI.RefreshText();
 		// Drop item onto ground from temp slot
-		GameManager.InstantiateNewItem(DroppedItem, transform.position);
+		GameManager.InstantiateNewItem(DroppedItemInfo, transform.position);
 		// Removes item from inventory and plays corresponding sound
 		SoundManager.PlaySound(PlayerMove);
 	}
