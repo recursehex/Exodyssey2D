@@ -56,9 +56,9 @@ public class InventoryUI : MonoBehaviour
 	{
 		if (SelectedIndex != -1)
 		{
-			ItemName.GetComponent<Text>().text = Inventory.InventoryList[SelectedIndex].Info.name;
-			ItemDesc.GetComponent<Text>().text = Inventory.InventoryList[SelectedIndex].Info.description
-			+ Inventory.InventoryList[SelectedIndex].Info.stats;
+			ItemName.GetComponent<Text>().text = Inventory.InventoryList[SelectedIndex].Info.Name;
+			ItemDesc.GetComponent<Text>().text = Inventory.InventoryList[SelectedIndex].Info.Description
+			+ Inventory.InventoryList[SelectedIndex].Info.Stats;
 		}
 		else
 		{
@@ -94,9 +94,9 @@ public class InventoryUI : MonoBehaviour
 		SelectedIndex = itemIndex;
 		if (SelectedIndex >= 0)
 		{
-			cachedName = Inventory.InventoryList[SelectedIndex].Info.name;
-			cachedDesc = Inventory.InventoryList[SelectedIndex].Info.description
-			+ Inventory.InventoryList[SelectedIndex].Info.stats;
+			cachedName = Inventory.InventoryList[SelectedIndex].Info.Name;
+			cachedDesc = Inventory.InventoryList[SelectedIndex].Info.Description
+			+ Inventory.InventoryList[SelectedIndex].Info.Stats;
 		}
 		else
 		{
@@ -147,8 +147,8 @@ public class InventoryUI : MonoBehaviour
 				&& Math.Abs(IconPosition.y - MousePosition.y) <= sensitivityDistance)
 			{
 				mouseIsOverIcon = true;
-				NameText.text = Item.Info.name;
-				DescText.text = Item.Info.description + Item.Info.stats;
+				NameText.text = Item.Info.Name;
+				DescText.text = Item.Info.Description + Item.Info.Stats;
 				break;
 			}
 			iconNumber++;

@@ -9,8 +9,8 @@ using System.Linq;
 /// </summary>
 public class AStar
 {
-	public Tilemap TilemapGround;
-	public Tilemap TilemapWalls;
+	private readonly Tilemap TilemapGround;
+	private readonly Tilemap TilemapWalls;
 	private GameManager GameManager;
 	private Node Current;
 	private Stack<Vector3Int> Path;
@@ -131,10 +131,6 @@ public class AStar
 		for (int i = 0; i < Neighbors.Count; i++)
 		{
 			Node Neighbor = Neighbors[i];
-			if (!ConnectedDiagonally(Current, Neighbor))
-			{
-				continue;
-			}
 			int gScore = DetermineGScore(Neighbor.Position, Current.Position);
 			if (gScore == 14
 				&& NoDiagonalTiles.Contains(Neighbor.Position)
@@ -161,16 +157,6 @@ public class AStar
 				}
 			}
 		}
-	}
-	private bool ConnectedDiagonally(Node CurrentNode, Node Neighbor)
-	{
-		// Gets the direction
-		Vector3Int direction = CurrentNode.Position - Neighbor.Position;
-		// Gets the positions of the nodes
-		Vector3Int first = new(CurrentNode.Position.x + (direction.x * -1), CurrentNode.Position.y, CurrentNode.Position.z);
-		Vector3Int second = new(CurrentNode.Position.x, CurrentNode.Position.y + (direction.y * -1), CurrentNode.Position.z);
-		// The nodes are empty
-		return true;
 	}
 	private int DetermineGScore(Vector3Int Neighbor, Vector3Int Current)
 	{

@@ -859,6 +859,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4746cef2839d3eb418b4af9a2d416408, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  MainCamera: {fileID: 0}
+  doingSetup: 0
   playersTurn: 1
   Player: {fileID: 569674968}
   Tiledot: {fileID: 823962498}
@@ -869,6 +871,10 @@ MonoBehaviour:
   - {fileID: 8301553589233551289, guid: 3a66190a890058e44bc0653995faf798, type: 3}
   - {fileID: 283541130281458624, guid: 9844e1c572099de4493431c23e68fee5, type: 3}
   Enemies: []
+  spawnEnemyCount: 0
+  needToStartEnemyMovement: 0
+  enemiesInMovement: 0
+  indexOfMovingEnemy: -1
   ItemTemplates:
   - {fileID: 5730536483717399719, guid: 449c9aea6710b3947a699d611aea06d5, type: 3}
   - {fileID: 1336611518689343522, guid: 176769378e4b4604a8be4ff8a9b0df0d, type: 3}
@@ -879,6 +885,7 @@ MonoBehaviour:
   - {fileID: 2145379877062402088, guid: ba8e62b527e3c4b2c8c15ddde698b587, type: 3}
   - {fileID: 2145379877062402088, guid: 33186f847f6305748921b5b654aa8c9d, type: 3}
   Items: []
+  spawnItemCount: 0
   TilemapGround: {fileID: 2052983298}
   TilemapWalls: {fileID: 1335406084}
   GroundTiles:
@@ -896,9 +903,12 @@ MonoBehaviour:
   TargetPositions: []
   TracerTemplate: {fileID: 3235571212307580798, guid: de10de49d7c9041c0a48f6db8a694380, type: 3}
   Tracers: []
+  TracerPath: []
   DayText: {fileID: 551613595}
   LevelText: {fileID: 1100001971}
   LevelImage: {fileID: 1910730414}
+  level: 0
+  day: 1
 --- !u!4 &423806397
 Transform:
   m_ObjectHideFlags: 0
