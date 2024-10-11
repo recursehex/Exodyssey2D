@@ -17,7 +17,7 @@ public class TurnTimer : MonoBehaviour
 	{
 		timeRemaining = timerLimit;
 		TimeText.color = NormalColor;
-		DisplayTime(timeRemaining - 1);
+		DisplayTime(timeRemaining);
 	}
 	void Update()
 	{
@@ -26,7 +26,7 @@ public class TurnTimer : MonoBehaviour
 			return;
 		}
 		float dt = Time.deltaTime;
-		if (timeRemaining - dt > 0)
+		if (timeRemaining - dt > 1)
 		{
 			timeRemaining -= dt;
 			DisplayTime(timeRemaining);
@@ -36,13 +36,12 @@ public class TurnTimer : MonoBehaviour
 			timeRemaining = 0;
 			timerIsRunning = false;
 			TimeText.color = OutOfTimeColor;
-			DisplayTime(-1);
+			DisplayTime(timeRemaining);
 			GameManager.Instance.OnTurnTimerEnd();
 		}
 	}
-	void DisplayTime(float timeToDisplay)
+	private void DisplayTime(float timeToDisplay)
 	{
-		timeToDisplay += 1;
 		float seconds = Mathf.FloorToInt(timeToDisplay % 60);
 		TimeText.text = string.Format(":{0:00}", seconds);
 	}
