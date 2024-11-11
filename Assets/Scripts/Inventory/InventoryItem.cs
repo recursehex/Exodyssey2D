@@ -1,9 +1,9 @@
 using UnityEngine;
 
-public class ItemInventory
+public class InventoryItem
 {
 	public ItemInfo Info;
-	public ItemInventory(ItemInfo Info) 
+	public InventoryItem(ItemInfo Info) 
 	{
 		this.Info = Info;
 	}

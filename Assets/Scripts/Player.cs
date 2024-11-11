@@ -49,7 +49,7 @@ public class Player : MonoBehaviour
 	public void ComputePathAndStartMovement(Vector3 Goal)
 	{
 		AStar.Initialize();
-		Path = AStar.ComputePath(transform.position, Goal, GameManager);
+		Path = AStar.ComputePath(transform.position, Goal);
 		if (Path == null)
 		{
 			return;
@@ -195,12 +195,12 @@ public class Player : MonoBehaviour
 	public void TryClickItem(int itemIndex)
 	{
 		// Ensures index is within bounds and inventory has an item
-		if (itemIndex >= Inventory.InventoryList.Count
-			|| Inventory.InventoryList.Count == 0)
+		if (itemIndex >= Inventory.Count
+			|| Inventory.Count == 0)
 		{
 			return;
 		}
-		ItemInfo ClickedItem = Inventory.InventoryList[itemIndex].Info;
+		ItemInfo ClickedItem = Inventory[itemIndex].Info;
 		bool wasSelected = InventoryUI.ProcessSelection(InventoryUI.SelectedIndex, itemIndex);
 		// If item is selected, update selection, otherwise reset
 		if (wasSelected)
@@ -277,13 +277,13 @@ public class Player : MonoBehaviour
 	public void TryDropItem(int itemIndex)
 	{
 		// Returns if called when inventory is empty
-		if (Inventory.InventoryList.Count == 0)
+		if (Inventory.Count == 0)
 		{
 			return;
 		}
 		// Resets damage points if weapon is dropped
-		if (SelectedItemInfo == Inventory.InventoryList[itemIndex].Info
-			&& Inventory.InventoryList[itemIndex].Info?.Type is ItemInfo.Types.Weapon)
+		if (SelectedItemInfo == Inventory[itemIndex].Info
+			&& Inventory[itemIndex].Info?.Type is ItemInfo.Types.Weapon)
 		{
 			DamagePoints = 0;
 			// Clears targeting if ranged weapon is dropped
@@ -293,7 +293,7 @@ public class Player : MonoBehaviour
 			}
 		}
 		// Put dropped item in temp slot out of inventory
-		ItemInfo DroppedItemInfo = Inventory.InventoryList[itemIndex].Info;
+		ItemInfo DroppedItemInfo = Inventory[itemIndex].Info;
 		if (DroppedItemInfo == SelectedItemInfo)
 		{
 			SelectedItemInfo = null;
@@ -304,7 +304,7 @@ public class Player : MonoBehaviour
 		if (ItemAtPosition != null)
 		{
 			// Swap dropped item with ground item
-			Inventory.InventoryList[itemIndex].Info = ItemAtPosition.Info;
+			Inventory[itemIndex].Info = ItemAtPosition.Info;
 			GameManager.RemoveItemAtPosition(ItemAtPosition);
 			Destroy(ItemAtPosition.gameObject);
 			InventoryUI.RefreshInventoryIcons();
