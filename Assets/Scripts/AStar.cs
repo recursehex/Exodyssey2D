@@ -11,19 +11,21 @@ public class AStar
 {
 	private readonly Tilemap TilemapGround;
 	private readonly Tilemap TilemapWalls;
-	private GameManager GameManager;
+	private readonly GameManager GameManager;
 	private Node Current;
 	private Stack<Vector3Int> Path;
 	private HashSet<Node> OpenList;
 	private HashSet<Node> ClosedList;
 	private Dictionary<Vector3Int, Node> AllNodes;
 	private static HashSet<Vector3Int> NoDiagonalTiles { get; set;}
-	private Vector3Int StartPosition, GoalPosition;
+	private Vector3Int StartPosition;
+	private Vector3Int GoalPosition;
 	private bool allowDiagonal = true;
 	public AStar(Tilemap TilemapGround, Tilemap TilemapWalls) 
 	{
 		this.TilemapGround = TilemapGround;
 		this.TilemapWalls = TilemapWalls;
+		GameManager = GameManager.Instance;
 	}
 	public void Initialize()
 	{
@@ -59,9 +61,8 @@ public class AStar
 		}
 		return ReachableArea;
 	}
-	public Stack<Vector3Int> ComputePath(Vector3 Start, Vector3 Goal, GameManager G)
+	public Stack<Vector3Int> ComputePath(Vector3 Start, Vector3 Goal)
 	{
-		GameManager = G;
 		StartPosition = TilemapGround.WorldToCell(Start);
 		GoalPosition = TilemapGround.WorldToCell(Goal);
 		AllNodes.Clear();

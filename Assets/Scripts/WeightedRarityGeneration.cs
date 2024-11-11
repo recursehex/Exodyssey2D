@@ -1,5 +1,6 @@
 using UnityEngine;
 using Exodyssey.Rarity;
+using static System.Enum;
 
 public static class WeightedRarityGeneration
 {
@@ -9,7 +10,7 @@ public static class WeightedRarityGeneration
 	{
 		int roll = Random.Range(1, 101);
 		int cumulative = 0;
-		foreach (Rarity Rarity in System.Enum.GetValues(typeof(Rarity)))
+		foreach (Rarity Rarity in GetValues(typeof(Rarity)))
 		{
 			cumulative += (int)Rarity;
 			if (roll <= cumulative)

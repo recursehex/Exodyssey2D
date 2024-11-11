@@ -142,7 +142,6 @@ public class GameManager : MonoBehaviour
 		LevelImage.SetActive(true);
 		LevelText.gameObject.SetActive(true);
 		DayText.gameObject.SetActive(true);
-		Invoke(nameof(HideLevelLoadScreen), levelStartDelay);
 		spawnItemCount = Random.Range(5, 10);
 		spawnEnemyCount = Random.Range(1 + (int)(level * 0.5), 3 + (int)(level * 0.5));
 		MapGenerator = new();
@@ -150,6 +149,7 @@ public class GameManager : MonoBehaviour
 		WallGeneration();
 		EnemyGeneration();
 		ItemGeneration();
+		Invoke(nameof(HideLevelLoadScreen), levelStartDelay);
 	}
 	private void HideLevelLoadScreen()
 	{

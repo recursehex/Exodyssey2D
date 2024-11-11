@@ -47,7 +47,7 @@ public class Enemy : MonoBehaviour
 		StunIcon.SetActive(false);
 		AStar.Initialize();
 		AStar.SetAllowDiagonal(false);
-		Path = AStar.ComputePath(transform.position, Goal, GameManager);
+		Path = AStar.ComputePath(transform.position, Goal);
 		// Compute path to Player and prevent enemy from colliding into Player
 		if (Path != null && Info.CurrentEnergy > 0 && Path.Count > 2)
 		{

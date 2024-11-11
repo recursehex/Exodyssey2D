@@ -16,6 +16,7 @@ public class InventoryUI : MonoBehaviour
 	public int SelectedIndex { get; private set; } = -1;
 	private string cachedName;
 	private string cachedDesc;
+	private readonly float sensitivityDistance = 0.5f;
 	/// <summary>
 	/// Removes item from inventory UI
 	/// </summary>
@@ -56,9 +57,9 @@ public class InventoryUI : MonoBehaviour
 	{
 		if (SelectedIndex != -1)
 		{
-			ItemName.GetComponent<Text>().text = Inventory.InventoryList[SelectedIndex].Info.Name;
-			ItemDesc.GetComponent<Text>().text = Inventory.InventoryList[SelectedIndex].Info.Description
-			+ Inventory.InventoryList[SelectedIndex].Info.Stats;
+			ItemName.GetComponent<Text>().text = Inventory[SelectedIndex].Info.Name;
+			ItemDesc.GetComponent<Text>().text = Inventory[SelectedIndex].Info.Description
+			+ Inventory[SelectedIndex].Info.Stats;
 		}
 		else
 		{
@@ -74,10 +75,10 @@ public class InventoryUI : MonoBehaviour
 		for (int i = 0; i < Inventory.InventorySize; i++)
 		{
 			Image Icon = GameObject.Find("InventoryIcon" + i).GetComponent<Image>();
-			if (i < Inventory.InventoryList.Count)
+			if (i < Inventory.Count)
 			{
 				// Add item icon
-				Icon.sprite = Inventory.InventoryList[i].GetSprite();
+				Icon.sprite = Inventory[i].GetSprite();
 			}
 			else
 			{
@@ -94,9 +95,9 @@ public class InventoryUI : MonoBehaviour
 		SelectedIndex = itemIndex;
 		if (SelectedIndex >= 0)
 		{
-			cachedName = Inventory.InventoryList[SelectedIndex].Info.Name;
-			cachedDesc = Inventory.InventoryList[SelectedIndex].Info.Description
-			+ Inventory.InventoryList[SelectedIndex].Info.Stats;
+			cachedName = Inventory[SelectedIndex].Info.Name;
+			cachedDesc = Inventory[SelectedIndex].Info.Description
+			+ Inventory[SelectedIndex].Info.Stats;
 		}
 		else
 		{
@@ -135,12 +136,13 @@ public class InventoryUI : MonoBehaviour
 	public void ProcessHoverForInventory(Vector3 MousePosition)
 	{
 		int iconNumber = 0;
-		float sensitivityDistance = 0.5f;
 		bool mouseIsOverIcon = false;
 		Text NameText = ItemName.GetComponent<Text>();
 		Text DescText = ItemDesc.GetComponent<Text>();
-		foreach (ItemInventory Item in Inventory.InventoryList)
+		int itemIndex = 0;
+		while (itemIndex < Inventory.Count)
 		{
+			InventoryItem Item = Inventory[itemIndex];
 			Image Icon = GameObject.Find("InventoryIcon" + iconNumber).GetComponent<Image>();
 			Vector3 IconPosition = Icon.transform.position;
 			if (Math.Abs(IconPosition.x - MousePosition.x) <= sensitivityDistance
@@ -152,6 +154,7 @@ public class InventoryUI : MonoBehaviour
 				break;
 			}
 			iconNumber++;
+			itemIndex++;
 		}
 		if (mouseIsOverIcon)
 		{
