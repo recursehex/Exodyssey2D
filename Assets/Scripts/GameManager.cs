@@ -48,7 +48,6 @@ public class GameManager : MonoBehaviour
 	#region RANGED WEAPON SYSTEM
 	[SerializeField] private GameObject TargetTemplate;
 	[SerializeField] private List<GameObject> Targets = new();
-	[SerializeField] private List<Vector3> TargetPositions = new();
 	[SerializeField] private GameObject TracerTemplate;
 	[SerializeField] private List<GameObject> Tracers = new();
 	[SerializeField] private List<Vector3> TracerPath = new();
@@ -242,7 +241,7 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	private void DestroyItemAtPosition(Vector3 Position)
 	{
-		Item Item = Items.Find(item => item.transform.position == Position);
+		Item Item = Items.Find(Item => Item.transform.position == Position);
 		Items.Remove(Item);
 		Destroy(Item.gameObject);
 	}
@@ -296,8 +295,8 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	private int GetEnemyIndexAtPosition(Vector3Int Position)
 	{
-		Vector3 TargetPosition = Position + new Vector3(0.5f, 0.5f, 0);
-		return Enemies.FindIndex(Enemy => Enemy.transform.position == TargetPosition);
+		Vector3 ShiftedPosition = Position + new Vector3(0.5f, 0.5f, 0);
+		return Enemies.FindIndex(Enemy => Enemy.transform.position == ShiftedPosition);
 	}
 	private void DestroyEnemy(Enemy Enemy)
 	{
@@ -384,7 +383,7 @@ public class GameManager : MonoBehaviour
 	private void HandleDamageToEnemy(int index)
 	{
 		Enemy DamagedEnemy = Enemies[index];
-		DamagedEnemy.DecreaseHealth(Player.DamagePoints);
+		DamagedEnemy.DecreaseHealthBy(Player.DamagePoints);
 		// If enemy is dead
 		if (DamagedEnemy.Info.CurrentHealth <= 0)
 		{
@@ -443,7 +442,7 @@ public class GameManager : MonoBehaviour
 	public void OnTurnTimerEnd()
 	{
 		Tiledot.gameObject.SetActive(false);
-		Player.DecreaseEnergy(Player.MaxEnergy);
+		Player.DecreaseEnergyToZero();
 		ClearTileAreas();
 		ClearTargetsAndTracers();
 	}
@@ -566,9 +565,7 @@ public class GameManager : MonoBehaviour
 			&& Player.SelectedItemInfo?.Type is ItemInfo.Types.Weapon)
 		{
 			HandleDamageToEnemy(enemyIndex);
-			Player.DecreaseEnergy(1);
-			Player.Animator.SetTrigger("playerAttack");
-			Player.DecreaseWeaponDurability();
+			Player.AttackEnemy();
 			needToDrawTileAreas = true;
 			TurnTimer.StartTimer();
 			if (isInRangedWeaponRange
@@ -609,11 +606,11 @@ public class GameManager : MonoBehaviour
 		return Vector3.Distance(Player.transform.position, ObjectPosition) <= 1.0f;
 	}
 	/// <summary>
-	/// Return true if an enemy is within range of ranged weapon
+	/// Returns true if an enemy is within range of ranged weapon
 	/// </summary>
 	private bool IsInRangedWeaponRange(Vector3 ObjectPosition)
 	{
-		return TargetPositions.Contains(ObjectPosition);
+		return Targets.Find(Target => Target.transform.position == ObjectPosition);
 	}
 	#endregion
 	#region TILEAREAS
@@ -690,7 +687,6 @@ public class GameManager : MonoBehaviour
 			&& !enemiesInMovement
 			&& Player.CurrentEnergy > 0)
 		{
-			TargetPositions.Clear();
 			foreach (Enemy Enemy in Enemies)
 			{
 				// Don't draw targets and tracers if enemy is currently stunned and using stunning ranged weapon
@@ -712,7 +708,6 @@ public class GameManager : MonoBehaviour
 				{
 					GameObject Target = Instantiate(TargetTemplate, Enemy.transform.position, Quaternion.identity);
 					Targets.Add(Target);
-					TargetPositions.Add(Target.transform.position);
 				}
 			}
 			TracerPath.Clear();

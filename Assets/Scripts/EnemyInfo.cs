@@ -43,7 +43,7 @@ public class EnemyInfo
 	// Current health
 	public int CurrentHealth { get; private set; } = 1;
 	// Maximum energy
-	public int MaxEnergy = 1;
+	private int maxEnergy = 1;
 	// Current energy
 	public int CurrentEnergy { get; private set; } = 1;
 	// Set only for enemies that do direct attacks
@@ -53,7 +53,7 @@ public class EnemyInfo
 	// true = will hunt the player, false = will guard nearby items
 	public bool IsHunting { get; private set; } = true;
 	// true = resistant to certain types of damage, false = not
-	public bool IsArmored { get; private set; }= false;
+	public bool IsArmored { get; private set; } = false;
 	// true = currently stunned, false = not
 	public bool IsStunned { get; set; } = false;
 	private static readonly int lastEnemyIndex = (int)Tags.Unknown;
@@ -85,17 +85,26 @@ public class EnemyInfo
 		int randomIndex = Random.Range(0, IndicesOfSpecifiedRarity.Count);
 		return IndicesOfSpecifiedRarity[randomIndex];
 	}
+	/// <summary>
+	/// Decreases CurrentHealth by 1
+	/// </summary>
 	public void DecreaseHealthBy(int amount)
 	{
 		CurrentHealth -= amount;
 	}
+	/// <summary>
+	/// Decreases CurrentEnergy by 1
+	/// </summary>
 	public void DecrementEnergy()
 	{
 		CurrentEnergy--;
 	}
+	/// <summary>
+	/// Restores enemy's CurrentEnergy to maxEnergy
+	/// </summary>
 	public void RestoreEnergy()
 	{
-		CurrentEnergy = MaxEnergy;
+		CurrentEnergy = maxEnergy;
 	}
 	/// <summary>
 	/// Returns info for a desired enemy 
@@ -111,8 +120,8 @@ public class EnemyInfo
 				// Info.Type = Types.Weak;
 				Info.maxHealth = 2;
 				Info.CurrentHealth = Info.maxHealth;
-				Info.MaxEnergy = 1;
-				Info.CurrentEnergy = Info.MaxEnergy;
+				Info.maxEnergy = 1;
+				Info.CurrentEnergy = Info.maxEnergy;
 				Info.DamagePoints = 1;
 				Info.Name = "CRAWLER";
 				Info.IsHunting = true;
@@ -123,8 +132,8 @@ public class EnemyInfo
 				// Info.Type = Types.Mediocre;
 				Info.maxHealth = 4;
 				Info.CurrentHealth = Info.maxHealth;
-				Info.MaxEnergy = 2;
-				Info.CurrentEnergy = Info.MaxEnergy;
+				Info.maxEnergy = 2;
+				Info.CurrentEnergy = Info.maxEnergy;
 				Info.DamagePoints = 2;
 				Info.Range = 3;
 				Info.Name = "LAUNCHER";

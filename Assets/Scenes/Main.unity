@@ -3936,6 +3936,10 @@ PrefabInstance:
       value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 917007481830541330, guid: 657e2a86062317544ade4b449a68bdf5, type: 3}
+      propertyPath: Attack
+      value: 
+      objectReference: {fileID: 8300000, guid: 4c2332bc8245b474dad63074059bb755, type: 3}
+    - target: {fileID: 917007481830541330, guid: 657e2a86062317544ade4b449a68bdf5, type: 3}
       propertyPath: Select
       value: 
       objectReference: {fileID: 8300000, guid: f6aaac83be9e0493493aace800b76619, type: 3}

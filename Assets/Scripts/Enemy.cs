@@ -6,13 +6,12 @@ using UnityEngine.Tilemaps;
 public class Enemy : MonoBehaviour
 {
 	public EnemyInfo Info;
-	public AudioClip EnemyMove;
-	public AudioClip EnemyAttack;
-	public AudioClip PlayerAttack;
+	public AudioClip Move;
+	public AudioClip Attack;
 	public bool IsInMovement { get; private set; }= false;
 	public GameObject StunIcon;
-	public GameManager GameManager;
-	public SoundManager SoundManager;
+	private GameManager GameManager;
+	private SoundManager SoundManager;
 	#region PATHFINDING
 	private Tilemap TilemapGround;
 	private Tilemap TilemapWalls;
@@ -75,7 +74,7 @@ public class Enemy : MonoBehaviour
 			while (Info.CurrentEnergy > 0)
 			{
 				Info.DecrementEnergy();
-				SoundManager.PlaySound(EnemyAttack);
+				SoundManager.PlaySound(Attack);
 				GameManager.HandleDamageToPlayer(Info.DamagePoints);
 			}
 		}
@@ -93,7 +92,7 @@ public class Enemy : MonoBehaviour
 	{
 		while (Path != null && Path.Count > 0)
 		{
-			SoundManager.PlaySound(EnemyMove);
+			SoundManager.PlaySound(Move);
 			Vector3 ShiftedDistance = new(Destination.x + 0.5f, Destination.y + 0.5f, Destination.z);
 			// Move one tile closer to Player
 			while (Vector3.Distance(transform.position, ShiftedDistance) > 0f)
@@ -111,7 +110,7 @@ public class Enemy : MonoBehaviour
 			else if (Path.Count == 1 && Info.CurrentEnergy > 0)
 			{
 				Info.DecrementEnergy();
-				SoundManager.PlaySound(EnemyAttack);
+				SoundManager.PlaySound(Attack);
 				GameManager.HandleDamageToPlayer(Info.DamagePoints);
 			}
 			else
@@ -122,9 +121,8 @@ public class Enemy : MonoBehaviour
 			}
 		}
 	}
-	public void DecreaseHealth(int damage)
+	public void DecreaseHealthBy(int damage)
 	{
-		SoundManager.PlaySound(PlayerAttack);
 		// NOTE: Eventually add sprite change for enemy on this line using: spriteRenderer.sprite = damagedSprite;
 		Info.DecreaseHealthBy(damage);
 		if (Info.CurrentHealth <= 0)

@@ -17,7 +17,7 @@ public class AStar
 	private HashSet<Node> OpenList;
 	private HashSet<Node> ClosedList;
 	private Dictionary<Vector3Int, Node> AllNodes;
-	private static HashSet<Vector3Int> NoDiagonalTiles { get; set;}
+	private static HashSet<Vector3Int> NoDiagonalTiles { get; set; }
 	private Vector3Int StartPosition;
 	private Vector3Int GoalPosition;
 	private bool allowDiagonal = true;
