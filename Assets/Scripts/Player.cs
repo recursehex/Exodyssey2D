@@ -8,17 +8,18 @@ using UnityEngine.Tilemaps;
 /// </summary>
 public class Player : MonoBehaviour
 {
-	public int MaxHealth { get; private set; } = 3;
-	public int MaxEnergy { get; private set; } = 3;
-	public int CurrentHealth { get; private set; } = 3;
+	private readonly int maxHealth = 3;
+	private int maxEnergy = 3;
+	private int currentHealth = 3;
 	public int CurrentEnergy { get; private set; } = 3;
 	public int DamagePoints { get; private set; } = 0;
 	public Profession Profession = new(Profession.Tags.Unknown, 0);
 	public AudioClip PlayerMove;
 	public AudioClip Heal;
 	public AudioClip Select;
+	public AudioClip Attack;
 	public AudioClip GameOver;
-	public Animator Animator;
+	private Animator Animator;
 	public Inventory Inventory;
 	public InventoryUI InventoryUI;
 	public ItemInfo SelectedItemInfo = null;
@@ -101,13 +102,13 @@ public class Player : MonoBehaviour
 		return AStar.GetReachableAreaByDistance(transform.position, CurrentEnergy);
 	}
 	/// <summary>
-	/// Decreases CurrentHealth by damage and updates Health display
+	/// Decreases currentHealth by damage and updates Health display
 	/// </summary>
 	public void DecreaseHealth(int damage)
 	{
-		CurrentHealth = Mathf.Clamp(CurrentHealth - damage, 0, MaxHealth);
+		currentHealth = Mathf.Clamp(currentHealth - damage, 0, maxHealth);
 		// Player is killed
-		if (CurrentHealth == 0)
+		if (currentHealth == 0)
 		{
 			SoundManager.PlaySound(GameOver);
 			GameManager.GameOver();
@@ -115,33 +116,33 @@ public class Player : MonoBehaviour
 			return;
 		}
 		// Player is damaged
-		StatsDisplayManager.DecreaseHealthDisplay(CurrentHealth, MaxHealth);
+		StatsDisplayManager.DecreaseHealthDisplay(currentHealth, maxHealth);
 		Animator.SetTrigger("playerHit");
 		// Reduce max energy to simulate weakness
-		if (CurrentHealth == 1)
+		if (currentHealth == 1)
 		{
 			CurrentEnergy = 1;
-			StatsDisplayManager.DecreaseEnergyDisplay(CurrentEnergy, MaxEnergy);
-			MaxEnergy = 1;
+			StatsDisplayManager.DecreaseEnergyDisplay(CurrentEnergy, maxEnergy);
+			maxEnergy = 1;
 		}
 	}
 	/// <summary>
-	/// Restores Player Health to MaxHealth
+	/// Restores Player Health to maxHealth
 	/// </summary>
 	public void RestoreHealth() 
 	{
-		CurrentHealth = MaxHealth;
+		currentHealth = maxHealth;
 		StatsDisplayManager.RestoreHealthDisplay();
 		SoundManager.PlaySound(Heal);
-		MaxEnergy = 3;
+		maxEnergy = 3;
 	}
 	/// <summary>
 	/// Decreases CurrentEnergy and updates energy display
 	/// </summary>
 	public void DecreaseEnergy(int decrement)
 	{
-		CurrentEnergy = Mathf.Clamp(CurrentEnergy - decrement, 0, MaxEnergy);
-		StatsDisplayManager.DecreaseEnergyDisplay(CurrentEnergy, MaxEnergy);
+		CurrentEnergy = Mathf.Clamp(CurrentEnergy - decrement, 0, maxEnergy);
+		StatsDisplayManager.DecreaseEnergyDisplay(CurrentEnergy, maxEnergy);
 		// End turn and stop timer if CurrentEnergy reaches 0
 		if (CurrentEnergy == 0)
 		{
@@ -149,12 +150,29 @@ public class Player : MonoBehaviour
 		}
 	}
 	/// <summary>
-	/// Restores Player Energy to MaxEnergy
+	/// Decreases Player CurrentEnergy to 0
+	/// </summary>
+	public void DecreaseEnergyToZero()
+	{
+		CurrentEnergy = 0;
+	}
+	/// <summary>
+	/// Restores Player Energy to maxEnergy
 	/// </summary>
 	public void RestoreEnergy() 
 	{
-		CurrentEnergy = MaxEnergy;
-		StatsDisplayManager.RestoreEnergyDisplay(CurrentHealth);
+		CurrentEnergy = maxEnergy;
+		StatsDisplayManager.RestoreEnergyDisplay(currentHealth);
+	}
+	/// <summary>
+	/// Handles Player variables when attacking an enemy
+	/// </summary>
+	public void AttackEnemy()
+	{
+		SoundManager.PlaySound(Attack);
+		DecreaseEnergy(1);
+		DecreaseWeaponDurability();
+		Animator.SetTrigger("playerAttack");
 	}
 	/// <summary>
 	/// Decreases weapon durability by 1, removes weapon if uses == 0
@@ -253,7 +271,7 @@ public class Player : MonoBehaviour
 	private bool MedKitWasUsed() 
 	{
 		if (SelectedItemInfo.Tag is ItemInfo.Tags.MedKit
-			&& CurrentHealth < MaxHealth
+			&& currentHealth < maxHealth
 			&& CurrentEnergy > 0)
 		{
 			RestoreHealth();
