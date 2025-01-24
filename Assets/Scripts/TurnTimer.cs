@@ -4,7 +4,7 @@ using UnityEngine.UI;
 public class TurnTimer : MonoBehaviour
 {
 	public float timeRemaining = 15;
-	public float timerLimit = 15;
+	private readonly float timerLimit = 15;
 	public bool timerIsRunning = false;
 	public Text TimeText;
 	private Color NormalColor = new((float)(115.0 / 256.0), (float)(119.0 / 256.0), (float)(160.0 / 256.0), 1);

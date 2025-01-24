@@ -5,9 +5,7 @@ using UnityEngine.Tilemaps;
 public class Vehicle : MonoBehaviour
 {
 	public VehicleInfo Info;
-	public AudioClip VehicleMove;
-	private GameManager GameManager;
-	private SoundManager SoundManager;
+	public AudioClip Move;
 	#region PATHFINDING
 	public Tilemap TilemapGround;
 	public Tilemap TilemapWalls;
@@ -19,8 +17,7 @@ public class Vehicle : MonoBehaviour
 	// Start is called before the first frame update
 	void Start()
 	{
-		GameManager = GameManager.Instance;
-		SoundManager = SoundManager.Instance;
+		AStar = new(TilemapGround, TilemapWalls);
 	}
 	public void DecreaseHealthBy(int damage)
 	{

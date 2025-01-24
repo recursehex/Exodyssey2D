@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
-using Exodyssey.Rarity;
+using Assets.Scripts;
 
 /// <summary>
 /// Contains all item variables, creates items with specific values, and manages items after usage
@@ -168,6 +168,27 @@ public class ItemInfo
 				Info.Description = "Fully heals injuries";
 				Info.Stats = $"\nUP:{Info.MaxUses}/{Info.MaxUses}";
 				break;
+			// case ?:
+			// 	Info.Tag = Tags.ToolKit;
+			// 	Info.Rarity = Rarity.Scarce;
+			// 	Info.Type = Types.Consumable;
+			// 	Info.Name = "TOOLKIT";
+			// 	Info.MaxUses = 1;
+			// 	Info.CurrentUses = Info.MaxUses;
+			// 	Info.Description = "Fully repairs vehicles";
+			// 	Info.Stats = "\nUP:" + Info.MaxUses;
+			// 	break;
+			// case ?:
+			// 	Info.Tag = Tags.FusionCell;
+			// 	Info.Rarity = Rarity.Common;
+			// 	Info.Type = Types.Consumable;
+			// 	Info.Name = "FUSION CELL";
+			// 	Info.MaxUses = 1; // max charge
+			// 	Info.CurrentUses = Info.MaxUses; // current charge
+			// 	Info.IsFlammable = true;
+			// 	Info.Description = "Powers vehicles";
+			// 	Info.Stats = $"\n\UP:{Info.MaxUses}";
+			// 	break;
 			case 1:
 				Info.Tag = Tags.Branch;
 				Info.Rarity = Rarity.Common;
@@ -205,6 +226,31 @@ public class ItemInfo
 				Info.Description = "Durable, weak against armor";
 				Info.Stats = $"\nUP:{Info.MaxUses}/{Info.MaxUses}\tDP:{Info.DamagePoints}\nADP:{Info.ArmorDamage}";
 				break;
+			// case ?:
+			// 	Info.Tag = Tags.Mallet;
+			// 	Info.Rarity = Rarity.Rare;
+			// 	Info.Type = Types.Weapon;
+			// 	Info.MaxUses = 6;
+			// 	Info.CurrentUses = Info.MaxUses;
+			// 	Info.Name = "MALLET";
+			// 	Info.DamagePoints = 3;
+			// 	Info.ArmorDamage = 0;
+			// 	Info.IsStunning = true;
+			// 	Info.Description = "Bounces off armor";
+			// 	Info.Stats = $"\nUP:{Info.MaxUses}/{Info.MaxUses}\tDP:{Info.DamagePoints}\nADP:{Info.ArmorDamage}";
+			// 	break;
+			// case ?:
+			// 	Info.Tag = Tags.Axe;
+			// 	Info.Rarity = Rarity.Rare;
+			// 	Info.Type = Types.Weapon;
+			// 	Info.Name = "AXE";
+			// 	Info.MaxUses = 4;
+			// 	Info.CurrentUses = Info.MaxUses;
+			// 	Info.DamagePoints = 4;
+			// 	Info.ArmorDamage = 2;
+			// 	Info.Description = "Can cut through armor";
+			// 	Info.Stats = $"\nUP:{Info.MaxUses}/{Info.MaxUses}\tDP:{Info.DamagePoints}\nADP:{Info.ArmorDamage}";
+			// 	break;
 			case 4:
 				Info.Tag = Tags.DiamondChainsaw;
 				Info.Rarity = Rarity.Anomalous;
@@ -229,6 +275,31 @@ public class ItemInfo
 				Info.Description = "Stuns enemies for 1 turn";
 				Info.Stats = $"\nUP:{Info.MaxUses}/{Info.MaxUses}\tDP:{Info.DamagePoints}\nRP:{Info.Range}";
 				break;
+			// case ?:
+			// 	Info.Tag = Tags.Carbine;
+			// 	Info.Rarity = Rarity.Rare;
+			// 	Info.Type = Types.Weapon;
+			// 	Info.Name = "CARBINE";
+			// 	Info.MaxUses = 4;
+			// 	Info.CurrentUses = Info.MaxUses;
+			// 	Info.DamagePoints = 3;
+			// 	Info.Range = 4;
+			// 	Info.Description = "Fires rifle bullets";
+			// 	Info.Stats = $"\nUP:{Info.MaxUses}/{Info.MaxUses}\tDP:{Info.DamagePoints}\nRP:{Info.Range}";
+			// 	break;
+			// case ?:
+			// 	Info.Tag = Tags.Flamethrower;
+			// 	Info.Rarity = Rarity.Rare;
+			// 	Info.Type = Types.Weapon;
+			// 	Info.Name = "FLAMETHROWER";
+			// 	Info.MaxUses = 4;
+			// 	Info.CurrentUses = Info.MaxUses;
+			// 	Info.DamagePoints = 1;
+			// 	Info.Range = 3;
+			// 	Info.IsFlammable = true;
+			// 	Info.Description = "Sprays streaks of fire";
+			// 	Info.Stats = $"\nUP:{Info.MaxUses}/{Info.MaxUses}\tDP:{Info.DamagePoints}\nRP:{Info.Range}";
+			// 	break;
 			case 6:
 				Info.Tag = Tags.HuntingRifle;
 				Info.Rarity = Rarity.Rare;
@@ -254,41 +325,6 @@ public class ItemInfo
 				Info.Stats = $"\nUP:{Info.MaxUses}/{Info.MaxUses}\tDP:{Info.DamagePoints}\nRP:{Info.Range}";
 				break;
 			/*
-			case 4:
-				Info.Tag = Tags.ToolKit;
-				Info.Rarity = Rarity.Scarce;
-				Info.Type = Types.Consumable;
-				Info.Name = "TOOLKIT";
-				Info.MaxUses = 1;
-				Info.CurrentUses = Info.MaxUses;
-				Info.Description = "Fully repairs vehicles";
-				Info.Stats = "\nUP:" + Info.MaxUses;
-				break;
-			case 7:
-				Info.Tag = Tags.Mallet;
-				Info.Rarity = Rarity.Rare;
-				Info.Type = Types.Weapon;
-				Info.MaxUses = 6;
-				Info.CurrentUses = Info.MaxUses;
-				Info.Name = "MALLET";
-				Info.DamagePoints = 3;
-				Info.ArmorDamage = 0;
-				Info.IsStunning = true;
-				Info.Description = "Bounces off armor";
-				Info.Stats = $"\nUP:{Info.MaxUses}/{Info.MaxUses}\tDP:{Info.DamagePoints}\nADP:{Info.ArmorDamage}";
-				break;
-			case 8:
-				Info.Tag = Tags.Axe;
-				Info.Rarity = Rarity.Rare;
-				Info.Type = Types.Weapon;
-				Info.Name = "AXE";
-				Info.MaxUses = 4;
-				Info.CurrentUses = Info.MaxUses;
-				Info.DamagePoints = 4;
-				Info.ArmorDamage = 2;
-				Info.Description = "Can cut through armor";
-				Info.Stats = $"\nUP:{Info.MaxUses}/{Info.MaxUses}\tDP:{Info.DamagePoints}\nADP:{Info.ArmorDamage}";
-				break;
 			case 9:
 				Info.Tag = Tags.Rock;
 				Info.Rarity = Rarity.Common;
@@ -339,17 +375,6 @@ public class ItemInfo
 				Info.IsFlammable = true;
 				Info.Description = "Sticks to enemies before detonating";
 				Info.Stats = $"\nUP:{Info.MaxUses}/{Info.MaxUses}\tDP:{Info.DamagePoints}\nRP:{Info.Range}";
-				break;
-			case 13:
-				Info.Tag = Tags.FusionCell;
-				Info.Rarity = Rarity.Common;
-				Info.Type = Types.Consumable;
-				Info.Name = "FUSION CELL";
-				Info.MaxUses = 1; // max charge
-				Info.CurrentUses = Info.MaxUses; // current charge
-				Info.IsFlammable = true;
-				Info.Description = "Powers vehicles";
-				Info.Stats = $"\n\UP:{Info.MaxUses}";
 				break;
 			case 14:
 				Info.Tag = Tags.Helmet;
@@ -475,33 +500,6 @@ public class ItemInfo
 				Info.Name = "NIGHT VISION";
 				Info.IsEquipable = true;
 				Info.Description = "Enables nighttime visibility";
-				break;
-			case 27:
-				Info.Tag = Tags.Carbine;
-				Info.Rarity = Rarity.Rare;
-				Info.Type = Types.Weapon;
-				Info.Name = "CARBINE";
-				Info.MaxUses = 4;
-				Info.CurrentUses = Info.MaxUses;
-				Info.DamagePoints = 3;
-				Info.Range = 4;
-				Info.Description = "Fires rifle bullets";
-				Info.Stats = $"\nUP:{Info.MaxUses}/{Info.MaxUses}\tDP:{Info.DamagePoints}\nRP:{Info.Range}";
-				break;
-			case 28:
-				Info.Tag = Tags.Flamethrower;
-				Info.Rarity = Rarity.Rare;
-				Info.Type = Types.Weapon;
-				Info.Name = "FLAMETHROWER";
-				Info.MaxUses = 4;
-				Info.CurrentUses = Info.MaxUses;
-				Info.DamagePoints = 1;
-				Info.Range = 3;
-				Info.IsFlammable = true;
-				Info.Description = "Sprays streaks of fire";
-				Info.Stats = $"\nUP:{Info.MaxUses}/{Info.MaxUses}\tDP:{Info.DamagePoints}\nRP:{Info.Range}";
-				break;
-			default:
 				break;
 			*/
 		}

@@ -1,5 +1,5 @@
 using UnityEngine;
-using Exodyssey.Rarity;
+using Assets.Scripts;
 using static System.Enum;
 
 public static class WeightedRarityGeneration

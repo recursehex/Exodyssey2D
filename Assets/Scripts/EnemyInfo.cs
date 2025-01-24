@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
-using Exodyssey.Rarity;
+using Assets.Scripts;
 
 public class EnemyInfo
 {

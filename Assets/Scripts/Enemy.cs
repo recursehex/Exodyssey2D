@@ -8,10 +8,8 @@ public class Enemy : MonoBehaviour
 	public EnemyInfo Info;
 	public AudioClip Move;
 	public AudioClip Attack;
-	public bool IsInMovement { get; private set; }= false;
+	public bool IsInMovement { get; private set; } = false;
 	public GameObject StunIcon;
-	private GameManager GameManager;
-	private SoundManager SoundManager;
 	#region PATHFINDING
 	private Tilemap TilemapGround;
 	private Tilemap TilemapWalls;
@@ -22,14 +20,13 @@ public class Enemy : MonoBehaviour
 	// Start is called before the first frame update
 	protected virtual void Start()
 	{
-		GameManager = GameManager.Instance;
-		SoundManager = SoundManager.Instance;
 		StunIcon = Instantiate(StunIcon, transform.position, Quaternion.identity);
 	}
-	public void Initialize(Tilemap TilemapGround, Tilemap TilemapWalls)
+	public void Initialize(Tilemap TilemapGround, Tilemap TilemapWalls, EnemyInfo Info)
 	{
 		this.TilemapGround = TilemapGround;
 		this.TilemapWalls = TilemapWalls;
+		this.Info = Info;
 		AStar = new(this.TilemapGround, this.TilemapWalls);
 	}
 	/// <summary>
@@ -57,7 +54,7 @@ public class Enemy : MonoBehaviour
 			// Move one tile closer to Player
 			Vector3Int TryDistance = Path.Pop();
 			Vector3 ShiftedTryDistance = new(TryDistance.x + 0.5f, TryDistance.y + 0.5f, 0);
-			if (!GameManager.HasEnemyAtPosition(ShiftedTryDistance))
+			if (!GameManager.Instance.HasEnemyAtPosition(ShiftedTryDistance))
 			{
 				Destination = TryDistance;
 				MoveAlongPath();
@@ -74,8 +71,8 @@ public class Enemy : MonoBehaviour
 			while (Info.CurrentEnergy > 0)
 			{
 				Info.DecrementEnergy();
-				SoundManager.PlaySound(Attack);
-				GameManager.HandleDamageToPlayer(Info.DamagePoints);
+				SoundManager.Instance.PlaySound(Attack);
+				GameManager.Instance.HandleDamageToPlayer(Info.DamagePoints);
 			}
 		}
 		// If no path to Player, do not start moving
@@ -92,7 +89,7 @@ public class Enemy : MonoBehaviour
 	{
 		while (Path != null && Path.Count > 0)
 		{
-			SoundManager.PlaySound(Move);
+			SoundManager.Instance.PlaySound(Move);
 			Vector3 ShiftedDistance = new(Destination.x + 0.5f, Destination.y + 0.5f, Destination.z);
 			// Move one tile closer to Player
 			while (Vector3.Distance(transform.position, ShiftedDistance) > 0f)
@@ -110,8 +107,8 @@ public class Enemy : MonoBehaviour
 			else if (Path.Count == 1 && Info.CurrentEnergy > 0)
 			{
 				Info.DecrementEnergy();
-				SoundManager.PlaySound(Attack);
-				GameManager.HandleDamageToPlayer(Info.DamagePoints);
+				SoundManager.Instance.PlaySound(Attack);
+				GameManager.Instance.HandleDamageToPlayer(Info.DamagePoints);
 			}
 			else
 			{

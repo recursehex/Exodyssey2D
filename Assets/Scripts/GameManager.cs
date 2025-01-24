@@ -278,8 +278,7 @@ public class GameManager : MonoBehaviour
 	{
 		int index = (int)NewEnemyInfo.Tag;
 		Enemy NewEnemy = Instantiate(EnemyTemplates[index], Position, Quaternion.identity).GetComponent<Enemy>();
-		NewEnemy.Initialize(TilemapGround, TilemapWalls);
-		NewEnemy.Info = NewEnemyInfo;
+		NewEnemy.Initialize(TilemapGround, TilemapWalls, NewEnemyInfo);
 		Enemies.Add(NewEnemy);
 	}
 	/// <summary>

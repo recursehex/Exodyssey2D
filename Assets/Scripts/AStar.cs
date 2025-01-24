@@ -11,7 +11,6 @@ public class AStar
 {
 	private readonly Tilemap TilemapGround;
 	private readonly Tilemap TilemapWalls;
-	private readonly GameManager GameManager;
 	private Node Current;
 	private Stack<Vector3Int> Path;
 	private HashSet<Node> OpenList;
@@ -25,7 +24,6 @@ public class AStar
 	{
 		this.TilemapGround = TilemapGround;
 		this.TilemapWalls = TilemapWalls;
-		GameManager = GameManager.Instance;
 	}
 	public void Initialize()
 	{
@@ -102,10 +100,10 @@ public class AStar
 			{
 				Vector3Int Position = new(ParentPosition.x - x, ParentPosition.y - y, ParentPosition.z);
 				bool EnemyAtPosition = false;
-				if (GameManager != null)
+				if (GameManager.Instance != null)
 				{
 					Vector3 EnemyPosition = new(ParentPosition.x - x + 0.5f, ParentPosition.y - y + 0.5f, ParentPosition.z);
-					EnemyAtPosition = GameManager.HasEnemyAtPosition(EnemyPosition);
+					EnemyAtPosition = GameManager.Instance.HasEnemyAtPosition(EnemyPosition);
 				}
 				if ((y != 0 || x != 0)
 					&& (allowDiagonal || (!allowDiagonal && (y == 0 || x == 0))))
