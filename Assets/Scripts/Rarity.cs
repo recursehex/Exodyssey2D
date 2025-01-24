@@ -1,4 +1,4 @@
-namespace Exodyssey.Rarity
+namespace Assets.Scripts
 {
 	// Number represents chance of element being generated
 	public enum Rarity

@@ -6,8 +6,8 @@ using UnityEngine.UI;
 
 public class DragAndDrop : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
-	[SerializeField] private  int inventoryIndex;
-	[SerializeField] private  Image ItemImage;
+	[SerializeField] private int inventoryIndex;
+	[SerializeField] private Image ItemImage;
 	[SerializeField] private Sprite ItemBackgroundSprite;
 	[SerializeField] private Player Player;
 	[SerializeField] private Tilemap TilemapGround;

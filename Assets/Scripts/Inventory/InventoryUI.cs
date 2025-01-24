@@ -135,7 +135,6 @@ public class InventoryUI : MonoBehaviour
 	/// </summary>
 	public void ProcessHoverForInventory(Vector3 MousePosition)
 	{
-		int iconNumber = 0;
 		bool mouseIsOverIcon = false;
 		Text NameText = ItemName.GetComponent<Text>();
 		Text DescText = ItemDesc.GetComponent<Text>();
@@ -143,7 +142,7 @@ public class InventoryUI : MonoBehaviour
 		while (itemIndex < Inventory.Count)
 		{
 			InventoryItem Item = Inventory[itemIndex];
-			Image Icon = GameObject.Find("InventoryIcon" + iconNumber).GetComponent<Image>();
+			Image Icon = GameObject.Find("InventoryIcon" + itemIndex).GetComponent<Image>();
 			Vector3 IconPosition = Icon.transform.position;
 			if (Math.Abs(IconPosition.x - MousePosition.x) <= sensitivityDistance
 				&& Math.Abs(IconPosition.y - MousePosition.y) <= sensitivityDistance)
@@ -153,7 +152,6 @@ public class InventoryUI : MonoBehaviour
 				DescText.text = Item.Info.Description + Item.Info.Stats;
 				break;
 			}
-			iconNumber++;
 			itemIndex++;
 		}
 		if (mouseIsOverIcon)
