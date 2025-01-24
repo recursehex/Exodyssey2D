@@ -3,7 +3,7 @@ using System.Collections.Generic;
 public class Inventory
 {
 	private readonly List<InventoryItem> InventoryList;
-	public int InventorySize { get; private set;} = 2;
+	public int InventorySize { get; private set; } = 2;
 	public int Count => InventoryList.Count;
 	public Inventory()
 	{

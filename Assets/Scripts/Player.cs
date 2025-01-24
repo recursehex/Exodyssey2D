@@ -26,8 +26,6 @@ public class Player : MonoBehaviour
 	public StatsDisplayManager StatsDisplayManager;
 	public bool FinishedInit { get; private set; } = false;
 	public bool IsInMovement { get; set; } = false;
-	public GameManager GameManager;
-	public SoundManager SoundManager;
 	#region PATHFINDING
 	public Tilemap TilemapGround;
 	public Tilemap TilemapWalls;
@@ -68,7 +66,7 @@ public class Player : MonoBehaviour
 	{
 		while (Path != null && Path.Count >= 0)
 		{
-			SoundManager.PlaySound(PlayerMove);
+			SoundManager.Instance.PlaySound(PlayerMove);
 			Vector3 ShiftedDistance = new(Destination.x + 0.5f, Destination.y + 0.5f, Destination.z);
 			while (Vector3.Distance(transform.position, ShiftedDistance) > 0f)
 			{
@@ -87,11 +85,11 @@ public class Player : MonoBehaviour
 		// When Player stops moving
 		Path = null;
 		IsInMovement = false;
-		if (GameManager.PlayerIsOnExitTile())
+		if (GameManager.Instance.PlayerIsOnExitTile())
 		{
 			return;
 		}
-		GameManager.DrawTargetsAndTracers();
+		GameManager.Instance.DrawTargetsAndTracers();
 	}
 	/// <summary>
 	/// Calculates area Player can move to in a turn based on currentEnergy
@@ -110,8 +108,8 @@ public class Player : MonoBehaviour
 		// Player is killed
 		if (currentHealth == 0)
 		{
-			SoundManager.PlaySound(GameOver);
-			GameManager.GameOver();
+			SoundManager.Instance.PlaySound(GameOver);
+			GameManager.Instance.GameOver();
 			SoundManager.Instance.FadeOutMusic(2.0f);
 			return;
 		}
@@ -133,7 +131,7 @@ public class Player : MonoBehaviour
 	{
 		currentHealth = maxHealth;
 		StatsDisplayManager.RestoreHealthDisplay();
-		SoundManager.PlaySound(Heal);
+		SoundManager.Instance.PlaySound(Heal);
 		maxEnergy = 3;
 	}
 	/// <summary>
@@ -146,7 +144,7 @@ public class Player : MonoBehaviour
 		// End turn and stop timer if CurrentEnergy reaches 0
 		if (CurrentEnergy == 0)
 		{
-			GameManager.EndTurnTimer();
+			GameManager.Instance.EndTurnTimer();
 		}
 	}
 	/// <summary>
@@ -169,7 +167,7 @@ public class Player : MonoBehaviour
 	/// </summary>
 	public void AttackEnemy()
 	{
-		SoundManager.PlaySound(Attack);
+		SoundManager.Instance.PlaySound(Attack);
 		DecreaseEnergy(1);
 		DecreaseWeaponDurability();
 		Animator.SetTrigger("playerAttack");
@@ -186,7 +184,7 @@ public class Player : MonoBehaviour
 		{
 			InventoryUI.RemoveItem(InventoryUI.SelectedIndex);
 			InventoryUI.SetCurrentSelected(-1);
-			GameManager.ClearTargetsAndTracers();
+			GameManager.Instance.ClearTargetsAndTracers();
 			SelectedItemInfo = null;
 			DamagePoints = 0;
 		}
@@ -225,17 +223,17 @@ public class Player : MonoBehaviour
 		{
 			InventoryUI.SetCurrentSelected(itemIndex);
 			SelectedItemInfo = ClickedItem;
-			SoundManager.PlaySound(Select);
+			SoundManager.Instance.PlaySound(Select);
 			DamagePoints = ClickedItem.DamagePoints;
 			// Only draw targets if ranged weapon is selected
 			if (ClickedItem.Range > 0)
 			{
-				GameManager.DrawTargetsAndTracers();
+				GameManager.Instance.DrawTargetsAndTracers();
 			}
 			// Clear targets for all other items
 			else
 			{
-				GameManager.ClearTargetsAndTracers();
+				GameManager.Instance.ClearTargetsAndTracers();
 			}
 		}
 		// Item was deselected
@@ -244,7 +242,7 @@ public class Player : MonoBehaviour
 			InventoryUI.SetCurrentSelected(-1);
 			SelectedItemInfo = null;
 			DamagePoints = 0;
-			GameManager.ClearTargetsAndTracers();
+			GameManager.Instance.ClearTargetsAndTracers();
 		}
 	}
 	/// <summary>
@@ -307,7 +305,7 @@ public class Player : MonoBehaviour
 			// Clears targeting if ranged weapon is dropped
 			if (GetWeaponRange() > 0)
 			{
-				GameManager.ClearTargetsAndTracers();
+				GameManager.Instance.ClearTargetsAndTracers();
 			}
 		}
 		// Put dropped item in temp slot out of inventory
@@ -317,13 +315,13 @@ public class Player : MonoBehaviour
 			SelectedItemInfo = null;
 			InventoryUI.DeselectItem(itemIndex);
 		}
-		Item ItemAtPosition = GameManager.GetItemAtPosition(transform.position);
+		Item ItemAtPosition = GameManager.Instance.GetItemAtPosition(transform.position);
 		// If there is item at Player's position
 		if (ItemAtPosition != null)
 		{
 			// Swap dropped item with ground item
 			Inventory[itemIndex].Info = ItemAtPosition.Info;
-			GameManager.RemoveItemAtPosition(ItemAtPosition);
+			GameManager.Instance.RemoveItemAtPosition(ItemAtPosition);
 			Destroy(ItemAtPosition.gameObject);
 			InventoryUI.RefreshInventoryIcons();
 		}
@@ -334,8 +332,8 @@ public class Player : MonoBehaviour
 		}
 		InventoryUI.RefreshText();
 		// Drop item onto ground from temp slot
-		GameManager.InstantiateNewItem(DroppedItemInfo, transform.position);
+		GameManager.Instance.InstantiateNewItem(DroppedItemInfo, transform.position);
 		// Removes item from inventory and plays corresponding sound
-		SoundManager.PlaySound(PlayerMove);
+		SoundManager.Instance.PlaySound(PlayerMove);
 	}
 }
