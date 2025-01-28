@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Assets.Scripts;
+using System.Linq;
 
 /// <summary>
 /// Contains all item variables, creates items with specific values, and manages items after usage
@@ -103,30 +104,18 @@ public class ItemInfo
 	private static readonly List<Rarity> ItemRarityList = GenerateAllRarities();
 	private static List<Rarity> GenerateAllRarities()
 	{
-		List<Rarity> ItemRarityList = new();
-		for (int i = 0; i < lastItemIndex; i++)
-		{
-			ItemInfo Item = ItemFactory(i);
-			ItemRarityList.Add(Item.Rarity);
-		}
-		return ItemRarityList;
+		return Enumerable.Range(0, lastItemIndex)
+						.Select(i => ItemFactory(i).Rarity)
+						.ToList();
 	}
 	public static int GetRandomIndexOfSpecifiedRarity(Rarity specifiedRarity)
 	{
-		List<int> IndicesOfSpecifiedRarity = new();
-		for (int i = 0; i < ItemRarityList.Count; i++)
-		{
-			if (ItemRarityList[i] == specifiedRarity)
-			{
-				IndicesOfSpecifiedRarity.Add(i);
-			}
-		}
-		if (IndicesOfSpecifiedRarity.Count == 0)
-		{
+		var indices = Enumerable.Range(0, ItemRarityList.Count)
+								.Where(i => ItemRarityList[i] == specifiedRarity)
+								.ToList();
+		if (indices.Count == 0)
 			return -1;
-		}
-		int randomIndex = Random.Range(0, IndicesOfSpecifiedRarity.Count);
-		return IndicesOfSpecifiedRarity[randomIndex];
+		return indices[Random.Range(0, indices.Count)];
 	}
 	/// <summary>
 	/// Decreases item durability by 1 and updates description
