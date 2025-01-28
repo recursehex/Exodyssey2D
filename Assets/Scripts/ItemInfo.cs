@@ -14,14 +14,14 @@ public class ItemInfo
 	{
 		// CONSUMABLE
 		MedKit = 0,
-		//ToolKit,
+		ToolKit,
 		//FusionCell,
 
 		// MELEE
 		Branch,
 		Knife,
 		Wrench,
-		//Mallet,
+		Mallet,
 		//Axe,
 		DiamondChainsaw,
 
@@ -168,16 +168,16 @@ public class ItemInfo
 				Info.Description 	= "Fully heals injuries";
 				Info.Stats	 		= $"\nUP:{Info.MaxUses}/{Info.MaxUses}";
 				break;
-			// case ?:
-			// 	Info.Tag 			= Tags.ToolKit;
-			// 	Info.Rarity 		= Rarity.Scarce;
-			// 	Info.Type 			= Types.Consumable;
-			// 	Info.Name 			= "TOOLKIT";
-			// 	Info.MaxUses 		= 1;
-			// 	Info.CurrentUses 	= Info.MaxUses;
-			// 	Info.Description 	= "Fully repairs vehicles";
-			// 	Info.Stats 			= "\nUP:" + Info.MaxUses;
-			// 	break;
+			case 1:
+				Info.Tag 			= Tags.ToolKit;
+				Info.Rarity 		= Rarity.Scarce;
+				Info.Type 			= Types.Consumable;
+				Info.Name 			= "TOOLKIT";
+				Info.MaxUses 		= 1;
+				Info.CurrentUses 	= Info.MaxUses;
+				Info.Description 	= "Fully repairs vehicles";
+				Info.Stats 			= "\nUP:" + Info.MaxUses;
+				break;
 			// case ?:
 			// 	Info.Tag 			= Tags.FusionCell;
 			// 	Info.Rarity 		= Rarity.Common;
@@ -189,7 +189,7 @@ public class ItemInfo
 			// 	Info.Description 	= "Powers vehicles";
 			// 	Info.Stats 			= $"\n\UP:{Info.MaxUses}";
 			// 	break;
-			case 1:
+			case 2:
 				Info.Tag 			= Tags.Branch;
 				Info.Rarity 		= Rarity.Common;
 				Info.Type 			= Types.Weapon;
@@ -202,7 +202,7 @@ public class ItemInfo
 				Info.Description 	= "Fragile stick";
 				Info.Stats 			= $"\nUP:{Info.MaxUses}/{Info.MaxUses}\tDP:{Info.DamagePoints}\nADP:{Info.ArmorDamage}";
 				break;
-			case 2:
+			case 3:
 				Info.Tag 			= Tags.Knife;
 				Info.Rarity 		= Rarity.Limited;
 				Info.Type 			= Types.Weapon;
@@ -214,7 +214,7 @@ public class ItemInfo
 				Info.Description 	= "Can stab through armor";
 				Info.Stats 			= $"\nUP:{Info.MaxUses}/{Info.MaxUses}\tDP:{Info.DamagePoints}\nADP:{Info.ArmorDamage}";
 				break;
-			case 3:
+			case 4:
 				Info.Tag 			= Tags.Wrench;
 				Info.Rarity 		= Rarity.Scarce;
 				Info.Type 			= Types.Weapon;
@@ -222,23 +222,23 @@ public class ItemInfo
 				Info.MaxUses 		= 4;
 				Info.CurrentUses 	= Info.MaxUses;
 				Info.DamagePoints 	= 2;
-				Info.ArmorDamage 	= 0;
-				Info.Description 	= "Durable, weak against armor";
+				Info.ArmorDamage 	= 1;
+				Info.Description 	= "Weak against armor";
 				Info.Stats 			= $"\nUP:{Info.MaxUses}/{Info.MaxUses}\tDP:{Info.DamagePoints}\nADP:{Info.ArmorDamage}";
 				break;
-			// case ?:
-			// 	Info.Tag 			= Tags.Mallet;
-			// 	Info.Rarity 		= Rarity.Rare;
-			// 	Info.Type 			= Types.Weapon;
-			// 	Info.MaxUses 		= 6;
-			// 	Info.CurrentUses 	= Info.MaxUses;
-			// 	Info.Name 			= "MALLET";
-			// 	Info.DamagePoints 	= 3;
-			// 	Info.ArmorDamage 	= 0;
-			// 	Info.IsStunning 	= true;
-			// 	Info.Description 	= "Bounces off armor";
-			// 	Info.Stats 			= $"\nUP:{Info.MaxUses}/{Info.MaxUses}\tDP:{Info.DamagePoints}\nADP:{Info.ArmorDamage}";
-			// 	break;
+			case 5:
+				Info.Tag 			= Tags.Mallet;
+				Info.Rarity 		= Rarity.Rare;
+				Info.Type 			= Types.Weapon;
+				Info.MaxUses 		= 6;
+				Info.CurrentUses 	= Info.MaxUses;
+				Info.Name 			= "MALLET";
+				Info.DamagePoints 	= 3;
+				Info.ArmorDamage 	= 0;
+				Info.IsStunning 	= true;
+				Info.Description 	= "Stuns, bounces off armor";
+				Info.Stats 			= $"\nUP:{Info.MaxUses}/{Info.MaxUses}\tDP:{Info.DamagePoints}\nADP:{Info.ArmorDamage}";
+				break;
 			// case ?:
 			// 	Info.Tag 			= Tags.Axe;
 			// 	Info.Rarity 		= Rarity.Rare;
@@ -251,7 +251,7 @@ public class ItemInfo
 			// 	Info.Description 	= "Cuts through armor";
 			// 	Info.Stats 			= $"\nUP:{Info.MaxUses}/{Info.MaxUses}\tDP:{Info.DamagePoints}\nADP:{Info.ArmorDamage}";
 			// 	break;
-			case 4:
+			case 6:
 				Info.Tag 			= Tags.DiamondChainsaw;
 				Info.Rarity 		= Rarity.Anomalous;
 				Info.Type 			= Types.Weapon;
@@ -262,7 +262,7 @@ public class ItemInfo
 				Info.Description 	= "Handheld rock saw";
 				Info.Stats 			= $"\nUP:{Info.MaxUses}/{Info.MaxUses}\tDP:{Info.DamagePoints}";
 				break;
-			case 5:
+			case 7:
 				Info.Tag 			= Tags.Tranquilizer;
 				Info.Rarity 		= Rarity.Scarce;
 				Info.Type 			= Types.Weapon;
@@ -300,7 +300,7 @@ public class ItemInfo
 			// 	Info.Description 	= "Sprays streaks of fire";
 			// 	Info.Stats 			= $"\nUP:{Info.MaxUses}/{Info.MaxUses}\tDP:{Info.DamagePoints}\nRP:{Info.Range}";
 			// 	break;
-			case 6:
+			case 8:
 				Info.Tag 			= Tags.HuntingRifle;
 				Info.Rarity 		= Rarity.Rare;
 				Info.Type 			= Types.Weapon;
@@ -312,7 +312,7 @@ public class ItemInfo
 				Info.Description 	= "Fires armor piercing rounds";
 				Info.Stats 			= $"\nUP:{Info.MaxUses}/{Info.MaxUses}\tDP:{Info.DamagePoints}\nRP:{Info.Range}";
 				break;
-			case 7:
+			case 9:
 				Info.Tag 			= Tags.PlasmaRailgun;
 				Info.Rarity 		= Rarity.Anomalous;
 				Info.Type 			= Types.Weapon;
