@@ -8,31 +8,41 @@ using UnityEngine.Tilemaps;
 /// </summary>
 public class Player : MonoBehaviour
 {
+	#region DATA
 	private readonly int maxHealth = 3;
 	private int maxEnergy = 3;
 	private int currentHealth = 3;
 	public int CurrentEnergy { get; private set; } = 3;
 	public int DamagePoints { get; private set; } = 0;
+	private bool hasHelmet = false;
+	private bool hasVest = false;
+	private bool hasShield = false;
+	private bool hasBackpack = false;
+	#endregion
 	public Profession Profession = new(Profession.Tags.Unknown, 0);
+	#region AUDIO
 	public AudioClip PlayerMove;
 	public AudioClip Heal;
 	public AudioClip Select;
 	public AudioClip Attack;
 	public AudioClip GameOver;
 	private Animator Animator;
+	#endregion
+	#region INVENTORY
 	public Inventory Inventory;
 	public InventoryUI InventoryUI;
 	public ItemInfo SelectedItemInfo = null;
 	public StatsDisplayManager StatsDisplayManager;
-	public bool FinishedInit { get; private set; } = false;
-	public bool IsInMovement { get; set; } = false;
+	#endregion
 	#region PATHFINDING
+	public bool IsInMovement { get; set; } = false;
 	public Tilemap TilemapGround;
 	public Tilemap TilemapWalls;
 	private Stack<Vector3Int> Path;
 	private Vector3Int Destination;
 	private AStar AStar;
 	#endregion
+	public bool FinishedInit { get; private set; } = false;
 	// Start is called before the first frame update
 	protected virtual void Start()
 	{
@@ -148,9 +158,9 @@ public class Player : MonoBehaviour
 		}
 	}
 	/// <summary>
-	/// Decreases Player CurrentEnergy to 0
+	/// Sets Player CurrentEnergy to 0
 	/// </summary>
-	public void DecreaseEnergyToZero()
+	public void SetEnergyToZero()
 	{
 		CurrentEnergy = 0;
 	}

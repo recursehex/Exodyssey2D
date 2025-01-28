@@ -4,16 +4,23 @@ using UnityEngine.Tilemaps;
 
 public class Vehicle : MonoBehaviour
 {
+	#region DATA
 	public VehicleInfo Info;
+	private bool hasCrate = false;
+	private bool hasBattery = false;
+	private bool hasSpotlight = false;
+	#endregion
+	#region AUDIO
 	public AudioClip Move;
+	#endregion
 	#region PATHFINDING
+	public bool IsInMovement { get; set; } = false;
 	public Tilemap TilemapGround;
 	public Tilemap TilemapWalls;
 	private Stack<Vector3Int> Path;
 	private Vector3Int Destination;
 	private AStar AStar;
 	#endregion
-	public bool isInMovement = false;
 	// Start is called before the first frame update
 	void Start()
 	{
