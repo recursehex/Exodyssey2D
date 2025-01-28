@@ -441,7 +441,7 @@ public class GameManager : MonoBehaviour
 	public void OnTurnTimerEnd()
 	{
 		Tiledot.gameObject.SetActive(false);
-		Player.DecreaseEnergyToZero();
+		Player.SetEnergyToZero();
 		ClearTileAreas();
 		ClearTargetsAndTracers();
 	}
