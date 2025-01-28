@@ -5,12 +5,16 @@ using UnityEngine.Tilemaps;
 
 public class Enemy : MonoBehaviour
 {
+	#region DATA
 	public EnemyInfo Info;
+	public GameObject StunIcon;
+	#endregion
+	#region AUDIO
 	public AudioClip Move;
 	public AudioClip Attack;
-	public bool IsInMovement { get; private set; } = false;
-	public GameObject StunIcon;
+	#endregion
 	#region PATHFINDING
+	public bool IsInMovement { get; private set; } = false;
 	private Tilemap TilemapGround;
 	private Tilemap TilemapWalls;
 	private Stack<Vector3Int> Path;
