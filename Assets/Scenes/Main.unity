@@ -875,9 +875,11 @@ MonoBehaviour:
   indexOfMovingEnemy: -1
   ItemTemplates:
   - {fileID: 5730536483717399719, guid: 449c9aea6710b3947a699d611aea06d5, type: 3}
+  - {fileID: 5730536483717399719, guid: 293e475c4b5994972b873798f17031b4, type: 3}
   - {fileID: 1336611518689343522, guid: 176769378e4b4604a8be4ff8a9b0df0d, type: 3}
   - {fileID: 2145379877062402088, guid: 076e796f14b824f9ea393fded31f3400, type: 3}
   - {fileID: 2145379877062402088, guid: 5330247c7099b4f6eba5d8daa116a07a, type: 3}
+  - {fileID: 2145379877062402088, guid: d0e2c363d7b924e309551944b58d7881, type: 3}
   - {fileID: 142956206023105660, guid: 26546f8ae20dd2d418e1c49d62c10717, type: 3}
   - {fileID: 2145379877062402088, guid: c764a49bc54304cfea3d5623e9e61bb7, type: 3}
   - {fileID: 2145379877062402088, guid: ba8e62b527e3c4b2c8c15ddde698b587, type: 3}
@@ -898,7 +900,6 @@ MonoBehaviour:
   TileAreas: []
   TargetTemplate: {fileID: 3235571212307580798, guid: 0d83749970d77b24286906dba172abc5, type: 3}
   Targets: []
-  TargetPositions: []
   TracerTemplate: {fileID: 3235571212307580798, guid: de10de49d7c9041c0a48f6db8a694380, type: 3}
   Tracers: []
   TracerPath: []
@@ -997,59 +998,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 514329634}
   m_CullTransparentMesh: 1
---- !u!1 &514509756
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 514509758}
-  - component: {fileID: 514509757}
-  m_Layer: 0
-  m_Name: ItemAssets
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &514509757
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 514509756}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5ea46a8a2944f9b4a8d34b9eb20731f8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  MedKit: {fileID: 21300000, guid: e63fa49fd71466949a49c86ab02643bb, type: 3}
-  Branch: {fileID: 21300000, guid: 77498a5f92be416449a3dbf6e241737c, type: 3}
-  Knife: {fileID: 21300000, guid: 0dc086c1ca50045f38730aa9f1109c37, type: 3}
-  Wrench: {fileID: 21300000, guid: ed0ee08a68f0b4c81b24ff5c2ba753e6, type: 3}
-  DiamondChainsaw: {fileID: 21300000, guid: 902c95ac0d6b08143854f794969f02ff, type: 3}
-  Tranquilizer: {fileID: 21300000, guid: 6a4c2cd8540b043b4b7116cfd06e7e73, type: 3}
-  HuntingRifle: {fileID: 21300000, guid: d38d13e653a2c42e382135c5afbd03f1, type: 3}
-  PlasmaRailgun: {fileID: 21300000, guid: 44a709f75a513444f93f80c9cfb4310a, type: 3}
-  Missing: {fileID: 21300000, guid: 444ca3841fdde9a41ad47e59ee6e79ec, type: 3}
---- !u!4 &514509758
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 514509756}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -3818,7 +3766,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   timeRemaining: 15
-  timerLimit: 15
   timerIsRunning: 0
   TimeText: {fileID: 2083751134}
 --- !u!114 &2083751134
@@ -4065,4 +4012,3 @@ SceneRoots:
   - {fileID: 215762114}
   - {fileID: 1238732183}
   - {fileID: 1924472067}
-  - {fileID: 514509758}
