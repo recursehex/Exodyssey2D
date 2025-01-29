@@ -23,7 +23,7 @@ public class ItemInfo
 		Knife,
 		Wrench,
 		Mallet,
-		//Axe,
+		FireAxe,
 		DiamondChainsaw,
 
 		// RANGED
@@ -165,9 +165,9 @@ public class ItemInfo
 				Info.MaxUses 		= 1;
 				Info.CurrentUses 	= Info.MaxUses;
 				Info.Description 	= "Fully repairs vehicles";
-				Info.Stats 			= "\nUP:" + Info.MaxUses;
+				Info.Stats 			= $"\nUP:{Info.MaxUses}/{Info.MaxUses}";
 				break;
-			// case ?:
+			// case 2:
 			// 	Info.Tag 			= Tags.FusionCell;
 			// 	Info.Rarity 		= Rarity.Common;
 			// 	Info.Type 			= Types.Consumable;
@@ -176,7 +176,7 @@ public class ItemInfo
 			// 	Info.CurrentUses 	= Info.MaxUses; 	// current charge
 			// 	Info.IsFlammable 	= true;
 			// 	Info.Description 	= "Powers vehicles";
-			// 	Info.Stats 			= $"\n\UP:{Info.MaxUses}";
+			// 	Info.Stats 			= $"\n\CHARGE:{Info.MaxUses}/{Info.MaxUses}";
 			// 	break;
 			case 2:
 				Info.Tag 			= Tags.Branch;
@@ -228,19 +228,19 @@ public class ItemInfo
 				Info.Description 	= "Stuns, bounces off armor";
 				Info.Stats 			= $"\nUP:{Info.MaxUses}/{Info.MaxUses}\tDP:{Info.DamagePoints}\nADP:{Info.ArmorDamage}";
 				break;
-			// case ?:
-			// 	Info.Tag 			= Tags.Axe;
-			// 	Info.Rarity 		= Rarity.Rare;
-			// 	Info.Type 			= Types.Weapon;
-			// 	Info.Name 			= "AXE";
-			// 	Info.MaxUses 		= 4;
-			// 	Info.CurrentUses 	= Info.MaxUses;
-			// 	Info.DamagePoints 	= 4;
-			// 	Info.ArmorDamage 	= 2;
-			// 	Info.Description 	= "Cuts through armor";
-			// 	Info.Stats 			= $"\nUP:{Info.MaxUses}/{Info.MaxUses}\tDP:{Info.DamagePoints}\nADP:{Info.ArmorDamage}";
-			// 	break;
 			case 6:
+				Info.Tag 			= Tags.FireAxe;
+				Info.Rarity 		= Rarity.Rare;
+				Info.Type 			= Types.Weapon;
+				Info.Name 			= "FIRE AXE";
+				Info.MaxUses 		= 4;
+				Info.CurrentUses 	= Info.MaxUses;
+				Info.DamagePoints 	= 4;
+				Info.ArmorDamage 	= 2;
+				Info.Description 	= "Cuts through armor";
+				Info.Stats 			= $"\nUP:{Info.MaxUses}/{Info.MaxUses}\tDP:{Info.DamagePoints}\nADP:{Info.ArmorDamage}";
+				break;
+			case 7:
 				Info.Tag 			= Tags.DiamondChainsaw;
 				Info.Rarity 		= Rarity.Anomalous;
 				Info.Type 			= Types.Weapon;
@@ -251,7 +251,7 @@ public class ItemInfo
 				Info.Description 	= "Handheld rock saw";
 				Info.Stats 			= $"\nUP:{Info.MaxUses}/{Info.MaxUses}\tDP:{Info.DamagePoints}";
 				break;
-			case 7:
+			case 8:
 				Info.Tag 			= Tags.Tranquilizer;
 				Info.Rarity 		= Rarity.Scarce;
 				Info.Type 			= Types.Weapon;
@@ -289,7 +289,7 @@ public class ItemInfo
 			// 	Info.Description 	= "Sprays streaks of fire";
 			// 	Info.Stats 			= $"\nUP:{Info.MaxUses}/{Info.MaxUses}\tDP:{Info.DamagePoints}\nRP:{Info.Range}";
 			// 	break;
-			case 8:
+			case 9:
 				Info.Tag 			= Tags.HuntingRifle;
 				Info.Rarity 		= Rarity.Rare;
 				Info.Type 			= Types.Weapon;
@@ -301,7 +301,7 @@ public class ItemInfo
 				Info.Description 	= "Fires armor piercing rounds";
 				Info.Stats 			= $"\nUP:{Info.MaxUses}/{Info.MaxUses}\tDP:{Info.DamagePoints}\nRP:{Info.Range}";
 				break;
-			case 9:
+			case 10:
 				Info.Tag 			= Tags.PlasmaRailgun;
 				Info.Rarity 		= Rarity.Anomalous;
 				Info.Type 			= Types.Weapon;
@@ -349,7 +349,7 @@ public class ItemInfo
 				Info.DamagePoints 	= 5;
 				Info.Range 			= 3;
 				Info.IsFlammable 	= true;
-				Info.Description 	= "Fuse lights after landing";
+				Info.Description 	= "Explodes after enemy turn";
 				Info.Stats 			= $"\nUP:{Info.MaxUses}/{Info.MaxUses}\tDP:{Info.DamagePoints}\nRP:{Info.Range}";
 				break;
 			case 12:
@@ -362,7 +362,7 @@ public class ItemInfo
 				Info.DamagePoints 	= 3;
 				Info.Range 			= 5;
 				Info.IsFlammable 	= true;
-				Info.Description 	= "Sticks to enemies before detonating";
+				Info.Description 	= "Sticks to enemy and explodes";
 				Info.Stats 			= $"\nUP:{Info.MaxUses}/{Info.MaxUses}\tDP:{Info.DamagePoints}\nRP:{Info.Range}";
 				break;
 			case 14:
@@ -374,7 +374,7 @@ public class ItemInfo
 				Info.CurrentUses 	= Info.MaxUses;
 				Info.IsEquipable 	= true;
 				Info.Description 	= "Absorbs 2 melee DP";
-				Info.Stats 			= $"\n\UP:{Info.MaxUses}";
+				Info.Stats 			= $"\n\UP:{Info.MaxUses}/{Info.MaxUses}";
 				break;
 			case 15:
 				Info.Tag 			= Tags.Vest;
@@ -386,7 +386,7 @@ public class ItemInfo
 				Info.IsEquipable 	= true;
 				Info.IsFlammable 	= true;
 				Info.Description 	= "Absorbs 3 ranged DP";
-				Info.Stats 			= $"\n\UP:{Info.MaxUses}";
+				Info.Stats 			= $"\n\UP:{Info.MaxUses}/{Info.MaxUses}";
 				break;
 			case 16:
 				Info.Tag 			= Tags.GrapheneShield;
@@ -397,7 +397,7 @@ public class ItemInfo
 				Info.CurrentUses 	= Info.MaxUses;
 				Info.IsEquipable 	= true;
 				Info.Description 	= "Blocks all DP except boss DP";
-				Info.Stats 			= $"\n\UP:{Info.MaxUses}";
+				Info.Stats 			= $"\n\UP:{Info.MaxUses}/{Info.MaxUses}";
 				break;
 			case 17:
 				Info.Tag 			= Tags.Backpack;
@@ -409,7 +409,6 @@ public class ItemInfo
 				Info.IsEquipable 	= true;
 				Info.IsFlammable 	= true;
 				Info.Description 	= "Adds 1 inventory slot";
-				Info.Stats 			= $"\n\UP:{Info.MaxUses}";
 				break;
 			case 18:
 				Info.Tag 			= Tags.Crate;
@@ -420,7 +419,6 @@ public class ItemInfo
 				Info.CurrentUses 	= Info.MaxUses;
 				Info.IsAttachable 	= true;
 				Info.Description 	= "Adds 2 vehicle storage";
-				Info.Stats 			= $"\n\UP:{Info.MaxUses}";
 				break;
 			case 19:
 				Info.Tag 			= Tags.Battery;
@@ -432,7 +430,7 @@ public class ItemInfo
 				Info.IsAttachable 	= true;
 				Info.IsFlammable 	= true;
 				Info.Description 	= "Adds 5 fuel slots";
-				Info.Stats 			= $"\n\UP:{Info.MaxUses}";
+				Info.Stats 			= $"\n\CHARGE:{Info.MaxUses}/{Info.MaxUses}";
 				break;
 			case 20:
 				Info.Tag 			= Tags.Lightrod;
@@ -451,7 +449,7 @@ public class ItemInfo
 				Info.CurrentUses 	= Info.MaxUses;
 				Info.IsFlammable 	= true;
 				Info.Description 	= "Extinguishes fires";
-				Info.Stats 			= $"\n\UP:{Info.MaxUses}";
+				Info.Stats 			= $"\n\UP:{Info.MaxUses}/{Info.MaxUses}";
 				break;
 			case 22:
 				Info.Tag 			= Tags.Spotlight;
@@ -470,7 +468,7 @@ public class ItemInfo
 				Info.CurrentUses 	= Info.MaxUses;
 				Info.IsFlammable 	= true;
 				Info.Description 	= "Sets objects on fire";
-				Info.Stats 			= $"\n\UP:{Info.MaxUses}";
+				Info.Stats 			= $"\n\UP:{Info.MaxUses}/{Info.MaxUses}";
 				break;
 			case 24:
 				Info.Tag 			= Tags.ThermalImager;
@@ -480,7 +478,7 @@ public class ItemInfo
 				Info.MaxUses 		= 4;
 				Info.CurrentUses 	= Info.MaxUses;
 				Info.Description 	= "Reveals heat signatures";
-				Info.Stats 			= $"\n\UP:{Info.MaxUses}";
+				Info.Stats 			= $"\n\UP:{Info.MaxUses}/{Info.MaxUses}";
 				break;
 			case 25:
 				Info.Tag 			= Tags.NightVision;
