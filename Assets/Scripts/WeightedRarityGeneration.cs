@@ -50,8 +50,7 @@ public static class WeightedRarityGeneration
 		{
 			return false;
 		}
-		ItemInfo Info = ItemInfo.ItemFactory(randomItemIndex);
-		GameManager.Instance.InstantiateNewItem(Info, ChosenPosition);
+		GameManager.Instance.InstantiateNewItem(randomItemIndex, ChosenPosition);
 		return true;
 	}
 	public static bool GenerateEnemy()
@@ -66,8 +65,7 @@ public static class WeightedRarityGeneration
 		{
 			return false;
 		}
-		EnemyInfo Info = EnemyInfo.EnemyFactory(randomEnemyIndex);
-		GameManager.Instance.InstantiateNewEnemy(Info, ChosenPosition);
+		GameManager.Instance.InstantiateNewEnemy(randomEnemyIndex, ChosenPosition);
 		return true;
 	}
 }

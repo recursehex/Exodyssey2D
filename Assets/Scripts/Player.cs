@@ -343,7 +343,7 @@ public class Player : MonoBehaviour
 		}
 		InventoryUI.RefreshText();
 		// Drop item onto ground from temp slot
-		GameManager.Instance.InstantiateNewItem(DroppedItemInfo, transform.position);
+		GameManager.Instance.InstantiateNewItem(itemIndex, transform.position);
 		// Removes item from inventory and plays corresponding sound
 		SoundManager.Instance.PlaySound(PlayerMove);
 	}
