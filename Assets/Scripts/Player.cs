@@ -207,9 +207,9 @@ public class Player : MonoBehaviour
 	/// <summary>
 	/// Adds item to inventory when picked up, returns false if inventory is full
 	/// </summary>
-	public bool TryAddItem(ItemInfo ItemInfo)
+	public bool TryAddItem(Item Item)
 	{
-		bool itemIsAdded = Inventory.TryAddItem(new(ItemInfo));
+		bool itemIsAdded = Inventory.TryAddItem(Item);
 		if (itemIsAdded)
 		{
 			InventoryUI.RefreshInventoryIcons();

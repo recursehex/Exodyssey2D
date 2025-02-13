@@ -2,21 +2,21 @@ using System.Collections.Generic;
 
 public class Inventory
 {
-	private readonly List<InventoryItem> InventoryList;
+	private readonly List<Item> InventoryList;
 	public int InventorySize { get; private set; } = 2;
 	public int Count => InventoryList.Count;
 	public Inventory()
 	{
 		InventoryList = new();
 	}
-	public InventoryItem this[int index]
+	public Item this[int index]
 	{
 		get => InventoryList[index];
 	}
 	/// <summary>
 	/// Returns true if Item was successfully added, returns false if inventory is full
 	/// </summary>
-	public bool TryAddItem(InventoryItem Item)
+	public bool TryAddItem(Item Item)
 	{
 		if (InventoryList.Count >= InventorySize)
 		{
