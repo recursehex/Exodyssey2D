@@ -16,7 +16,7 @@ public class ItemInfo
 		// CONSUMABLE
 		MedKit = 0,
 		ToolKit,
-		//FusionCell,
+		//PowerCell,
 
 		// MELEE
 		Branch,
@@ -108,10 +108,10 @@ public class ItemInfo
 						.Select(i => ItemFactory(i).Rarity)
 						.ToList();
 	}
-	public static int GetRandomIndexOfSpecifiedRarity(Rarity specifiedRarity)
+	public static int GetRandomIndexOfSpecifiedRarity(Rarity SpecifiedRarity)
 	{
 		var indices = Enumerable.Range(0, ItemRarityList.Count)
-								.Where(i => ItemRarityList[i] == specifiedRarity)
+								.Where(i => ItemRarityList[i] == SpecifiedRarity)
 								.ToList();
 		if (indices.Count == 0)
 			return -1;
@@ -168,11 +168,11 @@ public class ItemInfo
 				Info.Stats 			= $"\nUP:{Info.MaxUses}/{Info.MaxUses}";
 				break;
 			// case 2:
-			// 	Info.Tag 			= Tags.FusionCell;
+			// 	Info.Tag 			= Tags.PowerCell;
 			// 	Info.Rarity 		= Rarity.Common;
 			// 	Info.Type 			= Types.Consumable;
-			// 	Info.Name 			= "FUSION CELL";
-			// 	Info.MaxUses 		= 1; 				// max charge
+			// 	Info.Name 			= "POWER CELL";
+			// 	Info.MaxUses 		= 5; 				// max charge
 			// 	Info.CurrentUses 	= Info.MaxUses; 	// current charge
 			// 	Info.IsFlammable 	= true;
 			// 	Info.Description 	= "Powers vehicles";
@@ -429,7 +429,7 @@ public class ItemInfo
 				Info.CurrentUses 	= Info.MaxUses; 	// current charge
 				Info.IsAttachable 	= true;
 				Info.IsFlammable 	= true;
-				Info.Description 	= "Adds 5 fuel slots";
+				Info.Description 	= "Adds power cell slot";
 				Info.Stats 			= $"\n\CHARGE:{Info.MaxUses}/{Info.MaxUses}";
 				break;
 			case 20:

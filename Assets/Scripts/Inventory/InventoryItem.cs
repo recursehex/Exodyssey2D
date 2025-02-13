@@ -13,7 +13,7 @@ public class InventoryItem
 		{
 			ItemInfo.Tags.MedKit => Resources.Load<Sprite>("Sprites/medkit"),
 			ItemInfo.Tags.ToolKit => Resources.Load<Sprite>("Sprites/toolkit"),
-			// ItemInfo.Tags.FusionCell => ItemAssets.Instance.FusionCell,
+			// ItemInfo.Tags.PowerCell => ItemAssets.Instance.PowerCell,
 			ItemInfo.Tags.Branch => Resources.Load<Sprite>("Sprites/branch"),
 			ItemInfo.Tags.Knife => Resources.Load<Sprite>("Sprites/knife"),
 			ItemInfo.Tags.Wrench => Resources.Load<Sprite>("Sprites/wrench"),

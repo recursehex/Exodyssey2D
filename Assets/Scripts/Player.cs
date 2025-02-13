@@ -19,8 +19,8 @@ public class Player : MonoBehaviour
 	private bool hasShield = false;
 	private bool hasBackpack = false;
 	private bool hasNightVision = false;
-	#endregion
 	public Profession Profession = new(Profession.Tags.Unknown, 0);
+	#endregion
 	#region AUDIO
 	public AudioClip PlayerMove;
 	public AudioClip Heal;
