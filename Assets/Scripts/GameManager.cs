@@ -208,11 +208,10 @@ public class GameManager : MonoBehaviour
 	/// <summary>
 	/// Instantiates Item at Position
 	/// </summary>
-	public void InstantiateNewItem(ItemInfo NewItemInfo, Vector3 Position)
+	public void InstantiateNewItem(int index, Vector3 Position)
 	{
-		int index = (int)NewItemInfo.Tag;
 		Item NewItem = Instantiate(ItemTemplates[index], Position, Quaternion.identity).GetComponent<Item>();
-		NewItem.Info = NewItemInfo;
+		NewItem.Info = ItemInfo.ItemFactory(index);
 		Items.Add(NewItem);
 	}
 	/// <summary>
@@ -274,11 +273,10 @@ public class GameManager : MonoBehaviour
 	/// <summary>
 	/// Instantiates Enemy at Position
 	/// </summary>
-	public void InstantiateNewEnemy(EnemyInfo NewEnemyInfo, Vector3 Position)
+	public void InstantiateNewEnemy(int index, Vector3 Position)
 	{
-		int index = (int)NewEnemyInfo.Tag;
 		Enemy NewEnemy = Instantiate(EnemyTemplates[index], Position, Quaternion.identity).GetComponent<Enemy>();
-		NewEnemy.Initialize(TilemapGround, TilemapWalls, NewEnemyInfo);
+		NewEnemy.Initialize(TilemapGround, TilemapWalls, EnemyInfo.EnemyFactory(index));
 		Enemies.Add(NewEnemy);
 	}
 	/// <summary>
