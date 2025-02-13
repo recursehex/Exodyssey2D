@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Assets.Scripts;
+using System.Linq;
 
 public class EnemyInfo
 {
@@ -35,7 +36,7 @@ public class EnemyInfo
 	// Rarity of enemy
 	private Rarity Rarity = Rarity.Common;
 	// Type of enemy
-	// private Types Type = Types.Unknown;
+	private Types Type = Types.Unknown;
 	// Ingame name of enemy
 	public string Name { get; private set; } = "UNKNOWN";
 	// Maximum health
@@ -60,30 +61,18 @@ public class EnemyInfo
 	private static readonly List<Rarity> EnemyRarityList = GenerateAllRarities();
 	private static List<Rarity> GenerateAllRarities()
 	{
-		List<Rarity> EnemyRarityList = new();
-		for (int i = 0; i < lastEnemyIndex; i++)
-		{
-			EnemyInfo Enemy = EnemyFactory(i);
-			EnemyRarityList.Add(Enemy.Rarity);
-		}
-		return EnemyRarityList;
+		return Enumerable.Range(0, lastEnemyIndex)
+						.Select(i => EnemyFactory(i).Rarity)
+						.ToList();
 	}
 	public static int GetRandomIndexOfSpecifiedRarity(Rarity SpecifiedRarity)
 	{
-		List<int> IndicesOfSpecifiedRarity = new();
-		for (int i = 0; i < EnemyRarityList.Count; i++)
-		{
-			if (EnemyRarityList[i] == SpecifiedRarity) 
-			{
-				IndicesOfSpecifiedRarity.Add(i);
-			}
-		}
-		if (IndicesOfSpecifiedRarity.Count == 0)
-		{
+		var indices = Enumerable.Range(0, EnemyRarityList.Count)
+								.Where(i => EnemyRarityList[i] == SpecifiedRarity)
+								.ToList();
+		if (indices.Count == 0)
 			return -1;
-		}
-		int randomIndex = Random.Range(0, IndicesOfSpecifiedRarity.Count);
-		return IndicesOfSpecifiedRarity[randomIndex];
+		return indices[Random.Range(0, indices.Count)];
 	}
 	/// <summary>
 	/// Decreases CurrentHealth by 1
@@ -115,29 +104,29 @@ public class EnemyInfo
 		switch (n)
 		{
 			case 0:
-				Info.Tag = Tags.Crawler;
-				Info.Rarity = Rarity.Common;
-				// Info.Type = Types.Weak;
-				Info.maxHealth = 2;
-				Info.CurrentHealth = Info.maxHealth;
-				Info.maxEnergy = 1;
-				Info.CurrentEnergy = Info.maxEnergy;
-				Info.DamagePoints = 1;
-				Info.Name = "CRAWLER";
-				Info.IsHunting = true;
+				Info.Tag 			= Tags.Crawler;
+				Info.Rarity 		= Rarity.Common;
+				Info.Type 			= Types.Weak;
+				Info.maxHealth 		= 2;
+				Info.CurrentHealth 	= Info.maxHealth;
+				Info.maxEnergy 		= 1;
+				Info.CurrentEnergy 	= Info.maxEnergy;
+				Info.DamagePoints 	= 1;
+				Info.Name 			= "CRAWLER";
+				Info.IsHunting 		= true;
 				break;
 			case 1:
-				Info.Tag = Tags.Launcher;
-				Info.Rarity = Rarity.Limited;
-				// Info.Type = Types.Mediocre;
-				Info.maxHealth = 4;
-				Info.CurrentHealth = Info.maxHealth;
-				Info.maxEnergy = 2;
-				Info.CurrentEnergy = Info.maxEnergy;
-				Info.DamagePoints = 2;
-				Info.Range = 3;
-				Info.Name = "LAUNCHER";
-				Info.IsHunting = false;
+				Info.Tag 			= Tags.Launcher;
+				Info.Rarity 		= Rarity.Limited;
+				Info.Type 			= Types.Mediocre;
+				Info.maxHealth 		= 4;
+				Info.CurrentHealth 	= Info.maxHealth;
+				Info.maxEnergy 		= 2;
+				Info.CurrentEnergy 	= Info.maxEnergy;
+				Info.DamagePoints 	= 2;
+				Info.Range 			= 3;
+				Info.Name 			= "LAUNCHER";
+				Info.IsHunting 		= false;
 				break;
 		}
 		return Info;
