@@ -141,7 +141,7 @@ public class InventoryUI : MonoBehaviour
 		int itemIndex = 0;
 		while (itemIndex < Inventory.Count)
 		{
-			InventoryItem Item = Inventory[itemIndex];
+			Item Item = Inventory[itemIndex];
 			Image Icon = GameObject.Find("InventoryIcon" + itemIndex).GetComponent<Image>();
 			Vector3 IconPosition = Icon.transform.position;
 			if (Math.Abs(IconPosition.x - MousePosition.x) <= sensitivityDistance

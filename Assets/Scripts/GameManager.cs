@@ -516,7 +516,7 @@ public class GameManager : MonoBehaviour
 			&& GetItemAtPosition(ShiftedClickPoint) is Item ItemAtPosition)
 		{
 			// Player picks up item
-			if (Player.TryAddItem(ItemAtPosition.Info))
+			if (Player.TryAddItem(ItemAtPosition))
 			{
 				DestroyItemAtPosition(ShiftedClickPoint);
 			}
