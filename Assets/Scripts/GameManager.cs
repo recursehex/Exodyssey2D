@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Tilemaps;
+using UnityEditorInternal.Profiling.Memory.Experimental;
 
 public class GameManager : MonoBehaviour
 {
@@ -41,7 +42,6 @@ public class GameManager : MonoBehaviour
 	[SerializeField] private Tilemap TilemapExit;
 	#endregion
 	#region TILEAREAS
-	[SerializeField] private bool needToDrawTileAreas = false;
 	[SerializeField] private List<GameObject> TileAreas = new();
 	private Dictionary<Vector3Int, Node> TileAreasToDraw = null;
 	#endregion
@@ -90,15 +90,12 @@ public class GameManager : MonoBehaviour
 		{
 			return;
 		}
-		
-		DrawTileAreaIfNeeded();
-		
+		DrawTileAreas();
 		if (EndTurnButton.interactable == false
 			&& playersTurn)
 		{
 			EndTurnButton.interactable = true;
 		}
-		
 		MouseInput();
 		EnemyMovement();
 	}
@@ -137,7 +134,6 @@ public class GameManager : MonoBehaviour
 	void InitGame()
 	{
 		doingSetup = true;
-		needToDrawTileAreas = true;
 		LevelImage.SetActive(true);
 		LevelText.gameObject.SetActive(true);
 		DayText.gameObject.SetActive(true);
@@ -219,7 +215,7 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	public bool HasItemAtPosition(Vector3 Position)
 	{
-		return Items.Find(Item => Item.transform.position == Position) != null;
+		return GetItemAtPosition(Position) != null;
 	}
 	/// <summary>
 	/// Returns null if no item at position, returns Item if found
@@ -276,7 +272,7 @@ public class GameManager : MonoBehaviour
 	public void InstantiateNewEnemy(int index, Vector3 Position)
 	{
 		Enemy NewEnemy = Instantiate(EnemyTemplates[index], Position, Quaternion.identity).GetComponent<Enemy>();
-		NewEnemy.Initialize(TilemapGround, TilemapWalls, EnemyInfo.EnemyFactory(index));
+		NewEnemy.Initialize(TilemapGround, TilemapWalls, EnemyInfo.EnemyFactory(index), Player);
 		Enemies.Add(NewEnemy);
 	}
 	/// <summary>
@@ -342,7 +338,7 @@ public class GameManager : MonoBehaviour
 			ClearTargetsAndTracers();
 			needToStartEnemyMovement = false;
 			indexOfMovingEnemy = 0;
-			Enemies[indexOfMovingEnemy].ComputePathAndStartMovement(Player.transform.position);
+			Enemies[indexOfMovingEnemy].ComputePathAndStartMovement();
 			enemiesInMovement = true;
 			return;
 		}
@@ -353,7 +349,7 @@ public class GameManager : MonoBehaviour
 			if (indexOfMovingEnemy < Enemies.Count - 1)
 			{
 				indexOfMovingEnemy++;
-				Enemies[indexOfMovingEnemy].ComputePathAndStartMovement(Player.transform.position);
+				Enemies[indexOfMovingEnemy].ComputePathAndStartMovement();
 				return;
 			}
 			EndEnemyTurn();
@@ -369,9 +365,7 @@ public class GameManager : MonoBehaviour
 		TurnTimer.ResetTimer();
 		playersTurn = true;
 		EndTurnButton.interactable = true;
-		needToDrawTileAreas = true;
 		Tiledot.gameObject.SetActive(true);
-		DrawTileAreaIfNeeded();
 		DrawTargetsAndTracers();
 	}
 	/// <summary>
@@ -407,10 +401,9 @@ public class GameManager : MonoBehaviour
 	}
 	#endregion
 	#region PLAYER METHODS
-	public void EndTurnTimer()
+	public void StopTurnTimer()
 	{
-		TurnTimer.timeRemaining = 0;
-		TurnTimer.timerIsRunning = false;
+		TurnTimer.StopTimer();
 	}
 	/// <summary>
 	/// Called by EndTurnButton, redraws tile areas, resets timer, resets energy
@@ -426,7 +419,6 @@ public class GameManager : MonoBehaviour
 		TurnTimer.ResetTimer();
 		playersTurn = false;
 		Player.RestoreEnergy();
-		needToDrawTileAreas = true;
 		if (Enemies.Count == 0)
 		{
 			Tiledot.gameObject.SetActive(true);
@@ -530,7 +522,6 @@ public class GameManager : MonoBehaviour
 		{
 			return;
 		}
-		needToDrawTileAreas = true;
 		TurnTimer.StartTimer();
 	}
 	/// <summary>
@@ -544,7 +535,6 @@ public class GameManager : MonoBehaviour
 		{
 			EndTurnButton.interactable = false;
 			Player.IsInMovement = true;
-			needToDrawTileAreas = true;
 			Player.ComputePathAndStartMovement(WorldPoint);
 			ClearTileAreas();
 			TurnTimer.StartTimer();
@@ -563,7 +553,6 @@ public class GameManager : MonoBehaviour
 		{
 			HandleDamageToEnemy(enemyIndex);
 			Player.AttackEnemy();
-			needToDrawTileAreas = true;
 			TurnTimer.StartTimer();
 			if (isInRangedWeaponRange
 				&& Player.SelectedItemInfo?.CurrentUses == 0)
@@ -580,13 +569,11 @@ public class GameManager : MonoBehaviour
 		return CellBounds.Contains(TilePoint);
 	}
 	/// <summary>
-	/// Called when Player takes damage to decrease health and redraw tile areas
+	/// Called when Player takes damage to decrease health
 	/// </summary>
 	public void HandleDamageToPlayer(int damage)
 	{
-		Player.DecreaseHealth(damage);
-		needToDrawTileAreas = true;
-		DrawTileAreaIfNeeded();
+		Player.DecreaseHealthBy(damage);
 	}
 	/// <summary>
 	/// Checks if tile is within range based on Player energy
@@ -630,11 +617,11 @@ public class GameManager : MonoBehaviour
 	/// <summary>
 	/// Redraws tile areas when Player energy changes
 	/// </summary>
-	private void DrawTileAreaIfNeeded()
+	private void DrawTileAreas()
 	{
 		if (!Player.IsInMovement
-			&& needToDrawTileAreas
-			&& playersTurn)
+			&& playersTurn
+			&& Player.CurrentEnergy > 0)
 		{
 			ClearTileAreas();
 			TileAreasToDraw = Player.CalculateArea();
@@ -647,7 +634,6 @@ public class GameManager : MonoBehaviour
 					TileAreas.Add(TileAreaInstance);
 				}
 			}
-			needToDrawTileAreas = false;
 		}
 	}
 	#endregion
@@ -692,7 +678,6 @@ public class GameManager : MonoBehaviour
 					continue;
 				}
 				Vector3 EnemyPoint = Enemy.transform.position;
-				bool canTargetEnemy = IsInLineOfSight(Player.transform.position, EnemyPoint, weaponRange);
 				if (TracerPath.Count > 0)
 				{
 					foreach (Vector3 tracerPosition in TracerPath)
@@ -701,7 +686,7 @@ public class GameManager : MonoBehaviour
 						Tracers.Add(Tracer);
 					}
 				}
-				if (canTargetEnemy)
+				if (IsInLineOfSight(Player.transform.position, EnemyPoint, weaponRange))
 				{
 					GameObject Target = Instantiate(TargetTemplate, Enemy.transform.position, Quaternion.identity);
 					Targets.Add(Target);

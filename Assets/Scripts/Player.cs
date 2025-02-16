@@ -64,7 +64,6 @@ public class Player : MonoBehaviour
 		{
 			return;
 		}
-		DecreaseEnergy(Path.Count - 1);
 		Path.Pop();
 		Destination = Path.Pop();
 		IsInMovement = true;
@@ -77,6 +76,7 @@ public class Player : MonoBehaviour
 	{
 		while (Path != null && Path.Count >= 0)
 		{
+			DecrementEnergy();
 			SoundManager.Instance.PlaySound(PlayerMove);
 			Vector3 ShiftedDistance = new(Destination.x + 0.5f, Destination.y + 0.5f, Destination.z);
 			while (Vector3.Distance(transform.position, ShiftedDistance) > 0f)
@@ -86,7 +86,7 @@ public class Player : MonoBehaviour
 			}
 			if (Path != null && Path.Count > 0)
 			{
-				Destination = Path.Pop();	
+				Destination = Path.Pop();
 			}
 			else
 			{
@@ -113,7 +113,7 @@ public class Player : MonoBehaviour
 	/// <summary>
 	/// Decreases currentHealth by damage and updates Health display
 	/// </summary>
-	public void DecreaseHealth(int damage)
+	public void DecreaseHealthBy(int damage)
 	{
 		currentHealth = Mathf.Clamp(currentHealth - damage, 0, maxHealth);
 		// Player is killed
@@ -138,7 +138,7 @@ public class Player : MonoBehaviour
 	/// <summary>
 	/// Restores Player Health to maxHealth
 	/// </summary>
-	public void RestoreHealth() 
+	private void RestoreHealth() 
 	{
 		currentHealth = maxHealth;
 		StatsDisplayManager.RestoreHealthDisplay();
@@ -146,16 +146,16 @@ public class Player : MonoBehaviour
 		maxEnergy = 3;
 	}
 	/// <summary>
-	/// Decreases CurrentEnergy and updates energy display
+	/// Decreases CurrentEnergy by 1 and updates energy display
 	/// </summary>
-	public void DecreaseEnergy(int decrement)
+	private void DecrementEnergy()
 	{
-		CurrentEnergy = Mathf.Clamp(CurrentEnergy - decrement, 0, maxEnergy);
+		CurrentEnergy = Mathf.Clamp(--CurrentEnergy, 0, maxEnergy);
 		StatsDisplayManager.DecreaseEnergyDisplay(CurrentEnergy, maxEnergy);
 		// End turn and stop timer if CurrentEnergy reaches 0
 		if (CurrentEnergy == 0)
 		{
-			GameManager.Instance.EndTurnTimer();
+			GameManager.Instance.StopTurnTimer();
 		}
 	}
 	/// <summary>
@@ -179,14 +179,14 @@ public class Player : MonoBehaviour
 	public void AttackEnemy()
 	{
 		SoundManager.Instance.PlaySound(Attack);
-		DecreaseEnergy(1);
-		DecreaseWeaponDurability();
+		DecrementEnergy();
+		DecrementWeaponDurability();
 		Animator.SetTrigger("playerAttack");
 	}
 	/// <summary>
 	/// Decreases weapon durability by 1, removes weapon if uses == 0
 	/// </summary>
-	public void DecreaseWeaponDurability()
+	public void DecrementWeaponDurability()
 	{
 		SelectedItemInfo.DecreaseDurability();
 		InventoryUI.SetCurrentSelected(InventoryUI.SelectedIndex);
@@ -209,12 +209,12 @@ public class Player : MonoBehaviour
 	/// </summary>
 	public bool TryAddItem(Item Item)
 	{
-		bool itemIsAdded = Inventory.TryAddItem(Item);
-		if (itemIsAdded)
+		if (Inventory.TryAddItem(Item))
 		{
 			InventoryUI.RefreshInventoryIcons();
+			return true;
 		}
-		return itemIsAdded;
+		return false;
 	}
 	/// <summary>
 	/// Clicks on item in inventory, called by InventoryIcons
@@ -228,9 +228,8 @@ public class Player : MonoBehaviour
 			return;
 		}
 		ItemInfo ClickedItem = Inventory[itemIndex].Info;
-		bool wasSelected = InventoryUI.ProcessSelection(InventoryUI.SelectedIndex, itemIndex);
 		// If item is selected, update selection, otherwise reset
-		if (wasSelected)
+		if (InventoryUI.ProcessSelection(InventoryUI.SelectedIndex, itemIndex))
 		{
 			InventoryUI.SetCurrentSelected(itemIndex);
 			SelectedItemInfo = ClickedItem;
@@ -287,7 +286,7 @@ public class Player : MonoBehaviour
 			// Uses energy if profession is not medic
 			if (Profession.Tag is not Profession.Tags.Medic)
 			{
-				DecreaseEnergy(1);
+				DecrementEnergy();
 			}
 			// Uses MedKit if profession is not medic level 2
 			if (!(Profession.Level >= 2 && Profession.Tag is Profession.Tags.Medic))
@@ -343,7 +342,7 @@ public class Player : MonoBehaviour
 		}
 		InventoryUI.RefreshText();
 		// Drop item onto ground from temp slot
-		GameManager.Instance.InstantiateNewItem(itemIndex, transform.position);
+		GameManager.Instance.InstantiateNewItem((int)DroppedItemInfo.Tag, transform.position);
 		// Removes item from inventory and plays corresponding sound
 		SoundManager.Instance.PlaySound(PlayerMove);
 	}
