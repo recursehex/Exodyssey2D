@@ -19,24 +19,22 @@ public class Enemy : MonoBehaviour
 	private Tilemap TilemapWalls;
 	private Stack<Vector3Int> Path;
 	private Vector3Int Destination;
+	private Player Player;
 	private AStar AStar;
 	#endregion
-	// Start is called before the first frame update
-	protected virtual void Start()
-	{
-		StunIcon = Instantiate(StunIcon, transform.position, Quaternion.identity);
-	}
-	public void Initialize(Tilemap TilemapGround, Tilemap TilemapWalls, EnemyInfo Info)
+	public void Initialize(Tilemap TilemapGround, Tilemap TilemapWalls, EnemyInfo Info, Player Player)
 	{
 		this.TilemapGround = TilemapGround;
 		this.TilemapWalls = TilemapWalls;
 		this.Info = Info;
 		AStar = new(this.TilemapGround, this.TilemapWalls);
+		this.Player = Player;
+		StunIcon = Instantiate(StunIcon, transform.position, Quaternion.identity);
 	}
 	/// <summary>
 	/// Calculates path for Enemy to move to and handles first move of turn
 	/// </summary>
-	public void ComputePathAndStartMovement(Vector3 Goal)
+	public void ComputePathAndStartMovement()
 	{
 		// Stuns enemy for one turn
 		if (Info.IsStunned)
@@ -47,7 +45,7 @@ public class Enemy : MonoBehaviour
 		StunIcon.SetActive(false);
 		AStar.Initialize();
 		AStar.SetAllowDiagonal(false);
-		Path = AStar.ComputePath(transform.position, Goal);
+		Path = AStar.ComputePath(transform.position, Player.transform.position);
 		// Compute path to Player and prevent enemy from colliding into Player
 		if (Path != null && Info.CurrentEnergy > 0 && Path.Count > 2)
 		{
@@ -74,9 +72,7 @@ public class Enemy : MonoBehaviour
 		{
 			while (Info.CurrentEnergy > 0)
 			{
-				Info.DecrementEnergy();
-				SoundManager.Instance.PlaySound(Attack);
-				GameManager.Instance.HandleDamageToPlayer(Info.DamagePoints);
+				AttackPlayer();
 			}
 		}
 		// If no path to Player, do not start moving
@@ -110,9 +106,7 @@ public class Enemy : MonoBehaviour
 			// Enemy attacks Player if enemy moves to an adjacent tile
 			else if (Path.Count == 1 && Info.CurrentEnergy > 0)
 			{
-				Info.DecrementEnergy();
-				SoundManager.Instance.PlaySound(Attack);
-				GameManager.Instance.HandleDamageToPlayer(Info.DamagePoints);
+				AttackPlayer();
 			}
 			else
 			{
@@ -134,5 +128,11 @@ public class Enemy : MonoBehaviour
 	public void RestoreEnergy()
 	{
 		Info.RestoreEnergy();
+	}
+	private void AttackPlayer()
+	{
+		Info.DecrementEnergy();
+		SoundManager.Instance.PlaySound(Attack);
+		GameManager.Instance.HandleDamageToPlayer(Info.DamagePoints);
 	}
 }
