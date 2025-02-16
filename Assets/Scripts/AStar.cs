@@ -16,7 +16,6 @@ public class AStar
 	private HashSet<Node> OpenList;
 	private HashSet<Node> ClosedList;
 	private Dictionary<Vector3Int, Node> AllNodes;
-	private static HashSet<Vector3Int> NoDiagonalTiles { get; set; }
 	private Vector3Int StartPosition;
 	private Vector3Int GoalPosition;
 	private bool allowDiagonal = true;
@@ -28,7 +27,6 @@ public class AStar
 	public void Initialize()
 	{
 		AllNodes = new();
-		NoDiagonalTiles = new();
 	}
 	public void SetAllowDiagonal(bool flag)
 	{
@@ -37,25 +35,26 @@ public class AStar
 	public Dictionary<Vector3Int, Node> GetReachableAreaByDistance(Vector3 Start, int distance)
 	{
 		Vector3Int StartInt = TilemapGround.WorldToCell(Start);
-		Dictionary<Vector3Int, Node> ReachableArea = new();
-		List<Node> ToExamineList = new()
+		Dictionary<Vector3Int, Node> ReachableArea = new() { [StartInt] = new Node(StartInt) };
+		List<Node> CurrentLayer = new() { new(StartInt) };
+
+		for (int d = 0; d < distance; d++)
 		{
-			new(StartInt)
-		};
-		// Checks within AP distance limit for reachable tiles, pseudo-recursive
-		for (int i = 0; i < distance; i++)
-		{
-			List<Node> NewNeighbors = new();
-			for (int j = 0; j < ToExamineList.Count; j++)
+			List<Node> NextLayer = new();
+			foreach (Node Node in CurrentLayer)
 			{
-				List<Node> Neighbors = FindNeighbors(ToExamineList[j].Position);
-				for (int k = 0; k < Neighbors.Count; k++)
+				foreach (Node Neighbor in FindNeighbors(Node.Position))
 				{
-					NewNeighbors.Add(Neighbors[k]);
-					ReachableArea[Neighbors[k].Position] = Neighbors[k];
+					if (!ReachableArea.ContainsKey(Neighbor.Position))
+					{
+						ReachableArea.Add(Neighbor.Position, Neighbor);
+						NextLayer.Add(Neighbor);
+					}
 				}
 			}
-			ToExamineList = NewNeighbors;
+			if (NextLayer.Count == 0)
+				break;
+			CurrentLayer = NextLayer;
 		}
 		return ReachableArea;
 	}
@@ -109,7 +108,7 @@ public class AStar
 					&& (allowDiagonal || (!allowDiagonal && (y == 0 || x == 0))))
 				{
 					BoundsInt Size = TilemapGround.cellBounds;
-					// If node is within bounds of the grid and if there is no wall tile and no enemy there and if player has any AP, then add it to the neighbors list
+					// If node is within bounds of the grid and if there is no wall tile and no enemy there, then add it to the neighbors list
 					if (Position.x >= Size.min.x
 						&& Position.x < Size.max.x
 						&& Position.y >= Size.min.y
@@ -126,17 +125,11 @@ public class AStar
 		return Neighbors;
 	}
 	private void ExamineNeighbors(List<Node> Neighbors, Node Current)
-	{
+	{	
 		for (int i = 0; i < Neighbors.Count; i++)
 		{
 			Node Neighbor = Neighbors[i];
-			int gScore = DetermineGScore(Neighbor.Position, Current.Position);
-			if (gScore == 14
-				&& NoDiagonalTiles.Contains(Neighbor.Position)
-				&& NoDiagonalTiles.Contains(Current.Position))
-			{
-				continue;
-			}
+			int gScore = 10;
 			if (OpenList.Contains(Neighbor))
 			{
 				if (Current.G + gScore < Neighbor.G)
@@ -147,7 +140,6 @@ public class AStar
 			else if (!ClosedList.Contains(Neighbor))
 			{
 				CalcValues(Current, Neighbor, GoalPosition, gScore);
-
 				// An extra check for openList containing the neighbor
 				if (!OpenList.Contains(Neighbor))
 				{
@@ -156,22 +148,6 @@ public class AStar
 				}
 			}
 		}
-	}
-	private int DetermineGScore(Vector3Int Neighbor, Vector3Int Current)
-	{
-		int gScore;
-		int x = Current.x - Neighbor.x;
-		int y = Current.y - Neighbor.y;
-		if (Math.Abs(x - y) % 2 == 1)
-		{
-			// The gScore for a vertical or horizontal node is 10
-			gScore = 10;
-		}
-		else
-		{
-			gScore = 14;
-		}
-		return gScore;
 	}
 	private void UpdateCurrentTile(ref Node Current)
 	{
@@ -193,7 +169,6 @@ public class AStar
 		{
 			// Creates a stack to contain the final path
 			Stack<Vector3Int> FinalPath = new();
-
 			// Adds the nodes to the final path
 			while (Current != null)
 			{

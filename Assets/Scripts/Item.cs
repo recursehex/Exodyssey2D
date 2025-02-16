@@ -3,10 +3,6 @@ using UnityEngine;
 public class Item : MonoBehaviour
 {
 	public ItemInfo Info;
-	public Item(ItemInfo Info)
-	{
-		this.Info = Info;
-	}
 	public Sprite GetSprite()
 	{
 		return Info.Tag switch
