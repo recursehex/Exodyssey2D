@@ -53,6 +53,7 @@ public class Player : MonoBehaviour
 		Animator = GetComponent<Animator>();
 		FinishedInit = true;
 	}
+	#region MOVEMENT METHODS
 	/// <summary>
 	/// Calculates path for Player to travel to destination for point clicked on
 	/// </summary>
@@ -110,14 +111,16 @@ public class Player : MonoBehaviour
 		AStar.Initialize();
 		return AStar.GetReachableAreaByDistance(transform.position, CurrentEnergy);
 	}
+	#endregion
+	#region HEALTH METHODS
 	/// <summary>
 	/// Decreases currentHealth by damage and updates Health display
 	/// </summary>
 	public void DecreaseHealthBy(int damage)
 	{
-		currentHealth = Mathf.Clamp(currentHealth - damage, 0, maxHealth);
+		currentHealth -= damage;
 		// Player is killed
-		if (currentHealth == 0)
+		if (currentHealth <= 0)
 		{
 			SoundManager.Instance.PlaySound(GameOver);
 			GameManager.Instance.GameOver();
@@ -145,6 +148,8 @@ public class Player : MonoBehaviour
 		SoundManager.Instance.PlaySound(Heal);
 		maxEnergy = 3;
 	}
+	#endregion
+	#region ENERGY METHODS
 	/// <summary>
 	/// Decreases CurrentEnergy by 1 and updates energy display
 	/// </summary>
@@ -164,6 +169,7 @@ public class Player : MonoBehaviour
 	public void SetEnergyToZero()
 	{
 		CurrentEnergy = 0;
+		StatsDisplayManager.DecreaseEnergyDisplay(CurrentEnergy, maxEnergy);
 	}
 	/// <summary>
 	/// Restores Player Energy to maxEnergy
@@ -173,6 +179,8 @@ public class Player : MonoBehaviour
 		CurrentEnergy = maxEnergy;
 		StatsDisplayManager.RestoreEnergyDisplay(currentHealth);
 	}
+	#endregion
+	#region ATTACK METHODS
 	/// <summary>
 	/// Handles Player variables when attacking an enemy
 	/// </summary>
@@ -204,6 +212,8 @@ public class Player : MonoBehaviour
 	{
 		return SelectedItemInfo == null ? 0 : SelectedItemInfo.Range;
 	}
+	#endregion
+	#region ITEM METHODS
 	/// <summary>
 	/// Adds item to inventory when picked up, returns false if inventory is full
 	/// </summary>
@@ -346,4 +356,5 @@ public class Player : MonoBehaviour
 		// Removes item from inventory and plays corresponding sound
 		SoundManager.Instance.PlaySound(PlayerMove);
 	}
+	#endregion
 }
