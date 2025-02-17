@@ -26,6 +26,7 @@ public class Vehicle : MonoBehaviour
 	{
 		AStar = new(TilemapGround, TilemapWalls);
 	}
+	#region HEALTH METHODS
 	public void DecreaseHealthBy(int damage)
 	{
 		Info.DecreaseHealthBy(damage);
@@ -38,6 +39,8 @@ public class Vehicle : MonoBehaviour
 	{
 		Info.RestoreHealth();
 	}
+	#endregion
+	#region FUEL METHODS
 	public void RefuelBy(int amount)
 	{
 		Info.RefuelBy(ref amount);
@@ -54,4 +57,5 @@ public class Vehicle : MonoBehaviour
 		Info.DecreaseHealthBy(amount);
 		return true;
 	}
+	#endregion
 }

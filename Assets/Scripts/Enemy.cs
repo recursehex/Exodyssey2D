@@ -31,6 +31,7 @@ public class Enemy : MonoBehaviour
 		this.Player = Player;
 		StunIcon = Instantiate(StunIcon, transform.position, Quaternion.identity);
 	}
+	#region MOVEMENT
 	/// <summary>
 	/// Calculates path for Enemy to move to and handles first move of turn
 	/// </summary>
@@ -116,6 +117,8 @@ public class Enemy : MonoBehaviour
 			}
 		}
 	}
+	#endregion
+	#region HEALTH METHODS
 	public void DecreaseHealthBy(int damage)
 	{
 		// NOTE: Eventually add sprite change for enemy on this line using: spriteRenderer.sprite = damagedSprite;
@@ -125,14 +128,19 @@ public class Enemy : MonoBehaviour
 			gameObject.SetActive(false);
 		}
 	}
+	#endregion
+	#region ENERGY METHODS
 	public void RestoreEnergy()
 	{
 		Info.RestoreEnergy();
 	}
+	#endregion
+	#region ATTACK METHODS
 	private void AttackPlayer()
 	{
 		Info.DecrementEnergy();
 		SoundManager.Instance.PlaySound(Attack);
 		GameManager.Instance.HandleDamageToPlayer(Info.DamagePoints);
 	}
+	#endregion
 }
