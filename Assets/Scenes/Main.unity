@@ -897,7 +897,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 3cfd4d96da0b6c74aa5e5d9dc2c69628, type: 2}
   - {fileID: 11400000, guid: c460a9e9d7021bd40861beafe3a92647, type: 2}
   TilemapExit: {fileID: 2025662172}
-  needToDrawTileAreas: 0
   TileAreas: []
   TargetTemplate: {fileID: 3235571212307580798, guid: 0d83749970d77b24286906dba172abc5, type: 3}
   Targets: []
