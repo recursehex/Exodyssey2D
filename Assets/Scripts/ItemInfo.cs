@@ -24,7 +24,7 @@ public class ItemInfo
 		Wrench,
 		Mallet,
 		FireAxe,
-		DiamondChainsaw,
+		Chainsaw,
 
 		// RANGED
 		Tranquilizer,
@@ -241,7 +241,7 @@ public class ItemInfo
 				Info.Stats 			= $"\nUP:{Info.MaxUses}/{Info.MaxUses}\tDP:{Info.DamagePoints}\nADP:{Info.ArmorDamage}";
 				break;
 			case 7:
-				Info.Tag 			= Tags.DiamondChainsaw;
+				Info.Tag 			= Tags.Chainsaw;
 				Info.Rarity 		= Rarity.Anomalous;
 				Info.Type 			= Types.Weapon;
 				Info.Name 			= "CHAINSAW";

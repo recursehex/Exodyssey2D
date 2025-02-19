@@ -7,16 +7,16 @@ public class StatsDisplayManager : MonoBehaviour
 	public Sprite HealthEmpty;
 	public Sprite EnergyFull;
 	public Sprite EnergyEmpty;
+	public Image[] HealthIcons;
+	public Image[] EnergyIcons;
 	
 	/// <summary>
 	/// Restores Player Health icons to match MaxHealth
 	/// </summary>
 	public void RestoreHealthDisplay()
 	{
-		Image Health2 = GameObject.Find("Health2").GetComponent<Image>();
-		Health2.sprite = HealthFull;
-		Image Health3 = GameObject.Find("Health3" ).GetComponent<Image>();
-		Health3.sprite = HealthFull;
+		HealthIcons[1].sprite = HealthFull;
+		HealthIcons[2].sprite = HealthFull;
 	}
 	/// <summary>
 	/// Decreases Player Health icons, requires current and max health
@@ -25,8 +25,7 @@ public class StatsDisplayManager : MonoBehaviour
 	{
 		for (int i = currentHealth + 1; i < maxHealth + 1; i++)
 		{
-			Image Health = GameObject.Find("Health" + i).GetComponent<Image>();
-			Health.sprite = HealthEmpty;
+			HealthIcons[i-1].sprite = HealthEmpty;
 		}
 	}
 	/// <summary>
@@ -34,14 +33,11 @@ public class StatsDisplayManager : MonoBehaviour
 	/// </summary>
 	public void RestoreEnergyDisplay(int currentHealth)
 	{
-		Image Energy1 = GameObject.Find("Energy1").GetComponent<Image>();
-		Energy1.sprite = EnergyFull;
+		EnergyIcons[0].sprite = EnergyFull;
 		if (currentHealth > 1)
 		{
-			Image Energy2 = GameObject.Find("Energy2").GetComponent<Image>();
-			Energy2.sprite = EnergyFull;
-			Image Energy3 = GameObject.Find("Energy3").GetComponent<Image>();
-			Energy3.sprite = EnergyFull;
+			EnergyIcons[1].sprite = EnergyFull;
+			EnergyIcons[2].sprite = EnergyFull;
 		}
 	}
 	/// <summary>
@@ -51,8 +47,7 @@ public class StatsDisplayManager : MonoBehaviour
 	{
 		for (int i = currentEnergy + 1; i < maxEnergy + 1; i++)
 		{
-			Image Energy = GameObject.Find("Energy" + i).GetComponent<Image>();
-			Energy.sprite = EnergyEmpty;
+			EnergyIcons[i-1].sprite = EnergyEmpty;
 		}
 	}
 }
