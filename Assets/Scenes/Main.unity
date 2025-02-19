@@ -861,7 +861,7 @@ MonoBehaviour:
   doingSetup: 0
   playersTurn: 1
   Player: {fileID: 569674968}
-  Tiledot: {fileID: 823962498}
+  TileDot: {fileID: 823962495}
   TileArea: {fileID: 4013333899691673706, guid: df0561ba1ff27154e957b6aa734c0248, type: 3}
   TurnTimer: {fileID: 2083751133}
   EndTurnButton: {fileID: 2049175783}
@@ -1463,7 +1463,6 @@ GameObject:
   m_Component:
   - component: {fileID: 823962497}
   - component: {fileID: 823962496}
-  - component: {fileID: 823962498}
   - component: {fileID: 823962499}
   - component: {fileID: 823962500}
   m_Layer: 5
@@ -1543,18 +1542,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &823962498
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 823962495}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 458479795a0f931449e47c9e8ae0685e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!61 &823962499
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -1899,6 +1886,14 @@ MonoBehaviour:
   HealthEmpty: {fileID: 21300000, guid: 3d1250fdc21314966bd8183519db050c, type: 3}
   EnergyFull: {fileID: 21300000, guid: 5c7441192283643ea90660e41a3cc1c7, type: 3}
   EnergyEmpty: {fileID: 21300000, guid: 2cf21b4f8e47249ef804ff7f93afd6fe, type: 3}
+  HealthIcons:
+  - {fileID: 1449498589}
+  - {fileID: 1583370136}
+  - {fileID: 1963841310}
+  EnergyIcons:
+  - {fileID: 737656399}
+  - {fileID: 188963195}
+  - {fileID: 126191741}
 --- !u!4 &1238732183
 Transform:
   m_ObjectHideFlags: 0
