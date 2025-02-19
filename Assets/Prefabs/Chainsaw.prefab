@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 4192576837435041945}
   - component: {fileID: 4610889122497718258}
   m_Layer: 0
-  m_Name: DiamondChainsaw
+  m_Name: Chainsaw
   m_TagString: Item
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
