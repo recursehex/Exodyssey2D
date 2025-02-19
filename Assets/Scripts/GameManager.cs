@@ -11,7 +11,7 @@ public class GameManager : MonoBehaviour
 	[SerializeField] private bool doingSetup;
 	[SerializeField] private bool playersTurn = true;
 	[SerializeField] private Player Player;
-	[SerializeField] private TileDot Tiledot;
+	[SerializeField] private GameObject TileDot;
 	[SerializeField] private GameObject TileArea;
 	[SerializeField] private TurnTimer TurnTimer;
 	[SerializeField] private Button EndTurnButton;
@@ -126,7 +126,7 @@ public class GameManager : MonoBehaviour
 		Player.RestoreEnergy();
 		InitGame();
 		DrawTargetsAndTracers();
-		Tiledot.gameObject.SetActive(true);
+		TileDot.SetActive(true);
 	}
 	/// <summary>
 	/// Begins grid state generation
@@ -333,7 +333,7 @@ public class GameManager : MonoBehaviour
 		if (needToStartEnemyMovement)
 		{
 			EndTurnButton.interactable = false;
-			Tiledot.gameObject.SetActive(false);
+			TileDot.SetActive(false);
 			ClearTileAreas();
 			ClearTargetsAndTracers();
 			needToStartEnemyMovement = false;
@@ -365,7 +365,7 @@ public class GameManager : MonoBehaviour
 		TurnTimer.ResetTimer();
 		playersTurn = true;
 		EndTurnButton.interactable = true;
-		Tiledot.gameObject.SetActive(true);
+		TileDot.SetActive(true);
 		DrawTargetsAndTracers();
 	}
 	/// <summary>
@@ -421,7 +421,7 @@ public class GameManager : MonoBehaviour
 		Player.RestoreEnergy();
 		if (Enemies.Count == 0)
 		{
-			Tiledot.gameObject.SetActive(true);
+			TileDot.SetActive(true);
 		}
 		needToStartEnemyMovement = Enemies.Count > 0;
 	}
@@ -430,7 +430,7 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	public void OnTurnTimerEnd()
 	{
-		Tiledot.gameObject.SetActive(false);
+		TileDot.SetActive(false);
 		Player.SetEnergyToZero();
 		ClearTileAreas();
 		ClearTargetsAndTracers();
@@ -483,10 +483,10 @@ public class GameManager : MonoBehaviour
 		// If mouse is hovering over tile and within grid
 		else if (IsWithinCellBounds(TilePoint, CellBounds))
 		{
-			// If mouse is hovering over tileArea
+			// If mouse is hovering over tileArea, move TileDot to it
 			if (IsInMovementRange(TilePoint))
 			{
-				Tiledot.MoveToPlace(TilePoint);
+				TileDot.transform.position = ShiftedClickPoint;
 			}
 		}
 		// If mouse is hovering over UI since UI is outside the grid
