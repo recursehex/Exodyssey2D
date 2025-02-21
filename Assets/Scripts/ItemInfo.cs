@@ -50,6 +50,7 @@ public class ItemInfo
 		//Crate,
 
 		// UTILITY
+		//Flare,
 		//Lightrod,
 		//Extinguisher,
 		//Spotlight,
@@ -169,7 +170,7 @@ public class ItemInfo
 				break;
 			// case 2:
 			// 	Info.Tag 			= Tags.PowerCell;
-			// 	Info.Rarity 		= Rarity.Common;
+			// 	Info.Rarity 		= Rarity.Rare;
 			// 	Info.Type 			= Types.Consumable;
 			// 	Info.Name 			= "POWER CELL";
 			// 	Info.MaxUses 		= 5; 				// max charge
@@ -314,7 +315,7 @@ public class ItemInfo
 				Info.Stats 			= $"\nUP:{Info.MaxUses}/{Info.MaxUses}\tDP:{Info.DamagePoints}\nRP:{Info.Range}";
 				break;
 			/*
-			case 9:
+			case ?:
 				Info.Tag 			= Tags.Rock;
 				Info.Rarity 		= Rarity.Common;
 				Info.Type 			= Types.Weapon;
@@ -326,7 +327,7 @@ public class ItemInfo
 				Info.Description 	= "Can be thrown again";
 				Info.Stats 			= $"\nUP:{Info.MaxUses}/{Info.MaxUses}\tDP:{Info.DamagePoints}\nRP:{Info.Range}";
 				break;
-			case 10:
+			case ?:
 				Info.Tag 			= Tags.SmokeGrenade;
 				Info.Rarity 		= Rarity.Scarce;
 				Info.Type 			= Types.Weapon;
@@ -339,7 +340,7 @@ public class ItemInfo
 				Info.Description 	= "Stuns nearby enemies for 1 turn";
 				Info.Stats 			= $"\nUP:{Info.MaxUses}/{Info.MaxUses}\tDP:{Info.DamagePoints}\nRP:{Info.Range}";
 				break;
-			case 11:
+			case ?:
 				Info.Tag 			= Tags.Dynamite;
 				Info.Rarity 		= Rarity.Scarce;
 				Info.Type 			= Types.Weapon;
@@ -352,7 +353,7 @@ public class ItemInfo
 				Info.Description 	= "Explodes after enemy turn";
 				Info.Stats 			= $"\nUP:{Info.MaxUses}/{Info.MaxUses}\tDP:{Info.DamagePoints}\nRP:{Info.Range}";
 				break;
-			case 12:
+			case ?:
 				Info.Tag 			= Tags.StickyGrenade;
 				Info.Rarity 		= Rarity.Anomalous;
 				Info.Type 			= Types.Weapon;
@@ -365,7 +366,7 @@ public class ItemInfo
 				Info.Description 	= "Sticks to enemy and explodes";
 				Info.Stats 			= $"\nUP:{Info.MaxUses}/{Info.MaxUses}\tDP:{Info.DamagePoints}\nRP:{Info.Range}";
 				break;
-			case 14:
+			case ?:
 				Info.Tag 			= Tags.Helmet;
 				Info.Rarity 		= Rarity.Scarce;
 				Info.Type 			= Types.Armor;
@@ -376,7 +377,7 @@ public class ItemInfo
 				Info.Description 	= "Absorbs 2 melee DP";
 				Info.Stats 			= $"\n\UP:{Info.MaxUses}/{Info.MaxUses}";
 				break;
-			case 15:
+			case ?:
 				Info.Tag 			= Tags.Vest;
 				Info.Rarity 		= Rarity.Rare;
 				Info.Type 			= Types.Armor;
@@ -388,7 +389,7 @@ public class ItemInfo
 				Info.Description 	= "Absorbs 3 ranged DP";
 				Info.Stats 			= $"\n\UP:{Info.MaxUses}/{Info.MaxUses}";
 				break;
-			case 16:
+			case ?:
 				Info.Tag 			= Tags.GrapheneShield;
 				Info.Rarity 		= Rarity.Anomalous;
 				Info.Type 			= Types.Armor;
@@ -399,7 +400,7 @@ public class ItemInfo
 				Info.Description 	= "Blocks all DP except boss DP";
 				Info.Stats 			= $"\n\UP:{Info.MaxUses}/{Info.MaxUses}";
 				break;
-			case 17:
+			case ?:
 				Info.Tag 			= Tags.Backpack;
 				Info.Rarity 		= Rarity.Limited;
 				Info.Type 			= Types.Storage;
@@ -410,7 +411,7 @@ public class ItemInfo
 				Info.IsFlammable 	= true;
 				Info.Description 	= "Adds 1 inventory slot";
 				break;
-			case 18:
+			case ?:
 				Info.Tag 			= Tags.Crate;
 				Info.Rarity 		= Rarity.Rare;
 				Info.Type 			= Types.Storage;
@@ -420,7 +421,7 @@ public class ItemInfo
 				Info.IsAttachable 	= true;
 				Info.Description 	= "Adds 2 vehicle storage";
 				break;
-			case 19:
+			case ?:
 				Info.Tag 			= Tags.Battery;
 				Info.Rarity 		= Rarity.Anomalous;
 				Info.Type 			= Types.Storage;
@@ -429,18 +430,26 @@ public class ItemInfo
 				Info.CurrentUses 	= Info.MaxUses; 	// current charge
 				Info.IsAttachable 	= true;
 				Info.IsFlammable 	= true;
-				Info.Description 	= "Adds power cell slot";
+				Info.Description 	= "Adds 5 power charges";
 				Info.Stats 			= $"\n\CHARGE:{Info.MaxUses}/{Info.MaxUses}";
 				break;
-			case 20:
-				Info.Tag 			= Tags.Lightrod;
+			case ?:
+				Info.Tag 			= Tags.Flare;
 				Info.Rarity 		= Rarity.Limited;
+				Info.Type 			= Types.Utility;
+				Info.Name 			= "FLARE";
+				Info.IsFlammable 	= true;
+				Info.Description 	= "Temporary light";
+				break;
+			case ?:
+				Info.Tag 			= Tags.Lightrod;
+				Info.Rarity 		= Rarity.Scarce;
 				Info.Type 			= Types.Utility;
 				Info.Name 			= "LIGHTROD";
 				Info.IsFlammable 	= true;
 				Info.Description 	= "Illuminates surroundings";
 				break;
-			case 21:
+			case ?:
 				Info.Tag 			= Tags.Extinguisher;
 				Info.Rarity 		= Rarity.Scarce;
 				Info.Type 			= Types.Utility;
@@ -451,7 +460,7 @@ public class ItemInfo
 				Info.Description 	= "Extinguishes fires";
 				Info.Stats 			= $"\n\UP:{Info.MaxUses}/{Info.MaxUses}";
 				break;
-			case 22:
+			case ?:
 				Info.Tag 			= Tags.Spotlight;
 				Info.Rarity 		= Rarity.Rare;
 				Info.Type 			= Types.Utility;
@@ -459,7 +468,7 @@ public class ItemInfo
 				Info.IsAttachable 	= true;
 				Info.Description 	= "Outputs directional light";
 				break;
-			case 23:
+			case ?:
 				Info.Tag 			= Tags.Blowtorch;
 				Info.Rarity 		= Rarity.Rare;
 				Info.Type 			= Types.Utility;
@@ -470,7 +479,7 @@ public class ItemInfo
 				Info.Description 	= "Sets objects on fire";
 				Info.Stats 			= $"\n\UP:{Info.MaxUses}/{Info.MaxUses}";
 				break;
-			case 24:
+			case ?:
 				Info.Tag 			= Tags.ThermalImager;
 				Info.Rarity 		= Rarity.Rare;
 				Info.Type 			= Types.Utility;
@@ -480,7 +489,7 @@ public class ItemInfo
 				Info.Description 	= "Reveals heat signatures";
 				Info.Stats 			= $"\n\UP:{Info.MaxUses}/{Info.MaxUses}";
 				break;
-			case 25:
+			case ?:
 				Info.Tag 			= Tags.NightVision;
 				Info.Rarity 		= Rarity.Anomalous;
 				Info.Type 			= Types.Utility;
