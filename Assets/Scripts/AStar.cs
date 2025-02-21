@@ -19,10 +19,10 @@ public class AStar
 	private Vector3Int StartPosition;
 	private Vector3Int GoalPosition;
 	private bool allowDiagonal = true;
-	public AStar(Tilemap TilemapGround, Tilemap TilemapWalls) 
+	public AStar(Tilemap Ground, Tilemap Walls) 
 	{
-		this.TilemapGround = TilemapGround;
-		this.TilemapWalls = TilemapWalls;
+		TilemapGround = Ground;
+		TilemapWalls = Walls;
 	}
 	public void Initialize()
 	{
