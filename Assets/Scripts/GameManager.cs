@@ -459,7 +459,7 @@ public class GameManager : MonoBehaviour
 		// If LMB clicks within grid, begin Player movement system
 		if (Input.GetMouseButtonDown(0)
 			&& !Player.IsInMovement
-			&& IsWithinCellBounds(TilePoint, CellBounds)
+			&& CellBounds.Contains(TilePoint)
 			&& !TilemapWalls.HasTile(TilePoint))
 		{
 			// If Player clicks on its own tile but energy is not used
@@ -481,7 +481,7 @@ public class GameManager : MonoBehaviour
 			TryPlayerAttack(enemyIndex, isInMeleeRange, isInRangedWeaponRange);
 		}
 		// If mouse is hovering over tile and within grid
-		else if (IsWithinCellBounds(TilePoint, CellBounds))
+		else if (CellBounds.Contains(TilePoint))
 		{
 			// If mouse is hovering over tileArea, move TileDot to it
 			if (IsInMovementRange(TilePoint))
@@ -560,20 +560,6 @@ public class GameManager : MonoBehaviour
 				ClearTargetsAndTracers();
 			}
 		}
-	}
-	/// <summary>
-	/// Called by MouseInput(), returns true if position is within area
-	/// </summary>
-	private bool IsWithinCellBounds(Vector3Int TilePoint, BoundsInt CellBounds)
-	{
-		return CellBounds.Contains(TilePoint);
-	}
-	/// <summary>
-	/// Called when Player takes damage to decrease health
-	/// </summary>
-	public void HandleDamageToPlayer(int damage)
-	{
-		Player.DecreaseHealthBy(damage);
 	}
 	/// <summary>
 	/// Checks if tile is within range based on Player energy

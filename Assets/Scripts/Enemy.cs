@@ -22,12 +22,12 @@ public class Enemy : MonoBehaviour
 	private Player Player;
 	private AStar AStar;
 	#endregion
-	public void Initialize(Tilemap TilemapGround, Tilemap TilemapWalls, EnemyInfo Info, Player Player)
+	public void Initialize(Tilemap Ground, Tilemap Walls, EnemyInfo EnemyInfo, Player Player)
 	{
-		this.TilemapGround = TilemapGround;
-		this.TilemapWalls = TilemapWalls;
-		this.Info = Info;
-		AStar = new(this.TilemapGround, this.TilemapWalls);
+		TilemapGround = Ground;
+		TilemapWalls = Walls;
+		Info = EnemyInfo;
+		AStar = new(TilemapGround, TilemapWalls);
 		this.Player = Player;
 		StunIcon = Instantiate(StunIcon, transform.position, Quaternion.identity);
 	}
@@ -121,7 +121,6 @@ public class Enemy : MonoBehaviour
 	#region HEALTH METHODS
 	public void DecreaseHealthBy(int damage)
 	{
-		// NOTE: Eventually add sprite change for enemy on this line using: spriteRenderer.sprite = damagedSprite;
 		Info.DecreaseHealthBy(damage);
 		if (Info.CurrentHealth <= 0)
 		{
@@ -140,7 +139,7 @@ public class Enemy : MonoBehaviour
 	{
 		Info.DecrementEnergy();
 		SoundManager.Instance.PlaySound(Attack);
-		GameManager.Instance.HandleDamageToPlayer(Info.DamagePoints);
+		Player.DecreaseHealthBy(Info.DamagePoints);
 	}
 	#endregion
 }
