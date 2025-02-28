@@ -1,5 +1,4 @@
 using UnityEngine;
-using Assets.Scripts;
 using static System.Enum;
 
 public static class WeightedRarityGeneration
@@ -10,9 +9,9 @@ public static class WeightedRarityGeneration
 	{
 		int roll = Random.Range(1, 101);
 		int cumulative = 0;
-		foreach (Rarity Rarity in GetValues(typeof(Rarity)))
+		foreach (Rarity Rarity in Rarity.RarityList)
 		{
-			cumulative += (int)Rarity;
+			cumulative += Rarity.GetDropRate();
 			if (roll <= cumulative)
 			{
 				int x = Random.Range(-4, 4);
