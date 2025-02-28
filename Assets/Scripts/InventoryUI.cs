@@ -15,7 +15,9 @@ public class InventoryUI : MonoBehaviour
 	[SerializeField] private GameObject ItemDesc;
 	public int SelectedIndex { get; private set; } = -1;
 	private string cachedName;
+	private Color cachedColor;
 	private string cachedDesc;
+	private static Color defaultColor = new(115/255f, 119/255f, 160/255f);
 	private readonly float sensitivityDistance = 0.5f;
 	/// <summary>
 	/// Removes item from inventory UI
@@ -29,6 +31,7 @@ public class InventoryUI : MonoBehaviour
 			InventoryPressed0.transform.localScale = Vector3.one;
 			InventoryPressed1.transform.localScale = Vector3.one;
 			ItemName.GetComponent<Text>().text = "";
+			ItemName.GetComponent<Text>().color = defaultColor;
 			ItemDesc.GetComponent<Text>().text = "";
 		}
 		else if (index == 0 && SelectedIndex != -1)
@@ -48,6 +51,7 @@ public class InventoryUI : MonoBehaviour
 		SelectedIndex = -1;
 		GameObject.Find("InventoryPressed" + index).transform.localScale = Vector3.one;
 		ItemName.GetComponent<Text>().text = "";
+		ItemName.GetComponent<Text>().color = defaultColor;
 		ItemDesc.GetComponent<Text>().text = "";
 	}
 	/// <summary>
@@ -58,12 +62,14 @@ public class InventoryUI : MonoBehaviour
 		if (SelectedIndex != -1)
 		{
 			ItemName.GetComponent<Text>().text = Inventory[SelectedIndex].Info.Name;
+			ItemName.GetComponent<Text>().color = Inventory[SelectedIndex].Info.Rarity.Color;
 			ItemDesc.GetComponent<Text>().text = Inventory[SelectedIndex].Info.Description
 			+ Inventory[SelectedIndex].Info.Stats;
 		}
 		else
 		{
 			ItemName.GetComponent<Text>().text = "";
+			ItemName.GetComponent<Text>().color = defaultColor;
 			ItemDesc.GetComponent<Text>().text = "";
 		}
 	}
@@ -96,15 +102,18 @@ public class InventoryUI : MonoBehaviour
 		if (SelectedIndex >= 0)
 		{
 			cachedName = Inventory[SelectedIndex].Info.Name;
+			cachedColor = Inventory[SelectedIndex].Info.Rarity.Color;
 			cachedDesc = Inventory[SelectedIndex].Info.Description
 			+ Inventory[SelectedIndex].Info.Stats;
 		}
 		else
 		{
 			cachedName = "";
+			cachedColor = defaultColor;
 			cachedDesc = "";
 		}
 		ItemName.GetComponent<Text>().text = cachedName;
+		ItemName.GetComponent<Text>().color = cachedColor;
 		ItemDesc.GetComponent<Text>().text = cachedDesc;
 	}
 	/// <summary>
@@ -149,6 +158,7 @@ public class InventoryUI : MonoBehaviour
 			{
 				mouseIsOverIcon = true;
 				NameText.text = Item.Info.Name;
+				NameText.color = Item.Info.Rarity.Color;
 				DescText.text = Item.Info.Description + Item.Info.Stats;
 				break;
 			}
@@ -161,11 +171,13 @@ public class InventoryUI : MonoBehaviour
 		if (SelectedIndex == -1)
 		{
 			NameText.text = "";
+			NameText.color = Color.white;
 			DescText.text = "";
 		}
 		else
 		{
 			NameText.text = cachedName;
+			NameText.color = cachedColor;
 			DescText.text = cachedDesc;
 		}
 	}

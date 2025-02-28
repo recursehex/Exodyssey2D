@@ -7,8 +7,8 @@ public class TurnTimer : MonoBehaviour
 	private readonly float timerLimit = 15;
 	public bool timerIsRunning = false;
 	public Text TimeText;
-	private Color NormalColor = new(115f / 256f, 119f / 256f, 160f / 256f, 1);
-	private Color OutOfTimeColor = new(172f / 256f, 22f / 256f, 45f / 256f, 1);
+	private static Color NormalColor = new(115/255f, 119/255f, 160/255f);
+	private static Color OutOfTimeColor = new(172/255f, 22/255f, 45/255f);
 	public void StartTimer()
 	{
 		timerIsRunning = true;
