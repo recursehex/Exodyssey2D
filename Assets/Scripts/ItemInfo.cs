@@ -105,13 +105,13 @@ public class ItemInfo
 	private static List<Rarity> GenerateAllRarities()
 	{
 		return Enumerable.Range(0, lastItemIndex)
-						.Select(i => ItemFactory(i).Rarity)
-						.ToList();
+						 .Select(i => ItemFactory(i).Rarity)
+						 .ToList();
 	}
-	public static int GetRandomIndexOfSpecifiedRarity(Rarity SpecifiedRarity)
+	public static int GetRandomIndexFrom(Rarity Rarity)
 	{
 		var indices = Enumerable.Range(0, ItemRarityList.Count)
-								.Where(i => ItemRarityList[i] == SpecifiedRarity)
+								.Where(i => ItemRarityList[i] == Rarity)
 								.ToList();
 		if (indices.Count == 0)
 			return -1;

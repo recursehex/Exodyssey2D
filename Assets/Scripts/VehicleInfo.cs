@@ -44,13 +44,13 @@ public class VehicleInfo
 	private static List<Rarity> GenerateAllRarities()
 	{
 		return Enumerable.Range(0, lastVehicleIndex)
-						.Select(i => VehicleFactory(i).Rarity)
-						.ToList();
+						 .Select(i => VehicleFactory(i).Rarity)
+						 .ToList();
 	}
-	public static int GetRandomIndexOfSpecifiedRarity(Rarity SpecifiedRarity)
+	public static int GetRandomIndexFrom(Rarity Rarity)
 	{
 		var indices = Enumerable.Range(0, VehicleRarityList.Count)
-								.Where(i => VehicleRarityList[i] == SpecifiedRarity)
+								.Where(i => VehicleRarityList[i] == Rarity)
 								.ToList();
 		if (indices.Count == 0)
 			return -1;
