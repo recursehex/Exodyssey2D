@@ -61,13 +61,13 @@ public class EnemyInfo
 	private static List<Rarity> GenerateAllRarities()
 	{
 		return Enumerable.Range(0, lastEnemyIndex)
-						.Select(i => EnemyFactory(i).Rarity)
-						.ToList();
+						 .Select(i => EnemyFactory(i).Rarity)
+						 .ToList();
 	}
-	public static int GetRandomIndexOfSpecifiedRarity(Rarity SpecifiedRarity)
+	public static int GetRandomIndexFrom(Rarity Rarity)
 	{
 		var indices = Enumerable.Range(0, EnemyRarityList.Count)
-								.Where(i => EnemyRarityList[i] == SpecifiedRarity)
+								.Where(i => EnemyRarityList[i] == Rarity)
 								.ToList();
 		if (indices.Count == 0)
 			return -1;
