@@ -6,8 +6,6 @@ public class SoundManager : MonoBehaviour
 	public AudioSource EfxSource;
 	public AudioSource MusicSource;
 	public static SoundManager Instance = null;
-
-	// Start is called before the first frame update
 	void Awake()
 	{
 		if (Instance == null)

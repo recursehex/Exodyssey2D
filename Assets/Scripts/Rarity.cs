@@ -12,20 +12,18 @@ public struct Rarity
         Rare = 10,
         Anomalous = 5
     }
-    
     public Tags Tag;
     public Color Color;
-
     private Rarity(Tags Tag, Color Color)
     {
         this.Tag = Tag;
         this.Color = Color;
     }
 	public static readonly Rarity Common 	= new(Tags.Common, 		Color.white);
-    public static readonly Rarity Limited 	= new(Tags.Limited, 	new(62/255f, 161/255f, 33/255f));
+    public static readonly Rarity Limited 	= new(Tags.Limited, 	new(62/255f,  161/255f, 33/255f));
     public static readonly Rarity Scarce 	= new(Tags.Scarce, 		new(222/255f, 161/255f, 18/255f));
-    public static readonly Rarity Rare 		= new(Tags.Rare, 		new(34/255f, 113/255f, 191/255f));
-    public static readonly Rarity Anomalous = new(Tags.Anomalous, 	new(117/255f, 33/255f, 202/255f));
+    public static readonly Rarity Rare 		= new(Tags.Rare, 		new(34/255f,  113/255f, 191/255f));
+    public static readonly Rarity Anomalous = new(Tags.Anomalous, 	new(117/255f, 33/255f,  202/255f));
 	public static readonly List<Rarity> RarityList = new() { Common, Limited, Scarce, Rare, Anomalous };
     public readonly int GetDropRate()
     {
@@ -39,7 +37,7 @@ public struct Rarity
     {
         return Tag == Other.Tag && Color.Equals(Other.Color);
     }
-    public override int GetHashCode()
+    public readonly override int GetHashCode()
     {
         return HashCode.Combine(Tag, Color);
     }

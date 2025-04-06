@@ -1,5 +1,4 @@
 using UnityEngine;
-using static System.Enum;
 
 public static class WeightedRarityGeneration
 {
@@ -43,7 +42,7 @@ public static class WeightedRarityGeneration
 		{
 			return false;
 		}
-		int randomItemIndex = ItemInfo.GetRandomIndexOfSpecifiedRarity(ChosenRarity);
+		int randomItemIndex = ItemInfo.GetRandomIndexFrom(ChosenRarity);
 		// Fails if no items of chosen rarity
 		if (randomItemIndex == -1)
 		{
@@ -58,7 +57,7 @@ public static class WeightedRarityGeneration
 		{
 			return false;
 		}
-		int randomEnemyIndex = EnemyInfo.GetRandomIndexOfSpecifiedRarity(ChosenRarity);
+		int randomEnemyIndex = EnemyInfo.GetRandomIndexFrom(ChosenRarity);
 		// Fails if no enemies of chosen rarity
 		if (randomEnemyIndex == -1)
 		{

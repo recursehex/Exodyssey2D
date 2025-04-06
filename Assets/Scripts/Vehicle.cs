@@ -21,7 +21,6 @@ public class Vehicle : MonoBehaviour
 	private Vector3Int Destination;
 	private AStar AStar;
 	#endregion
-	// Start is called before the first frame update
 	void Start()
 	{
 		AStar = new(TilemapGround, TilemapWalls);

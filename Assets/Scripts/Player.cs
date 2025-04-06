@@ -44,7 +44,6 @@ public class Player : MonoBehaviour
 	private AStar AStar;
 	#endregion
 	public bool FinishedInit { get; private set; } = false;
-	// Start is called before the first frame update
 	protected virtual void Start()
 	{
 		AStar = new(TilemapGround, TilemapWalls);
@@ -75,16 +74,19 @@ public class Player : MonoBehaviour
 	/// </summary>
 	private async void MoveAlongPath()
 	{
+		// While path has remaining tiles
 		while (Path != null && Path.Count >= 0)
 		{
 			DecrementEnergy();
 			SoundManager.Instance.PlaySound(PlayerMove);
 			Vector3 ShiftedDistance = new(Destination.x + 0.5f, Destination.y + 0.5f, Destination.z);
+			// Move player smoothly to next tile
 			while (Vector3.Distance(transform.position, ShiftedDistance) > 0f)
 			{
 				transform.position = Vector3.MoveTowards(transform.position, ShiftedDistance, 2 * Time.deltaTime);
 				await Task.Yield();
 			}
+			// Pop next tile in path
 			if (Path != null && Path.Count > 0)
 			{
 				Destination = Path.Pop();

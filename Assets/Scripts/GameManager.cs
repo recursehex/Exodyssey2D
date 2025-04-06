@@ -63,7 +63,6 @@ public class GameManager : MonoBehaviour
 	[SerializeField] private int level = 0;
 	[SerializeField] private int day = 1;
 	#endregion
-	// Start is called before the first frame update
 	void Awake()
 	{
 		if (Instance == null)
