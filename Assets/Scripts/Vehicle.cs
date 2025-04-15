@@ -6,7 +6,7 @@ public class Vehicle : MonoBehaviour
 {
 	#region DATA
 	public VehicleInfo Info;
-	private bool hasCrate = false;
+	public Inventory Inventory;
 	private bool hasBattery = false;
 	private bool hasSpotlight = false;
 	#endregion
@@ -24,6 +24,7 @@ public class Vehicle : MonoBehaviour
 	void Start()
 	{
 		AStar = new(TilemapGround, TilemapWalls);
+		Inventory = new(Info.Storage);
 	}
 	#region HEALTH METHODS
 	public void DecreaseHealthBy(int damage)

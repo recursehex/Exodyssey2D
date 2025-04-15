@@ -3,11 +3,11 @@ using System.Collections.Generic;
 public class Inventory
 {
 	private readonly List<Item> InventoryList;
-	public int InventorySize { get; private set; } = 2;
+	public int Size => InventoryList.Capacity;
 	public int Count => InventoryList.Count;
-	public Inventory()
+	public Inventory(int size)
 	{
-		InventoryList = new();
+		InventoryList = new(size);
 	}
 	public Item this[int index]
 	{
@@ -18,7 +18,7 @@ public class Inventory
 	/// </summary>
 	public bool TryAddItem(Item Item)
 	{
-		if (InventoryList.Count >= InventorySize)
+		if (InventoryList.Count >= Size)
 		{
 			return false;
 		}
