@@ -12,12 +12,11 @@ public class Player : MonoBehaviour
 	private readonly int maxHealth = 3;
 	private int maxEnergy = 3;
 	private int currentHealth = 3;
-	public int CurrentEnergy { get; private set; } = 3;
+	public int currentEnergy = 3;
 	public int DamagePoints { get; private set; } = 0;
 	private bool hasHelmet = false;
 	private bool hasVest = false;
 	private bool hasShield = false;
-	private bool hasBackpack = false;
 	private bool hasNightVision = false;
 	public Profession Profession = new(Profession.Tags.Unknown, 0);
 	#endregion
@@ -47,7 +46,7 @@ public class Player : MonoBehaviour
 	protected virtual void Start()
 	{
 		AStar = new(TilemapGround, TilemapWalls);
-		Inventory = new();
+		Inventory = new(2);
 		InventoryUI.Inventory = Inventory;
 		Animator = GetComponent<Animator>();
 		FinishedInit = true;
@@ -111,7 +110,7 @@ public class Player : MonoBehaviour
 	public Dictionary<Vector3Int, Node> CalculateArea()
 	{
 		AStar.Initialize();
-		return AStar.GetReachableAreaByDistance(transform.position, CurrentEnergy);
+		return AStar.GetReachableAreaByDistance(transform.position, currentEnergy);
 	}
 	#endregion
 	#region HEALTH METHODS
@@ -135,8 +134,8 @@ public class Player : MonoBehaviour
 		// Reduce max energy to simulate weakness
 		if (currentHealth == 1)
 		{
-			CurrentEnergy = 1;
-			StatsDisplayManager.DecreaseEnergyDisplay(CurrentEnergy, maxEnergy);
+			currentEnergy = 1;
+			StatsDisplayManager.DecreaseEnergyDisplay(currentEnergy, maxEnergy);
 			maxEnergy = 1;
 		}
 	}
@@ -157,10 +156,10 @@ public class Player : MonoBehaviour
 	/// </summary>
 	private void DecrementEnergy()
 	{
-		CurrentEnergy = Mathf.Clamp(--CurrentEnergy, 0, maxEnergy);
-		StatsDisplayManager.DecreaseEnergyDisplay(CurrentEnergy, maxEnergy);
+		currentEnergy = Mathf.Clamp(--currentEnergy, 0, maxEnergy);
+		StatsDisplayManager.DecreaseEnergyDisplay(currentEnergy, maxEnergy);
 		// End turn and stop timer if CurrentEnergy reaches 0
-		if (CurrentEnergy == 0)
+		if (currentEnergy == 0)
 		{
 			GameManager.Instance.StopTurnTimer();
 		}
@@ -170,16 +169,20 @@ public class Player : MonoBehaviour
 	/// </summary>
 	public void SetEnergyToZero()
 	{
-		CurrentEnergy = 0;
-		StatsDisplayManager.DecreaseEnergyDisplay(CurrentEnergy, maxEnergy);
+		currentEnergy = 0;
+		StatsDisplayManager.DecreaseEnergyDisplay(currentEnergy, maxEnergy);
 	}
 	/// <summary>
 	/// Restores Player Energy to maxEnergy
 	/// </summary>
 	public void RestoreEnergy() 
 	{
-		CurrentEnergy = maxEnergy;
+		currentEnergy = maxEnergy;
 		StatsDisplayManager.RestoreEnergyDisplay(currentHealth);
+	}
+	public bool HasEnergy()
+	{
+		return currentEnergy > 0;
 	}
 	#endregion
 	#region ATTACK METHODS
@@ -272,11 +275,11 @@ public class Player : MonoBehaviour
 	/// </summary>
 	public bool ClickOnPlayerToUseItem()
 	{
-		if (SelectedItemInfo?.Type is not ItemInfo.Types.Consumable)
+		if (SelectedItemInfo == null)
 		{
 			return false;
 		}
-		bool wasUsed = MedKitWasUsed();
+		bool wasUsed = WasItemUsed();
 		if (SelectedItemInfo.CurrentUses == 0)
 		{
 			InventoryUI.RemoveItem(InventoryUI.SelectedIndex);
@@ -286,13 +289,13 @@ public class Player : MonoBehaviour
 		return wasUsed;
 	}
 	/// <summary>
-	/// Returns true if MedKit was used to heal Player
+	/// Returns true if item was used to heal Player
 	/// </summary>
-	private bool MedKitWasUsed() 
+	private bool WasItemUsed()
 	{
 		if (SelectedItemInfo.Tag is ItemInfo.Tags.MedKit
 			&& currentHealth < maxHealth
-			&& CurrentEnergy > 0)
+			&& currentEnergy > 0)
 		{
 			RestoreHealth();
 			// Uses energy if profession is not medic
@@ -307,6 +310,38 @@ public class Player : MonoBehaviour
 			}
 			return true;
 		}
+		// if (SelectedItemInfo.Tag is ItemInfo.Tags.Helmet
+		// 	&& !hasHelmet)
+		// {
+		// 	hasHelmet = true;
+		// 	InventoryUI.RemoveItem(InventoryUI.SelectedIndex);
+		// 	SelectedItemInfo = null;
+		// 	return true;
+		// }
+		// if (SelectedItemInfo.Tag is ItemInfo.Tags.Vest
+		// 	&& !hasVest)
+		// {
+		// 	hasVest = true;
+		// 	InventoryUI.RemoveItem(InventoryUI.SelectedIndex);
+		// 	SelectedItemInfo = null;
+		// 	return true;
+		// }
+		// if (SelectedItemInfo.Tag is ItemInfo.Tags.GrapheneShield
+		// 	&& !hasShield)
+		// {
+		// 	hasShield = true;
+		// 	InventoryUI.RemoveItem(InventoryUI.SelectedIndex);
+		// 	SelectedItemInfo = null;
+		// 	return true;
+		// }
+		// if (SelectedItemInfo.Tag is ItemInfo.Tags.NightVision
+		// 	&& !hasNightVision)
+		// {
+		// 	hasNightVision = true;
+		// 	InventoryUI.RemoveItem(InventoryUI.SelectedIndex);
+		// 	SelectedItemInfo = null;
+		// 	return true;
+		// }
 		return false;
 	}
 	/// <summary>

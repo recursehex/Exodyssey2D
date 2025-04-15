@@ -78,7 +78,7 @@ public class InventoryUI : MonoBehaviour
 	/// </summary>
 	public void RefreshInventoryIcons()
 	{
-		for (int i = 0; i < Inventory.InventorySize; i++)
+		for (int i = 0; i < Inventory.Size; i++)
 		{
 			Image Icon = GameObject.Find("InventoryIcon" + i).GetComponent<Image>();
 			if (i < Inventory.Count)
@@ -154,7 +154,7 @@ public class InventoryUI : MonoBehaviour
 			Image Icon = GameObject.Find("InventoryIcon" + itemIndex).GetComponent<Image>();
 			Vector3 IconPosition = Icon.transform.position;
 			if (Math.Abs(IconPosition.x - MousePosition.x) <= sensitivityDistance
-				&& Math.Abs(IconPosition.y - MousePosition.y) <= sensitivityDistance)
+			 && Math.Abs(IconPosition.y - MousePosition.y) <= sensitivityDistance)
 			{
 				mouseIsOverIcon = true;
 				NameText.text = Item.Info.Name;
