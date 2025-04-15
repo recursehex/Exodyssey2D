@@ -43,12 +43,8 @@ public class ItemInfo
 		//Vest,
 		//GrapheneShield,
 
-		// STORAGE
-		//Backpack,
-		//Battery,
-		//Crate,
-
 		// UTILITY
+		//Battery,
 		//Flare,
 		//Lightrod,
 		//Extinguisher,
@@ -63,11 +59,10 @@ public class ItemInfo
 	/// </summary>
 	public enum Types
 	{
-		Utility = 0,
+		Consumable = 0,
 		Weapon,
-		Consumable,
 		Armor,
-		Storage,
+		Utility,
 		Unknown,
 	}
 	// Name of item
@@ -400,30 +395,9 @@ public class ItemInfo
 				Info.Stats 			= $"\n\UP:{Info.MaxUses}/{Info.MaxUses}";
 				break;
 			case ?:
-				Info.Tag 			= Tags.Backpack;
-				Info.Rarity 		= Rarity.Limited;
-				Info.Type 			= Types.Storage;
-				Info.Name 			= "BACKPACK";
-				Info.MaxUses 		= 1;
-				Info.CurrentUses 	= Info.MaxUses;
-				Info.IsEquipable 	= true;
-				Info.IsFlammable 	= true;
-				Info.Description 	= "Adds 1 inventory slot";
-				break;
-			case ?:
-				Info.Tag 			= Tags.Crate;
-				Info.Rarity 		= Rarity.Rare;
-				Info.Type 			= Types.Storage;
-				Info.Name 			= "CRATE";
-				Info.MaxUses 		= 2;
-				Info.CurrentUses 	= Info.MaxUses;
-				Info.IsAttachable 	= true;
-				Info.Description 	= "Adds 2 vehicle storage";
-				break;
-			case ?:
 				Info.Tag 			= Tags.Battery;
 				Info.Rarity 		= Rarity.Anomalous;
-				Info.Type 			= Types.Storage;
+				Info.Type 			= Types.Utility;
 				Info.Name 			= "BATTERY";
 				Info.MaxUses 		= 5; 				// max charge
 				Info.CurrentUses 	= Info.MaxUses; 	// current charge

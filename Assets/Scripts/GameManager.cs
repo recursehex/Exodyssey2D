@@ -111,10 +111,9 @@ public class GameManager : MonoBehaviour
 			day++;
 			DayText.text = $"DAY {day}";
 		}
-		// Resets turn timer and end turn button
+		// Resets turn timer
 		TurnTimer.timerIsRunning = false;
 		TurnTimer.ResetTimer();
-		// EndTurnButton.interactable = true;
 		// Clears tiles, items, and enemies
 		TilemapGround.ClearAllTiles();
 		TilemapWalls.ClearAllTiles();
@@ -439,12 +438,12 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	public bool PlayerIsOnExitTile()
 	{
-		if (!TilemapExit.HasTile(Vector3Int.FloorToInt(Player.transform.position)))
+		if (TilemapExit.HasTile(Vector3Int.FloorToInt(Player.transform.position)))
 		{
-			return false;
+			ResetForNextLevel();
+			return true;
 		}
-		ResetForNextLevel();
-		return true;
+		return false;
 	}
 	/// <summary>
 	/// Acts based on what mouse button is clicked
@@ -464,7 +463,7 @@ public class GameManager : MonoBehaviour
 			// If Player clicks on its own tile but energy is not used
 			TryAddItem(ShiftedClickPoint);
 			// For actions that require energy, first check if it is Player turn
-			if (!playersTurn || Player.CurrentEnergy == 0)
+			if (!playersTurn || !Player.HasEnergy())
 			{
 				return;
 			}
@@ -485,6 +484,7 @@ public class GameManager : MonoBehaviour
 			// If mouse is hovering over tileArea, move TileDot to it
 			if (IsInMovementRange(TilePoint))
 			{
+				TileDot.SetActive(true);
 				TileDot.transform.position = ShiftedClickPoint;
 			}
 		}
@@ -553,6 +553,7 @@ public class GameManager : MonoBehaviour
 			HandleDamageToEnemy(enemyIndex);
 			Player.AttackEnemy();
 			TurnTimer.StartTimer();
+			TileDot.SetActive(false);
 			if (isInRangedWeaponRange
 				&& Player.SelectedItemInfo?.CurrentUses == 0)
 			{
@@ -606,7 +607,7 @@ public class GameManager : MonoBehaviour
 	{
 		if (!Player.IsInMovement
 			&& playersTurn
-			&& Player.CurrentEnergy > 0)
+			&& Player.HasEnergy())
 		{
 			ClearTileAreas();
 			TileAreasToDraw = Player.CalculateArea();
@@ -653,7 +654,7 @@ public class GameManager : MonoBehaviour
 		int weaponRange = Player.GetWeaponRange();
 		if (weaponRange > 0
 			&& !enemiesInMovement
-			&& Player.CurrentEnergy > 0)
+			&& Player.HasEnergy())
 		{
 			foreach (Enemy Enemy in Enemies)
 			{
