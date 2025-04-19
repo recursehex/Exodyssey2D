@@ -33,6 +33,12 @@ public class GameManager : MonoBehaviour
 	// Number of items spawned in a level
 	[SerializeField] private int spawnItemCount;
 	#endregion
+	#region VEHICLES
+	[SerializeField] private GameObject[] VehicleTemplates;
+	[SerializeField] private List<Vehicle> Vehicles = new();
+	// Number of vehicles spawned in a level
+	[SerializeField] private int spawnVehicleCount;
+	#endregion
 	#region TILEMAPS
 	[SerializeField] private Tilemap TilemapGround;
 	[SerializeField] private Tilemap TilemapWalls;
@@ -137,6 +143,7 @@ public class GameManager : MonoBehaviour
 		DayText.gameObject.SetActive(true);
 		spawnItemCount = Random.Range(5, 10);
 		spawnEnemyCount = Random.Range(1 + (int)(level * 0.5), 3 + (int)(level * 0.5));
+		spawnVehicleCount = Random.Range(0, 2); // TEMP
 		MapGenerator = new();
 		GroundGeneration();
 		WallGeneration();
@@ -202,10 +209,10 @@ public class GameManager : MonoBehaviour
 	/// <summary>
 	/// Instantiates Item at Position
 	/// </summary>
-	public void InstantiateNewItem(int index, Vector3 Position)
+	public void SpawnItem(int index, Vector3 Position)
 	{
 		Item NewItem = Instantiate(ItemTemplates[index], Position, Quaternion.identity).GetComponent<Item>();
-		NewItem.Info = ItemInfo.ItemFactory(index);
+		NewItem.Info = new ItemInfo(index);
 		Items.Add(NewItem);
 	}
 	/// <summary>
@@ -267,10 +274,10 @@ public class GameManager : MonoBehaviour
 	/// <summary>
 	/// Instantiates Enemy at Position
 	/// </summary>
-	public void InstantiateNewEnemy(int index, Vector3 Position)
+	public void SpawnEnemy(int index, Vector3 Position)
 	{
 		Enemy NewEnemy = Instantiate(EnemyTemplates[index], Position, Quaternion.identity).GetComponent<Enemy>();
-		NewEnemy.Initialize(TilemapGround, TilemapWalls, EnemyInfo.EnemyFactory(index), Player);
+		NewEnemy.Initialize(TilemapGround, TilemapWalls, new EnemyInfo(index), Player);
 		Enemies.Add(NewEnemy);
 	}
 	/// <summary>
@@ -396,6 +403,61 @@ public class GameManager : MonoBehaviour
 	public bool HasWallAtPosition(Vector3Int Position)
 	{
 		return TilemapWalls.HasTile(Position);
+	}
+	#endregion
+	#region VEHICLE METHODS
+	/// <summary>
+	/// Spawns vehicles for each level
+	/// </summary>
+	private void VehicleGeneration()
+	{
+		while (spawnVehicleCount > 0)
+		{
+			if (WeightedRarityGeneration.GenerateVehicle())
+			{
+				spawnVehicleCount--;
+			}
+		}
+	}
+	/// <summary>
+	/// Instantiates Vehicle at Position
+	/// </summary>
+	public void SpawnVehicle(int index, Vector3 Position)
+	{
+		Vehicle NewVehicle = Instantiate(VehicleTemplates[index], Position, Quaternion.identity).GetComponent<Vehicle>();
+		NewVehicle.Initialize(TilemapGround, TilemapWalls, new VehicleInfo(index), Player);
+		Vehicles.Add(NewVehicle);
+	}
+	/// <summary>
+	/// Returns false if no vehicle at position, returns true if found
+	/// </summary>
+	public bool HasVehicleAtPosition(Vector3 Position)
+	{
+		return Vehicles.Find(Vehicle => Vehicle.transform.position == Position) != null;
+	}
+	/// <summary>
+	/// Returns -1 if no vehicle is present at selected position
+	/// or index of vehicle if vehicle is present
+	/// </summary>
+	private int GetVehicleIndexAtPosition(Vector3Int Position)
+	{
+		Vector3 ShiftedPosition = Position + new Vector3(0.5f, 0.5f, 0);
+		return Vehicles.FindIndex(Vehicle => Vehicle.transform.position == ShiftedPosition);
+	}
+	private void DestroyVehicle(Vehicle Vehicle)
+	{
+		Destroy(Vehicle.gameObject);
+	}
+	/// <summary>
+	/// Destroy all vehicles on the grid
+	/// </summary>
+	private void DestroyAllVehicles()
+	{
+		foreach (Vehicle Vehicle in Vehicles)
+		{
+			DestroyVehicle(Vehicle);
+		}
+		Vehicles.Clear();
 	}
 	#endregion
 	#region PLAYER METHODS
