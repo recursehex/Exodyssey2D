@@ -883,10 +883,14 @@ MonoBehaviour:
   - {fileID: 2145379877062402088, guid: 5bc3844e7618a4f28875cba59213c53e, type: 3}
   - {fileID: 142956206023105660, guid: 26546f8ae20dd2d418e1c49d62c10717, type: 3}
   - {fileID: 2145379877062402088, guid: c764a49bc54304cfea3d5623e9e61bb7, type: 3}
+  - {fileID: 2145379877062402088, guid: 0e8cdb2257b7c46f9b7d92231bfa62da, type: 3}
   - {fileID: 2145379877062402088, guid: ba8e62b527e3c4b2c8c15ddde698b587, type: 3}
   - {fileID: 2145379877062402088, guid: 33186f847f6305748921b5b654aa8c9d, type: 3}
   Items: []
   spawnItemCount: 0
+  VehicleTemplates: []
+  Vehicles: []
+  spawnVehicleCount: 0
   TilemapGround: {fileID: 2052983298}
   TilemapWalls: {fileID: 1335406084}
   GroundTiles:

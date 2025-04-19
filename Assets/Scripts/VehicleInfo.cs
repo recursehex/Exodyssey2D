@@ -2,49 +2,44 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 
-public enum Tags
-{
-	// CARS
-	Rover = 0,
-	Trailer,
-	Buggy,
-	// LARGE VEHICLES
-	Carrier,
-
-	Unknown,
-}
 public class VehicleInfo
 {
-	// Name of vehicle
-	public Tags Tag = Tags.Unknown;
-	// Rarity of vehicle
-	public Rarity Rarity = Rarity.Common;
-	// Ingame name of vehicle
-	public string Name { get; private set; } = "UNKNOWN";
-	// Ingame description of vehicle
-	public string Description { get; private set; } = "UNKNOWN";
-	// Fuel used per 100 km, lower is better
-	public int Efficiency { get; private set; } = 1;
-	// Time to travel one tile on the grid, lower is better
-	public float Time { get; private set; } = 1;
-	// Number of inventory slots
-	public int Storage { get; private set; } = 1;
-	// Fuel capacity
-	private int maxFuel = 1;
-	// Current fuel
-	public int CurrentFuel { get; private set; } = 1;
-	// Max health
-	private int maxHealth = 1;
-	// Current health
-	public int CurrentHealth { get; private set; } = 1;
-	// If vehicle can drive offroad
-	public bool CanOffroad { get; private set; } = false;
+	public enum Tags
+	{
+		// CARS
+		Rover = 0,
+		Trailer,
+		Buggy,
+		// LARGE VEHICLES
+		Carrier,
+
+		Unknown,
+	}
+	public enum Types
+	{
+		Car,
+		LargeVehicle,
+		Unknown,
+	}
+	public Tags Tag 			= Tags.Unknown;					// Name of vehicle
+	public Rarity Rarity 		= Rarity.Common;				// Rarity of vehicle
+	public Types Type 			= Types.Unknown;				// Type of vehicle
+	public string Name 			{ get; private set; }			// Ingame name of vehicle
+	public string Description 	{ get; private set; }			// Ingame description of vehicle
+	public int Efficiency 		{ get; private set; } = 1;		// Fuel used per 100 km, lower is better
+	public float Time 			{ get; private set; } = 1;		// Time to travel one tile on the grid, lower is better
+	public int Storage 			{ get; private set; } = 1;		// Number of inventory slots
+	private readonly int maxFuel = 1;							// Fuel capacity
+	public int CurrentFuel 		{ get; private set; } = 1;		// Current fuel
+	private readonly int maxHealth = 1;							// Max health
+	public int CurrentHealth 	{ get; private set; } = 1;		// Current health
+	public bool CanOffroad 		{ get; private set; } = false;	// If vehicle can drive offroad
 	private static readonly int lastVehicleIndex = (int)Tags.Unknown;
 	private static readonly List<Rarity> VehicleRarityList = GenerateAllRarities();
 	private static List<Rarity> GenerateAllRarities()
 	{
 		return Enumerable.Range(0, lastVehicleIndex)
-						 .Select(i => VehicleFactory(i).Rarity)
+						 .Select(i => new VehicleInfo(i).Rarity)
 						 .ToList();
 	}
 	public static int GetRandomIndexFrom(Rarity Rarity)
@@ -93,68 +88,71 @@ public class VehicleInfo
 		return true;
 	}
 	/// <summary>
-	/// Returns the info for a desired vehicle 
+	/// Returns info for a desired vehicle,
+	/// n must match Tag order and GameManager VehicleTemplates order
 	/// </summary>
-	public static VehicleInfo VehicleFactory(int n)
+	public VehicleInfo(int n)
 	{
-		VehicleInfo info = new();
 		switch (n)
 		{
 			case 0:
-				info.Tag 			= Tags.Rover;
-				info.Rarity 		= Rarity.Scarce;
-				info.Name 			= "ROVER";
-				info.Description 	= "Standard ISA vehicle";
-				info.Storage 		= 2;
-				info.Efficiency 	= 2;
-				info.Time 			= 0.5f;
-				info.maxFuel 		= 10;
-				info.CurrentFuel 	= info.maxFuel;
-				info.maxHealth 		= 2;
-				info.CurrentHealth 	= info.maxHealth;
+				Tag 			= Tags.Rover;
+				Rarity 			= Rarity.Scarce;
+				Type 			= Types.Car;
+				Name 			= "ROVER";
+				Description 	= "Standard ISA vehicle";
+				Storage 		= 2;
+				Efficiency 		= 2;
+				Time 			= 0.5f;
+				maxFuel 		= 10;
+				CurrentFuel 	= maxFuel;
+				maxHealth 		= 2;
+				CurrentHealth 	= maxHealth;
 				break;
 			case 1:
-				info.Tag 			= Tags.Trailer;
-				info.Rarity 		= Rarity.Scarce;
-				info.Name 			= "TRAILER";
-				info.Description 	= "Has a storage bay";
-				info.Storage 		= 4;
-				info.Efficiency 	= 3;
-				info.Time 			= 1.0f;
-				info.maxFuel 		= 15;
-				info.CurrentFuel 	= info.maxFuel;
-				info.maxHealth 		= 3;
-				info.CurrentHealth 	= info.maxHealth;
+				Tag 			= Tags.Trailer;
+				Rarity 			= Rarity.Scarce;
+				Type 			= Types.Car;
+				Name 			= "TRAILER";
+				Description 	= "Has a storage bay";
+				Storage 		= 4;
+				Efficiency 		= 3;
+				Time 			= 1.0f;
+				maxFuel 		= 15;
+				CurrentFuel 	= maxFuel;
+				maxHealth 		= 3;
+				CurrentHealth 	= maxHealth;
 				break;
 			case 2:
-				info.Tag 			= Tags.Buggy;
-				info.Rarity 		= Rarity.Rare;
-				info.Name 			= "BUGGY";
-				info.Description 	= "Lightweight and efficient";
-				info.Storage 		= 0;
-				info.Efficiency 	= 1;
-				info.Time		 	= 0.25f;
-				info.maxFuel 		= 5;
-				info.CurrentFuel 	= info.maxFuel;
-				info.maxHealth 		= 1;
-				info.CurrentHealth 	= info.maxHealth;
-				info.CanOffroad 	= true;
+				Tag 			= Tags.Buggy;
+				Rarity 			= Rarity.Rare;
+				Type 			= Types.Car;
+				Name 			= "BUGGY";
+				Description 	= "Lightweight and efficient";
+				Storage 		= 0;
+				Efficiency 		= 1;
+				Time		 	= 0.25f;
+				maxFuel 		= 5;
+				CurrentFuel 	= maxFuel;
+				maxHealth 		= 1;
+				CurrentHealth 	= maxHealth;
+				CanOffroad 		= true;
 				break;
 			case 3:
-				info.Tag 			= Tags.Carrier;
-				info.Rarity 		= Rarity.Anomalous;
-				info.Name 			= "CARRIER";
-				info.Description 	= "Armored transport vehicle";
-				info.Storage 		= 6;
-				info.Efficiency 	= 5;
-				info.Time 			= 2.0f;
-				info.maxFuel 		= 20;
-				info.CurrentFuel 	= info.maxFuel;
-				info.maxHealth 		= 10;
-				info.CurrentHealth 	= info.maxHealth;
-				info.CanOffroad		= true;
+				Tag 			= Tags.Carrier;
+				Rarity 			= Rarity.Anomalous;
+				Type 			= Types.LargeVehicle;
+				Name 			= "CARRIER";
+				Description 	= "Armored transport vehicle";
+				Storage 		= 6;
+				Efficiency 		= 5;
+				Time 			= 2.0f;
+				maxFuel 		= 20;
+				CurrentFuel 	= maxFuel;
+				maxHealth 		= 10;
+				CurrentHealth 	= maxHealth;
+				CanOffroad		= true;
 				break;
 		}
-		return info;
 	}
 }

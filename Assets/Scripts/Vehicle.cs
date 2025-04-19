@@ -7,6 +7,7 @@ public class Vehicle : MonoBehaviour
 	#region DATA
 	public VehicleInfo Info;
 	public Inventory Inventory;
+	public Player Player;
 	private bool hasBattery = false;
 	private bool hasSpotlight = false;
 	#endregion
@@ -21,10 +22,14 @@ public class Vehicle : MonoBehaviour
 	private Vector3Int Destination;
 	private AStar AStar;
 	#endregion
-	void Start()
+	public void Initialize(Tilemap Ground, Tilemap Walls, VehicleInfo VehicleInfo, Player Player)
 	{
-		AStar = new(TilemapGround, TilemapWalls);
+		TilemapGround = Ground;
+		TilemapWalls = Walls;
+		Info = VehicleInfo;
 		Inventory = new(Info.Storage);
+		AStar = new(TilemapGround, TilemapWalls);
+		this.Player = Player;
 	}
 	#region HEALTH METHODS
 	public void DecreaseHealthBy(int damage)
