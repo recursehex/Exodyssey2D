@@ -27,7 +27,7 @@ public class ItemInfo
 
 		// RANGED
 		Tranquilizer,
-		//Carbine,
+		Carbine,
 		//Flamethrower,
 		HuntingRifle,
 		PlasmaRailgun,
@@ -65,42 +65,27 @@ public class ItemInfo
 		Utility,
 		Unknown,
 	}
-	// Name of item
-	public Tags Tag = Tags.Unknown;
-	// Rarity of item
-	public Rarity Rarity = Rarity.Common;
-	// Type of item
-	public Types Type = Types.Unknown;
-	// Ingame name of item
-	public string Name { get; private set; } = "UNKNOWN";
-	// Ingame description of item
-	public string Description { get; private set; } = "UNKNOWN";
-	// Ingame list of durability, damage, armor damage, and range
-	public string Stats { get; private set; } = "UNKNOWN";
-	// Max durability of item
-	public int MaxUses { get; private set; } = 1;
-	// Current durability of item
-	public int CurrentUses { get; private set; } = 1;
-	// Damage of item, -1 = not a weapon
-	public int DamagePoints { get; private set; } = -1;
-	// Damage of item to armor, -1 = does same damage as DamagePoints
-	public int ArmorDamage { get; private set; } = -1;
-	// Range of item, -1 = not a ranged weapon
-	public int Range { get; private set; } = 0;
-	// Whether item can be equipped, enabling it and removing it from inventory
-	public bool IsEquipable { get; private set; } = false;
-	// Whether item can be attached to vehicles, enabling it and removing it from inventory
-	public bool IsAttachable { get; private set; } = false;
-	// Whether item is flammable, can be destroyed by fire and helps it spread
-	public bool IsFlammable { get; private set; } = false;
-	// Whether item stuns enemies when used
-	public bool IsStunning { get; private set; } = false;
+	public Tags Tag 			= Tags.Unknown;					// Name of item
+	public Rarity Rarity 		= Rarity.Common;				// Rarity of item
+	public Types Type 			= Types.Unknown;				// Type of item
+	public string Name 			{ get; private set; }			// Ingame name of item
+	public string Description 	{ get; private set; }			// Ingame description of item
+	public string Stats 		{ get; private set; }			// Ingame list of durability, damage, armor damage, and range
+	private readonly int maxUses = 1;							// Max durability of item
+	public int CurrentUses 		{ get; private set; } = 1;		// Current durability of item
+	public int DamagePoints 	{ get; private set; } = -1;		// Damage of item, -1 = not a weapon
+	public int ArmorDamage 		{ get; private set; } = -1;		// Damage of item to armor, -1 = does same damage as DamagePoints
+	public int Range 			{ get; private set; } = -1;		// Range of item, -1 = not a ranged weapon
+	public bool IsEquipable 	{ get; private set; } = false;	// If item can be equipped, enabling and removing from inventory
+	public bool IsAttachable 	{ get; private set; } = false;	// If item can be attached to vehicles, enabling and removing from inventory
+	public bool IsFlammable 	{ get; private set; } = false;	// If item is flammable, can be destroyed by fire and helps it spread
+	public bool IsStunning 		{ get; private set; } = false;	// If item stuns enemies when used
 	private static readonly int lastItemIndex = (int)Tags.Unknown;
 	private static readonly List<Rarity> ItemRarityList = GenerateAllRarities();
 	private static List<Rarity> GenerateAllRarities()
 	{
 		return Enumerable.Range(0, lastItemIndex)
-						 .Select(i => ItemFactory(i).Rarity)
+						 .Select(i => new ItemInfo(i).Rarity)
 						 .ToList();
 	}
 	public static int GetRandomIndexFrom(Rarity Rarity)
@@ -118,7 +103,7 @@ public class ItemInfo
 	public void DecreaseDurability() 
 	{
 		CurrentUses--;
-		Stats = $"\nUP:{CurrentUses}/{MaxUses}";
+		Stats = $"\nUP:{CurrentUses}/{maxUses}";
 		if (Type is Types.Weapon) 
 		{
 			Stats += $"\tDP:{DamagePoints}";
@@ -136,342 +121,340 @@ public class ItemInfo
 	/// Returns info for a desired item,
 	/// n must match Tag order and GameManager ItemTemplates order
 	/// </summary>
-	public static ItemInfo ItemFactory(int n)
+	public ItemInfo(int n)
 	{
-		ItemInfo Info = new();
 		switch (n)
 		{
 			case 0:
-				Info.Tag 			= Tags.MedKit;
-				Info.Rarity 		= Rarity.Limited;
-				Info.Type 			= Types.Consumable;
-				Info.Name 			= "MEDKIT";
-				Info.MaxUses 		= 1;
-				Info.CurrentUses 	= Info.MaxUses;
-				Info.IsFlammable 	= true;
-				Info.Description 	= "Fully heals injuries";
-				Info.Stats	 		= $"\nUP:{Info.MaxUses}/{Info.MaxUses}";
+				Tag 			= Tags.MedKit;
+				Rarity 			= Rarity.Limited;
+				Type 			= Types.Consumable;
+				Name 			= "MEDKIT";
+				maxUses 		= 1;
+				CurrentUses 	= maxUses;
+				IsFlammable 	= true;
+				Description 	= "Fully heals injuries";
+				Stats	 		= $"\nUP:{maxUses}/{maxUses}";
 				break;
 			case 1:
-				Info.Tag 			= Tags.ToolKit;
-				Info.Rarity 		= Rarity.Scarce;
-				Info.Type 			= Types.Consumable;
-				Info.Name 			= "TOOLKIT";
-				Info.MaxUses 		= 1;
-				Info.CurrentUses 	= Info.MaxUses;
-				Info.Description 	= "Fully repairs vehicles";
-				Info.Stats 			= $"\nUP:{Info.MaxUses}/{Info.MaxUses}";
+				Tag 			= Tags.ToolKit;
+				Rarity 			= Rarity.Scarce;
+				Type 			= Types.Consumable;
+				Name 			= "TOOLKIT";
+				maxUses 		= 1;
+				CurrentUses 	= maxUses;
+				Description 	= "Fully repairs vehicles";
+				Stats 			= $"\nUP:{maxUses}/{maxUses}";
 				break;
 			// case 2:
-			// 	Info.Tag 			= Tags.PowerCell;
-			// 	Info.Rarity 		= Rarity.Rare;
-			// 	Info.Type 			= Types.Consumable;
-			// 	Info.Name 			= "POWER CELL";
-			// 	Info.MaxUses 		= 5; 				// max charge
-			// 	Info.CurrentUses 	= Info.MaxUses; 	// current charge
-			// 	Info.IsFlammable 	= true;
-			// 	Info.Description 	= "Powers vehicles";
-			// 	Info.Stats 			= $"\n\CHARGE:{Info.MaxUses}/{Info.MaxUses}";
+			// 	Tag 			= Tags.PowerCell;
+			// 	Rarity 			= Rarity.Rare;
+			// 	Type 			= Types.Consumable;
+			// 	Name 			= "POWER CELL";
+			// 	MaxUses 		= 5; 		// max charge
+			// 	CurrentUses 	= MaxUses; 	// current charge
+			// 	IsFlammable 	= true;
+			// 	Description 	= "Powers vehicles";
+			// 	Stats 			= $"\n\CHARGE:{MaxUses}/{MaxUses}";
 			// 	break;
 			case 2:
-				Info.Tag 			= Tags.Branch;
-				Info.Rarity 		= Rarity.Common;
-				Info.Type 			= Types.Weapon;
-				Info.Name 			= "BRANCH";
-				Info.MaxUses 		= 1;
-				Info.CurrentUses 	= Info.MaxUses;
-				Info.DamagePoints 	= 1;
-				Info.ArmorDamage 	= 0;
-				Info.IsFlammable 	= true;
-				Info.Description 	= "Fragile stick";
-				Info.Stats 			= $"\nUP:{Info.MaxUses}/{Info.MaxUses}\tDP:{Info.DamagePoints}\nADP:{Info.ArmorDamage}";
+				Tag 			= Tags.Branch;
+				Rarity 			= Rarity.Common;
+				Type 			= Types.Weapon;
+				Name 			= "BRANCH";
+				maxUses 		= 1;
+				CurrentUses 	= maxUses;
+				DamagePoints 	= 1;
+				ArmorDamage 	= 0;
+				IsFlammable 	= true;
+				Description 	= "Fragile stick";
+				Stats 			= $"\nUP:{maxUses}/{maxUses}\tDP:{DamagePoints}\nADP:{ArmorDamage}";
 				break;
 			case 3:
-				Info.Tag 			= Tags.Knife;
-				Info.Rarity 		= Rarity.Limited;
-				Info.Type 			= Types.Weapon;
-				Info.Name 			= "KNIFE";
-				Info.MaxUses 		= 2;
-				Info.CurrentUses 	= Info.MaxUses;
-				Info.DamagePoints 	= 2;
-				Info.ArmorDamage 	= 1;
-				Info.Description 	= "Can stab through armor";
-				Info.Stats 			= $"\nUP:{Info.MaxUses}/{Info.MaxUses}\tDP:{Info.DamagePoints}\nADP:{Info.ArmorDamage}";
+				Tag 			= Tags.Knife;
+				Rarity 			= Rarity.Limited;
+				Type 			= Types.Weapon;
+				Name 			= "KNIFE";
+				maxUses 		= 2;
+				CurrentUses 	= maxUses;
+				DamagePoints 	= 2;
+				ArmorDamage 	= 1;
+				Description 	= "Can stab through armor";
+				Stats 			= $"\nUP:{maxUses}/{maxUses}\tDP:{DamagePoints}\nADP:{ArmorDamage}";
 				break;
 			case 4:
-				Info.Tag 			= Tags.Wrench;
-				Info.Rarity 		= Rarity.Scarce;
-				Info.Type 			= Types.Weapon;
-				Info.Name 			= "WRENCH";
-				Info.MaxUses 		= 4;
-				Info.CurrentUses 	= Info.MaxUses;
-				Info.DamagePoints 	= 2;
-				Info.ArmorDamage 	= 1;
-				Info.Description 	= "Weak against armor";
-				Info.Stats 			= $"\nUP:{Info.MaxUses}/{Info.MaxUses}\tDP:{Info.DamagePoints}\nADP:{Info.ArmorDamage}";
+				Tag 			= Tags.Wrench;
+				Rarity 			= Rarity.Scarce;
+				Type 			= Types.Weapon;
+				Name 			= "WRENCH";
+				maxUses 		= 4;
+				CurrentUses 	= maxUses;
+				DamagePoints 	= 2;
+				ArmorDamage 	= 1;
+				Description 	= "Weak against armor";
+				Stats 			= $"\nUP:{maxUses}/{maxUses}\tDP:{DamagePoints}\nADP:{ArmorDamage}";
 				break;
 			case 5:
-				Info.Tag 			= Tags.Mallet;
-				Info.Rarity 		= Rarity.Rare;
-				Info.Type 			= Types.Weapon;
-				Info.MaxUses 		= 6;
-				Info.CurrentUses 	= Info.MaxUses;
-				Info.Name 			= "MALLET";
-				Info.DamagePoints 	= 3;
-				Info.ArmorDamage 	= 0;
-				Info.IsStunning 	= true;
-				Info.Description 	= "Stuns, bounces off armor";
-				Info.Stats 			= $"\nUP:{Info.MaxUses}/{Info.MaxUses}\tDP:{Info.DamagePoints}\nADP:{Info.ArmorDamage}";
+				Tag 			= Tags.Mallet;
+				Rarity 			= Rarity.Rare;
+				Type 			= Types.Weapon;
+				maxUses 		= 6;
+				CurrentUses 	= maxUses;
+				Name 			= "MALLET";
+				DamagePoints 	= 3;
+				ArmorDamage 	= 0;
+				IsStunning 		= true;
+				Description 	= "Stuns, bounces off armor";
+				Stats 			= $"\nUP:{maxUses}/{maxUses}\tDP:{DamagePoints}\nADP:{ArmorDamage}";
 				break;
 			case 6:
-				Info.Tag 			= Tags.FireAxe;
-				Info.Rarity 		= Rarity.Rare;
-				Info.Type 			= Types.Weapon;
-				Info.Name 			= "FIRE AXE";
-				Info.MaxUses 		= 4;
-				Info.CurrentUses 	= Info.MaxUses;
-				Info.DamagePoints 	= 4;
-				Info.ArmorDamage 	= 2;
-				Info.Description 	= "Cuts through armor";
-				Info.Stats 			= $"\nUP:{Info.MaxUses}/{Info.MaxUses}\tDP:{Info.DamagePoints}\nADP:{Info.ArmorDamage}";
+				Tag 			= Tags.FireAxe;
+				Rarity 			= Rarity.Rare;
+				Type 			= Types.Weapon;
+				Name 			= "FIRE AXE";
+				maxUses 		= 4;
+				CurrentUses 	= maxUses;
+				DamagePoints 	= 4;
+				ArmorDamage 	= 2;
+				Description 	= "Cuts through armor";
+				Stats 			= $"\nUP:{maxUses}/{maxUses}\tDP:{DamagePoints}\nADP:{ArmorDamage}";
 				break;
 			case 7:
-				Info.Tag 			= Tags.Chainsaw;
-				Info.Rarity 		= Rarity.Anomalous;
-				Info.Type 			= Types.Weapon;
-				Info.Name 			= "CHAINSAW";
-				Info.MaxUses 		= 8;
-				Info.CurrentUses 	= Info.MaxUses;
-				Info.DamagePoints 	= 5;
-				Info.Description 	= "Handheld rock saw";
-				Info.Stats 			= $"\nUP:{Info.MaxUses}/{Info.MaxUses}\tDP:{Info.DamagePoints}";
+				Tag 			= Tags.Chainsaw;
+				Rarity 			= Rarity.Anomalous;
+				Type 			= Types.Weapon;
+				Name 			= "CHAINSAW";
+				maxUses 		= 8;
+				CurrentUses 	= maxUses;
+				DamagePoints 	= 5;
+				Description 	= "Handheld rock saw";
+				Stats 			= $"\nUP:{maxUses}/{maxUses}\tDP:{DamagePoints}";
 				break;
 			case 8:
-				Info.Tag 			= Tags.Tranquilizer;
-				Info.Rarity 		= Rarity.Scarce;
-				Info.Type 			= Types.Weapon;
-				Info.Name 			= "TRANQUILIZER";
-				Info.MaxUses 		= 2;
-				Info.CurrentUses 	= Info.MaxUses;
-				Info.DamagePoints 	= 0;
-				Info.Range 			= 4;
-				Info.IsStunning 	= true;
-				Info.Description 	= "Stuns enemies for 1 turn";
-				Info.Stats 			= $"\nUP:{Info.MaxUses}/{Info.MaxUses}\tDP:{Info.DamagePoints}\nRP:{Info.Range}";
+				Tag 			= Tags.Tranquilizer;
+				Rarity 			= Rarity.Scarce;
+				Type 			= Types.Weapon;
+				Name 			= "TRANQUILIZER";
+				maxUses 		= 2;
+				CurrentUses 	= maxUses;
+				DamagePoints 	= 0;
+				Range 			= 4;
+				IsStunning 		= true;
+				Description 	= "Stuns enemies for 1 turn";
+				Stats 			= $"\nUP:{maxUses}/{maxUses}\tDP:{DamagePoints}\nRP:{Range}";
 				break;
-			// case ?:
-			// 	Info.Tag 			= Tags.Carbine;
-			// 	Info.Rarity 		= Rarity.Rare;
-			// 	Info.Type 			= Types.Weapon;
-			// 	Info.Name 			= "CARBINE";
-			// 	Info.MaxUses 		= 4;
-			// 	Info.CurrentUses 	= Info.MaxUses;
-			// 	Info.DamagePoints 	= 3;
-			// 	Info.Range 			= 4;
-			// 	Info.Description 	= "Fires rifle bullets";
-			// 	Info.Stats 			= $"\nUP:{Info.MaxUses}/{Info.MaxUses}\tDP:{Info.DamagePoints}\nRP:{Info.Range}";
-			// 	break;
-			// case ?:
-			// 	Info.Tag 			= Tags.Flamethrower;
-			// 	Info.Rarity 		= Rarity.Rare;
-			// 	Info.Type 			= Types.Weapon;
-			// 	Info.Name 			= "FLAMETHROWER";
-			// 	Info.MaxUses 		= 4;
-			// 	Info.CurrentUses 	= Info.MaxUses;
-			// 	Info.DamagePoints 	= 1;
-			// 	Info.Range 			= 3;
-			// 	Info.IsFlammable 	= true;
-			// 	Info.Description 	= "Sprays streaks of fire";
-			// 	Info.Stats 			= $"\nUP:{Info.MaxUses}/{Info.MaxUses}\tDP:{Info.DamagePoints}\nRP:{Info.Range}";
-			// 	break;
 			case 9:
-				Info.Tag 			= Tags.HuntingRifle;
-				Info.Rarity 		= Rarity.Rare;
-				Info.Type 			= Types.Weapon;
-				Info.Name 			= "HUNTING RIFLE";
-				Info.MaxUses 		= 3;
-				Info.CurrentUses 	= Info.MaxUses;
-				Info.DamagePoints 	= 5;
-				Info.Range 			= 10;
-				Info.Description 	= "Fires armor piercing rounds";
-				Info.Stats 			= $"\nUP:{Info.MaxUses}/{Info.MaxUses}\tDP:{Info.DamagePoints}\nRP:{Info.Range}";
+				Tag 			= Tags.Carbine;
+				Rarity 			= Rarity.Rare;
+				Type 			= Types.Weapon;
+				Name 			= "CARBINE";
+				maxUses 		= 4;
+				CurrentUses 	= maxUses;
+				DamagePoints 	= 3;
+				Range 			= 4;
+				Description 	= "Fires rifle bullets";
+				Stats 			= $"\nUP:{maxUses}/{maxUses}\tDP:{DamagePoints}\nRP:{Range}";
 				break;
+			// case ?:
+			// 	Tag 			= Tags.Flamethrower;
+			// 	Rarity 			= Rarity.Rare;
+			// 	Type 			= Types.Weapon;
+			// 	Name 			= "FLAMETHROWER";
+			// 	MaxUses 		= 4;
+			// 	CurrentUses 	= MaxUses;
+			// 	DamagePoints 	= 1;
+			// 	Range 			= 3;
+			// 	IsFlammable 	= true;
+			// 	Description 	= "Sprays streaks of fire";
+			// 	Stats 			= $"\nUP:{MaxUses}/{MaxUses}\tDP:{DamagePoints}\nRP:{Range}";
+			// 	break;
 			case 10:
-				Info.Tag 			= Tags.PlasmaRailgun;
-				Info.Rarity 		= Rarity.Anomalous;
-				Info.Type 			= Types.Weapon;
-				Info.Name 			= "PLASMA RAILGUN";
-				Info.MaxUses 		= 5;
-				Info.CurrentUses 	= Info.MaxUses;
-				Info.DamagePoints 	= 10;
-				Info.Range 			= 5;
-				Info.Description 	= "Fires a voltaic plasma bolt";
-				Info.Stats 			= $"\nUP:{Info.MaxUses}/{Info.MaxUses}\tDP:{Info.DamagePoints}\nRP:{Info.Range}";
+				Tag 			= Tags.HuntingRifle;
+				Rarity 			= Rarity.Rare;
+				Type 			= Types.Weapon;
+				Name 			= "HUNTING RIFLE";
+				maxUses 		= 3;
+				CurrentUses 	= maxUses;
+				DamagePoints 	= 5;
+				Range 			= 10;
+				Description 	= "Fires armor piercing rounds";
+				Stats 			= $"\nUP:{maxUses}/{maxUses}\tDP:{DamagePoints}\nRP:{Range}";
+				break;
+			case 11:
+				Tag 			= Tags.PlasmaRailgun;
+				Rarity 			= Rarity.Anomalous;
+				Type 			= Types.Weapon;
+				Name 			= "PLASMA RAILGUN";
+				maxUses 		= 5;
+				CurrentUses 	= maxUses;
+				DamagePoints 	= 10;
+				Range 			= 5;
+				Description 	= "Fires a voltaic plasma bolt";
+				Stats 			= $"\nUP:{maxUses}/{maxUses}\tDP:{DamagePoints}\nRP:{Range}";
 				break;
 			/*
 			case ?:
-				Info.Tag 			= Tags.Rock;
-				Info.Rarity 		= Rarity.Common;
-				Info.Type 			= Types.Weapon;
-				Info.Name 			= "ROCK";
-				Info.MaxUses 		= 1;
-				Info.CurrentUses 	= Info.MaxUses;
-				Info.DamagePoints 	= 1;
-				Info.Range 			= 3;
-				Info.Description 	= "Can be thrown again";
-				Info.Stats 			= $"\nUP:{Info.MaxUses}/{Info.MaxUses}\tDP:{Info.DamagePoints}\nRP:{Info.Range}";
+				Tag 			= Tags.Rock;
+				Rarity 			= Rarity.Common;
+				Type 			= Types.Weapon;
+				Name 			= "ROCK";
+				MaxUses 		= 1;
+				CurrentUses 	= MaxUses;
+				DamagePoints 	= 1;
+				Range 			= 3;
+				Description 	= "Can be thrown again";
+				Stats 			= $"\nUP:{MaxUses}/{MaxUses}\tDP:{DamagePoints}\nRP:{Range}";
 				break;
 			case ?:
-				Info.Tag 			= Tags.SmokeGrenade;
-				Info.Rarity 		= Rarity.Scarce;
-				Info.Type 			= Types.Weapon;
-				Info.Name 			= "SMOKE GRENADE";
-				Info.MaxUses 		= 1;
-				Info.CurrentUses 	= Info.MaxUses;
-				Info.DamagePoints 	= 0;
-				Info.Range 			= 3;
-				Info.IsStunning 	= true;
-				Info.Description 	= "Stuns nearby enemies for 1 turn";
-				Info.Stats 			= $"\nUP:{Info.MaxUses}/{Info.MaxUses}\tDP:{Info.DamagePoints}\nRP:{Info.Range}";
+				Tag 			= Tags.SmokeGrenade;
+				Rarity 			= Rarity.Scarce;
+				Type 			= Types.Weapon;
+				Name 			= "SMOKE GRENADE";
+				MaxUses 		= 1;
+				CurrentUses 	= MaxUses;
+				DamagePoints 	= 0;
+				Range 			= 3;
+				IsStunning 		= true;
+				Description 	= "Stuns nearby enemies for 1 turn";
+				Stats 			= $"\nUP:{MaxUses}/{MaxUses}\tDP:{DamagePoints}\nRP:{Range}";
 				break;
 			case ?:
-				Info.Tag 			= Tags.Dynamite;
-				Info.Rarity 		= Rarity.Scarce;
-				Info.Type 			= Types.Weapon;
-				Info.Name 			= "DYNAMITE";
-				Info.MaxUses 		= 1;
-				Info.CurrentUses 	= Info.MaxUses;
-				Info.DamagePoints 	= 5;
-				Info.Range 			= 3;
-				Info.IsFlammable 	= true;
-				Info.Description 	= "Explodes after enemy turn";
-				Info.Stats 			= $"\nUP:{Info.MaxUses}/{Info.MaxUses}\tDP:{Info.DamagePoints}\nRP:{Info.Range}";
+				Tag 			= Tags.Dynamite;
+				Rarity 			= Rarity.Scarce;
+				Type 			= Types.Weapon;
+				Name 			= "DYNAMITE";
+				MaxUses 		= 1;
+				CurrentUses 	= MaxUses;
+				DamagePoints 	= 5;
+				Range 			= 3;
+				IsFlammable 	= true;
+				Description 	= "Explodes after enemy turn";
+				Stats 			= $"\nUP:{MaxUses}/{MaxUses}\tDP:{DamagePoints}\nRP:{Range}";
 				break;
 			case ?:
-				Info.Tag 			= Tags.StickyGrenade;
-				Info.Rarity 		= Rarity.Anomalous;
-				Info.Type 			= Types.Weapon;
-				Info.Name 			= "STICKY GRENADE";
-				Info.MaxUses 		= 1;
-				Info.CurrentUses 	= Info.MaxUses;
-				Info.DamagePoints 	= 3;
-				Info.Range 			= 5;
-				Info.IsFlammable 	= true;
-				Info.Description 	= "Sticks to enemy and explodes";
-				Info.Stats 			= $"\nUP:{Info.MaxUses}/{Info.MaxUses}\tDP:{Info.DamagePoints}\nRP:{Info.Range}";
+				Tag 			= Tags.StickyGrenade;
+				Rarity 			= Rarity.Anomalous;
+				Type 			= Types.Weapon;
+				Name 			= "STICKY GRENADE";
+				MaxUses 		= 1;
+				CurrentUses 	= MaxUses;
+				DamagePoints 	= 3;
+				Range 			= 5;
+				IsFlammable 	= true;
+				Description 	= "Sticks to enemy and explodes";
+				Stats 			= $"\nUP:{MaxUses}/{MaxUses}\tDP:{DamagePoints}\nRP:{Range}";
 				break;
 			case ?:
-				Info.Tag 			= Tags.Helmet;
-				Info.Rarity 		= Rarity.Scarce;
-				Info.Type 			= Types.Armor;
-				Info.Name 			= "HELMET";
-				Info.MaxUses 		= 2;
-				Info.CurrentUses 	= Info.MaxUses;
-				Info.IsEquipable 	= true;
-				Info.Description 	= "Absorbs 2 melee DP";
-				Info.Stats 			= $"\n\UP:{Info.MaxUses}/{Info.MaxUses}";
+				Tag 			= Tags.Helmet;
+				Rarity 			= Rarity.Scarce;
+				Type 			= Types.Armor;
+				Name 			= "HELMET";
+				MaxUses 		= 2;
+				CurrentUses 	= MaxUses;
+				IsEquipable 	= true;
+				Description 	= "Absorbs 2 melee DP";
+				Stats 			= $"\n\UP:{MaxUses}/{MaxUses}";
 				break;
 			case ?:
-				Info.Tag 			= Tags.Vest;
-				Info.Rarity 		= Rarity.Rare;
-				Info.Type 			= Types.Armor;
-				Info.Name 			= "VEST";
-				Info.MaxUses 		= 3;
-				Info.CurrentUses 	= Info.MaxUses;
-				Info.IsEquipable 	= true;
-				Info.IsFlammable 	= true;
-				Info.Description 	= "Absorbs 3 ranged DP";
-				Info.Stats 			= $"\n\UP:{Info.MaxUses}/{Info.MaxUses}";
+				Tag 			= Tags.Vest;
+				Rarity 			= Rarity.Rare;
+				Type 			= Types.Armor;
+				Name 			= "VEST";
+				MaxUses 		= 3;
+				CurrentUses 	= MaxUses;
+				IsEquipable 	= true;
+				IsFlammable 	= true;
+				Description 	= "Absorbs 3 ranged DP";
+				Stats 			= $"\n\UP:{MaxUses}/{MaxUses}";
 				break;
 			case ?:
-				Info.Tag 			= Tags.GrapheneShield;
-				Info.Rarity 		= Rarity.Anomalous;
-				Info.Type 			= Types.Armor;
-				Info.Name 			= "GRAPHENE SHIELD";
-				Info.MaxUses 		= 1;
-				Info.CurrentUses 	= Info.MaxUses;
-				Info.IsEquipable 	= true;
-				Info.Description 	= "Blocks all DP except boss DP";
-				Info.Stats 			= $"\n\UP:{Info.MaxUses}/{Info.MaxUses}";
+				Tag 			= Tags.GrapheneShield;
+				Rarity 			= Rarity.Anomalous;
+				Type 			= Types.Armor;
+				Name 			= "GRAPHENE SHIELD";
+				MaxUses 		= 1;
+				CurrentUses 	= MaxUses;
+				IsEquipable 	= true;
+				Description 	= "Blocks all DP except boss DP";
+				Stats 			= $"\n\UP:{MaxUses}/{MaxUses}";
 				break;
 			case ?:
-				Info.Tag 			= Tags.Battery;
-				Info.Rarity 		= Rarity.Anomalous;
-				Info.Type 			= Types.Utility;
-				Info.Name 			= "BATTERY";
-				Info.MaxUses 		= 5; 				// max charge
-				Info.CurrentUses 	= Info.MaxUses; 	// current charge
-				Info.IsAttachable 	= true;
-				Info.IsFlammable 	= true;
-				Info.Description 	= "Adds 5 power charges";
-				Info.Stats 			= $"\n\CHARGE:{Info.MaxUses}/{Info.MaxUses}";
+				Tag 			= Tags.Battery;
+				Rarity 			= Rarity.Anomalous;
+				Type 			= Types.Utility;
+				Name 			= "BATTERY";
+				MaxUses 		= 5; 				// max charge
+				CurrentUses 	= MaxUses; 	// current charge
+				IsAttachable 	= true;
+				IsFlammable 	= true;
+				Description 	= "Adds 5 power charges";
+				Stats 			= $"\n\CHARGE:{MaxUses}/{MaxUses}";
 				break;
 			case ?:
-				Info.Tag 			= Tags.Flare;
-				Info.Rarity 		= Rarity.Limited;
-				Info.Type 			= Types.Utility;
-				Info.Name 			= "FLARE";
-				Info.IsFlammable 	= true;
-				Info.Description 	= "Temporary light";
+				Tag 			= Tags.Flare;
+				Rarity 			= Rarity.Limited;
+				Type 			= Types.Utility;
+				Name 			= "FLARE";
+				IsFlammable 	= true;
+				Description 	= "Temporary light";
 				break;
 			case ?:
-				Info.Tag 			= Tags.Lightrod;
-				Info.Rarity 		= Rarity.Scarce;
-				Info.Type 			= Types.Utility;
-				Info.Name 			= "LIGHTROD";
-				Info.IsFlammable 	= true;
-				Info.Description 	= "Illuminates surroundings";
+				Tag 			= Tags.Lightrod;
+				Rarity 			= Rarity.Scarce;
+				Type 			= Types.Utility;
+				Name 			= "LIGHTROD";
+				IsFlammable 	= true;
+				Description 	= "Illuminates surroundings";
 				break;
 			case ?:
-				Info.Tag 			= Tags.Extinguisher;
-				Info.Rarity 		= Rarity.Scarce;
-				Info.Type 			= Types.Utility;
-				Info.Name 			= "EXTINGUISHER";
-				Info.MaxUses 		= 4;
-				Info.CurrentUses 	= Info.MaxUses;
-				Info.IsFlammable 	= true;
-				Info.Description 	= "Extinguishes fires";
-				Info.Stats 			= $"\n\UP:{Info.MaxUses}/{Info.MaxUses}";
+				Tag 			= Tags.Extinguisher;
+				Rarity 			= Rarity.Scarce;
+				Type 			= Types.Utility;
+				Name 			= "EXTINGUISHER";
+				MaxUses 		= 4;
+				CurrentUses 	= MaxUses;
+				IsFlammable 	= true;
+				Description 	= "Extinguishes fires";
+				Stats 			= $"\n\UP:{MaxUses}/{MaxUses}";
 				break;
 			case ?:
-				Info.Tag 			= Tags.Spotlight;
-				Info.Rarity 		= Rarity.Rare;
-				Info.Type 			= Types.Utility;
-				Info.Name 			= "SPOTLIGHT";
-				Info.IsAttachable 	= true;
-				Info.Description 	= "Outputs directional light";
+				Tag 			= Tags.Spotlight;
+				Rarity 			= Rarity.Rare;
+				Type 			= Types.Utility;
+				Name 			= "SPOTLIGHT";
+				IsAttachable 	= true;
+				Description 	= "Outputs directional light";
 				break;
 			case ?:
-				Info.Tag 			= Tags.Blowtorch;
-				Info.Rarity 		= Rarity.Rare;
-				Info.Type 			= Types.Utility;
-				Info.Name 			= "BLOWTORCH";
-				Info.MaxUses 		= 4;
-				Info.CurrentUses 	= Info.MaxUses;
-				Info.IsFlammable 	= true;
-				Info.Description 	= "Sets objects on fire";
-				Info.Stats 			= $"\n\UP:{Info.MaxUses}/{Info.MaxUses}";
+				Tag 			= Tags.Blowtorch;
+				Rarity 			= Rarity.Rare;
+				Type 			= Types.Utility;
+				Name 			= "BLOWTORCH";
+				MaxUses 		= 4;
+				CurrentUses 	= MaxUses;
+				IsFlammable 	= true;
+				Description 	= "Sets objects on fire";
+				Stats 			= $"\n\UP:{MaxUses}/{MaxUses}";
 				break;
 			case ?:
-				Info.Tag 			= Tags.ThermalImager;
-				Info.Rarity 		= Rarity.Rare;
-				Info.Type 			= Types.Utility;
-				Info.Name 			= "THERMAL IMAGER";
-				Info.MaxUses 		= 4;
-				Info.CurrentUses 	= Info.MaxUses;
-				Info.Description 	= "Reveals heat signatures";
-				Info.Stats 			= $"\n\UP:{Info.MaxUses}/{Info.MaxUses}";
+				Tag 			= Tags.ThermalImager;
+				Rarity 			= Rarity.Rare;
+				Type 			= Types.Utility;
+				Name 			= "THERMAL IMAGER";
+				MaxUses 		= 4;
+				CurrentUses 	= MaxUses;
+				Description 	= "Reveals heat signatures";
+				Stats 			= $"\n\UP:{MaxUses}/{MaxUses}";
 				break;
 			case ?:
-				Info.Tag 			= Tags.NightVision;
-				Info.Rarity 		= Rarity.Anomalous;
-				Info.Type 			= Types.Utility;
-				Info.Name 			= "NIGHT VISION";
-				Info.IsEquipable 	= true;
-				Info.Description 	= "Enables nighttime visibility";
+				Tag 			= Tags.NightVision;
+				Rarity 			= Rarity.Anomalous;
+				Type 			= Types.Utility;
+				Name 			= "NIGHT VISION";
+				IsEquipable 	= true;
+				Description 	= "Enables nighttime visibility";
 				break;
 			*/
 		}
-		return Info;
 	}
 }

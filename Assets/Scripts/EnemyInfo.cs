@@ -30,38 +30,26 @@ public class EnemyInfo
 
 		Unknown,
 	}
-	// Name of enemy
-	public Tags Tag = Tags.Unknown;
-	// Rarity of enemy
-	private Rarity Rarity = Rarity.Common;
-	// Type of enemy
-	private Types Type = Types.Unknown;
-	// Ingame name of enemy
-	public string Name { get; private set; } = "UNKNOWN";
-	// Maximum health
-	private int maxHealth = 1;
-	// Current health
-	public int CurrentHealth { get; private set; } = 1;
-	// Maximum energy
-	private int maxEnergy = 1;
-	// Current energy
-	public int CurrentEnergy { get; private set; } = 1;
-	// Set only for enemies that do direct attacks
-	public int DamagePoints { get; private set; } = -1;
-	// Maximum distance a ranged enemy can attack to, 0 = melee
-	public int Range { get; private set; } = 0;
-	// true = will hunt the player, false = will guard nearby items
-	public bool IsHunting { get; private set; } = true;
-	// true = resistant to certain types of damage, false = not
-	public bool IsArmored { get; private set; } = false;
-	// true = currently stunned, false = not
-	public bool IsStunned { get; set; } = false;
+	public Tags Tag 			= Tags.Unknown;					// Name of enemy
+	public Rarity Rarity 		= Rarity.Common;				// Rarity of enemy
+	public Types Type 			= Types.Unknown;				// Type of enemy
+	public string Name 			{ get; private set; }			// Ingame name of enemy
+	public string Description 	{ get; private set; }			// Ingame description of enemy
+	private readonly int maxHealth = 1;							// Maximum health
+	public int CurrentHealth 	{ get; private set; } = 1;		// Current health
+	private readonly int maxEnergy = 1;							// Maximum energy
+	public int CurrentEnergy 	{ get; private set; } = 1;		// Current energy
+	public int DamagePoints 	{ get; private set; } = -1;		// Set only for enemies that do direct attacks
+	public int Range 			{ get; private set; } = 0;		// Maximum distance a ranged enemy can attack to, 0 = melee
+	public bool IsHunting 		{ get; private set; } = true;	// true = will hunt the player, false = will guard nearby items
+	public bool IsArmored 		{ get; private set; } = false;	// true = resistant to certain types of damage, false = not
+	public bool IsStunned 		{ get; set; } 		  = false;	// true = currently stunned, false = not
 	private static readonly int lastEnemyIndex = (int)Tags.Unknown;
 	private static readonly List<Rarity> EnemyRarityList = GenerateAllRarities();
 	private static List<Rarity> GenerateAllRarities()
 	{
 		return Enumerable.Range(0, lastEnemyIndex)
-						 .Select(i => EnemyFactory(i).Rarity)
+						 .Select(i => new EnemyInfo(i).Rarity)
 						 .ToList();
 	}
 	public static int GetRandomIndexFrom(Rarity Rarity)
@@ -95,39 +83,38 @@ public class EnemyInfo
 		CurrentEnergy = maxEnergy;
 	}
 	/// <summary>
-	/// Returns info for a desired enemy 
+	/// Returns info for a desired enemy,
+	/// n must match Tag order and GameManager EnemyTemplates order
 	/// </summary>
-	public static EnemyInfo EnemyFactory(int n)
+	public EnemyInfo(int n)
 	{
-		EnemyInfo Info = new();
 		switch (n)
 		{
 			case 0:
-				Info.Tag 			= Tags.Crawler;
-				Info.Rarity 		= Rarity.Common;
-				Info.Type 			= Types.Weak;
-				Info.maxHealth 		= 2;
-				Info.CurrentHealth 	= Info.maxHealth;
-				Info.maxEnergy 		= 1;
-				Info.CurrentEnergy 	= Info.maxEnergy;
-				Info.DamagePoints 	= 1;
-				Info.Name 			= "CRAWLER";
-				Info.IsHunting 		= true;
+				Tag 			= Tags.Crawler;
+				Rarity 			= Rarity.Common;
+				Type 			= Types.Weak;
+				maxHealth 		= 2;
+				CurrentHealth 	= maxHealth;
+				maxEnergy 		= 1;
+				CurrentEnergy 	= maxEnergy;
+				DamagePoints 	= 1;
+				Name 			= "CRAWLER";
+				IsHunting 		= true;
 				break;
 			case 1:
-				Info.Tag 			= Tags.Launcher;
-				Info.Rarity 		= Rarity.Limited;
-				Info.Type 			= Types.Mediocre;
-				Info.maxHealth 		= 4;
-				Info.CurrentHealth 	= Info.maxHealth;
-				Info.maxEnergy 		= 2;
-				Info.CurrentEnergy 	= Info.maxEnergy;
-				Info.DamagePoints 	= 2;
-				Info.Range 			= 3;
-				Info.Name 			= "LAUNCHER";
-				Info.IsHunting 		= false;
+				Tag 			= Tags.Launcher;
+				Rarity 			= Rarity.Limited;
+				Type 			= Types.Mediocre;
+				maxHealth 		= 4;
+				CurrentHealth 	= maxHealth;
+				maxEnergy 		= 2;
+				CurrentEnergy 	= maxEnergy;
+				DamagePoints 	= 2;
+				Range 			= 3;
+				Name 			= "LAUNCHER";
+				IsHunting 		= false;
 				break;
 		}
-		return Info;
 	}
 }

@@ -25,7 +25,7 @@ public static class WeightedRarityGeneration
 				Vector3 ShiftedPosition = new(x + 0.5f, y + 0.5f, 0);
 				// Fails if item or enemy is at selected position
 				if (GameManager.Instance.HasItemAtPosition(ShiftedPosition)
-					|| GameManager.Instance.HasEnemyAtPosition(ShiftedPosition))
+				 || GameManager.Instance.HasEnemyAtPosition(ShiftedPosition))
 				{
 					return false;
 				}
@@ -48,7 +48,7 @@ public static class WeightedRarityGeneration
 		{
 			return false;
 		}
-		GameManager.Instance.InstantiateNewItem(randomItemIndex, ChosenPosition);
+		GameManager.Instance.SpawnItem(randomItemIndex, ChosenPosition);
 		return true;
 	}
 	public static bool GenerateEnemy()
@@ -63,7 +63,22 @@ public static class WeightedRarityGeneration
 		{
 			return false;
 		}
-		GameManager.Instance.InstantiateNewEnemy(randomEnemyIndex, ChosenPosition);
+		GameManager.Instance.SpawnEnemy(randomEnemyIndex, ChosenPosition);
+		return true;
+	}
+	public static bool GenerateVehicle()
+	{
+		if (!GenerateRarityAndPosition()) 
+		{
+			return false;
+		}
+		int randomVehicleIndex = VehicleInfo.GetRandomIndexFrom(ChosenRarity);
+		// Fails if no vehicles of chosen rarity
+		if (randomVehicleIndex == -1)
+		{
+			return false;
+		}
+		GameManager.Instance.SpawnVehicle(randomVehicleIndex, ChosenPosition);
 		return true;
 	}
 }
