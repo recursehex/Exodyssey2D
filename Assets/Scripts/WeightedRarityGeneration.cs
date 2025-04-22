@@ -36,49 +36,38 @@ public static class WeightedRarityGeneration
 		}
 		return false;
 	}
-	public static bool GenerateItem()
-	{
-		if (!GenerateRarityAndPosition()) 
+	/// <summary>
+	/// Generates an item, enemy, or vehicle of a random rarity and position
+	/// </summary>
+	public static bool Generate<T>()
+    {
+        if (!GenerateRarityAndPosition())
 		{
-			return false;
+            return false;
 		}
-		int randomItemIndex = ItemInfo.GetRandomIndexFrom(ChosenRarity);
-		// Fails if no items of chosen rarity
-		if (randomItemIndex == -1)
-		{
-			return false;
-		}
-		GameManager.Instance.SpawnItem(randomItemIndex, ChosenPosition);
-		return true;
-	}
-	public static bool GenerateEnemy()
-	{
-		if (!GenerateRarityAndPosition()) 
-		{
-			return false;
-		}
-		int randomEnemyIndex = EnemyInfo.GetRandomIndexFrom(ChosenRarity);
-		// Fails if no enemies of chosen rarity
-		if (randomEnemyIndex == -1)
-		{
-			return false;
-		}
-		GameManager.Instance.SpawnEnemy(randomEnemyIndex, ChosenPosition);
-		return true;
-	}
-	public static bool GenerateVehicle()
-	{
-		if (!GenerateRarityAndPosition()) 
-		{
-			return false;
-		}
-		int randomVehicleIndex = VehicleInfo.GetRandomIndexFrom(ChosenRarity);
-		// Fails if no vehicles of chosen rarity
-		if (randomVehicleIndex == -1)
-		{
-			return false;
-		}
-		GameManager.Instance.SpawnVehicle(randomVehicleIndex, ChosenPosition);
-		return true;
-	}
+        int index = -1;
+        switch (typeof(T).Name)
+        {
+            case nameof(Item):
+                index = ItemInfo.GetRandomIndexFrom(ChosenRarity);
+                if (index != -1)
+                    GameManager.Instance.SpawnItem(index, ChosenPosition);
+                break;
+            case nameof(Enemy):
+                index = EnemyInfo.GetRandomIndexFrom(ChosenRarity);
+                if (index != -1)
+                    GameManager.Instance.SpawnEnemy(index, ChosenPosition);
+                break;
+            case nameof(Vehicle):
+                index = VehicleInfo.GetRandomIndexFrom(ChosenRarity);
+                if (index != -1)
+                    GameManager.Instance.SpawnVehicle(index, ChosenPosition);
+                break;
+            default:
+				Debug.LogError($"WeightedRarityGeneration.Generate<T>() " +
+								$"does not support type {typeof(T)}");
+                break;
+        }
+        return index != -1;
+    }
 }

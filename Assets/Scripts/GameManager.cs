@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Tilemaps;
-using UnityEditorInternal.Profiling.Memory.Experimental;
 
 public class GameManager : MonoBehaviour
 {
@@ -198,12 +197,14 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	public void ItemGeneration()
 	{
-		while (spawnItemCount > 0)
+		int cap = spawnItemCount * 2;
+		while (cap > 0 && spawnItemCount > 0)
 		{
-			if (WeightedRarityGeneration.GenerateItem())
+			if (WeightedRarityGeneration.Generate<Item>())
 			{
 				spawnItemCount--;
 			}
+			cap--;
 		}
 	}
 	/// <summary>
@@ -263,12 +264,14 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	private void EnemyGeneration()
 	{
-		while (spawnEnemyCount > 0)
+		int cap = spawnEnemyCount * 2;
+		while (cap > 0 && spawnEnemyCount > 0)
 		{
-			if (WeightedRarityGeneration.GenerateEnemy())
+			if (WeightedRarityGeneration.Generate<Enemy>())
 			{
 				spawnEnemyCount--;
 			}
+			cap--;
 		}
 	}
 	/// <summary>
@@ -411,12 +414,14 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	private void VehicleGeneration()
 	{
-		while (spawnVehicleCount > 0)
+		int cap = spawnVehicleCount * 2;
+		while (cap > 0 && spawnVehicleCount > 0)
 		{
-			if (WeightedRarityGeneration.GenerateVehicle())
+			if (WeightedRarityGeneration.Generate<Vehicle>())
 			{
 				spawnVehicleCount--;
 			}
+			cap--;
 		}
 	}
 	/// <summary>
