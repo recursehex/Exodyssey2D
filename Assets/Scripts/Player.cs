@@ -310,38 +310,6 @@ public class Player : MonoBehaviour
 			}
 			return true;
 		}
-		// if (SelectedItemInfo.Tag is ItemInfo.Tags.Helmet
-		// 	&& !hasHelmet)
-		// {
-		// 	hasHelmet = true;
-		// 	InventoryUI.RemoveItem(InventoryUI.SelectedIndex);
-		// 	SelectedItemInfo = null;
-		// 	return true;
-		// }
-		// if (SelectedItemInfo.Tag is ItemInfo.Tags.Vest
-		// 	&& !hasVest)
-		// {
-		// 	hasVest = true;
-		// 	InventoryUI.RemoveItem(InventoryUI.SelectedIndex);
-		// 	SelectedItemInfo = null;
-		// 	return true;
-		// }
-		// if (SelectedItemInfo.Tag is ItemInfo.Tags.GrapheneShield
-		// 	&& !hasShield)
-		// {
-		// 	hasShield = true;
-		// 	InventoryUI.RemoveItem(InventoryUI.SelectedIndex);
-		// 	SelectedItemInfo = null;
-		// 	return true;
-		// }
-		// if (SelectedItemInfo.Tag is ItemInfo.Tags.NightVision
-		// 	&& !hasNightVision)
-		// {
-		// 	hasNightVision = true;
-		// 	InventoryUI.RemoveItem(InventoryUI.SelectedIndex);
-		// 	SelectedItemInfo = null;
-		// 	return true;
-		// }
 		return false;
 	}
 	/// <summary>
