@@ -14,6 +14,7 @@ public class Player : MonoBehaviour
 	private int currentHealth = 3;
 	public int currentEnergy = 3;
 	public int DamagePoints { get; private set; } = 0;
+	private readonly int walkSpeed = 2;
 	private bool hasHelmet = false;
 	private bool hasVest = false;
 	private bool hasShield = false;
@@ -79,10 +80,13 @@ public class Player : MonoBehaviour
 			DecrementEnergy();
 			SoundManager.Instance.PlaySound(PlayerMove);
 			Vector3 ShiftedDistance = new(Destination.x + 0.5f, Destination.y + 0.5f, Destination.z);
-			// Move player smoothly to next tile
+			// Move Player smoothly to next tile
 			while (Vector3.Distance(transform.position, ShiftedDistance) > 0f)
 			{
-				transform.position = Vector3.MoveTowards(transform.position, ShiftedDistance, 2 * Time.deltaTime);
+				transform.position = Vector3.MoveTowards(
+					transform.position, 
+					ShiftedDistance, 
+					walkSpeed * Time.deltaTime);
 				await Task.Yield();
 			}
 			// Pop next tile in path
@@ -271,7 +275,7 @@ public class Player : MonoBehaviour
 		}
 	}
 	/// <summary>
-	/// Handles when ClickTarget() clicks on Player, returns false if item is not consumable or was not used
+	/// Handles when ClickTarget() clicks on Player, returns false if item is not valid or was not used
 	/// </summary>
 	public bool ClickOnPlayerToUseItem()
 	{
@@ -289,7 +293,7 @@ public class Player : MonoBehaviour
 		return wasUsed;
 	}
 	/// <summary>
-	/// Returns true if item was used to heal Player
+	/// Returns true if item was used on Player
 	/// </summary>
 	private bool WasItemUsed()
 	{
