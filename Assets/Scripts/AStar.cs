@@ -37,14 +37,16 @@ public class AStar
 		Vector3Int StartInt = TilemapGround.WorldToCell(Start);
 		Dictionary<Vector3Int, Node> ReachableArea = new() { [StartInt] = new Node(StartInt) };
 		List<Node> CurrentLayer = new() { new(StartInt) };
-
+		// Expand outward to the specified distance
 		for (int d = 0; d < distance; d++)
 		{
 			List<Node> NextLayer = new();
 			foreach (Node Node in CurrentLayer)
 			{
+				// Get adjacent reachable nodes
 				foreach (Node Neighbor in FindNeighbors(Node.Position))
 				{
+					// Skip if already visited
 					if (!ReachableArea.ContainsKey(Neighbor.Position))
 					{
 						ReachableArea.Add(Neighbor.Position, Neighbor);
@@ -52,6 +54,7 @@ public class AStar
 					}
 				}
 			}
+			// No more nodes to explore
 			if (NextLayer.Count == 0)
 				break;
 			CurrentLayer = NextLayer;

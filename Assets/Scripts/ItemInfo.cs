@@ -109,7 +109,7 @@ public class ItemInfo
 			Stats += $"\tDP:{DamagePoints}";
 			if (ArmorDamage >= 0)
 			{
-				Stats += $"\nADP:{ArmorDamage}";
+				Stats += $"\nAD:{ArmorDamage}";
 			}
 			if (Range > 0)
 			{
@@ -168,7 +168,7 @@ public class ItemInfo
 				ArmorDamage 	= 0;
 				IsFlammable 	= true;
 				Description 	= "Fragile stick";
-				Stats 			= $"\nUP:{maxUses}/{maxUses}\tDP:{DamagePoints}\nADP:{ArmorDamage}";
+				Stats 			= $"\nUP:{maxUses}/{maxUses}\tDP:{DamagePoints}\nAD:{ArmorDamage}";
 				break;
 			case 3:
 				Tag 			= Tags.Knife;
@@ -180,7 +180,7 @@ public class ItemInfo
 				DamagePoints 	= 2;
 				ArmorDamage 	= 1;
 				Description 	= "Can stab through armor";
-				Stats 			= $"\nUP:{maxUses}/{maxUses}\tDP:{DamagePoints}\nADP:{ArmorDamage}";
+				Stats 			= $"\nUP:{maxUses}/{maxUses}\tDP:{DamagePoints}\nAD:{ArmorDamage}";
 				break;
 			case 4:
 				Tag 			= Tags.Wrench;
@@ -192,7 +192,7 @@ public class ItemInfo
 				DamagePoints 	= 2;
 				ArmorDamage 	= 1;
 				Description 	= "Weak against armor";
-				Stats 			= $"\nUP:{maxUses}/{maxUses}\tDP:{DamagePoints}\nADP:{ArmorDamage}";
+				Stats 			= $"\nUP:{maxUses}/{maxUses}\tDP:{DamagePoints}\nAD:{ArmorDamage}";
 				break;
 			case 5:
 				Tag 			= Tags.Mallet;
@@ -205,7 +205,7 @@ public class ItemInfo
 				ArmorDamage 	= 0;
 				IsStunning 		= true;
 				Description 	= "Stuns, bounces off armor";
-				Stats 			= $"\nUP:{maxUses}/{maxUses}\tDP:{DamagePoints}\nADP:{ArmorDamage}";
+				Stats 			= $"\nUP:{maxUses}/{maxUses}\tDP:{DamagePoints}\nAD:{ArmorDamage}";
 				break;
 			case 6:
 				Tag 			= Tags.FireAxe;
@@ -217,7 +217,7 @@ public class ItemInfo
 				DamagePoints 	= 4;
 				ArmorDamage 	= 2;
 				Description 	= "Cuts through armor";
-				Stats 			= $"\nUP:{maxUses}/{maxUses}\tDP:{DamagePoints}\nADP:{ArmorDamage}";
+				Stats 			= $"\nUP:{maxUses}/{maxUses}\tDP:{DamagePoints}\nAD:{ArmorDamage}";
 				break;
 			case 7:
 				Tag 			= Tags.Chainsaw;

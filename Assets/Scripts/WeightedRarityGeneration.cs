@@ -13,8 +13,8 @@ public static class WeightedRarityGeneration
 			cumulative += Rarity.GetDropRate();
 			if (roll <= cumulative)
 			{
-				int x = Random.Range(-4, 4);
-				int y = Random.Range(-4, 4);
+				int x = Random.Range(-4, 5);
+				int y = Random.Range(-4, 5);
 				Vector3Int Position = new(x, y, 0);
 				// Fails if wall tile is at selected position
 				if (GameManager.Instance.HasWallAtPosition(Position)
