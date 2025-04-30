@@ -34,6 +34,8 @@ public class VehicleInfo
 	private readonly int maxHealth = 1;							// Max health
 	public int CurrentHealth 	{ get; private set; } = 1;		// Current health
 	public bool CanOffroad 		{ get; private set; } = false;	// If vehicle can drive offroad
+	public bool HasBattery 		{ get; private set; } = false; 	// If vehicle has battery
+	public bool HasSpotlight 	{ get; private set; } = false;	// If vehicle has spotlight
 	private static readonly int lastVehicleIndex = (int)Tags.Unknown;
 	private static readonly List<Rarity> VehicleRarityList = GenerateAllRarities();
 	private static List<Rarity> GenerateAllRarities()
