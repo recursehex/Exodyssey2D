@@ -1448,7 +1448,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 1
     m_LineSpacing: 2
-  m_Text: "\tEXODYSSEY 2D Alpha 1.2.0\t\t\t\t\t\tUnity 6"
+  m_Text: "\tEXODYSSEY 2D Alpha 1.2.1\t\t\t\t\t\tUnity 6"
 --- !u!222 &768722518
 CanvasRenderer:
   m_ObjectHideFlags: 0
