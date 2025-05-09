@@ -374,7 +374,6 @@ public class ItemInfo
 				Name 			= "GRAPHENE SHIELD";
 				MaxUses 		= 1;
 				CurrentUses 	= MaxUses;
-				IsEquipable 	= true;
 				Description 	= "Blocks all DP except boss DP";
 				Stats 			= $"\n\UP:{MaxUses}/{MaxUses}";
 				break;

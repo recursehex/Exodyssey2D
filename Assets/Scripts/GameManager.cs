@@ -142,12 +142,13 @@ public class GameManager : MonoBehaviour
 		DayText.gameObject.SetActive(true);
 		spawnItemCount = Random.Range(5, 10);
 		spawnEnemyCount = Random.Range(1 + (int)(level * 0.5), 3 + (int)(level * 0.5));
-		spawnVehicleCount = Random.Range(0, 2); // TEMP
+		spawnVehicleCount = Random.Range(0, 10); // TEMP
 		MapGenerator = new();
 		GroundGeneration();
 		WallGeneration();
 		EnemyGeneration();
 		ItemGeneration();
+		VehicleGeneration();
 		Invoke(nameof(HideLevelLoadScreen), levelStartDelay);
 	}
 	private void HideLevelLoadScreen()
@@ -377,7 +378,7 @@ public class GameManager : MonoBehaviour
 		DrawTargetsAndTracers();
 	}
 	/// <summary>
-	/// Called when an enemy takes damage, assumes player.DamagePoints > 0
+	/// Called when an enemy is attacked
 	/// </summary>
 	private void HandleDamageToEnemy(int index)
 	{
@@ -419,6 +420,7 @@ public class GameManager : MonoBehaviour
 		{
 			if (WeightedRarityGeneration.Generate<Vehicle>())
 			{
+				Debug.Log("Vehicle generated");
 				spawnVehicleCount--;
 			}
 			cap--;
@@ -430,7 +432,7 @@ public class GameManager : MonoBehaviour
 	public void SpawnVehicle(int index, Vector3 Position)
 	{
 		Vehicle NewVehicle = Instantiate(VehicleTemplates[index], Position, Quaternion.identity).GetComponent<Vehicle>();
-		NewVehicle.Initialize(TilemapGround, TilemapWalls, new VehicleInfo(index), Player);
+		NewVehicle.Initialize(TilemapGround, TilemapWalls, new VehicleInfo(index));
 		Vehicles.Add(NewVehicle);
 	}
 	/// <summary>
@@ -505,45 +507,60 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	public bool PlayerIsOnExitTile()
 	{
-		if (TilemapExit.HasTile(Vector3Int.FloorToInt(Player.transform.position)))
+		if (HasExitTileAtPosition(Vector3Int.FloorToInt(Player.transform.position)))
 		{
 			ResetForNextLevel();
 			return true;
 		}
 		return false;
 	}
+	public bool HasExitTileAtPosition(Vector3Int Position)
+	{
+		return TilemapExit.HasTile(Position);
+	}
 	/// <summary>
 	/// Acts based on what mouse button is clicked
 	/// </summary>
 	private void MouseInput()
 	{
-		BoundsInt CellBounds = TilemapGround.cellBounds;
-		Vector3 WorldPoint = MainCamera.ScreenToWorldPoint(Input.mousePosition);
-		Vector3Int TilePoint = TilemapGround.WorldToCell(WorldPoint);
-		Vector3 ShiftedClickPoint = new(TilePoint.x + 0.5f, TilePoint.y + 0.5f, 0);
-		// If LMB clicks within grid, begin Player movement system
+		BoundsInt CellBounds 		= TilemapGround.cellBounds;
+		Vector3 WorldPoint 			= MainCamera.ScreenToWorldPoint(Input.mousePosition);
+		Vector3Int TilePoint 		= TilemapGround.WorldToCell(WorldPoint);
+		Vector3 ShiftedClickPoint 	= new(TilePoint.x + 0.5f, TilePoint.y + 0.5f, 0);
+		// If LMB clicks within grid, begin Player actions
 		if (Input.GetMouseButtonDown(0)
 			&& !Player.IsInMovement
+			&& playersTurn
 			&& CellBounds.Contains(TilePoint)
 			&& !TilemapWalls.HasTile(TilePoint))
 		{
+			// Check if Player is in vehicle
+			if (Player.IsInVehicle)
+			{
+				// If Player clicks on its own tile, switch ignition
+				if (Player.Vehicle.transform.position == TilePoint)
+				{
+					Player.Vehicle.SwitchIgnition();
+				}
+				// If Player clicks on its another tile, try to move
+				else if (Player.Vehicle.Info.IsOn && Player.Vehicle.HasFuel())
+				{
+					TryVehicleMovement(TilePoint, ShiftedClickPoint, WorldPoint);
+				}
+				return;
+			}
 			// If Player clicks on its own tile but energy is not used
-			TryAddItem(ShiftedClickPoint);
-			// For actions that require energy, first check if it is Player turn
-			if (!playersTurn || !Player.HasEnergy())
-			{
-				return;
-			}
-			TryUseItemOnPlayer(ShiftedClickPoint);
-			bool isInMovementRange = IsInMovementRange(TilePoint);
-			int enemyIndex = GetEnemyIndexAtPosition(TilePoint);
-			if (TryPlayerMovement(isInMovementRange, enemyIndex, ShiftedClickPoint, WorldPoint))
-			{
-				return;
-			}
-			bool isInMeleeRange = IsInMeleeRange(ShiftedClickPoint);
-			bool isInRangedWeaponRange = Player.GetWeaponRange() > 0 && IsInRangedWeaponRange(ShiftedClickPoint);
-			TryPlayerAttack(enemyIndex, isInMeleeRange, isInRangedWeaponRange);
+			if (TryAddItem(ShiftedClickPoint)) return;
+			// Check if Player has energy for actions requiring energy
+			if (!Player.HasEnergy()) return;
+			// If Player clicks on its own tile, try to use item
+			if (TryUseItemOnPlayer(ShiftedClickPoint)) return;
+			// If Player clicks on a vehicle, try to enter it
+			if (TryEnterVehicle(TilePoint)) return;
+			// If Player clicks on another tile, try to move
+			if (TryPlayerMovement(TilePoint, ShiftedClickPoint, WorldPoint)) return;
+			// If Player clicks on an enemy, try to attack
+			TryPlayerAttack(TilePoint, ShiftedClickPoint);
 		}
 		// If mouse is hovering over tile and within grid
 		else if (CellBounds.Contains(TilePoint))
@@ -562,76 +579,122 @@ public class GameManager : MonoBehaviour
 			Player.InventoryUI.ProcessHoverForInventory(WorldPoint);
 		}
 	}
-	/// <summary>
-	/// Tries to add item to Player inventory after clicking on own tile with item on it
-	/// </summary>
-	private void TryAddItem(Vector3 ShiftedClickPoint)
+    /// <summary>
+    /// Tries to add item to Player inventory after clicking on own tile with item on it
+    /// </summary>
+    private bool TryAddItem(Vector3 ShiftedClickPoint)
+    {
+        // Return false if click and item is not on Player position
+        if (ShiftedClickPoint != Player.transform.position
+            || GetItemAtPosition(ShiftedClickPoint) is not Item ItemAtPosition)
+        {
+            return false;
+        }
+        // Player picks up item
+        if (Player.TryAddItem(ItemAtPosition))
+        {
+            DestroyItemAtPosition(ShiftedClickPoint);
+			return true;
+        }
+		return false;
+    }
+    /// <summary>
+    /// Tries to use item on Player after clicking on own tile with selected item
+    /// </summary>
+    private bool TryUseItemOnPlayer(Vector3 ShiftedClickPoint) 
 	{
-		// If click and item is on Player position
-		if (ShiftedClickPoint == Player.transform.position
-			&& GetItemAtPosition(ShiftedClickPoint) is Item ItemAtPosition)
-		{
-			// Player picks up item
-			if (Player.TryAddItem(ItemAtPosition))
-			{
-				DestroyItemAtPosition(ShiftedClickPoint);
-			}
-		}
-	}
-	/// <summary>
-	/// Tries to use item on Player after clicking on own tile with selected item
-	/// </summary>
-	private void TryUseItemOnPlayer(Vector3 ShiftedClickPoint) 
-	{
+		// Return false if click and click is not on Player or cannot use item on Player
 		if (ShiftedClickPoint != Player.transform.position
 			|| !Player.ClickOnPlayerToUseItem())
 		{
-			return;
+			return false;
 		}
 		TurnTimer.StartTimer();
+		return true;
 	}
 	/// <summary>
 	/// Tries to move to clicked tile
 	/// </summary>
-	private bool TryPlayerMovement(bool isInMovementRange, int enemyIndex, Vector3 ShiftedClickPoint, Vector3 WorldPoint) 
-	{
-		if (isInMovementRange
-			&& enemyIndex == -1
-			&& ShiftedClickPoint != Player.transform.position)
-		{
-			EndTurnButton.interactable = false;
-			Player.IsInMovement = true;
-			Player.ComputePathAndStartMovement(WorldPoint);
-			ClearTileAreas();
-			TurnTimer.StartTimer();
-			return true;
-		}
-		return false;
-	}
-	/// <summary>
-	/// Tries to attack enemy at clicked tile
-	/// </summary>
-	private void TryPlayerAttack(int enemyIndex, bool isInMeleeRange, bool isInRangedWeaponRange) 
-	{
-		if (enemyIndex >= 0
-			&& (isInMeleeRange || isInRangedWeaponRange)
-			&& Player.SelectedItemInfo?.Type is ItemInfo.Types.Weapon)
-		{
-			HandleDamageToEnemy(enemyIndex);
-			Player.AttackEnemy();
-			TurnTimer.StartTimer();
-			TileDot.SetActive(false);
-			if (isInRangedWeaponRange
-				&& Player.SelectedItemInfo?.CurrentUses == 0)
-			{
-				ClearTargetsAndTracers();
-			}
-		}
-	}
-	/// <summary>
-	/// Checks if tile is within range based on Player energy
-	/// </summary>
-	private bool IsInMovementRange(Vector3Int Position)
+	private bool TryPlayerMovement(Vector3Int TilePoint, Vector3 ShiftedClickPoint, Vector3 WorldPoint)
+    {
+		bool isInMovementRange = IsInMovementRange(TilePoint);
+		int enemyIndex = GetEnemyIndexAtPosition(TilePoint);
+		// Return false if not in range or enemy is present
+        if (!isInMovementRange
+            || enemyIndex != -1
+            || ShiftedClickPoint == Player.transform.position)
+        {
+            return false;
+        }
+        EndTurnButton.interactable = false;
+        Player.IsInMovement = true;
+        Player.ComputePathAndStartMovement(WorldPoint);
+        ClearTileAreas();
+        TurnTimer.StartTimer();
+        return true;
+    }
+    /// <summary>
+    /// Tries to attack enemy at clicked tile
+    /// </summary>
+    private void TryPlayerAttack(Vector3Int TilePoint, Vector3 ShiftedClickPoint)
+    {
+		int enemyIndex = GetEnemyIndexAtPosition(TilePoint);
+		bool isInMeleeRange = IsInMeleeRange(ShiftedClickPoint);
+		bool isInRangedWeaponRange = Player.GetWeaponRange() > 0 && IsInRangedWeaponRange(ShiftedClickPoint);
+		// Return if no enemy, not in range, or not using ranged weapon
+        if (enemyIndex == -1
+            || !isInMeleeRange && !isInRangedWeaponRange
+            || Player.SelectedItemInfo?.Type is not ItemInfo.Types.Weapon)
+        {
+            return;
+        }
+        HandleDamageToEnemy(enemyIndex);
+        Player.AttackEnemy();
+        TurnTimer.StartTimer();
+        TileDot.SetActive(false);
+        if (isInRangedWeaponRange
+            && Player.SelectedItemInfo?.CurrentUses == 0)
+        {
+            ClearTargetsAndTracers();
+        }
+    }
+    /// <summary>
+    /// Tries to enter vehicle at clicked tile
+    /// </summary>
+    private bool TryEnterVehicle(Vector3Int TilePoint)
+    {
+		int vehicleIndex = GetVehicleIndexAtPosition(TilePoint);
+        if (vehicleIndex == -1)
+        {
+            return false;
+        }
+		Player.Vehicle = Vehicles[vehicleIndex];
+		Player.transform.position = Player.Vehicle.transform.position;
+        TurnTimer.StartTimer();
+		return true;
+    }
+	private void TryVehicleMovement(Vector3Int TilePoint, Vector3 ShiftedClickPoint, Vector3 WorldPoint)
+    {
+		bool isInMovementRange = IsInMovementRange(TilePoint);
+		int enemyIndex = GetEnemyIndexAtPosition(TilePoint);
+		// Return false if not in range or enemy is present
+        if (!isInMovementRange
+            || enemyIndex != -1
+            || ShiftedClickPoint == Player.transform.position)
+        {
+            return;
+        }
+        EndTurnButton.interactable = false;
+        Player.IsInMovement = true;
+        Player.Vehicle.ComputePathAndStartMovement(WorldPoint);
+        ClearTileAreas();
+        TurnTimer.StartTimer();
+        return;
+    }
+    /// <summary>
+    /// Checks if tile is within range based on Player energy
+    /// </summary>
+    private bool IsInMovementRange(Vector3Int Position)
 	{
 		return TileAreasToDraw?.ContainsKey(Position) == true;
 	}
