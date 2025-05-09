@@ -36,6 +36,7 @@ public class VehicleInfo
 	public bool CanOffroad 		{ get; private set; } = false;	// If vehicle can drive offroad
 	public bool HasBattery 		{ get; private set; } = false; 	// If vehicle has battery
 	public bool HasSpotlight 	{ get; private set; } = false;	// If vehicle has spotlight
+	public bool IsOn 			{ get; private set; } = false;	// If vehicle is turned on
 	private static readonly int lastVehicleIndex = (int)Tags.Unknown;
 	private static readonly List<Rarity> VehicleRarityList = GenerateAllRarities();
 	private static List<Rarity> GenerateAllRarities()
@@ -88,6 +89,10 @@ public class VehicleInfo
 		}
 		CurrentFuel -= amount;
 		return true;
+	}
+	public void SwitchIgnition()
+	{
+		IsOn = !IsOn;
 	}
 	/// <summary>
 	/// Returns info for a desired vehicle,

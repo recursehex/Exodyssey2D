@@ -8,7 +8,6 @@ public class Vehicle : MonoBehaviour
 	#region DATA
 	public VehicleInfo Info;
 	public Inventory Inventory;
-	public Player Player;
 	#endregion
 	#region AUDIO
 	public AudioClip Move;
@@ -21,14 +20,13 @@ public class Vehicle : MonoBehaviour
 	private Vector3Int Destination;
 	private AStar AStar;
 	#endregion
-	public void Initialize(Tilemap Ground, Tilemap Walls, VehicleInfo VehicleInfo, Player Player)
+	public void Initialize(Tilemap Ground, Tilemap Walls, VehicleInfo VehicleInfo)
 	{
 		TilemapGround = Ground;
 		TilemapWalls = Walls;
 		Info = VehicleInfo;
 		Inventory = new(Info.Storage);
 		AStar = new(TilemapGround, TilemapWalls);
-		this.Player = Player;
 	}
 	#region MOVEMENT METHODS
 	/// <summary>
@@ -88,7 +86,8 @@ public class Vehicle : MonoBehaviour
 	public Dictionary<Vector3Int, Node> CalculateArea()
 	{
 		// Return all road tiles
-		return null;
+		throw new System.NotImplementedException();
+		// return null;
 	}
 	#endregion
 	#region HEALTH METHODS
@@ -115,12 +114,15 @@ public class Vehicle : MonoBehaviour
 	/// </summary>
 	public bool DecreaseFuelBy(int amount)
 	{
-		if (Info.CurrentFuel - amount < 0)
-		{
-			return false;
-		}
-		Info.DecreaseHealthBy(amount);
-		return true;
+		return Info.DecreaseFuelBy(amount);
+	}
+	public void SwitchIgnition()
+	{
+		Info.SwitchIgnition();
+	}
+	public bool HasFuel()
+	{
+		return Info.CurrentFuel > 0;
 	}
 	#endregion
 }

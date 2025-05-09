@@ -15,9 +15,12 @@ public class Player : MonoBehaviour
 	public int currentEnergy = 3;
 	public int DamagePoints { get; private set; } = 0;
 	private readonly int walkSpeed = 2;
+	public Vehicle Vehicle;
+	public bool IsInVehicle => Vehicle != null;
 	private bool hasHelmet = false;
+	private int helmetHealth;
 	private bool hasVest = false;
-	private bool hasShield = false;
+	private int vestHealth;
 	private bool hasNightVision = false;
 	public Profession Profession = new(Profession.Tags.Unknown, 0);
 	#endregion
@@ -121,10 +124,27 @@ public class Player : MonoBehaviour
 	/// <summary>
 	/// Decreases currentHealth by damage and updates Health display
 	/// </summary>
-	public void DecreaseHealthBy(int damage)
+	public void DecreaseHealthBy(int damage, bool isMeleeDamage)
 	{
+		// Handle armor
+		if (isMeleeDamage && hasHelmet)
+		{
+			int absorbed = Mathf.Min(damage, helmetHealth);
+			helmetHealth -= absorbed;
+			damage       -= absorbed;
+			if (helmetHealth <= 0) hasHelmet = false;
+		}
+		else if (!isMeleeDamage && hasVest)
+		{
+			int absorbed = Mathf.Min(damage, vestHealth);
+			vestHealth -= absorbed;
+			damage     -= absorbed;
+			if (vestHealth <= 0) hasVest = false;
+		}
+		if (damage <= 0) return;
+		// Damage Player
 		currentHealth -= damage;
-		// Player is killed
+		// If Player is killed
 		if (currentHealth <= 0)
 		{
 			SoundManager.Instance.PlaySound(GameOver);
@@ -132,10 +152,10 @@ public class Player : MonoBehaviour
 			SoundManager.Instance.FadeOutMusic(2.0f);
 			return;
 		}
-		// Player is damaged
+		// Update health display and animation state
 		StatsDisplayManager.DecreaseHealthDisplay(currentHealth, maxHealth);
 		Animator.SetTrigger("playerHit");
-		// Reduce max energy to simulate weakness
+		// Reduce max energy to simulate weakness at 1 health
 		if (currentHealth == 1)
 		{
 			currentEnergy = 1;
@@ -314,6 +334,29 @@ public class Player : MonoBehaviour
 			}
 			return true;
 		}
+		// else if (SelectedItemInfo.Tag is ItemInfo.Tags.Helmet
+		// 	&& !hasHelmet)
+		// {
+		// 	hasHelmet = true;
+		// 	helmetHealth = SelectedItemInfo.CurrentUses;
+		// 	SelectedItemInfo = null;
+		// 	return true;
+		// }
+		// else if (SelectedItemInfo.Tag is ItemInfo.Tags.Vest
+		// 	&& !hasVest)
+		// {
+		// 	hasVest = true;
+		// 	vestHealth = SelectedItemInfo.CurrentUses;
+		// 	SelectedItemInfo = null;
+		// 	return true;
+		// }
+		// else if (SelectedItemInfo.Tag is ItemInfo.Tags.NightVision
+		// 	&& !hasNightVision)
+		// {
+		// 	hasNightVision = true;
+		// 	SelectedItemInfo = null;
+		// 	return true;
+		// }
 		return false;
 	}
 	/// <summary>
