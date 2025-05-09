@@ -16,16 +16,18 @@ public static class WeightedRarityGeneration
 				int x = Random.Range(-4, 5);
 				int y = Random.Range(-4, 5);
 				Vector3Int Position = new(x, y, 0);
-				// Fails if wall tile is at selected position
+				// Fails if wall tile or Player is at selected position
 				if (GameManager.Instance.HasWallAtPosition(Position)
-					|| (x <= -2 && y <= 1 && y >= -1))
+				 || GameManager.Instance.HasExitTileAtPosition(Position)
+				 || (x <= -2 && y <= 1 && y >= -1))
 				{
 					return false;
 				}
 				Vector3 ShiftedPosition = new(x + 0.5f, y + 0.5f, 0);
-				// Fails if item or enemy is at selected position
+				// Fails if item, enemy, or vehicle is at selected position
 				if (GameManager.Instance.HasItemAtPosition(ShiftedPosition)
-				 || GameManager.Instance.HasEnemyAtPosition(ShiftedPosition))
+				 || GameManager.Instance.HasEnemyAtPosition(ShiftedPosition)
+				 || GameManager.Instance.HasVehicleAtPosition(ShiftedPosition))
 				{
 					return false;
 				}

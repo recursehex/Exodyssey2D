@@ -139,7 +139,7 @@ public class Enemy : MonoBehaviour
 	{
 		Info.DecrementEnergy();
 		SoundManager.Instance.PlaySound(Attack);
-		Player.DecreaseHealthBy(Info.DamagePoints);
+		Player.DecreaseHealthBy(Info.DamagePoints, Info.Range == 0);
 	}
 	#endregion
 }
