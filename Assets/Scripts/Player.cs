@@ -216,9 +216,9 @@ public class Player : MonoBehaviour
 	public void AttackEnemy()
 	{
 		SoundManager.Instance.PlaySound(Attack);
+		Animator.SetTrigger("playerAttack");
 		DecrementEnergy();
 		DecrementWeaponDurability();
-		Animator.SetTrigger("playerAttack");
 	}
 	/// <summary>
 	/// Decreases weapon durability by 1, removes weapon if uses == 0

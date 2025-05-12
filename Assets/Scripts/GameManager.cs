@@ -142,7 +142,7 @@ public class GameManager : MonoBehaviour
 		DayText.gameObject.SetActive(true);
 		spawnItemCount = Random.Range(5, 10);
 		spawnEnemyCount = Random.Range(1 + (int)(level * 0.5), 3 + (int)(level * 0.5));
-		spawnVehicleCount = Random.Range(0, 10); // TEMP
+		spawnVehicleCount = Random.Range(0, 3); // TEMP
 		MapGenerator = new();
 		GroundGeneration();
 		WallGeneration();
@@ -420,7 +420,6 @@ public class GameManager : MonoBehaviour
 		{
 			if (WeightedRarityGeneration.Generate<Vehicle>())
 			{
-				Debug.Log("Vehicle generated");
 				spawnVehicleCount--;
 			}
 			cap--;
@@ -648,15 +647,15 @@ public class GameManager : MonoBehaviour
         {
             return;
         }
+		if (Player.SelectedItemInfo?.Tag == ItemInfo.Tags.Rock)
+		{
+			// Drop the Rock at the enemy's position
+			SpawnItem((int)Player.SelectedItemInfo.Tag, TilePoint + new Vector3(0.5f, 0.5f, 0));
+		}
         HandleDamageToEnemy(enemyIndex);
         Player.AttackEnemy();
         TurnTimer.StartTimer();
         TileDot.SetActive(false);
-        if (isInRangedWeaponRange
-            && Player.SelectedItemInfo?.CurrentUses == 0)
-        {
-            ClearTargetsAndTracers();
-        }
     }
     /// <summary>
     /// Tries to enter vehicle at clicked tile

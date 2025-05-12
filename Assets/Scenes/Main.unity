@@ -886,12 +886,14 @@ MonoBehaviour:
   - {fileID: 2145379877062402088, guid: 0e8cdb2257b7c46f9b7d92231bfa62da, type: 3}
   - {fileID: 2145379877062402088, guid: ba8e62b527e3c4b2c8c15ddde698b587, type: 3}
   - {fileID: 2145379877062402088, guid: 33186f847f6305748921b5b654aa8c9d, type: 3}
+  - {fileID: 2145379877062402088, guid: 1a6b4107ceb4a4d4db276eae951f74b4, type: 3}
   Items: []
   spawnItemCount: 0
   VehicleTemplates:
   - {fileID: 283541130281458624, guid: b85441ba2624a4848a67b0e4673e5212, type: 3}
   - {fileID: 283541130281458624, guid: 70bcb0b5b6c344e258342aae4df51e07, type: 3}
   - {fileID: 283541130281458624, guid: 8beb83c16fa684962ab4ab7c7cd25520, type: 3}
+  - {fileID: 283541130281458624, guid: 97ce03eb452e841339253bff72383839, type: 3}
   Vehicles: []
   spawnVehicleCount: 0
   TilemapGround: {fileID: 2052983298}
