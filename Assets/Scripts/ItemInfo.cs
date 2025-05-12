@@ -33,7 +33,7 @@ public class ItemInfo
 		PlasmaRailgun,
 
 		// THROWABLE
-		//Rock,
+		Rock,
 		//SmokeGrenade,
 		//Dynamite,
 		//StickyGrenade,
@@ -151,11 +151,11 @@ public class ItemInfo
 			// 	Rarity 			= Rarity.Rare;
 			// 	Type 			= Types.Consumable;
 			// 	Name 			= "POWER CELL";
-			// 	MaxUses 		= 5; 		// max charge
-			// 	CurrentUses 	= MaxUses; 	// current charge
+			// 	maxUses 		= 5; 		// max charge
+			// 	CurrentUses 	= maxUses; 	// current charge
 			// 	IsFlammable 	= true;
 			// 	Description 	= "Powers vehicles";
-			// 	Stats 			= $"\n\CHARGE:{MaxUses}/{MaxUses}";
+			// 	Stats 			= $"\n\CHARGE:{maxUses}/{maxUses}";
 			// 	break;
 			case 2:
 				Tag 			= Tags.Branch;
@@ -260,13 +260,13 @@ public class ItemInfo
 			// 	Rarity 			= Rarity.Rare;
 			// 	Type 			= Types.Weapon;
 			// 	Name 			= "FLAMETHROWER";
-			// 	MaxUses 		= 4;
-			// 	CurrentUses 	= MaxUses;
+			// 	maxUses 		= 4;
+			// 	CurrentUses 	= maxUses;
 			// 	DamagePoints 	= 1;
 			// 	Range 			= 3;
 			// 	IsFlammable 	= true;
 			// 	Description 	= "Sprays streaks of fire";
-			// 	Stats 			= $"\nUP:{MaxUses}/{MaxUses}\tDP:{DamagePoints}\nRP:{Range}";
+			// 	Stats 			= $"\nUP:{maxUses}/{maxUses}\tDP:{DamagePoints}\nRP:{Range}";
 			// 	break;
 			case 10:
 				Tag 			= Tags.HuntingRifle;
@@ -292,102 +292,102 @@ public class ItemInfo
 				Description 	= "Fires a voltaic plasma bolt";
 				Stats 			= $"\nUP:{maxUses}/{maxUses}\tDP:{DamagePoints}\nRP:{Range}";
 				break;
-			/*
-			case ?:
+			case 12:
 				Tag 			= Tags.Rock;
 				Rarity 			= Rarity.Common;
 				Type 			= Types.Weapon;
 				Name 			= "ROCK";
-				MaxUses 		= 1;
-				CurrentUses 	= MaxUses;
+				maxUses 		= 1;
+				CurrentUses 	= maxUses;
 				DamagePoints 	= 1;
 				Range 			= 3;
 				Description 	= "Can be thrown again";
-				Stats 			= $"\nUP:{MaxUses}/{MaxUses}\tDP:{DamagePoints}\nRP:{Range}";
+				Stats 			= $"\nUP:{maxUses}/{maxUses}\tDP:{DamagePoints}\nRP:{Range}";
 				break;
+			/*
 			case ?:
 				Tag 			= Tags.SmokeGrenade;
 				Rarity 			= Rarity.Scarce;
 				Type 			= Types.Weapon;
 				Name 			= "SMOKE GRENADE";
-				MaxUses 		= 1;
-				CurrentUses 	= MaxUses;
+				maxUses 		= 1;
+				CurrentUses 	= maxUses;
 				DamagePoints 	= 0;
 				Range 			= 3;
 				IsStunning 		= true;
 				Description 	= "Stuns nearby enemies for 1 turn";
-				Stats 			= $"\nUP:{MaxUses}/{MaxUses}\tDP:{DamagePoints}\nRP:{Range}";
+				Stats 			= $"\nUP:{maxUses}/{maxUses}\tDP:{DamagePoints}\nRP:{Range}";
 				break;
 			case ?:
 				Tag 			= Tags.Dynamite;
 				Rarity 			= Rarity.Scarce;
 				Type 			= Types.Weapon;
 				Name 			= "DYNAMITE";
-				MaxUses 		= 1;
-				CurrentUses 	= MaxUses;
+				maxUses 		= 1;
+				CurrentUses 	= maxUses;
 				DamagePoints 	= 5;
 				Range 			= 3;
 				IsFlammable 	= true;
 				Description 	= "Explodes after enemy turn";
-				Stats 			= $"\nUP:{MaxUses}/{MaxUses}\tDP:{DamagePoints}\nRP:{Range}";
+				Stats 			= $"\nUP:{maxUses}/{maxUses}\tDP:{DamagePoints}\nRP:{Range}";
 				break;
 			case ?:
 				Tag 			= Tags.StickyGrenade;
 				Rarity 			= Rarity.Anomalous;
 				Type 			= Types.Weapon;
 				Name 			= "STICKY GRENADE";
-				MaxUses 		= 1;
-				CurrentUses 	= MaxUses;
+				maxUses 		= 1;
+				CurrentUses 	= maxUses;
 				DamagePoints 	= 3;
 				Range 			= 5;
 				IsFlammable 	= true;
 				Description 	= "Sticks to enemy and explodes";
-				Stats 			= $"\nUP:{MaxUses}/{MaxUses}\tDP:{DamagePoints}\nRP:{Range}";
+				Stats 			= $"\nUP:{maxUses}/{maxUses}\tDP:{DamagePoints}\nRP:{Range}";
 				break;
 			case ?:
 				Tag 			= Tags.Helmet;
 				Rarity 			= Rarity.Scarce;
 				Type 			= Types.Armor;
 				Name 			= "HELMET";
-				MaxUses 		= 2;
-				CurrentUses 	= MaxUses;
+				maxUses 		= 2;
+				CurrentUses 	= maxUses;
 				IsEquipable 	= true;
 				Description 	= "Absorbs 2 melee DP";
-				Stats 			= $"\n\UP:{MaxUses}/{MaxUses}";
+				Stats 			= $"\n\UP:{maxUses}/{maxUses}";
 				break;
 			case ?:
 				Tag 			= Tags.Vest;
 				Rarity 			= Rarity.Rare;
 				Type 			= Types.Armor;
 				Name 			= "VEST";
-				MaxUses 		= 3;
-				CurrentUses 	= MaxUses;
+				maxUses 		= 3;
+				CurrentUses 	= maxUses;
 				IsEquipable 	= true;
 				IsFlammable 	= true;
 				Description 	= "Absorbs 3 ranged DP";
-				Stats 			= $"\n\UP:{MaxUses}/{MaxUses}";
+				Stats 			= $"\n\UP:{maxUses}/{maxUses}";
 				break;
 			case ?:
 				Tag 			= Tags.GrapheneShield;
 				Rarity 			= Rarity.Anomalous;
 				Type 			= Types.Armor;
 				Name 			= "GRAPHENE SHIELD";
-				MaxUses 		= 1;
-				CurrentUses 	= MaxUses;
+				maxUses 		= 1;
+				CurrentUses 	= maxUses;
 				Description 	= "Blocks all DP except boss DP";
-				Stats 			= $"\n\UP:{MaxUses}/{MaxUses}";
+				Stats 			= $"\n\UP:{maxUses}/{maxUses}";
 				break;
 			case ?:
 				Tag 			= Tags.Battery;
 				Rarity 			= Rarity.Anomalous;
 				Type 			= Types.Utility;
 				Name 			= "BATTERY";
-				MaxUses 		= 5; 				// max charge
-				CurrentUses 	= MaxUses; 	// current charge
+				maxUses 		= 5; 				// max charge
+				CurrentUses 	= maxUses; 	// current charge
 				IsAttachable 	= true;
 				IsFlammable 	= true;
 				Description 	= "Adds 5 power charges";
-				Stats 			= $"\n\CHARGE:{MaxUses}/{MaxUses}";
+				Stats 			= $"\n\CHARGE:{maxUses}/{maxUses}";
 				break;
 			case ?:
 				Tag 			= Tags.Flare;
@@ -410,11 +410,11 @@ public class ItemInfo
 				Rarity 			= Rarity.Scarce;
 				Type 			= Types.Utility;
 				Name 			= "EXTINGUISHER";
-				MaxUses 		= 4;
-				CurrentUses 	= MaxUses;
+				maxUses 		= 4;
+				CurrentUses 	= maxUses;
 				IsFlammable 	= true;
 				Description 	= "Extinguishes fires";
-				Stats 			= $"\n\UP:{MaxUses}/{MaxUses}";
+				Stats 			= $"\n\UP:{maxUses}/{maxUses}";
 				break;
 			case ?:
 				Tag 			= Tags.Spotlight;
@@ -429,21 +429,21 @@ public class ItemInfo
 				Rarity 			= Rarity.Rare;
 				Type 			= Types.Utility;
 				Name 			= "BLOWTORCH";
-				MaxUses 		= 4;
-				CurrentUses 	= MaxUses;
+				maxUses 		= 4;
+				CurrentUses 	= maxUses;
 				IsFlammable 	= true;
 				Description 	= "Sets objects on fire";
-				Stats 			= $"\n\UP:{MaxUses}/{MaxUses}";
+				Stats 			= $"\n\UP:{maxUses}/{maxUses}";
 				break;
 			case ?:
 				Tag 			= Tags.ThermalImager;
 				Rarity 			= Rarity.Rare;
 				Type 			= Types.Utility;
 				Name 			= "THERMAL IMAGER";
-				MaxUses 		= 4;
-				CurrentUses 	= MaxUses;
+				maxUses 		= 4;
+				CurrentUses 	= maxUses;
 				Description 	= "Reveals heat signatures";
-				Stats 			= $"\n\UP:{MaxUses}/{MaxUses}";
+				Stats 			= $"\n\UP:{maxUses}/{maxUses}";
 				break;
 			case ?:
 				Tag 			= Tags.NightVision;
