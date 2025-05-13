@@ -22,7 +22,7 @@ public class Player : MonoBehaviour
 	private bool hasVest = false;
 	private int vestHealth;
 	private bool hasNightVision = false;
-	public Profession Profession = new(Profession.Tags.Unknown, 0);
+	public Profession Job;
 	#endregion
 	#region AUDIO
 	public AudioClip PlayerMove;
@@ -53,6 +53,7 @@ public class Player : MonoBehaviour
 		Inventory = new(2);
 		InventoryUI.Inventory = Inventory;
 		Animator = GetComponent<Animator>();
+		Job = Profession.GetRandomProfession();
 		FinishedInit = true;
 	}
 	#region MOVEMENT METHODS
@@ -323,12 +324,12 @@ public class Player : MonoBehaviour
 		{
 			RestoreHealth();
 			// Uses energy if profession is not medic
-			if (Profession.Tag is not Profession.Tags.Medic)
+			if (Job.Tag is not Profession.Tags.Medic)
 			{
 				DecrementEnergy();
 			}
 			// Uses MedKit if profession is not medic level 2
-			if (!(Profession.Level >= 2 && Profession.Tag is Profession.Tags.Medic))
+			if (!(Job.Level >= 2 && Job.Tag is Profession.Tags.Medic))
 			{
 				SelectedItemInfo.DecreaseDurability();
 			}
