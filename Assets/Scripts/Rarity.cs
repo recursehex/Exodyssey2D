@@ -6,11 +6,11 @@ public struct Rarity
 {
     public enum Tags
     {
-        Common = 35,
-        Limited = 30,
-        Scarce = 20,
-        Rare = 10,
-        Anomalous = 5
+        Common = 45,
+        Limited = 35,
+        Scarce = 15,
+        Rare = 4,
+        Anomalous = 1
     }
     public Tags Tag;
     public Color Color;

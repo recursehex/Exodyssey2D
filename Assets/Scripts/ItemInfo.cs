@@ -45,9 +45,9 @@ public class ItemInfo
 
 		// UTILITY
 		//Battery,
-		//Flare,
+		Flare,
 		//Lightrod,
-		//Extinguisher,
+		Extinguisher,
 		//Spotlight,
 		//Blowtorch,
 		//ThermalImager,
@@ -353,7 +353,7 @@ public class ItemInfo
 				CurrentUses 	= maxUses;
 				IsEquipable 	= true;
 				Description 	= "Absorbs 2 melee DP";
-				Stats 			= $"\n\UP:{maxUses}/{maxUses}";
+				Stats 			= $"\nUP:{maxUses}/{maxUses}";
 				break;
 			case ?:
 				Tag 			= Tags.Vest;
@@ -365,7 +365,7 @@ public class ItemInfo
 				IsEquipable 	= true;
 				IsFlammable 	= true;
 				Description 	= "Absorbs 3 ranged DP";
-				Stats 			= $"\n\UP:{maxUses}/{maxUses}";
+				Stats 			= $"\nUP:{maxUses}/{maxUses}";
 				break;
 			case ?:
 				Tag 			= Tags.GrapheneShield;
@@ -375,21 +375,22 @@ public class ItemInfo
 				maxUses 		= 1;
 				CurrentUses 	= maxUses;
 				Description 	= "Blocks all DP except boss DP";
-				Stats 			= $"\n\UP:{maxUses}/{maxUses}";
+				Stats 			= $"\nUP:{maxUses}/{maxUses}";
 				break;
 			case ?:
 				Tag 			= Tags.Battery;
 				Rarity 			= Rarity.Anomalous;
 				Type 			= Types.Utility;
 				Name 			= "BATTERY";
-				maxUses 		= 5; 				// max charge
+				maxUses 		= 5; 		// max charge
 				CurrentUses 	= maxUses; 	// current charge
 				IsAttachable 	= true;
 				IsFlammable 	= true;
 				Description 	= "Adds 5 power charges";
-				Stats 			= $"\n\CHARGE:{maxUses}/{maxUses}";
+				Stats 			= $"\nCHARGE:{maxUses}/{maxUses}";
 				break;
-			case ?:
+			*/
+			case 13:
 				Tag 			= Tags.Flare;
 				Rarity 			= Rarity.Limited;
 				Type 			= Types.Utility;
@@ -397,6 +398,7 @@ public class ItemInfo
 				IsFlammable 	= true;
 				Description 	= "Temporary light";
 				break;
+			/*
 			case ?:
 				Tag 			= Tags.Lightrod;
 				Rarity 			= Rarity.Scarce;
@@ -405,7 +407,8 @@ public class ItemInfo
 				IsFlammable 	= true;
 				Description 	= "Illuminates surroundings";
 				break;
-			case ?:
+			*/
+			case 14:
 				Tag 			= Tags.Extinguisher;
 				Rarity 			= Rarity.Scarce;
 				Type 			= Types.Utility;
@@ -414,8 +417,9 @@ public class ItemInfo
 				CurrentUses 	= maxUses;
 				IsFlammable 	= true;
 				Description 	= "Extinguishes fires";
-				Stats 			= $"\n\UP:{maxUses}/{maxUses}";
+				Stats 			= $"\nUP:{maxUses}/{maxUses}";
 				break;
+			/*
 			case ?:
 				Tag 			= Tags.Spotlight;
 				Rarity 			= Rarity.Rare;
@@ -433,7 +437,7 @@ public class ItemInfo
 				CurrentUses 	= maxUses;
 				IsFlammable 	= true;
 				Description 	= "Sets objects on fire";
-				Stats 			= $"\n\UP:{maxUses}/{maxUses}";
+				Stats 			= $"\nUP:{maxUses}/{maxUses}";
 				break;
 			case ?:
 				Tag 			= Tags.ThermalImager;
@@ -443,7 +447,7 @@ public class ItemInfo
 				maxUses 		= 4;
 				CurrentUses 	= maxUses;
 				Description 	= "Reveals heat signatures";
-				Stats 			= $"\n\UP:{maxUses}/{maxUses}";
+				Stats 			= $"\nUP:{maxUses}/{maxUses}";
 				break;
 			case ?:
 				Tag 			= Tags.NightVision;

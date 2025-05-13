@@ -525,7 +525,7 @@ public class GameManager : MonoBehaviour
 		BoundsInt CellBounds 		= TilemapGround.cellBounds;
 		Vector3 WorldPoint 			= MainCamera.ScreenToWorldPoint(Input.mousePosition);
 		Vector3Int TilePoint 		= TilemapGround.WorldToCell(WorldPoint);
-		Vector3 ShiftedClickPoint 	= new(TilePoint.x + 0.5f, TilePoint.y + 0.5f, 0);
+		Vector3 ShiftedClickPoint 	= TilePoint + new Vector3(0.5f, 0.5f, 0);
 		// If LMB clicks within grid, begin Player actions
 		if (Input.GetMouseButtonDown(0)
 			&& !Player.IsInMovement
@@ -647,10 +647,10 @@ public class GameManager : MonoBehaviour
         {
             return;
         }
-		if (Player.SelectedItemInfo?.Tag == ItemInfo.Tags.Rock)
+		if (Player.SelectedItemInfo.Tag == ItemInfo.Tags.Rock)
 		{
 			// Drop the Rock at the enemy's position
-			SpawnItem((int)Player.SelectedItemInfo.Tag, TilePoint + new Vector3(0.5f, 0.5f, 0));
+			SpawnItem((int)Player.SelectedItemInfo.Tag, ShiftedClickPoint);
 		}
         HandleDamageToEnemy(enemyIndex);
         Player.AttackEnemy();
