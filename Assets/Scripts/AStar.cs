@@ -100,24 +100,21 @@ public class AStar
 		{
 			for (int y = -1; y <= 1; y++)
 			{
-				Vector3Int Position = new(ParentPosition.x - x, ParentPosition.y - y, ParentPosition.z);
-				bool EnemyAtPosition = false;
-				if (GameManager.Instance != null)
-				{
-					Vector3 EnemyPosition = new(ParentPosition.x - x + 0.5f, ParentPosition.y - y + 0.5f, ParentPosition.z);
-					EnemyAtPosition = GameManager.Instance.HasEnemyAtPosition(EnemyPosition);
-				}
+				Vector3Int Position = ParentPosition - new Vector3Int(x, y, 0);
+				Vector3 EntityPosition = ParentPosition - new Vector3(x - 0.5f, y - 0.5f, 0);
+				bool IsEntityAtPosition = GameManager.Instance.HasEnemyAtPosition(EntityPosition)
+									   || GameManager.Instance.HasVehicleAtPosition(EntityPosition);
 				if ((y != 0 || x != 0)
 					&& (allowDiagonal || (!allowDiagonal && (y == 0 || x == 0))))
 				{
 					BoundsInt Size = TilemapGround.cellBounds;
-					// If node is within bounds of the grid and if there is no wall tile and no enemy there, then add it to the neighbors list
+					// If node is within bounds of the grid and if there is no wall tile and no enemy or vehicle there, then add it to the neighbors list
 					if (Position.x >= Size.min.x
 						&& Position.x < Size.max.x
 						&& Position.y >= Size.min.y
 						&& Position.y < Size.max.y
 						&& !TilemapWalls.HasTile(Position)
-						&& !EnemyAtPosition)
+						&& !IsEntityAtPosition)
 					{
 						Node Neighbor = GetNode(Position);
 						Neighbors.Add(Neighbor);

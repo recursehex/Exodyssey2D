@@ -887,6 +887,8 @@ MonoBehaviour:
   - {fileID: 2145379877062402088, guid: ba8e62b527e3c4b2c8c15ddde698b587, type: 3}
   - {fileID: 2145379877062402088, guid: 33186f847f6305748921b5b654aa8c9d, type: 3}
   - {fileID: 2145379877062402088, guid: 1a6b4107ceb4a4d4db276eae951f74b4, type: 3}
+  - {fileID: 1336611518689343522, guid: aeb86c0077d274d9b8a3e58629e201f1, type: 3}
+  - {fileID: 1336611518689343522, guid: 9ec3ca548544e4c8ea2d94a4aefa9fac, type: 3}
   Items: []
   spawnItemCount: 0
   VehicleTemplates:
