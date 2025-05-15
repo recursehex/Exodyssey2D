@@ -1,5 +1,5 @@
+using System.Collections;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -21,6 +21,7 @@ public class Enemy : MonoBehaviour
 	private Vector3Int Destination;
 	private Player Player;
 	private AStar AStar;
+	private Coroutine MoveRoutine;
 	#endregion
 	public void Initialize(Tilemap Ground, Tilemap Walls, EnemyInfo EnemyInfo, Player Player)
 	{
@@ -60,7 +61,12 @@ public class Enemy : MonoBehaviour
 			if (!GameManager.Instance.HasEnemyAtPosition(ShiftedTryDistance))
 			{
 				Destination = TryDistance;
-				MoveAlongPath();
+				// Stop movement if game ends
+				if (MoveRoutine != null)
+				{
+                    StopCoroutine(MoveRoutine);
+				}
+                MoveRoutine = StartCoroutine(MoveAlongPath());
 			}
 			else
 			{
@@ -86,17 +92,20 @@ public class Enemy : MonoBehaviour
 	/// <summary>
 	/// Moves Enemy along A* path
 	/// </summary>
-	private async void MoveAlongPath()
+	private IEnumerator MoveAlongPath()
 	{
 		while (Path != null && Path.Count > 0)
 		{
 			SoundManager.Instance.PlaySound(Move);
-			Vector3 ShiftedDistance = new(Destination.x + 0.5f, Destination.y + 0.5f, Destination.z);
+			Vector3 ShiftedDistance = Destination + new Vector3(0.5f, 0.5f, 0);
 			// Move one tile closer to Player
 			while (Vector3.Distance(transform.position, ShiftedDistance) > 0f)
 			{
-				transform.position = Vector3.MoveTowards(transform.position, ShiftedDistance, 2 * Time.deltaTime);
-				await Task.Yield();
+				transform.position = Vector3.MoveTowards(
+					transform.position, 
+					ShiftedDistance, 
+					Info.Speed * Time.deltaTime);
+				yield return null;
 			}
 			// Pop next tile in path
 			if (Path.Count > 1 && Info.CurrentEnergy > 0)
@@ -116,6 +125,7 @@ public class Enemy : MonoBehaviour
 				StunIcon.transform.position = transform.position;
 			}
 		}
+		MoveRoutine = null;
 	}
 	#endregion
 	#region HEALTH METHODS
