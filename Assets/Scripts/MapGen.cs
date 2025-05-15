@@ -5,40 +5,44 @@ using UnityEngine.Tilemaps;
 public class MapGen
 {
     // 0 means no wall, 1 means place wall
-    readonly int[,] template1 = new int[3, 3] {
-   {1, 1, 0} ,
-   {1, 0, 0} ,
-   {1, 0, 0}
-};
-    readonly int[,] template2 = new int[3, 3] {
-   {1, 1, 0} ,
-   {1, 1, 0} ,
-   {0, 0, 0}
-};
-    readonly int[,] template3 = new int[3, 3] {
-   {1, 1, 0} ,
-   {1, 0, 0} ,
-   {0, 0, 1}
-};
-    readonly int[,] template4 = new int[3, 3] {
-   {1, 0, 0} ,
-   {1, 0, 1} ,
-   {0, 0, 1}
-};
-    readonly List<int[,]> AllTemplates;
-    readonly int[,] quadrants = new int[6, 2]
+    private readonly int[,] template1 = new int[3, 3]
     {
-        {-4, 4} ,
-        {-1, 4} ,
-        { 2, 4} ,
-        {-4, -2} ,
-        {-1, -2} ,
+        {1, 1, 0},
+        {1, 0, 0},
+        {1, 0, 0}
+    };
+    private readonly int[,] template2 = new int[3, 3]
+    {
+        {1, 1, 0},
+        {1, 0, 1},
+        {0, 0, 0}
+    };
+    private readonly int[,] template3 = new int[3, 3]
+    {
+        {1, 1, 0},
+        {1, 0, 0},
+        {0, 0, 1}
+    };
+    private readonly int[,] template4 = new int[3, 3]
+    {
+        {1, 0, 0},
+        {1, 0, 1},
+        {0, 0, 1}
+    };
+    private readonly List<int[,]> Templates;
+    private readonly int[,] quadrants = new int[6, 2]
+    {
+        {-4, 4},
+        {-1, 4},
+        { 2, 4},
+        {-4, -2},
+        {-1, -2},
         { 2, -2}
     };
 
     public MapGen()
     {
-        AllTemplates = new()
+        Templates = new()
         {
             template1,
             template2,
@@ -47,7 +51,7 @@ public class MapGen
         };
     }
 
-    int[,] Rotate3by3(int[,] t)
+    private int[,] Rotate3by3(int[,] t)
     {
         int[,] res = new int[3, 3];
         for (int row = 0; row < 3; row++)
@@ -64,7 +68,7 @@ public class MapGen
 
     public void GenerateMap(Tilemap TilemapWalls, Tile[] WallTiles)
     {
-        int totalTemplates = AllTemplates.Count;
+        int totalTemplates = Templates.Count;
         int numberGenerated = 0;
         int numberOfQuadrants = 6;
         for (int i = 0; i < numberOfQuadrants; i++)
@@ -72,10 +76,10 @@ public class MapGen
             if (Random.value > minimumChance)
             {
                 numberGenerated++;
-                int templateIdx = Random.Range(0, totalTemplates);
+                int templateIndex = Random.Range(0, totalTemplates);
                 int baseX = quadrants[i, 0];
                 int baseY = quadrants[i, 1];
-                int[,] template = AllTemplates[templateIdx];
+                int[,] template = Templates[templateIndex];
                 int nRotations = Random.Range(0, 4);
                 for (int r = 0; r < nRotations; r++)
                 {

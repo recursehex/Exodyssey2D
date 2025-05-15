@@ -1,5 +1,5 @@
+using System.Collections;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -19,6 +19,7 @@ public class Vehicle : MonoBehaviour
 	private Stack<Vector3Int> Path;
 	private Vector3Int Destination;
 	private AStar AStar;
+	private Coroutine MoveRoutine;
 	#endregion
 	public void Initialize(Tilemap Ground, Tilemap Walls, VehicleInfo VehicleInfo)
 	{
@@ -43,18 +44,23 @@ public class Vehicle : MonoBehaviour
 		Path.Pop();
 		Destination = Path.Pop();
 		IsInMovement = true;
-		MoveAlongPath();
+		// Stop movement if game ends
+		if (MoveRoutine != null)
+		{
+			StopCoroutine(MoveRoutine);
+		}
+		MoveRoutine = StartCoroutine(MoveAlongPath());
 	}
 	/// <summary>
 	/// Moves Vehicle along A* path
 	/// </summary>
-	private async void MoveAlongPath()
+	private IEnumerator MoveAlongPath()
 	{
 		// While path has remaining tiles
 		while (Path != null && Path.Count >= 0)
 		{
 			SoundManager.Instance.PlaySound(Move);
-			Vector3 ShiftedDistance = new(Destination.x + 0.5f, Destination.y + 0.5f, Destination.z);
+			Vector3 ShiftedDistance = Destination + new Vector3(0.5f, 0.5f, 0);
 			float distance = Vector3.Distance(transform.position, ShiftedDistance);
 			float speed = distance / Info.Time;
 			// Move vehicle smoothly to next tile
@@ -64,7 +70,7 @@ public class Vehicle : MonoBehaviour
 					transform.position, 
 					ShiftedDistance, 
 					speed * Time.deltaTime);
-				await Task.Yield();
+				yield return null;
 			}
 			// Pop next tile in path
 			if (Path != null && Path.Count > 0)
@@ -79,6 +85,7 @@ public class Vehicle : MonoBehaviour
 		// When Vehichle stops moving
 		Path = null;
 		IsInMovement = false;
+		MoveRoutine = null;
 	}
 	/// <summary>
 	/// Calculates area Vehicle can move to in a turn based on tile type
@@ -118,6 +125,7 @@ public class Vehicle : MonoBehaviour
 	}
 	public void SwitchIgnition()
 	{
+		SoundManager.Instance.PlaySound(Move);
 		Info.SwitchIgnition();
 	}
 	public bool HasFuel()

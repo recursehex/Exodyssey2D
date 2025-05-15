@@ -1,5 +1,5 @@
+using System.Collections;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -45,6 +45,7 @@ public class Player : MonoBehaviour
 	private Stack<Vector3Int> Path;
 	private Vector3Int Destination;
 	private AStar AStar;
+	private Coroutine MoveRoutine;
 	#endregion
 	public bool FinishedInit { get; private set; } = false;
 	protected virtual void Start()
@@ -71,19 +72,24 @@ public class Player : MonoBehaviour
 		Path.Pop();
 		Destination = Path.Pop();
 		IsInMovement = true;
-		MoveAlongPath();
+		// Stop movement if game ends
+		if (MoveRoutine != null)
+		{
+			StopCoroutine(MoveRoutine);
+		}
+		MoveRoutine = StartCoroutine(MoveAlongPath());
 	}
 	/// <summary>
 	/// Moves Player along A* path
 	/// </summary>
-	private async void MoveAlongPath()
+	private IEnumerator MoveAlongPath()
 	{
 		// While path has remaining tiles
 		while (Path != null && Path.Count >= 0)
 		{
 			DecrementEnergy();
 			SoundManager.Instance.PlaySound(PlayerMove);
-			Vector3 ShiftedDistance = new(Destination.x + 0.5f, Destination.y + 0.5f, Destination.z);
+			Vector3 ShiftedDistance = Destination + new Vector3(0.5f, 0.5f, 0);
 			// Move Player smoothly to next tile
 			while (Vector3.Distance(transform.position, ShiftedDistance) > 0f)
 			{
@@ -91,7 +97,7 @@ public class Player : MonoBehaviour
 					transform.position, 
 					ShiftedDistance, 
 					walkSpeed * Time.deltaTime);
-				await Task.Yield();
+				yield return null;
 			}
 			// Pop next tile in path
 			if (Path != null && Path.Count > 0)
@@ -106,11 +112,10 @@ public class Player : MonoBehaviour
 		// When Player stops moving
 		Path = null;
 		IsInMovement = false;
-		if (GameManager.Instance.PlayerIsOnExitTile())
+		if (!GameManager.Instance.PlayerIsOnExitTile())
 		{
-			return;
+			GameManager.Instance.DrawTargetsAndTracers();
 		}
-		GameManager.Instance.DrawTargetsAndTracers();
 	}
 	/// <summary>
 	/// Calculates area Player can move to in a turn based on currentEnergy
@@ -120,6 +125,12 @@ public class Player : MonoBehaviour
 		AStar.Initialize();
 		return AStar.GetReachableAreaByDistance(transform.position, currentEnergy);
 	}
+	public void EnterVehicle(Vehicle EnteredVehicle)
+    {
+		Vehicle = EnteredVehicle;
+		transform.position = Vehicle.transform.position;
+		DecrementEnergy();
+    }
 	#endregion
 	#region HEALTH METHODS
 	/// <summary>
@@ -409,5 +420,5 @@ public class Player : MonoBehaviour
 		// Removes item from inventory and plays corresponding sound
 		SoundManager.Instance.PlaySound(PlayerMove);
 	}
-	#endregion
+    #endregion
 }
