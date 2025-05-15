@@ -39,6 +39,7 @@ public class EnemyInfo
 	public int CurrentHealth 	{ get; private set; } = 1;		// Current health
 	private readonly int maxEnergy = 1;							// Maximum energy
 	public int CurrentEnergy 	{ get; private set; } = 1;		// Current energy
+	public int Speed 			{ get; private set; } = 2;		// Movement speed
 	public int DamagePoints 	{ get; private set; } = -1;		// Set only for enemies that do direct attacks
 	public int Range 			{ get; private set; } = 0;		// Maximum distance a ranged enemy can attack to, 0 = melee
 	public bool IsHunting 		{ get; private set; } = true;	// true = will hunt the player, false = will guard nearby items
@@ -98,6 +99,7 @@ public class EnemyInfo
 				CurrentHealth 	= maxHealth;
 				maxEnergy 		= 1;
 				CurrentEnergy 	= maxEnergy;
+				Speed 			= 3;
 				DamagePoints 	= 1;
 				Name 			= "CRAWLER";
 				IsHunting 		= true;

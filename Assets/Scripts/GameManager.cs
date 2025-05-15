@@ -84,6 +84,7 @@ public class GameManager : MonoBehaviour
 	private void Start()
 	{
 		MainCamera = Camera.main;
+		SoundManager.Instance.PlayMusic();
 	}
 	// Update is called once per frame
 	void Update()
@@ -129,7 +130,6 @@ public class GameManager : MonoBehaviour
 		Player.RestoreEnergy();
 		InitGame();
 		DrawTargetsAndTracers();
-		TileDot.SetActive(true);
 	}
 	/// <summary>
 	/// Begins grid state generation
@@ -508,6 +508,7 @@ public class GameManager : MonoBehaviour
 	{
 		if (HasExitTileAtPosition(Vector3Int.FloorToInt(Player.transform.position)))
 		{
+			TileDot.SetActive(false);
 			ResetForNextLevel();
 			return true;
 		}
@@ -537,7 +538,7 @@ public class GameManager : MonoBehaviour
 			if (Player.IsInVehicle)
 			{
 				// If Player clicks on its own tile, switch ignition
-				if (Player.Vehicle.transform.position == TilePoint)
+				if (Player.Vehicle.transform.position == ShiftedClickPoint)
 				{
 					Player.Vehicle.SwitchIgnition();
 				}
@@ -638,7 +639,7 @@ public class GameManager : MonoBehaviour
     private void TryPlayerAttack(Vector3Int TilePoint, Vector3 ShiftedClickPoint)
     {
 		int enemyIndex = GetEnemyIndexAtPosition(TilePoint);
-		bool isInMeleeRange = IsInMeleeRange(ShiftedClickPoint);
+		bool isInMeleeRange = IsPlayerAdjacentTo(ShiftedClickPoint);
 		bool isInRangedWeaponRange = Player.GetWeaponRange() > 0 && IsInRangedWeaponRange(ShiftedClickPoint);
 		// Return if no enemy, not in range, or not using ranged weapon
         if (enemyIndex == -1
@@ -667,8 +668,13 @@ public class GameManager : MonoBehaviour
         {
             return false;
         }
-		Player.Vehicle = Vehicles[vehicleIndex];
-		Player.transform.position = Player.Vehicle.transform.position;
+		// Return false if Player is not adjacent to vehicle
+		if (!IsPlayerAdjacentTo(Vehicles[vehicleIndex].transform.position))
+		{
+			return false;
+		}
+		// Player enters vehicle
+		Player.EnterVehicle(Vehicles[vehicleIndex]);
         TurnTimer.StartTimer();
 		return true;
     }
@@ -698,9 +704,9 @@ public class GameManager : MonoBehaviour
 		return TileAreasToDraw?.ContainsKey(Position) == true;
 	}
 	/// <summary>
-	/// Returns true if an enemy is adjacent to Player
+	/// Returns true if an object is adjacent to Player
 	/// </summary>
-	private bool IsInMeleeRange(Vector3 ObjectPosition)
+	private bool IsPlayerAdjacentTo(Vector3 ObjectPosition)
 	{
 		return Vector3.Distance(Player.transform.position, ObjectPosition) <= 1.0f;
 	}
