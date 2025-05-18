@@ -339,8 +339,8 @@ public class Player : MonoBehaviour
 			{
 				DecrementEnergy();
 			}
-			// Uses MedKit if profession is not medic level 2
-			if (!(Job.Level >= 2 && Job.Tag is Profession.Tags.Medic))
+			// Uses MedKit if profession is not master medic
+			if (!(Job.IsMaster && Job.Tag is Profession.Tags.Medic))
 			{
 				SelectedItemInfo.DecreaseDurability();
 			}
