@@ -10,22 +10,21 @@ public struct Profession
 		Hunter,
 		Hiker,
 		Navigator,
-		Ranger,
-		Unknown
+		Ranger
 	}
 	public Tags Tag;
-	public int Level { get; set; }
-	public Profession(Tags Tag, int Level)
+	public bool IsMaster { get; set; }
+	public Profession(Tags Tag, bool IsMaster)
 	{
-		this.Tag = Tag;
-		this.Level = Level;
+		this.Tag 		= Tag;
+		this.IsMaster 	= IsMaster;
 	}
-	public static readonly Profession Medic 	= new(Tags.Medic, 		0);
-    public static readonly Profession Mechanic 	= new(Tags.Mechanic, 	0);
-    public static readonly Profession Hunter 	= new(Tags.Hunter, 		0);
-    public static readonly Profession Hiker 	= new(Tags.Hiker, 		0);
-    public static readonly Profession Navigator = new(Tags.Navigator, 	0);
-	public static readonly Profession Ranger 	= new(Tags.Ranger, 		0);
+	public static readonly Profession Medic 	= new(Tags.Medic, 		false);
+    public static readonly Profession Mechanic 	= new(Tags.Mechanic, 	false);
+    public static readonly Profession Hunter 	= new(Tags.Hunter, 		false);
+    public static readonly Profession Hiker 	= new(Tags.Hiker, 		false);
+    public static readonly Profession Navigator = new(Tags.Navigator, 	false);
+	public static readonly Profession Ranger 	= new(Tags.Ranger, 		false);
 	public static readonly List<Profession> ProfessionList = new() { Medic, Mechanic, Hunter, Hiker, Navigator, Ranger };
 	public static Profession GetRandomProfession() => ProfessionList[Random.Range(0, ProfessionList.Count)];
 }

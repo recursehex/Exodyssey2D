@@ -1,7 +1,10 @@
 fileFormatVersion: 2
 guid: 44a709f75a513444f93f80c9cfb4310a
 TextureImporter:
-  internalIDToNameTable: []
+  internalIDToNameTable:
+  - first:
+      213: -5400609023985229609
+    second: plasmarailgun_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
