@@ -289,7 +289,7 @@ public class ItemInfo
 				CurrentUses 	= maxUses;
 				DamagePoints 	= 10;
 				Range 			= 5;
-				Description 	= "Fires a voltaic plasma bolt";
+				Description 	= "Fires a voltaic bolt of plasma";
 				Stats 			= $"\nUP:{maxUses}/{maxUses}\tDP:{DamagePoints}\nRP:{Range}";
 				break;
 			case 12:
