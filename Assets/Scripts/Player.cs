@@ -131,6 +131,10 @@ public class Player : MonoBehaviour
 		transform.position = Vehicle.transform.position;
 		DecrementEnergy();
     }
+	public void ExitVehicle()
+    {
+		Vehicle = null;
+    }
 	#endregion
 	#region HEALTH METHODS
 	/// <summary>

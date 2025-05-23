@@ -125,6 +125,7 @@ public class GameManager : MonoBehaviour
 		TilemapWalls.ClearAllTiles();
 		DestroyAllItems();
 		DestroyAllEnemies();
+		DestroyAllVehicles();
 		// Resets Player position and energy
 		Player.transform.position = new(-3.5f, 0.5f, 0f);
 		Player.RestoreEnergy();
@@ -459,10 +460,7 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	private void DestroyAllVehicles()
 	{
-		foreach (Vehicle Vehicle in Vehicles)
-		{
-			DestroyVehicle(Vehicle);
-		}
+		Vehicles.ForEach(Vehicle => DestroyVehicle(Vehicle));
 		Vehicles.Clear();
 	}
 	#endregion
@@ -542,7 +540,12 @@ public class GameManager : MonoBehaviour
 				{
 					Player.Vehicle.SwitchIgnition();
 				}
-				// If Player clicks on its another tile, try to move
+				// If Player clicks on another tile and ignition is off, try to exit vehicle
+				else if (!Player.Vehicle.Info.IsOn && IsInMovementRange(TilePoint))
+				{
+					TryExitVehicle(TilePoint, ShiftedClickPoint, WorldPoint);
+				}
+				// If Player clicks on another tile and ignition is on, try to move vehicle
 				else if (Player.Vehicle.Info.IsOn && Player.Vehicle.HasFuel())
 				{
 					TryVehicleMovement(TilePoint, ShiftedClickPoint, WorldPoint);
@@ -695,6 +698,32 @@ public class GameManager : MonoBehaviour
         ClearTileAreas();
         TurnTimer.StartTimer();
         return;
+    }
+    /// <summary>
+    /// Tries to exit vehicle to clicked tile when ignition is off
+    /// </summary>
+    private void TryExitVehicle(Vector3Int TilePoint, Vector3 ShiftedClickPoint, Vector3 WorldPoint)
+    {
+        bool isInMovementRange = IsInMovementRange(TilePoint);
+        int enemyIndex = GetEnemyIndexAtPosition(TilePoint);
+        // Return if not in range, enemy is present, or clicking on same position
+        if (!isInMovementRange
+            || enemyIndex != -1
+            || ShiftedClickPoint == Player.transform.position)
+        {
+            return;
+        }
+        // Check if Player has energy for exiting vehicle
+        if (!Player.HasEnergy())
+        {
+            return;
+        }
+        EndTurnButton.interactable = false;
+        Player.IsInMovement = true;
+        Player.ExitVehicle();
+        Player.ComputePathAndStartMovement(WorldPoint);
+        ClearTileAreas();
+        TurnTimer.StartTimer();
     }
     /// <summary>
     /// Checks if tile is within range based on Player energy
