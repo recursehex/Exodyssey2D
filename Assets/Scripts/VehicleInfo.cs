@@ -27,7 +27,8 @@ public class VehicleInfo
 	public string Name 			{ get; private set; }			// Ingame name of vehicle
 	public string Description 	{ get; private set; }			// Ingame description of vehicle
 	public int Efficiency 		{ get; private set; } = 1;		// Fuel used per 100 km, lower is better
-	public float Time 			{ get; private set; } = 1;		// Time to travel one tile on the grid, lower is better
+	public float Speed 			{ get; private set; } = 2;		// Movement speed for pathfinding
+	public int MovementRange 	{ get; private set; } = 3;		// How many tiles vehicle can move per turn
 	public int Storage 			{ get; private set; } = 1;		// Number of inventory slots
 	private readonly int maxFuel = 1;							// Fuel capacity
 	public int CurrentFuel 		{ get; private set; } = 1;		// Current fuel
@@ -110,7 +111,8 @@ public class VehicleInfo
 				Description 	= "Standard ISA vehicle";
 				Storage 		= 2;
 				Efficiency 		= 2;
-				Time 			= 0.5f;
+				Speed 			= 2f;
+				MovementRange 	= 4;
 				maxFuel 		= 10;
 				CurrentFuel 	= maxFuel;
 				maxHealth 		= 2;
@@ -124,7 +126,8 @@ public class VehicleInfo
 				Description 	= "Has a storage bay";
 				Storage 		= 4;
 				Efficiency 		= 3;
-				Time 			= 1.0f;
+				Speed 			= 1f;
+				MovementRange 	= 3;
 				maxFuel 		= 15;
 				CurrentFuel 	= maxFuel;
 				maxHealth 		= 3;
@@ -138,7 +141,8 @@ public class VehicleInfo
 				Description 	= "Lightweight and efficient";
 				Storage 		= 0;
 				Efficiency 		= 1;
-				Time		 	= 0.25f;
+				Speed 			= 4f;
+				MovementRange 	= 5;
 				maxFuel 		= 5;
 				CurrentFuel 	= maxFuel;
 				maxHealth 		= 1;
@@ -153,7 +157,8 @@ public class VehicleInfo
 				Description 	= "Armored transport vehicle";
 				Storage 		= 6;
 				Efficiency 		= 5;
-				Time 			= 2.0f;
+				Speed 			= 0.5f;
+				MovementRange 	= 2;
 				maxFuel 		= 20;
 				CurrentFuel 	= maxFuel;
 				maxHealth 		= 10;

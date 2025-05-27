@@ -91,10 +91,12 @@ public class GameManager : MonoBehaviour
 	{
 		if (doingSetup
 			|| !Player.FinishedInit
-			|| Player.IsInMovement)
+			|| Player.IsInMovement
+			|| Player.Vehicle != null && Player.Vehicle.IsInMovement)
 		{
 			return;
 		}
+		MovePlayerToVehicle();
 		DrawTileAreas();
 		if (EndTurnButton.interactable == false
 			&& playersTurn)
@@ -143,7 +145,7 @@ public class GameManager : MonoBehaviour
 		DayText.gameObject.SetActive(true);
 		spawnItemCount = Random.Range(5, 10);
 		spawnEnemyCount = Random.Range(1 + (int)(level * 0.5), 3 + (int)(level * 0.5));
-		spawnVehicleCount = Random.Range(0, 3); // TEMP
+		spawnVehicleCount = Random.Range(3, 3); // TEMP
 		MapGenerator = new();
 		GroundGeneration();
 		WallGeneration();
@@ -181,8 +183,7 @@ public class GameManager : MonoBehaviour
 		{
 			for (int y = -4; y < 5; y++)
 			{
-				Vector3Int TilePosition = new(x, y, 0);
-				TilemapGround.SetTile(TilePosition, GroundTiles[Random.Range(0, GroundTiles.Length)]);
+				TilemapGround.SetTile(new Vector3Int(x, y, 0), GroundTiles[Random.Range(0, GroundTiles.Length)]);
 			}
 		}
 	}
@@ -465,6 +466,24 @@ public class GameManager : MonoBehaviour
 	}
 	#endregion
 	#region PLAYER METHODS
+	/// <summary>
+	/// Updates Player position to match Vehicle position when Vehicle stops moving
+	/// </summary>
+	private void MovePlayerToVehicle()
+	{
+		if (Player.IsInVehicle
+			&& !Player.Vehicle.IsInMovement)
+		{
+			Player.transform.position = Player.Vehicle.transform.position;
+			Player.IsInMovement = false;
+			if (playersTurn)
+			{
+				EndTurnButton.interactable = true;
+			}
+			DrawTargetsAndTracers();
+			PlayerIsOnExitTile();
+		}
+	}
 	public void StopTurnTimer()
 	{
 		TurnTimer.StopTimer();
@@ -498,6 +517,7 @@ public class GameManager : MonoBehaviour
 		Player.SetEnergyToZero();
 		ClearTileAreas();
 		ClearTargetsAndTracers();
+		EndTurnButton.interactable = true;
 	}
 	/// <summary>
 	/// Returns true if Player is on exit tile and resets grid for next level
@@ -532,26 +552,8 @@ public class GameManager : MonoBehaviour
 			&& CellBounds.Contains(TilePoint)
 			&& !TilemapWalls.HasTile(TilePoint))
 		{
-			// Check if Player is in vehicle
-			if (Player.IsInVehicle)
-			{
-				// If Player clicks on its own tile, switch ignition
-				if (Player.Vehicle.transform.position == ShiftedClickPoint)
-				{
-					Player.Vehicle.SwitchIgnition();
-				}
-				// If Player clicks on another tile and ignition is off, try to exit vehicle
-				else if (!Player.Vehicle.Info.IsOn && IsInMovementRange(TilePoint))
-				{
-					TryExitVehicle(TilePoint, ShiftedClickPoint, WorldPoint);
-				}
-				// If Player clicks on another tile and ignition is on, try to move vehicle
-				else if (Player.Vehicle.Info.IsOn && Player.Vehicle.HasFuel())
-				{
-					TryVehicleMovement(TilePoint, ShiftedClickPoint, WorldPoint);
-				}
-				return;
-			}
+			// If Player is in vehicle, handle vehicle movement
+			if (PlayerIsInVehicle(WorldPoint, TilePoint, ShiftedClickPoint)) return;
 			// If Player clicks on its own tile but energy is not used
 			if (TryAddItem(ShiftedClickPoint)) return;
 			// Check if Player has energy for actions requiring energy
@@ -561,7 +563,7 @@ public class GameManager : MonoBehaviour
 			// If Player clicks on a vehicle, try to enter it
 			if (TryEnterVehicle(TilePoint)) return;
 			// If Player clicks on another tile, try to move
-			if (TryPlayerMovement(TilePoint, ShiftedClickPoint, WorldPoint)) return;
+			if (TryPlayerMovement(WorldPoint, TilePoint, ShiftedClickPoint)) return;
 			// If Player clicks on an enemy, try to attack
 			TryPlayerAttack(TilePoint, ShiftedClickPoint);
 		}
@@ -618,7 +620,7 @@ public class GameManager : MonoBehaviour
 	/// <summary>
 	/// Tries to move to clicked tile
 	/// </summary>
-	private bool TryPlayerMovement(Vector3Int TilePoint, Vector3 ShiftedClickPoint, Vector3 WorldPoint)
+	private bool TryPlayerMovement(Vector3 WorldPoint, Vector3Int TilePoint, Vector3 ShiftedClickPoint)
     {
 		bool isInMovementRange = IsInMovementRange(TilePoint);
 		int enemyIndex = GetEnemyIndexAtPosition(TilePoint);
@@ -681,7 +683,7 @@ public class GameManager : MonoBehaviour
         TurnTimer.StartTimer();
 		return true;
     }
-	private void TryVehicleMovement(Vector3Int TilePoint, Vector3 ShiftedClickPoint, Vector3 WorldPoint)
+	private void TryVehicleMovement(Vector3 WorldPoint, Vector3Int TilePoint, Vector3 ShiftedClickPoint)
     {
 		bool isInMovementRange = IsInMovementRange(TilePoint);
 		int enemyIndex = GetEnemyIndexAtPosition(TilePoint);
@@ -694,7 +696,7 @@ public class GameManager : MonoBehaviour
         }
         EndTurnButton.interactable = false;
         Player.IsInMovement = true;
-        Player.Vehicle.ComputePathAndStartMovement(WorldPoint);
+		Player.VehicleMovement(WorldPoint);
         ClearTileAreas();
         TurnTimer.StartTimer();
         return;
@@ -702,7 +704,7 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// Tries to exit vehicle to clicked tile when ignition is off
     /// </summary>
-    private void TryExitVehicle(Vector3Int TilePoint, Vector3 ShiftedClickPoint, Vector3 WorldPoint)
+    private void TryExitVehicle(Vector3 WorldPoint, Vector3Int TilePoint, Vector3 ShiftedClickPoint)
     {
         bool isInMovementRange = IsInMovementRange(TilePoint);
         int enemyIndex = GetEnemyIndexAtPosition(TilePoint);
@@ -725,10 +727,35 @@ public class GameManager : MonoBehaviour
         ClearTileAreas();
         TurnTimer.StartTimer();
     }
+	private bool PlayerIsInVehicle(Vector3 WorldPoint, Vector3Int TilePoint, Vector3 ShiftedClickPoint)
+	{
+		if (!Player.IsInVehicle)
+		{
+			return false;
+		}
+		// If Player clicks on its own tile, switch ignition
+		if (Player.Vehicle.transform.position == ShiftedClickPoint)
+		{
+			Player.Vehicle.SwitchIgnition();
+			// Refresh tile areas when ignition state changes
+			ClearTileAreas();
+		}
+		// If Player clicks on another tile and ignition is off, try to exit vehicle
+		else if (!Player.Vehicle.Info.IsOn && IsInMovementRange(TilePoint))
+		{
+			TryExitVehicle(WorldPoint, TilePoint, ShiftedClickPoint);
+		}
+		// If Player clicks on another tile and ignition is on, try to move vehicle
+		else if (Player.Vehicle.Info.IsOn && Player.Vehicle.HasFuel())
+		{
+			TryVehicleMovement(WorldPoint, TilePoint, ShiftedClickPoint);
+		}
+		return true;
+	}
     /// <summary>
-    /// Checks if tile is within range based on Player energy
-    /// </summary>
-    private bool IsInMovementRange(Vector3Int Position)
+	/// Checks if tile is within range based on Player energy
+	/// </summary>
+	private bool IsInMovementRange(Vector3Int Position)
 	{
 		return TileAreasToDraw?.ContainsKey(Position) == true;
 	}
@@ -765,7 +792,7 @@ public class GameManager : MonoBehaviour
 		TileAreasToDraw = null;
 	}
 	/// <summary>
-	/// Redraws tile areas when Player energy changes
+	/// Redraws tile areas when Player energy changes or Vehicle ignition state changes
 	/// </summary>
 	private void DrawTileAreas()
 	{
@@ -774,12 +801,21 @@ public class GameManager : MonoBehaviour
 			&& Player.HasEnergy())
 		{
 			ClearTileAreas();
-			TileAreasToDraw = Player.CalculateArea();
-			if (TileAreasToDraw.Count > 0)
+			// Use Vehicle's movement range if Player is in Vehicle with ignition on
+			if (Player.IsInVehicle && Player.Vehicle.Info.IsOn)
+			{
+				TileAreasToDraw = Player.Vehicle.CalculateArea();
+			}
+			// Use Player's movement range otherwise
+			else
+			{
+				TileAreasToDraw = Player.CalculateArea();
+			}
+			if (TileAreasToDraw != null && TileAreasToDraw.Count > 0)
 			{
 				foreach (KeyValuePair<Vector3Int, Node> TileAreaPosition in TileAreasToDraw)
 				{
-					Vector3 ShiftedDistance = new(TileAreaPosition.Value.Position.x + 0.5f, TileAreaPosition.Value.Position.y + 0.5f, TileAreaPosition.Value.Position.z);
+					Vector3 ShiftedDistance = TileAreaPosition.Value.Position + new Vector3(0.5f, 0.5f, 0);
 					GameObject TileAreaInstance = Instantiate(TileArea, ShiftedDistance, Quaternion.identity);
 					TileAreas.Add(TileAreaInstance);
 				}

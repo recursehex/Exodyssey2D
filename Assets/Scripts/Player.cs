@@ -125,16 +125,47 @@ public class Player : MonoBehaviour
 		AStar.Initialize();
 		return AStar.GetReachableAreaByDistance(transform.position, currentEnergy);
 	}
+	#endregion
+	#region VEHICLE METHODS
 	public void EnterVehicle(Vehicle EnteredVehicle)
-    {
+	{
 		Vehicle = EnteredVehicle;
 		transform.position = Vehicle.transform.position;
+		// Hide player when entering vehicle
+		SetPlayerVisibility(false);
 		DecrementEnergy();
-    }
+	}
 	public void ExitVehicle()
     {
+		// Show player when exiting vehicle
+		SetPlayerVisibility(true);
 		Vehicle = null;
     }
+	public void VehicleMovement(Vector3 WorldPoint)
+	{
+		if (Vehicle == null)
+		{
+			return;
+		}
+		Vehicle.ComputePathAndStartMovement(WorldPoint);
+		DecrementEnergy();
+		IsInMovement = false;
+	}
+	/// <summary>
+	/// Sets Player visibility when entering and exiting vehicles
+	/// </summary>
+	private void SetPlayerVisibility(bool isVisible)
+	{
+		if (TryGetComponent<SpriteRenderer>(out var spriteRenderer))
+		{
+			spriteRenderer.enabled = isVisible;
+		}
+		// Also hide or show the animator component
+		if (Animator != null)
+		{
+			Animator.enabled = isVisible;
+		}
+	}
 	#endregion
 	#region HEALTH METHODS
 	/// <summary>
