@@ -61,15 +61,13 @@ public class Vehicle : MonoBehaviour
 		{
 			SoundManager.Instance.PlaySound(Move);
 			Vector3 ShiftedDistance = Destination + new Vector3(0.5f, 0.5f, 0);
-			float distance = Vector3.Distance(transform.position, ShiftedDistance);
-			float speed = distance / Info.Time;
 			// Move vehicle smoothly to next tile
-			while (distance > 0f)
+			while (Vector3.Distance(transform.position, ShiftedDistance) > 0f)
 			{
 				transform.position = Vector3.MoveTowards(
 					transform.position, 
 					ShiftedDistance, 
-					speed * Time.deltaTime);
+					Info.Speed * Time.deltaTime);
 				yield return null;
 			}
 			// Pop next tile in path
@@ -82,19 +80,22 @@ public class Vehicle : MonoBehaviour
 				break;
 			}
 		}
-		// When Vehichle stops moving
+		// When Vehicle stops moving
 		Path = null;
 		IsInMovement = false;
 		MoveRoutine = null;
 	}
 	/// <summary>
-	/// Calculates area Vehicle can move to in a turn based on tile type
+	/// Calculates area Vehicle can move to in a turn based on movement range
 	/// </summary>
 	public Dictionary<Vector3Int, Node> CalculateArea()
 	{
-		// Return all road tiles
-		throw new System.NotImplementedException();
-		// return null;
+		if (!Info.IsOn)
+		{
+			return new();
+		}
+		AStar.Initialize();
+		return AStar.GetReachableAreaByDistance(transform.position, Info.MovementRange);
 	}
 	#endregion
 	#region HEALTH METHODS
