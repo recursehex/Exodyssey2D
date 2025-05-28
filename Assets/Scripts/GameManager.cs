@@ -130,6 +130,8 @@ public class GameManager : MonoBehaviour
 		DestroyAllVehicles();
 		// Resets Player position and energy
 		Player.transform.position = new(-3.5f, 0.5f, 0f);
+		if (Player.IsInVehicle)
+			Player.Vehicle.transform.position = Player.transform.position;
 		Player.RestoreEnergy();
 		InitGame();
 		DrawTargetsAndTracers();
@@ -461,8 +463,14 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	private void DestroyAllVehicles()
 	{
-		Vehicles.ForEach(Vehicle => DestroyVehicle(Vehicle));
-		Vehicles.Clear();
+		Vehicles.ForEach(Vehicle =>
+		{
+			if (Vehicle != Player.Vehicle)
+			{
+				DestroyVehicle(Vehicle);
+			}
+		});
+		Vehicles.RemoveAll(Vehicle => Vehicle != Player.Vehicle);
 	}
 	#endregion
 	#region PLAYER METHODS
