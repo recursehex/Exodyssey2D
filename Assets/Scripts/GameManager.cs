@@ -131,10 +131,14 @@ public class GameManager : MonoBehaviour
 		// Resets Player position and energy
 		Player.transform.position = new(-3.5f, 0.5f, 0f);
 		if (Player.IsInVehicle)
+		{
 			Player.Vehicle.transform.position = Player.transform.position;
+			Player.Vehicle.DecreaseFuelBy(1);
+		}
 		Player.RestoreEnergy();
 		InitGame();
-		DrawTargetsAndTracers();
+		if (!Player.IsInVehicle)
+			DrawTargetsAndTracers();
 	}
 	/// <summary>
 	/// Begins grid state generation
@@ -379,7 +383,8 @@ public class GameManager : MonoBehaviour
 		playersTurn = true;
 		EndTurnButton.interactable = true;
 		TileDot.SetActive(true);
-		DrawTargetsAndTracers();
+		if (!Player.IsInVehicle)
+			DrawTargetsAndTracers();
 	}
 	/// <summary>
 	/// Called when an enemy is attacked
@@ -488,7 +493,6 @@ public class GameManager : MonoBehaviour
 			{
 				EndTurnButton.interactable = true;
 			}
-			DrawTargetsAndTracers();
 			PlayerIsOnExitTile();
 		}
 	}
@@ -689,6 +693,7 @@ public class GameManager : MonoBehaviour
 		// Player enters vehicle
 		Player.EnterVehicle(Vehicles[vehicleIndex]);
         TurnTimer.StartTimer();
+		ClearTargetsAndTracers();
 		return true;
     }
 	private void TryVehicleMovement(Vector3 WorldPoint, Vector3Int TilePoint, Vector3 ShiftedClickPoint)
@@ -745,8 +750,8 @@ public class GameManager : MonoBehaviour
 		if (Player.Vehicle.transform.position == ShiftedClickPoint)
 		{
 			Player.Vehicle.SwitchIgnition();
-			// Refresh tile areas when ignition state changes
 			ClearTileAreas();
+			ClearTargetsAndTracers();
 		}
 		// If Player clicks on another tile and ignition is off, try to exit vehicle
 		else if (!Player.Vehicle.Info.IsOn && IsInMovementRange(TilePoint))
@@ -810,12 +815,15 @@ public class GameManager : MonoBehaviour
 		{
 			ClearTileAreas();
 			// Use Vehicle's movement range if Player is in Vehicle with ignition on
-			if (Player.IsInVehicle && Player.Vehicle.Info.IsOn)
+			if (Player.IsInVehicle
+				&& Player.Vehicle.Info.IsOn
+				&& Player.Vehicle.HasFuel())
 			{
 				TileAreasToDraw = Player.Vehicle.CalculateArea();
 			}
 			// Use Player's movement range otherwise
-			else
+			else if (!Player.IsInVehicle
+				|| (Player.IsInVehicle && !Player.Vehicle.Info.IsOn))
 			{
 				TileAreasToDraw = Player.CalculateArea();
 			}
