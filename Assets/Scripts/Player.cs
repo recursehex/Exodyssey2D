@@ -322,7 +322,7 @@ public class Player : MonoBehaviour
 			SoundManager.Instance.PlaySound(Select);
 			DamagePoints = ClickedItem.DamagePoints;
 			// Only draw targets if ranged weapon is selected
-			if (ClickedItem.Range > 0)
+			if (ClickedItem.Range > 0 && !IsInVehicle)
 			{
 				GameManager.Instance.DrawTargetsAndTracers();
 			}
