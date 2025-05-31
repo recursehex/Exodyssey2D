@@ -61,30 +61,30 @@ public class AStar
 		}
 		return ReachableArea;
 	}
-	public Stack<Vector3Int> ComputePath(Vector3 Start, Vector3 Goal)
+	public Stack<Vector3Int> ComputePath(Vector3 Start, Vector3 Goal, bool allowPartialPath = false)
 	{
 		StartPosition = TilemapGround.WorldToCell(Start);
 		GoalPosition = TilemapGround.WorldToCell(Goal);
 		AllNodes.Clear();
 		Current = GetNode(StartPosition);
-		// Creates an open list for nodes that could be looked at later
+		// For nodes to be looked at later
 		OpenList = new();
-		// Creates a closed list for examined nodes
+		// For examined nodes
 		ClosedList = new();
 		foreach (KeyValuePair<Vector3Int, Node> Node in AllNodes)
 		{
 			Node.Value.Parent = null;
 		}
 		AllNodes.Clear();
-		// Adds the current node to the open list (has been examined)
+		// Adds the current node to OpenList (has been examined)
 		OpenList.Add(Current);
 		Path = null;
 		while (OpenList.Count > 0 && Path == null)
 		{
-			List<Node> Neighbors = FindNeighbors(Current.Position);
+			List<Node> Neighbors = FindNeighbors(Current.Position, allowPartialPath);
 			ExamineNeighbors(Neighbors, Current);
 			UpdateCurrentTile(ref Current);
-			Path = GeneratePath(Current);
+			Path = GeneratePath(Current, allowPartialPath);
 		}
 		if (Path != null)
 		{
@@ -92,10 +92,10 @@ public class AStar
 		}
 		return null;
 	}
-	private List<Node> FindNeighbors(Vector3Int ParentPosition)
+	private List<Node> FindNeighbors(Vector3Int ParentPosition, bool allowPartialPath = false)
 	{
 		List<Node> Neighbors = new();
-		// These two for loops make sure that all nodes are created around the current node
+		// These two for loops ensure all nodes are created around current node
 		for (int x = -1; x <= 1; x++)
 		{
 			for (int y = -1; y <= 1; y++)
@@ -108,15 +108,21 @@ public class AStar
 					&& (allowDiagonal || (!allowDiagonal && (y == 0 || x == 0))))
 				{
 					BoundsInt Size = TilemapGround.cellBounds;
-					// If node is within bounds of the grid and if there is no wall tile and no enemy or vehicle there, then add it to the neighbors list
+					// If node is within bounds of the grid and if there is no wall tile, then add it to the neighbors list
+					// For partial paths, allow movement through enemy positions but mark them for stopping before
 					if (Position.x >= Size.min.x
 						&& Position.x < Size.max.x
 						&& Position.y >= Size.min.y
 						&& Position.y < Size.max.y
 						&& !TilemapWalls.HasTile(Position)
-						&& !IsEntityAtPosition)
+						&& (!IsEntityAtPosition || allowPartialPath))
 					{
 						Node Neighbor = GetNode(Position);
+						// Mark if this node has an entity for partial path logic
+						if (allowPartialPath && IsEntityAtPosition)
+						{
+							Neighbor.HasEntity = true;
+						}
 						Neighbors.Add(Neighbor);
 					}
 				}
@@ -140,10 +146,9 @@ public class AStar
 			else if (!ClosedList.Contains(Neighbor))
 			{
 				CalcValues(Current, Neighbor, GoalPosition, gScore);
-				// An extra check for openList containing the neighbor
+				// An extra check for OpenList containing the neighbor
 				if (!OpenList.Contains(Neighbor))
 				{
-					// Node is added to the openList
 					OpenList.Add(Neighbor);
 				}
 			}
@@ -151,35 +156,61 @@ public class AStar
 	}
 	private void UpdateCurrentTile(ref Node Current)
 	{
-		// The current node is removed from the openList
+		// The current node is removed from OpenList
 		OpenList.Remove(Current);
-		// The current node is added to the closedList
+		// The current node is added to ClosedList
 		ClosedList.Add(Current);
-		// If the openList has nodes in it, then sort them by F value
+		// If the OpenList has nodes in it, then sort them by F value
 		if (OpenList.Count > 0)
 		{
-			// Orders the list by the F value to make it easier to pick the node with the lowest F value
+			// Orders the list by F value to make it easier to pick node with lowest F value
 			Current = OpenList.OrderBy(x => x.F).First();
 		}
 	}
-	private Stack<Vector3Int> GeneratePath(Node Current)
+	private Stack<Vector3Int> GeneratePath(Node Current, bool allowPartialPath = false)
 	{
-		// If the current node is the goal, then a path is found
+		// If the current node is goal, then path is found
 		if (Current.Position == GoalPosition)
 		{
-			// Creates a stack to contain the final path
 			Stack<Vector3Int> FinalPath = new();
 			// Adds the nodes to the final path
 			while (Current != null)
 			{
 				// Adds the current node to the final path
 				FinalPath.Push(Current.Position);
-				// Find the parent of the node, this retraces the whole path back to the start,
-				// by doing so, a complete path is formed
+				// Find node's parent to retrace the path back to the start, so a complete path is formed
 				Current = Current.Parent;
 			}
-			// Returns the complete path
 			return FinalPath;
+		}
+		// For partial paths, if no more nodes to explore but found path closer to the goal
+		else if (allowPartialPath && OpenList.Count == 0 && Current.Parent != null)
+		{
+			// Find the node that got closest to the goal
+			Node ClosestNode = Current;
+			Node TempNode = Current;
+			while (TempNode != null)
+			{
+				if (TempNode.H < ClosestNode.H)
+				{
+					ClosestNode = TempNode;
+				}
+				TempNode = TempNode.Parent;
+			}
+			// Generate partial path to closest reachable point, checking for entities
+			Stack<Vector3Int> PartialPath = new();
+			Node PathNode = ClosestNode;
+			while (PathNode != null)
+			{
+				// Add current node to path, validate movement at execution time
+				PartialPath.Push(PathNode.Position);
+				PathNode = PathNode.Parent;
+			}
+			// Only return partial path if it has meaningful progress
+			if (PartialPath.Count > 1)
+			{
+				return PartialPath;
+			}
 		}
 		return null;
 	}
@@ -187,7 +218,7 @@ public class AStar
 	{
 		// Sets the parent node
 		Neighbor.Parent = Parent;
-		// Calculates this node's g cost, the parent's g cost + what it costs to move to this node
+		// Calculates this node's G cost, the parent's G cost + what it costs to move to this node
 		Neighbor.G = Parent.G + cost;
 		// H is calculated, it is the distance from this node to the goal * 10
 		Neighbor.H = (Math.Abs(Neighbor.Position.x - GoalPos.x) + Math.Abs(Neighbor.Position.y - GoalPos.y)) * 10;
@@ -215,6 +246,7 @@ public class Node
 	public int F { get; set; }
 	public Node Parent { get; set; }
 	public Vector3Int Position { get; set; }
+	public bool HasEntity { get; set; } = false;
 	public Node(Vector3Int Position)
 	{
 		this.Position = Position;

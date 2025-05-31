@@ -47,7 +47,10 @@ public class Enemy : MonoBehaviour
 		StunIcon.SetActive(false);
 		AStar.Initialize();
 		AStar.SetAllowDiagonal(false);
+		// First try to find a complete path to the player
 		Path = AStar.ComputePath(transform.position, Player.transform.position);
+		// If no complete path is available, try partial pathfinding
+		Path ??= AStar.ComputePath(transform.position, Player.transform.position, true);
 		// Compute path to Player and prevent enemy from colliding into Player
 		if (Path != null && Info.CurrentEnergy > 0 && Path.Count > 2)
 		{
@@ -57,8 +60,9 @@ public class Enemy : MonoBehaviour
 			Path.Pop();
 			// Move one tile closer to Player
 			Vector3Int TryDistance = Path.Pop();
-			Vector3 ShiftedTryDistance = new(TryDistance.x + 0.5f, TryDistance.y + 0.5f, 0);
-			if (!GameManager.Instance.HasEnemyAtPosition(ShiftedTryDistance))
+			Vector3 ShiftedTryDistance = TryDistance + new Vector3(0.5f, 0.5f, 0);
+			if (!GameManager.Instance.HasEnemyAtPosition(ShiftedTryDistance) 
+				&& !GameManager.Instance.HasVehicleAtPosition(ShiftedTryDistance))
 			{
 				Destination = TryDistance;
 				// Stop movement if game ends
@@ -110,8 +114,23 @@ public class Enemy : MonoBehaviour
 			// Pop next tile in path
 			if (Path.Count > 1 && Info.CurrentEnergy > 0)
 			{
-				Info.DecrementEnergy();
-				Destination = Path.Pop();
+				Vector3Int NextDestination = Path.Peek();
+				Vector3 NextShiftedDestination = new(NextDestination.x + 0.5f, NextDestination.y + 0.5f, 0);
+				
+				// Check if next destination is still free before moving
+				if (!GameManager.Instance.HasEnemyAtPosition(NextShiftedDestination)
+					&& !GameManager.Instance.HasVehicleAtPosition(NextShiftedDestination))
+				{
+					Info.DecrementEnergy();
+					Destination = Path.Pop();
+				}
+				else
+				{
+					// Stop moving if next position is now occupied
+					Path = null;
+					IsInMovement = false;
+					StunIcon.transform.position = transform.position;
+				}
 			}
 			// Enemy attacks Player if enemy moves to an adjacent tile
 			else if (Path.Count == 1 && Info.CurrentEnergy > 0)
