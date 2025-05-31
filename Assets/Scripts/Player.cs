@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -178,14 +179,14 @@ public class Player : MonoBehaviour
 		{
 			int absorbed = Mathf.Min(damage, helmetHealth);
 			helmetHealth -= absorbed;
-			damage       -= absorbed;
+			damage -= absorbed;
 			if (helmetHealth <= 0) hasHelmet = false;
 		}
 		else if (!isMeleeDamage && hasVest)
 		{
 			int absorbed = Mathf.Min(damage, vestHealth);
 			vestHealth -= absorbed;
-			damage     -= absorbed;
+			damage -= absorbed;
 			if (vestHealth <= 0) hasVest = false;
 		}
 		if (damage <= 0) return;

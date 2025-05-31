@@ -99,13 +99,18 @@ public class Vehicle : MonoBehaviour
 	}
 	#endregion
 	#region HEALTH METHODS
-	public void DecreaseHealthBy(int damage)
+	/// <summary>
+	/// Returns true if vehicle's health reaches 0
+	/// </summary>
+	public bool DecreaseHealthBy(int damage)
 	{
 		Info.DecreaseHealthBy(damage);
 		if (Info.CurrentHealth <= 0)
 		{
-			gameObject.SetActive(false);
+			GameManager.Instance.DestroyVehicle(this);
+			return true;
 		}
+		return false;
 	}
 	public void RestoreHealth()
 	{

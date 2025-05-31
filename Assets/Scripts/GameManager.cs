@@ -459,9 +459,10 @@ public class GameManager : MonoBehaviour
 		Vector3 ShiftedPosition = Position + new Vector3(0.5f, 0.5f, 0);
 		return Vehicles.FindIndex(Vehicle => Vehicle.transform.position == ShiftedPosition);
 	}
-	private void DestroyVehicle(Vehicle Vehicle)
+	public void DestroyVehicle(Vehicle Vehicle)
 	{
 		Destroy(Vehicle.gameObject);
+		Vehicles.Remove(Vehicle);
 	}
 	/// <summary>
 	/// Destroy all vehicles on the grid
@@ -472,7 +473,7 @@ public class GameManager : MonoBehaviour
 		{
 			if (Vehicle != Player.Vehicle)
 			{
-				DestroyVehicle(Vehicle);
+				Destroy(Vehicle.gameObject);
 			}
 		});
 		Vehicles.RemoveAll(Vehicle => Vehicle != Player.Vehicle);

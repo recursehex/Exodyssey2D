@@ -149,7 +149,20 @@ public class Enemy : MonoBehaviour
 	{
 		Info.DecrementEnergy();
 		SoundManager.Instance.PlaySound(Attack);
-		Player.DecreaseHealthBy(Info.DamagePoints, Info.Range == 0);
+		// If Player is in Vehicle, damage Vehicle
+		if (Player.IsInVehicle)
+		{
+			// If Vehicle is destroyed, Player is ejected
+			if (Player.Vehicle.DecreaseHealthBy(Info.DamagePoints))
+			{
+				Player.ExitVehicle();
+			}
+		}
+		else
+		{
+			// If Player is not in Vehicle, damage Player
+			Player.DecreaseHealthBy(Info.DamagePoints, Info.Range == 0);
+		}
 	}
 	#endregion
 }
