@@ -2,35 +2,41 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-public class MapGen
+public static class MapGen
 {
     // 0 means no wall, 1 means place wall
-    private readonly int[,] template1 = new int[3, 3]
+    private static readonly int[,] template1 = new int[3, 3]
     {
         {1, 1, 0},
         {1, 0, 0},
         {1, 0, 0}
     };
-    private readonly int[,] template2 = new int[3, 3]
+    private static readonly int[,] template2 = new int[3, 3]
     {
         {1, 1, 0},
         {1, 0, 1},
         {0, 0, 0}
     };
-    private readonly int[,] template3 = new int[3, 3]
+    private static readonly int[,] template3 = new int[3, 3]
     {
         {1, 1, 0},
         {1, 0, 0},
         {0, 0, 1}
     };
-    private readonly int[,] template4 = new int[3, 3]
+    private static readonly int[,] template4 = new int[3, 3]
     {
         {1, 0, 0},
         {1, 0, 1},
         {0, 0, 1}
     };
-    private readonly List<int[,]> Templates;
-    private readonly int[,] quadrants = new int[6, 2]
+    private static readonly List<int[,]> Templates = new()
+    {
+        template1,
+        template2,
+        template3,
+        template4
+    };
+    private static readonly int[,] quadrants = new int[6, 2]
     {
         {-4, 4},
         {-1, 4},
@@ -40,18 +46,8 @@ public class MapGen
         { 2, -2}
     };
 
-    public MapGen()
-    {
-        Templates = new()
-        {
-            template1,
-            template2,
-            template3,
-            template4
-        };
-    }
 
-    private int[,] Rotate3by3(int[,] t)
+    private static int[,] Rotate3by3(int[,] t)
     {
         int[,] res = new int[3, 3];
         for (int row = 0; row < 3; row++)
@@ -64,9 +60,9 @@ public class MapGen
         return res;
     }
 
-    readonly float minimumChance = 0.15f;
+    private const float minimumChance = 0.15f;
 
-    public void GenerateMap(Tilemap TilemapWalls, Tile[] WallTiles)
+    public static void GenerateMap(Tilemap TilemapWalls, Tile[] WallTiles)
     {
         int totalTemplates = Templates.Count;
         int numberGenerated = 0;

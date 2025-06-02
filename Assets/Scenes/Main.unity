@@ -390,7 +390,7 @@ AudioSource:
   m_audioClip: {fileID: 8300000, guid: 68614de376ac2f74a8173897404caef8, type: 3}
   m_Resource: {fileID: 8300000, guid: 68614de376ac2f74a8173897404caef8, type: 3}
   m_PlayOnAwake: 0
-  m_Volume: 1
+  m_Volume: 0.0035512447
   m_Pitch: 1
   Loop: 0
   Mute: 0
@@ -857,22 +857,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4746cef2839d3eb418b4af9a2d416408, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  MainCamera: {fileID: 0}
-  doingSetup: 0
-  playersTurn: 1
+  MainCamera: {fileID: 519420031}
   Player: {fileID: 569674968}
-  TileDot: {fileID: 823962495}
-  TileArea: {fileID: 4013333899691673706, guid: df0561ba1ff27154e957b6aa734c0248, type: 3}
-  TurnTimer: {fileID: 2083751133}
-  EndTurnButton: {fileID: 2049175783}
+  doingSetup: 0
+  EnemyManager: {fileID: 0}
+  ItemManager: {fileID: 0}
+  VehicleManager: {fileID: 0}
+  TileManager: {fileID: 0}
+  TurnManager: {fileID: 0}
+  LevelManager: {fileID: 0}
+  InputManager: {fileID: 0}
   EnemyTemplates:
   - {fileID: 8301553589233551289, guid: 3a66190a890058e44bc0653995faf798, type: 3}
   - {fileID: 283541130281458624, guid: 9844e1c572099de4493431c23e68fee5, type: 3}
-  Enemies: []
-  spawnEnemyCount: 0
-  needToStartEnemyMovement: 0
-  enemiesInMovement: 0
-  indexOfMovingEnemy: -1
   ItemTemplates:
   - {fileID: 5730536483717399719, guid: 449c9aea6710b3947a699d611aea06d5, type: 3}
   - {fileID: 5730536483717399719, guid: 293e475c4b5994972b873798f17031b4, type: 3}
@@ -889,17 +886,23 @@ MonoBehaviour:
   - {fileID: 2145379877062402088, guid: 1a6b4107ceb4a4d4db276eae951f74b4, type: 3}
   - {fileID: 1336611518689343522, guid: aeb86c0077d274d9b8a3e58629e201f1, type: 3}
   - {fileID: 1336611518689343522, guid: 9ec3ca548544e4c8ea2d94a4aefa9fac, type: 3}
-  Items: []
-  spawnItemCount: 0
   VehicleTemplates:
   - {fileID: 283541130281458624, guid: b85441ba2624a4848a67b0e4673e5212, type: 3}
   - {fileID: 283541130281458624, guid: 70bcb0b5b6c344e258342aae4df51e07, type: 3}
   - {fileID: 283541130281458624, guid: 8beb83c16fa684962ab4ab7c7cd25520, type: 3}
   - {fileID: 283541130281458624, guid: 97ce03eb452e841339253bff72383839, type: 3}
-  Vehicles: []
-  spawnVehicleCount: 0
+  TileDot: {fileID: 823962495}
+  TileArea: {fileID: 4013333899691673706, guid: df0561ba1ff27154e957b6aa734c0248, type: 3}
+  TargetTemplate: {fileID: 3235571212307580798, guid: 0d83749970d77b24286906dba172abc5, type: 3}
+  TracerTemplate: {fileID: 3235571212307580798, guid: de10de49d7c9041c0a48f6db8a694380, type: 3}
+  TurnTimer: {fileID: 2083751133}
+  EndTurnButton: {fileID: 2049175783}
+  DayText: {fileID: 551613595}
+  LevelText: {fileID: 1100001971}
+  LevelImage: {fileID: 1910730414}
   TilemapGround: {fileID: 2052983298}
   TilemapWalls: {fileID: 1335406084}
+  TilemapExit: {fileID: 2025662172}
   GroundTiles:
   - {fileID: 11400000, guid: bc0b0f7e95da3be4ca78e2f9f5b7fc51, type: 2}
   - {fileID: 11400000, guid: 6d5ac7c2a11ac224f8879914a994d0bd, type: 2}
@@ -907,18 +910,6 @@ MonoBehaviour:
   WallTiles:
   - {fileID: 11400000, guid: 3cfd4d96da0b6c74aa5e5d9dc2c69628, type: 2}
   - {fileID: 11400000, guid: c460a9e9d7021bd40861beafe3a92647, type: 2}
-  TilemapExit: {fileID: 2025662172}
-  TileAreas: []
-  TargetTemplate: {fileID: 3235571212307580798, guid: 0d83749970d77b24286906dba172abc5, type: 3}
-  Targets: []
-  TracerTemplate: {fileID: 3235571212307580798, guid: de10de49d7c9041c0a48f6db8a694380, type: 3}
-  Tracers: []
-  TracerPath: []
-  DayText: {fileID: 551613595}
-  LevelText: {fileID: 1100001971}
-  LevelImage: {fileID: 1910730414}
-  level: 0
-  day: 1
 --- !u!4 &423806397
 Transform:
   m_ObjectHideFlags: 0
@@ -3723,6 +3714,14 @@ PrefabInstance:
       propertyPath: Heal
       value: 
       objectReference: {fileID: 8300000, guid: 062161c1897a54088a5430f8c197e1b8, type: 3}
+    - target: {fileID: 917007481830541330, guid: 657e2a86062317544ade4b449a68bdf5, type: 3}
+      propertyPath: Hurt
+      value: 
+      objectReference: {fileID: 8300000, guid: 114514a3b3697484ebaa08f7fbf842d3, type: 3}
+    - target: {fileID: 917007481830541330, guid: 657e2a86062317544ade4b449a68bdf5, type: 3}
+      propertyPath: Move
+      value: 
+      objectReference: {fileID: 8300000, guid: 892962212a4b74d1c9f578a3b6ea6439, type: 3}
     - target: {fileID: 917007481830541330, guid: 657e2a86062317544ade4b449a68bdf5, type: 3}
       propertyPath: heal
       value: 

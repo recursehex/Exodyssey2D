@@ -26,15 +26,16 @@ public class Player : MonoBehaviour
 	public Profession Job;
 	#endregion
 	#region AUDIO
-	public AudioClip PlayerMove;
-	public AudioClip Heal;
-	public AudioClip Select;
-	public AudioClip Attack;
-	public AudioClip GameOver;
+	[SerializeField] private AudioClip Move;
+	[SerializeField] private AudioClip Heal;
+	[SerializeField] private AudioClip Select;
+	[SerializeField] private AudioClip Attack;
+	[SerializeField] private AudioClip Hurt;
+	[SerializeField] private AudioClip GameOver;
 	private Animator Animator;
 	#endregion
 	#region INVENTORY
-	public Inventory Inventory;
+	private Inventory Inventory;
 	public InventoryUI InventoryUI;
 	public ItemInfo SelectedItemInfo = null;
 	public StatsDisplayManager StatsDisplayManager;
@@ -89,7 +90,7 @@ public class Player : MonoBehaviour
 		while (Path != null && Path.Count >= 0)
 		{
 			DecrementEnergy();
-			SoundManager.Instance.PlaySound(PlayerMove);
+			SoundManager.Instance.PlaySound(Move);
 			Vector3 ShiftedDistance = Destination + new Vector3(0.5f, 0.5f, 0);
 			// Move Player smoothly to next tile
 			while (Vector3.Distance(transform.position, ShiftedDistance) > 0f)
@@ -113,9 +114,10 @@ public class Player : MonoBehaviour
 		// When Player stops moving
 		Path = null;
 		IsInMovement = false;
-		if (!GameManager.Instance.PlayerIsOnExitTile())
+		// Update targets and tracers if a ranged weapon is selected
+		if (SelectedItemInfo != null && SelectedItemInfo.Range > 0 && !IsInVehicle)
 		{
-			GameManager.Instance.DrawTargetsAndTracers();
+			GameManager.Instance.UpdateTargetsAndTracers();
 		}
 	}
 	/// <summary>
@@ -130,6 +132,7 @@ public class Player : MonoBehaviour
 	#region VEHICLE METHODS
 	public void EnterVehicle(Vehicle EnteredVehicle)
 	{
+		SoundManager.Instance.PlaySound(Move);
 		Vehicle = EnteredVehicle;
 		transform.position = Vehicle.transform.position;
 		// Hide player when entering vehicle
@@ -192,6 +195,7 @@ public class Player : MonoBehaviour
 		if (damage <= 0) return;
 		// Damage Player
 		currentHealth -= damage;
+		SoundManager.Instance.PlaySound(Hurt);
 		// If Player is killed
 		if (currentHealth <= 0)
 		{
@@ -280,7 +284,7 @@ public class Player : MonoBehaviour
 		{
 			InventoryUI.RemoveItem(InventoryUI.SelectedIndex);
 			InventoryUI.SetCurrentSelected(-1);
-			GameManager.Instance.ClearTargetsAndTracers();
+			GameManager.Instance.TileManager.ClearTargetsAndTracers();
 			SelectedItemInfo = null;
 			DamagePoints = 0;
 		}
@@ -325,12 +329,13 @@ public class Player : MonoBehaviour
 			// Only draw targets if ranged weapon is selected
 			if (ClickedItem.Range > 0 && !IsInVehicle)
 			{
-				GameManager.Instance.DrawTargetsAndTracers();
+				// Draw targets and tracers for ranged weapon
+				GameManager.Instance.UpdateTargetsAndTracers();
 			}
 			// Clear targets for all other items
 			else
 			{
-				GameManager.Instance.ClearTargetsAndTracers();
+				GameManager.Instance.TileManager.ClearTargetsAndTracers();
 			}
 		}
 		// Item was deselected
@@ -339,7 +344,7 @@ public class Player : MonoBehaviour
 			InventoryUI.SetCurrentSelected(-1);
 			SelectedItemInfo = null;
 			DamagePoints = 0;
-			GameManager.Instance.ClearTargetsAndTracers();
+			GameManager.Instance.TileManager.ClearTargetsAndTracers();
 		}
 	}
 	/// <summary>
@@ -425,7 +430,7 @@ public class Player : MonoBehaviour
 			// Clears targeting if ranged weapon is dropped
 			if (GetWeaponRange() > 0)
 			{
-				GameManager.Instance.ClearTargetsAndTracers();
+				GameManager.Instance.TileManager.ClearTargetsAndTracers();
 			}
 		}
 		// Put dropped item in temp slot out of inventory
@@ -441,7 +446,7 @@ public class Player : MonoBehaviour
 		{
 			// Swap dropped item with ground item
 			Inventory[itemIndex].Info = ItemAtPosition.Info;
-			GameManager.Instance.RemoveItemAtPosition(ItemAtPosition);
+			GameManager.Instance.ItemManager.RemoveItemAtPosition(ItemAtPosition);
 			Destroy(ItemAtPosition.gameObject);
 			InventoryUI.RefreshInventoryIcons();
 		}
@@ -454,7 +459,7 @@ public class Player : MonoBehaviour
 		// Drop item onto ground from temp slot
 		GameManager.Instance.SpawnItem((int)DroppedItemInfo.Tag, transform.position);
 		// Removes item from inventory and plays corresponding sound
-		SoundManager.Instance.PlaySound(PlayerMove);
+		SoundManager.Instance.PlaySound(Move);
 	}
     #endregion
 }

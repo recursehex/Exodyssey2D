@@ -11,6 +11,8 @@ public class Vehicle : MonoBehaviour
 	#endregion
 	#region AUDIO
 	public AudioClip Move;
+	public AudioClip Select;
+	public AudioClip Hurt;
 	#endregion
 	#region PATHFINDING
 	public bool IsInMovement { get; set; } = false;
@@ -104,6 +106,7 @@ public class Vehicle : MonoBehaviour
 	/// </summary>
 	public bool DecreaseHealthBy(int damage)
 	{
+		SoundManager.Instance.PlaySound(Hurt);
 		Info.DecreaseHealthBy(damage);
 		if (Info.CurrentHealth <= 0)
 		{
@@ -131,7 +134,7 @@ public class Vehicle : MonoBehaviour
 	}
 	public void SwitchIgnition()
 	{
-		SoundManager.Instance.PlaySound(Move);
+		SoundManager.Instance.PlaySound(Select);
 		Info.SwitchIgnition();
 	}
 	public bool HasFuel()
