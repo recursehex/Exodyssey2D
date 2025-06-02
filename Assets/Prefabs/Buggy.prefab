@@ -176,5 +176,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Move: {fileID: 8300000, guid: 892962212a4b74d1c9f578a3b6ea6439, type: 3}
+  Select: {fileID: 8300000, guid: f6aaac83be9e0493493aace800b76619, type: 3}
+  Hurt: {fileID: 8300000, guid: 4c2332bc8245b474dad63074059bb755, type: 3}
   TilemapGround: {fileID: 0}
   TilemapWalls: {fileID: 0}

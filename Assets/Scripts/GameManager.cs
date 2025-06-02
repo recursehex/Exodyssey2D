@@ -6,68 +6,44 @@ using UnityEngine.Tilemaps;
 public class GameManager : MonoBehaviour
 {
 	public static GameManager Instance;
+	
+	[Header("Core References")]
 	[SerializeField] private Camera MainCamera;
-	[SerializeField] private bool doingSetup;
-	[SerializeField] private bool playersTurn = true;
 	[SerializeField] private Player Player;
+	[SerializeField] private bool doingSetup;
+	
+	[Header("Managers")]
+	[SerializeField] public EnemyManager EnemyManager;
+	[SerializeField] public ItemManager ItemManager;
+	[SerializeField] private VehicleManager VehicleManager;
+	[SerializeField] public TileManager TileManager;
+	[SerializeField] private TurnManager TurnManager;
+	[SerializeField] public LevelManager LevelManager;
+	[SerializeField] private InputManager InputManager;
+	
+	[Header("Prefab Templates")]
+	[SerializeField] private GameObject[] EnemyTemplates;
+	[SerializeField] private GameObject[] ItemTemplates;
+	[SerializeField] private GameObject[] VehicleTemplates;
+	
+	[Header("UI Elements")]
 	[SerializeField] private GameObject TileDot;
 	[SerializeField] private GameObject TileArea;
+	[SerializeField] private GameObject TargetTemplate;
+	[SerializeField] private GameObject TracerTemplate;
 	[SerializeField] private TurnTimer TurnTimer;
 	[SerializeField] private Button EndTurnButton;
-	private MapGen MapGenerator;
-	#region ENEMIES
-	// Must update when adding new enemy
-	[SerializeField] private GameObject[] EnemyTemplates;
-	[SerializeField] private List<Enemy> Enemies = new();
-	// Number of enemies spawned in a level
-	[SerializeField] private int spawnEnemyCount;
-	[SerializeField] private bool needToStartEnemyMovement = false;
-	[SerializeField] private bool enemiesInMovement = false;
-	[SerializeField] private int indexOfMovingEnemy = -1;
-	#endregion
-	#region ITEMS
-	// Must update when adding new item
-	[SerializeField] private GameObject[] ItemTemplates;
-	[SerializeField] private List<Item> Items = new();
-	// Number of items spawned in a level
-	[SerializeField] private int spawnItemCount;
-	#endregion
-	#region VEHICLES
-	[SerializeField] private GameObject[] VehicleTemplates;
-	[SerializeField] private List<Vehicle> Vehicles = new();
-	// Number of vehicles spawned in a level
-	[SerializeField] private int spawnVehicleCount;
-	#endregion
-	#region TILEMAPS
-	[SerializeField] private Tilemap TilemapGround;
-	[SerializeField] private Tilemap TilemapWalls;
-	// Tile arrays are used for random generation
-	[SerializeField] private Tile[] GroundTiles;
-	[SerializeField] private Tile[] WallTiles;
-	[SerializeField] private Tilemap TilemapExit;
-	#endregion
-	#region TILEAREAS
-	[SerializeField] private List<GameObject> TileAreas = new();
-	private Dictionary<Vector3Int, Node> TileAreasToDraw = null;
-	#endregion
-	#region RANGED WEAPON SYSTEM
-	[SerializeField] private GameObject TargetTemplate;
-	[SerializeField] private List<GameObject> Targets = new();
-	[SerializeField] private GameObject TracerTemplate;
-	[SerializeField] private List<GameObject> Tracers = new();
-	[SerializeField] private List<Vector3> TracerPath = new();
-	#endregion
-	#region LOADING SCREEN
 	[SerializeField] private Text DayText;
 	[SerializeField] private Text LevelText;
 	[SerializeField] private GameObject LevelImage;
-	// How long the psuedo-loading screen lasts in seconds
-	private readonly float levelStartDelay = 1.5f;
-	// Level # is for each unit of the day, with 5 per day, e.g. level 5 means day 2
-	private readonly string[] timeOfDayNames = { "DAWN", "NOON", "AFTERNOON", "DUSK", "NIGHT" };
-	[SerializeField] private int level = 0;
-	[SerializeField] private int day = 1;
-	#endregion
+	
+	[Header("Tilemaps")]
+	[SerializeField] private Tilemap TilemapGround;
+	[SerializeField] private Tilemap TilemapWalls;
+	[SerializeField] private Tilemap TilemapExit;
+	[SerializeField] private Tile[] GroundTiles;
+	[SerializeField] private Tile[] WallTiles;
+	
 	void Awake()
 	{
 		if (Instance == null)
@@ -77,16 +53,42 @@ public class GameManager : MonoBehaviour
 		else if (Instance != this)
 		{
 			Destroy(gameObject);
+			return;
 		}
 		DontDestroyOnLoad(gameObject);
+		InitializeManagers();
 		InitGame();
+	}
+	private void InitializeManagers()
+	{
+		// Instantiate managers
+		EnemyManager 	= gameObject.AddComponent<EnemyManager>();
+		ItemManager 	= gameObject.AddComponent<ItemManager>();
+		VehicleManager 	= gameObject.AddComponent<VehicleManager>();
+		TileManager 	= gameObject.AddComponent<TileManager>();
+		TurnManager 	= gameObject.AddComponent<TurnManager>();
+		LevelManager 	= gameObject.AddComponent<LevelManager>();
+		InputManager 	= gameObject.AddComponent<InputManager>();
+		// Initialize managers
+		EnemyManager	.Initialize(TilemapGround, TilemapWalls, EnemyTemplates);
+		ItemManager		.Initialize(ItemTemplates);
+		VehicleManager	.Initialize(TilemapGround, TilemapWalls, VehicleTemplates);
+		TileManager		.Initialize(TileDot, TileArea, TargetTemplate, TracerTemplate);
+		TurnManager		.Initialize(TurnTimer, EndTurnButton);
+		LevelManager	.Initialize(TilemapGround, TilemapWalls, TilemapExit, GroundTiles, WallTiles, DayText, LevelText, LevelImage);
+		// Subscribe to events
+		TurnManager.OnPlayerTurnEnded 	+= OnPlayerTurnEnded;
+		TurnManager.OnEnemyTurnEnded 	+= OnEnemyTurnEnded;
+		LevelManager.OnLevelInitialized += OnLevelInitialized;
+		InputManager.OnPlayerClick 		+= HandlePlayerClick;
+		InputManager.OnPlayerHover 		+= HandlePlayerHover;
 	}
 	private void Start()
 	{
 		MainCamera = Camera.main;
+		InputManager.Initialize(MainCamera, TilemapGround, Player);
 		SoundManager.Instance.PlayMusic();
 	}
-	// Update is called once per frame
 	void Update()
 	{
 		if (doingSetup
@@ -97,38 +99,33 @@ public class GameManager : MonoBehaviour
 			return;
 		}
 		MovePlayerToVehicle();
-		DrawTileAreas();
-		if (EndTurnButton.interactable == false
-			&& playersTurn)
+		if (!Player.IsInMovement)
 		{
-			EndTurnButton.interactable = true;
+			PlayerIsOnExitTile();
 		}
-		MouseInput();
-		EnemyMovement();
+		UpdateTileAreas();
+		if (TurnManager.EndTurnButton.interactable == false
+			&& TurnManager.IsPlayersTurn)
+		{
+			TurnManager.SetEndTurnButtonInteractable(true);
+		}
+		InputManager.ProcessInput();
+		if (!TurnManager.IsPlayersTurn)
+		{
+			EnemyManager.ProcessEnemyMovement(() => TurnManager.EndEnemyTurn());
+		}
 	}
 	/// <summary>
 	/// Resets grid state after Player enters new level
 	/// </summary>
 	private void ResetForNextLevel()
 	{
-		// Increments level and day
-		level++;
-		LevelText.text = timeOfDayNames[level % timeOfDayNames.Length];
-		if (level % 5 == 0)
-		{
-			day++;
-			DayText.text = $"DAY {day}";
-		}
-		// Resets turn timer
-		TurnTimer.timerIsRunning = false;
-		TurnTimer.ResetTimer();
-		// Clears tiles, items, and enemies
-		TilemapGround.ClearAllTiles();
-		TilemapWalls.ClearAllTiles();
-		DestroyAllItems();
-		DestroyAllEnemies();
-		DestroyAllVehicles();
-		// Resets Player position and energy
+		LevelManager.PrepareNextLevel();
+		TurnManager.TurnTimer.timerIsRunning = false;
+		TurnManager.TurnTimer.ResetTimer();
+		ItemManager.DestroyAllItems();
+		EnemyManager.DestroyAllEnemies();
+		VehicleManager.DestroyAllVehicles(Player.Vehicle);
 		Player.transform.position = new(-3.5f, 0.5f, 0f);
 		if (Player.IsInVehicle)
 		{
@@ -137,8 +134,6 @@ public class GameManager : MonoBehaviour
 		}
 		Player.RestoreEnergy();
 		InitGame();
-		if (!Player.IsInVehicle)
-			DrawTargetsAndTracers();
 	}
 	/// <summary>
 	/// Begins grid state generation
@@ -146,812 +141,310 @@ public class GameManager : MonoBehaviour
 	void InitGame()
 	{
 		doingSetup = true;
-		LevelImage.SetActive(true);
-		LevelText.gameObject.SetActive(true);
-		DayText.gameObject.SetActive(true);
-		spawnItemCount = Random.Range(5, 10);
-		spawnEnemyCount = Random.Range(1 + (int)(level * 0.5), 3 + (int)(level * 0.5));
-		spawnVehicleCount = Random.Range(3, 3); // TEMP
-		MapGenerator = new();
-		GroundGeneration();
-		WallGeneration();
-		EnemyGeneration();
-		ItemGeneration();
-		VehicleGeneration();
-		Invoke(nameof(HideLevelLoadScreen), levelStartDelay);
+		LevelManager.InitializeLevel();
 	}
-	private void HideLevelLoadScreen()
+	private void OnLevelInitialized()
 	{
-		LevelImage.SetActive(false);
-		LevelText.gameObject.SetActive(false);
-		DayText.gameObject.SetActive(false);
-		EndTurnButton.interactable = true;
+		EnemyManager.GenerateEnemies();
+		ItemManager.GenerateItems();
+		VehicleManager.GenerateVehicles();
+		Invoke(nameof(OnLevelLoadComplete), 1.5f);
+	}
+	private void OnLevelLoadComplete()
+	{
+		TurnManager.SetEndTurnButtonInteractable(true);
 		doingSetup = false;
+		
+		// Update targets and tracers if player has ranged weapon
+		if (!Player.IsInVehicle)
+		{
+			UpdateTargetsAndTracers();
+		}
 	}
 	/// <summary>
 	/// Called when Player dies
 	/// </summary>
 	public void GameOver()
 	{
-		DayText.gameObject.SetActive(true);
-		LevelText.gameObject.SetActive(true);
-		DayText.text = "YOU DIED";
-		LevelText.text = day == 1 ? "AFTER 1 DAY" : $"AFTER {(level / 5) + 1} DAYS";
-		LevelImage.SetActive(true);
+		LevelManager.ShowGameOver();
 		enabled = false;
 	}
-	/// <summary>
-	/// Generates random ground tiles
-	/// </summary>
-	public void GroundGeneration()
-	{
-		for (int x = -4; x < 5; x++)
-		{
-			for (int y = -4; y < 5; y++)
-			{
-				TilemapGround.SetTile(new Vector3Int(x, y, 0), GroundTiles[Random.Range(0, GroundTiles.Length)]);
-			}
-		}
-	}
-	/// <summary>
-	/// Procedurally generates walls once per level
-	/// </summary>
-	public void WallGeneration()
-	{
-		MapGenerator.GenerateMap(TilemapWalls, WallTiles);
-	}
-	#region ITEM METHODS
-	/// <summary>
-	/// Spawns items for each level
-	/// </summary>
-	public void ItemGeneration()
-	{
-		int cap = spawnItemCount * 2;
-		while (cap > 0 && spawnItemCount > 0)
-		{
-			if (WeightedRarityGeneration.Generate<Item>())
-			{
-				spawnItemCount--;
-			}
-			cap--;
-		}
-	}
-	/// <summary>
-	/// Instantiates Item at Position
-	/// </summary>
+	// Public methods for spawning entities (called by WeightedRarityGeneration)
 	public void SpawnItem(int index, Vector3 Position)
 	{
-		Item NewItem = Instantiate(ItemTemplates[index], Position, Quaternion.identity).GetComponent<Item>();
-		NewItem.Info = new ItemInfo(index);
-		Items.Add(NewItem);
+		ItemManager.SpawnItem(index, Position);
 	}
-	/// <summary>
-	/// Returns false if no item at position, returns true if found
-	/// </summary>
-	public bool HasItemAtPosition(Vector3 Position)
-	{
-		return GetItemAtPosition(Position) != null;
-	}
-	/// <summary>
-	/// Returns null if no item at position, returns Item if found
-	/// </summary>
-	public Item GetItemAtPosition(Vector3 Position)
-	{
-		return Items.Find(Item => Item.transform.position == Position);
-	}
-	/// <summary>
-	/// Removes item at Position
-	/// </summary>
-	public void RemoveItemAtPosition(Item ItemAtPosition)
-	{
-		Items.Remove(ItemAtPosition);
-	}
-	/// <summary>
-	/// Removes item when picked up
-	/// </summary>
-	private void DestroyItemAtPosition(Vector3 Position)
-	{
-		Item Item = Items.Find(Item => Item.transform.position == Position);
-		Items.Remove(Item);
-		Destroy(Item.gameObject);
-	}
-	/// <summary>
-	/// Destroys all items on the grid
-	/// </summary>
-	private void DestroyAllItems()
-	{
-		foreach (Item Item in Items)
-		{
-			Destroy(Item.gameObject);
-		}
-		Items.Clear();
-	}
-	#endregion
-	#region ENEMY METHODS
-	/// <summary>
-	/// Spawns enemies for each level
-	/// </summary>
-	private void EnemyGeneration()
-	{
-		int cap = spawnEnemyCount * 2;
-		while (cap > 0 && spawnEnemyCount > 0)
-		{
-			if (WeightedRarityGeneration.Generate<Enemy>())
-			{
-				spawnEnemyCount--;
-			}
-			cap--;
-		}
-	}
-	/// <summary>
-	/// Instantiates Enemy at Position
-	/// </summary>
 	public void SpawnEnemy(int index, Vector3 Position)
 	{
-		Enemy NewEnemy = Instantiate(EnemyTemplates[index], Position, Quaternion.identity).GetComponent<Enemy>();
-		NewEnemy.Initialize(TilemapGround, TilemapWalls, new EnemyInfo(index), Player);
-		Enemies.Add(NewEnemy);
+		EnemyManager.SpawnEnemy(index, Position);
 	}
-	/// <summary>
-	/// Returns false if no enemy at position, returns true if found
-	/// </summary>
-	public bool HasEnemyAtPosition(Vector3 Position)
-	{
-		return Enemies.Find(Enemy => Enemy.transform.position == Position) != null;
-	}
-	/// <summary>
-	/// Returns -1 if no enemy is present at selected position
-	/// or index of enemy if enemy is present
-	/// </summary>
-	private int GetEnemyIndexAtPosition(Vector3Int Position)
-	{
-		Vector3 ShiftedPosition = Position + new Vector3(0.5f, 0.5f, 0);
-		return Enemies.FindIndex(Enemy => Enemy.transform.position == ShiftedPosition);
-	}
-	private void DestroyEnemy(Enemy Enemy)
-	{
-		Destroy(Enemy.StunIcon);
-		Destroy(Enemy.gameObject);
-	}
-	/// <summary>
-	/// Destroy all enemies on the grid
-	/// </summary>
-	private void DestroyAllEnemies()
-	{
-		foreach (Enemy Enemy in Enemies)
-		{
-			DestroyEnemy(Enemy);
-		}
-		Enemies.Clear();
-	}
-	/// <summary>
-	/// Resets every enemy's energy when Player turn ends
-	/// </summary>
-	private void RestoreAllEnemyEnergy()
-	{
-		foreach (Enemy Enemy in Enemies)
-		{
-			Enemy.RestoreEnergy();
-		}
-	}
-	/// <summary>
-	/// Calculates each enemy's movement path then sets Player turn
-	/// </summary>
-	private void EnemyMovement()
-	{
-		// If there are no enemies
-		if (Enemies.Count == 0)
-		{
-			playersTurn = true;
-			EndTurnButton.interactable = true;
-			return;
-		}
-		// When enemies start moving
-		if (needToStartEnemyMovement)
-		{
-			EndTurnButton.interactable = false;
-			TileDot.SetActive(false);
-			ClearTileAreas();
-			ClearTargetsAndTracers();
-			needToStartEnemyMovement = false;
-			indexOfMovingEnemy = 0;
-			Enemies[indexOfMovingEnemy].ComputePathAndStartMovement();
-			enemiesInMovement = true;
-			return;
-		}
-		// Enemy movement
-		if (enemiesInMovement
-			&& !Enemies[indexOfMovingEnemy].IsInMovement)
-		{
-			if (indexOfMovingEnemy < Enemies.Count - 1)
-			{
-				indexOfMovingEnemy++;
-				Enemies[indexOfMovingEnemy].ComputePathAndStartMovement();
-				return;
-			}
-			EndEnemyTurn();
-		}
-	}
-	/// <summary>
-	/// Once enemies stopped moving
-	/// </summary>
-	private void EndEnemyTurn()
-	{
-		enemiesInMovement = false;
-		RestoreAllEnemyEnergy();
-		TurnTimer.ResetTimer();
-		playersTurn = true;
-		EndTurnButton.interactable = true;
-		TileDot.SetActive(true);
-		if (!Player.IsInVehicle)
-			DrawTargetsAndTracers();
-	}
-	/// <summary>
-	/// Called when an enemy is attacked
-	/// </summary>
-	private void HandleDamageToEnemy(int index)
-	{
-		Enemy DamagedEnemy = Enemies[index];
-		DamagedEnemy.DecreaseHealthBy(Player.DamagePoints);
-		// If enemy is dead
-		if (DamagedEnemy.Info.CurrentHealth <= 0)
-		{
-			Enemies.RemoveAt(index);
-			DestroyEnemy(DamagedEnemy);
-			DrawTargetsAndTracers();
-			return;
-		}
-		// If weapon is stunning
-		if (Player.SelectedItemInfo.IsStunning)
-		{
-			// Enemy cannot move for 1 turn
-			DamagedEnemy.Info.IsStunned = true;
-			DamagedEnemy.StunIcon.SetActive(true);
-			DrawTargetsAndTracers();
-		}
-	}
-	/// <summary>
-	/// Returns true if there is a wall at a position
-	/// </summary>
-	public bool HasWallAtPosition(Vector3Int Position)
-	{
-		return TilemapWalls.HasTile(Position);
-	}
-	#endregion
-	#region VEHICLE METHODS
-	/// <summary>
-	/// Spawns vehicles for each level
-	/// </summary>
-	private void VehicleGeneration()
-	{
-		int cap = spawnVehicleCount * 2;
-		while (cap > 0 && spawnVehicleCount > 0)
-		{
-			if (WeightedRarityGeneration.Generate<Vehicle>())
-			{
-				spawnVehicleCount--;
-			}
-			cap--;
-		}
-	}
-	/// <summary>
-	/// Instantiates Vehicle at Position
-	/// </summary>
 	public void SpawnVehicle(int index, Vector3 Position)
 	{
-		Vehicle NewVehicle = Instantiate(VehicleTemplates[index], Position, Quaternion.identity).GetComponent<Vehicle>();
-		NewVehicle.Initialize(TilemapGround, TilemapWalls, new VehicleInfo(index));
-		Vehicles.Add(NewVehicle);
+		VehicleManager.SpawnVehicle(index, Position);
 	}
-	/// <summary>
-	/// Returns false if no vehicle at position, returns true if found
-	/// </summary>
-	public bool HasVehicleAtPosition(Vector3 Position)
-	{
-		return Vehicles.Find(Vehicle => Vehicle.transform.position == Position) != null;
-	}
-	/// <summary>
-	/// Returns -1 if no vehicle is present at selected position
-	/// or index of vehicle if vehicle is present
-	/// </summary>
-	private int GetVehicleIndexAtPosition(Vector3Int Position)
-	{
-		Vector3 ShiftedPosition = Position + new Vector3(0.5f, 0.5f, 0);
-		return Vehicles.FindIndex(Vehicle => Vehicle.transform.position == ShiftedPosition);
-	}
-	public void DestroyVehicle(Vehicle Vehicle)
-	{
-		Destroy(Vehicle.gameObject);
-		Vehicles.Remove(Vehicle);
-	}
-	/// <summary>
-	/// Destroy all vehicles on the grid
-	/// </summary>
-	private void DestroyAllVehicles()
-	{
-		Vehicles.ForEach(Vehicle =>
-		{
-			if (Vehicle != Player.Vehicle)
-			{
-				Destroy(Vehicle.gameObject);
-			}
-		});
-		Vehicles.RemoveAll(Vehicle => Vehicle != Player.Vehicle);
-	}
-	#endregion
-	#region PLAYER METHODS
-	/// <summary>
-	/// Updates Player position to match Vehicle position when Vehicle stops moving
-	/// </summary>
+	// Public accessor methods
+	public bool HasItemAtPosition(Vector3 Position) => ItemManager.HasItemAtPosition(Position);
+	public Item GetItemAtPosition(Vector3 Position) => ItemManager.GetItemAtPosition(Position);
+	public void RemoveItemAtPosition(Item item) => ItemManager.RemoveItemAtPosition(item);
+	public bool HasEnemyAtPosition(Vector3 Position) => EnemyManager.HasEnemyAtPosition(Position);
+	public bool HasVehicleAtPosition(Vector3 Position) => VehicleManager.HasVehicleAtPosition(Position);
+	public bool HasWallAtPosition(Vector3Int Position) => LevelManager.HasWallAtPosition(Position);
+	public void DestroyVehicle(Vehicle vehicle) => VehicleManager.DestroyVehicle(vehicle);
 	private void MovePlayerToVehicle()
 	{
-		if (Player.IsInVehicle
-			&& !Player.Vehicle.IsInMovement)
+		if (Player.IsInVehicle && !Player.Vehicle.IsInMovement)
 		{
 			Player.transform.position = Player.Vehicle.transform.position;
 			Player.IsInMovement = false;
-			if (playersTurn)
+			if (TurnManager.IsPlayersTurn)
 			{
-				EndTurnButton.interactable = true;
+				TurnManager.SetEndTurnButtonInteractable(true);
 			}
-			PlayerIsOnExitTile();
 		}
 	}
 	public void StopTurnTimer()
 	{
-		TurnTimer.StopTimer();
+		TurnManager.StopTurnTimer();
 	}
-	/// <summary>
-	/// Called by EndTurnButton, redraws tile areas, resets timer, resets energy
-	/// </summary>
 	public void OnEndTurnPress()
 	{
 		if (Player.IsInMovement)
 		{
 			return;
 		}
-		EndTurnButton.interactable = false;
-		TurnTimer.timerIsRunning = false;
-		TurnTimer.ResetTimer();
-		playersTurn = false;
-		Player.RestoreEnergy();
-		if (Enemies.Count == 0)
-		{
-			TileDot.SetActive(true);
-		}
-		needToStartEnemyMovement = Enemies.Count > 0;
+		TurnManager.OnEndTurnPress();
 	}
-	/// <summary>
-	/// Called when the turn timer ends to stop Player from acting
-	/// </summary>
+	private void OnPlayerTurnEnded()
+	{
+		Player.RestoreEnergy();
+		if (EnemyManager.Enemies.Count == 0)
+		{
+			TileManager.TileDot.SetActive(true);
+		}
+		EnemyManager.NeedToStartEnemyMovement = EnemyManager.Enemies.Count > 0;
+	}
 	public void OnTurnTimerEnd()
 	{
-		TileDot.SetActive(false);
+		TileManager.TileDot.SetActive(false);
 		Player.SetEnergyToZero();
-		ClearTileAreas();
-		ClearTargetsAndTracers();
-		EndTurnButton.interactable = true;
+		TileManager.ClearTileAreas();
+		TileManager.ClearTargetsAndTracers();
+		TileDot.SetActive(false);
+		TurnManager.OnTurnTimerEnd();
 	}
-	/// <summary>
-	/// Returns true if Player is on exit tile and resets grid for next level
-	/// </summary>
-	public bool PlayerIsOnExitTile()
+	private void OnEnemyTurnEnded()
 	{
-		if (HasExitTileAtPosition(Vector3Int.FloorToInt(Player.transform.position)))
+		TileManager.TileDot.SetActive(true);
+		if (!Player.IsInVehicle)
+			UpdateTargetsAndTracers();
+	}
+	private bool PlayerIsOnExitTile()
+	{
+		if (LevelManager.HasExitTileAtPosition(Vector3Int.FloorToInt(Player.transform.position)))
 		{
-			TileDot.SetActive(false);
+			TileManager.TileDot.SetActive(false);
 			ResetForNextLevel();
 			return true;
 		}
 		return false;
 	}
-	public bool HasExitTileAtPosition(Vector3Int Position)
+	private void HandlePlayerClick(Vector3 worldPoint, Vector3Int tilePoint, Vector3 shiftedClickPoint)
 	{
-		return TilemapExit.HasTile(Position);
-	}
-	/// <summary>
-	/// Acts based on what mouse button is clicked
-	/// </summary>
-	private void MouseInput()
-	{
-		BoundsInt CellBounds 		= TilemapGround.cellBounds;
-		Vector3 WorldPoint 			= MainCamera.ScreenToWorldPoint(Input.mousePosition);
-		Vector3Int TilePoint 		= TilemapGround.WorldToCell(WorldPoint);
-		Vector3 ShiftedClickPoint 	= TilePoint + new Vector3(0.5f, 0.5f, 0);
-		// If LMB clicks within grid, begin Player actions
-		if (Input.GetMouseButtonDown(0)
-			&& !Player.IsInMovement
-			&& playersTurn
-			&& CellBounds.Contains(TilePoint)
-			&& !TilemapWalls.HasTile(TilePoint))
+		if (!Player.IsInMovement
+			&& TurnManager.IsPlayersTurn
+			&& !LevelManager.HasWallAtPosition(tilePoint))
 		{
-			// If Player is in vehicle, handle vehicle movement
-			if (PlayerIsInVehicle(WorldPoint, TilePoint, ShiftedClickPoint)) return;
-			// If Player clicks on its own tile but energy is not used
-			if (TryAddItem(ShiftedClickPoint)) return;
-			// Check if Player has energy for actions requiring energy
+			if (PlayerIsInVehicle(worldPoint, tilePoint, shiftedClickPoint)) return;
+			if (TryAddItem(shiftedClickPoint)) return;
 			if (!Player.HasEnergy()) return;
-			// If Player clicks on its own tile, try to use item
-			if (TryUseItemOnPlayer(ShiftedClickPoint)) return;
-			// If Player clicks on a vehicle, try to enter it
-			if (TryEnterVehicle(TilePoint)) return;
-			// If Player clicks on another tile, try to move
-			if (TryPlayerMovement(WorldPoint, TilePoint, ShiftedClickPoint)) return;
-			// If Player clicks on an enemy, try to attack
-			TryPlayerAttack(TilePoint, ShiftedClickPoint);
-		}
-		// If mouse is hovering over tile and within grid
-		else if (CellBounds.Contains(TilePoint))
-		{
-			// If mouse is hovering over tileArea, move TileDot to it
-			if (IsInMovementRange(TilePoint))
-			{
-				TileDot.SetActive(true);
-				TileDot.transform.position = ShiftedClickPoint;
-			}
-		}
-		// If mouse is hovering over UI since UI is outside the grid
-		else
-		{
-			// If mouse is hovering over an inventory slot
-			Player.InventoryUI.ProcessHoverForInventory(WorldPoint);
+			if (TryUseItemOnPlayer(shiftedClickPoint)) return;
+			if (TryEnterVehicle(tilePoint)) return;
+			if (TryPlayerMovement(worldPoint, tilePoint, shiftedClickPoint)) return;
+			TryPlayerAttack(tilePoint, shiftedClickPoint);
 		}
 	}
-    /// <summary>
-    /// Tries to add item to Player inventory after clicking on own tile with item on it
-    /// </summary>
-    private bool TryAddItem(Vector3 ShiftedClickPoint)
+	private void HandlePlayerHover(Vector3 worldPoint, Vector3Int tilePoint, Vector3 shiftedClickPoint)
+	{
+		if (TileManager.IsInMovementRange(tilePoint))
+		{
+			TileManager.TileDot.SetActive(true);
+			TileManager.TileDot.transform.position = shiftedClickPoint;
+		}
+	}
+    private bool TryAddItem(Vector3 shiftedClickPoint)
     {
-        // Return false if click and item is not on Player position
-        if (ShiftedClickPoint != Player.transform.position
-            || GetItemAtPosition(ShiftedClickPoint) is not Item ItemAtPosition)
+        if (shiftedClickPoint != Player.transform.position
+			|| GetItemAtPosition(shiftedClickPoint) is not Item itemAtPosition)
         {
             return false;
         }
-        // Player picks up item
-        if (Player.TryAddItem(ItemAtPosition))
+        if (Player.TryAddItem(itemAtPosition))
         {
-            DestroyItemAtPosition(ShiftedClickPoint);
+            ItemManager.DestroyItemAtPosition(shiftedClickPoint);
 			return true;
         }
 		return false;
     }
-    /// <summary>
-    /// Tries to use item on Player after clicking on own tile with selected item
-    /// </summary>
-    private bool TryUseItemOnPlayer(Vector3 ShiftedClickPoint) 
+    private bool TryUseItemOnPlayer(Vector3 shiftedClickPoint) 
 	{
-		// Return false if click and click is not on Player or cannot use item on Player
-		if (ShiftedClickPoint != Player.transform.position
+		if (shiftedClickPoint != Player.transform.position
 			|| !Player.ClickOnPlayerToUseItem())
 		{
 			return false;
 		}
-		TurnTimer.StartTimer();
+		TurnManager.TurnTimer.StartTimer();
 		return true;
 	}
-	/// <summary>
-	/// Tries to move to clicked tile
-	/// </summary>
-	private bool TryPlayerMovement(Vector3 WorldPoint, Vector3Int TilePoint, Vector3 ShiftedClickPoint)
+	private bool TryPlayerMovement(Vector3 worldPoint, Vector3Int tilePoint, Vector3 shiftedClickPoint)
     {
-		bool isInMovementRange = IsInMovementRange(TilePoint);
-		int enemyIndex = GetEnemyIndexAtPosition(TilePoint);
-		// Return false if not in range or enemy is present
+		bool isInMovementRange = TileManager.IsInMovementRange(tilePoint);
+		int enemyIndex = EnemyManager.GetEnemyIndexAtPosition(tilePoint);
         if (!isInMovementRange
-            || enemyIndex != -1
-            || ShiftedClickPoint == Player.transform.position)
+			|| enemyIndex != -1
+			|| shiftedClickPoint == Player.transform.position)
         {
             return false;
         }
-        EndTurnButton.interactable = false;
+        TurnManager.SetEndTurnButtonInteractable(false);
         Player.IsInMovement = true;
-        Player.ComputePathAndStartMovement(WorldPoint);
-        ClearTileAreas();
-        TurnTimer.StartTimer();
+        Player.ComputePathAndStartMovement(worldPoint);
+        TileManager.ClearTileAreas();
+        TurnManager.TurnTimer.StartTimer();
         return true;
     }
-    /// <summary>
-    /// Tries to attack enemy at clicked tile
-    /// </summary>
-    private void TryPlayerAttack(Vector3Int TilePoint, Vector3 ShiftedClickPoint)
+    private void TryPlayerAttack(Vector3Int tilePoint, Vector3 shiftedClickPoint)
     {
-		int enemyIndex = GetEnemyIndexAtPosition(TilePoint);
-		bool isInMeleeRange = IsPlayerAdjacentTo(ShiftedClickPoint);
-		bool isInRangedWeaponRange = Player.GetWeaponRange() > 0 && IsInRangedWeaponRange(ShiftedClickPoint);
-		// Return if no enemy, not in range, or not using ranged weapon
+		int enemyIndex = EnemyManager.GetEnemyIndexAtPosition(tilePoint);
+		bool isInMeleeRange = IsPlayerAdjacentTo(shiftedClickPoint);
+		bool isInRangedWeaponRange = Player.GetWeaponRange() > 0 && TileManager.IsInRangedWeaponRange(shiftedClickPoint);
         if (enemyIndex == -1
-            || !isInMeleeRange && !isInRangedWeaponRange
-            || Player.SelectedItemInfo?.Type is not ItemInfo.Types.Weapon)
+			|| !isInMeleeRange
+			&& !isInRangedWeaponRange
+			|| Player.SelectedItemInfo?.Type is not ItemInfo.Types.Weapon)
         {
             return;
         }
 		if (Player.SelectedItemInfo.Tag == ItemInfo.Tags.Rock)
 		{
-			// Drop the Rock at the enemy's position
-			SpawnItem((int)Player.SelectedItemInfo.Tag, ShiftedClickPoint);
+			SpawnItem((int)Player.SelectedItemInfo.Tag, shiftedClickPoint);
 		}
-        HandleDamageToEnemy(enemyIndex);
+        EnemyManager.HandleDamageToEnemy(enemyIndex, Player.DamagePoints, Player.SelectedItemInfo.IsStunning);
         Player.AttackEnemy();
-        TurnTimer.StartTimer();
-        TileDot.SetActive(false);
+        TurnManager.TurnTimer.StartTimer();
+        TileManager.TileDot.SetActive(false);
+        UpdateTargetsAndTracers();
     }
-    /// <summary>
-    /// Tries to enter vehicle at clicked tile
-    /// </summary>
-    private bool TryEnterVehicle(Vector3Int TilePoint)
+    private bool TryEnterVehicle(Vector3Int tilePoint)
     {
-		int vehicleIndex = GetVehicleIndexAtPosition(TilePoint);
+		int vehicleIndex = VehicleManager.GetVehicleIndexAtPosition(tilePoint);
         if (vehicleIndex == -1)
         {
             return false;
         }
-		// Return false if Player is not adjacent to vehicle
-		if (!IsPlayerAdjacentTo(Vehicles[vehicleIndex].transform.position))
+		if (!IsPlayerAdjacentTo(VehicleManager.Vehicles[vehicleIndex].transform.position))
 		{
 			return false;
 		}
-		// Player enters vehicle
-		Player.EnterVehicle(Vehicles[vehicleIndex]);
-        TurnTimer.StartTimer();
-		ClearTargetsAndTracers();
+		Player.EnterVehicle(VehicleManager.Vehicles[vehicleIndex]);
+        TurnManager.TurnTimer.StartTimer();
+		TileManager.ClearTargetsAndTracers();
 		return true;
     }
-	private void TryVehicleMovement(Vector3 WorldPoint, Vector3Int TilePoint, Vector3 ShiftedClickPoint)
+	private void TryVehicleMovement(Vector3 worldPoint, Vector3Int tilePoint, Vector3 shiftedClickPoint)
     {
-		bool isInMovementRange = IsInMovementRange(TilePoint);
-		int enemyIndex = GetEnemyIndexAtPosition(TilePoint);
-		// Return false if not in range or enemy is present
+		bool isInMovementRange = TileManager.IsInMovementRange(tilePoint);
+		int enemyIndex = EnemyManager.GetEnemyIndexAtPosition(tilePoint);
         if (!isInMovementRange
-            || enemyIndex != -1
-            || ShiftedClickPoint == Player.transform.position)
+			|| enemyIndex != -1
+			|| shiftedClickPoint == Player.transform.position)
         {
             return;
         }
-        EndTurnButton.interactable = false;
+        TurnManager.SetEndTurnButtonInteractable(false);
         Player.IsInMovement = true;
-		Player.VehicleMovement(WorldPoint);
-        ClearTileAreas();
-        TurnTimer.StartTimer();
-        return;
+		Player.VehicleMovement(worldPoint);
+        TileManager.ClearTileAreas();
+        TurnManager.TurnTimer.StartTimer();
     }
-    /// <summary>
-    /// Tries to exit vehicle to clicked tile when ignition is off
-    /// </summary>
-    private void TryExitVehicle(Vector3 WorldPoint, Vector3Int TilePoint, Vector3 ShiftedClickPoint)
+    private void TryExitVehicle(Vector3 worldPoint, Vector3Int tilePoint, Vector3 shiftedClickPoint)
     {
-        bool isInMovementRange = IsInMovementRange(TilePoint);
-        int enemyIndex = GetEnemyIndexAtPosition(TilePoint);
-        // Return if not in range, enemy is present, or clicking on same position
+        bool isInMovementRange = TileManager.IsInMovementRange(tilePoint);
+        int enemyIndex = EnemyManager.GetEnemyIndexAtPosition(tilePoint);
         if (!isInMovementRange
-            || enemyIndex != -1
-            || ShiftedClickPoint == Player.transform.position)
+			|| enemyIndex != -1
+			|| shiftedClickPoint == Player.transform.position
+			|| !Player.HasEnergy())
         {
             return;
         }
-        // Check if Player has energy for exiting vehicle
-        if (!Player.HasEnergy())
-        {
-            return;
-        }
-        EndTurnButton.interactable = false;
+        TurnManager.SetEndTurnButtonInteractable(false);
         Player.IsInMovement = true;
         Player.ExitVehicle();
-        Player.ComputePathAndStartMovement(WorldPoint);
-        ClearTileAreas();
-        TurnTimer.StartTimer();
+        Player.ComputePathAndStartMovement(worldPoint);
+        TileManager.ClearTileAreas();
+		UpdateTargetsAndTracers();
+        TurnManager.TurnTimer.StartTimer();
     }
-	private bool PlayerIsInVehicle(Vector3 WorldPoint, Vector3Int TilePoint, Vector3 ShiftedClickPoint)
+	private bool PlayerIsInVehicle(Vector3 worldPoint, Vector3Int tilePoint, Vector3 shiftedClickPoint)
 	{
 		if (!Player.IsInVehicle)
 		{
 			return false;
 		}
-		// If Player clicks on its own tile, switch ignition
-		if (Player.Vehicle.transform.position == ShiftedClickPoint)
+		if (Player.Vehicle.transform.position == shiftedClickPoint)
 		{
 			Player.Vehicle.SwitchIgnition();
-			ClearTileAreas();
-			ClearTargetsAndTracers();
+			TileManager.ClearTileAreas();
+			TileManager.ClearTargetsAndTracers();
 		}
-		// If Player clicks on another tile and ignition is off, try to exit vehicle
-		else if (!Player.Vehicle.Info.IsOn && IsInMovementRange(TilePoint))
+		else if (!Player.Vehicle.Info.IsOn && TileManager.IsInMovementRange(tilePoint))
 		{
-			TryExitVehicle(WorldPoint, TilePoint, ShiftedClickPoint);
+			TryExitVehicle(worldPoint, tilePoint, shiftedClickPoint);
 		}
-		// If Player clicks on another tile and ignition is on, try to move vehicle
 		else if (Player.Vehicle.Info.IsOn && Player.Vehicle.HasFuel())
 		{
-			TryVehicleMovement(WorldPoint, TilePoint, ShiftedClickPoint);
+			TryVehicleMovement(worldPoint, tilePoint, shiftedClickPoint);
 		}
 		return true;
 	}
-    /// <summary>
-	/// Checks if tile is within range based on Player energy
-	/// </summary>
-	private bool IsInMovementRange(Vector3Int Position)
-	{
-		return TileAreasToDraw?.ContainsKey(Position) == true;
-	}
-	/// <summary>
-	/// Returns true if an object is adjacent to Player
-	/// </summary>
-	private bool IsPlayerAdjacentTo(Vector3 ObjectPosition)
-	{
-		return Vector3.Distance(Player.transform.position, ObjectPosition) <= 1.0f;
-	}
-	/// <summary>
-	/// Returns true if an enemy is within range of ranged weapon
-	/// </summary>
-	private bool IsInRangedWeaponRange(Vector3 ObjectPosition)
-	{
-		return Targets.Find(Target => Target.transform.position == ObjectPosition);
-	}
-	#endregion
-	#region TILEAREAS
-	/// <summary>
-	/// Deletes all tile areas, used to reset tile areas
-	/// </summary>
-	private void ClearTileAreas()
-	{
-		if (TileAreas.Count == 0)
-		{
-			return;
-		}
-		foreach (GameObject TileArea in TileAreas)
-		{
-			Destroy(TileArea);
-		}
-		TileAreas.Clear();
-		TileAreasToDraw = null;
-	}
-	/// <summary>
-	/// Redraws tile areas when Player energy changes or Vehicle ignition state changes
-	/// </summary>
-	private void DrawTileAreas()
+	private bool IsPlayerAdjacentTo(Vector3 Position)
+    {
+        return Vector3.Distance(Player.transform.position, Position) <= 1.0f;
+    }
+	private void UpdateTileAreas()
 	{
 		if (!Player.IsInMovement
-			&& playersTurn
+			&& TurnManager.IsPlayersTurn
 			&& Player.HasEnergy())
 		{
-			ClearTileAreas();
-			// Use Vehicle's movement range if Player is in Vehicle with ignition on
+			Dictionary<Vector3Int, Node> AreasToDraw = null;
+
 			if (Player.IsInVehicle
 				&& Player.Vehicle.Info.IsOn
 				&& Player.Vehicle.HasFuel())
 			{
-				TileAreasToDraw = Player.Vehicle.CalculateArea();
+				AreasToDraw = Player.Vehicle.CalculateArea();
 			}
-			// Use Player's movement range otherwise
 			else if (!Player.IsInVehicle
-				|| (Player.IsInVehicle && !Player.Vehicle.Info.IsOn))
+					|| (Player.IsInVehicle && !Player.Vehicle.Info.IsOn))
 			{
-				TileAreasToDraw = Player.CalculateArea();
+				AreasToDraw = Player.CalculateArea();
 			}
-			if (TileAreasToDraw != null && TileAreasToDraw.Count > 0)
+
+			if (AreasToDraw != null)
 			{
-				foreach (KeyValuePair<Vector3Int, Node> TileAreaPosition in TileAreasToDraw)
-				{
-					Vector3 ShiftedDistance = TileAreaPosition.Value.Position + new Vector3(0.5f, 0.5f, 0);
-					GameObject TileAreaInstance = Instantiate(TileArea, ShiftedDistance, Quaternion.identity);
-					TileAreas.Add(TileAreaInstance);
-				}
+				TileManager.DrawTileAreas(AreasToDraw);
 			}
 		}
 	}
-	#endregion
-	#region TARGETS AND TRACERS
-	public void ClearTargetsAndTracers()
+	public void UpdateTargetsAndTracers()
 	{
-		ClearTargets();
-		ClearTracers();
-	}
-	private void ClearTargets()
-	{
-		foreach (GameObject Target in Targets)
-		{
-			Destroy(Target);
-		}
-		Targets.Clear();
-	}
-	private void ClearTracers()
-	{
-		foreach (GameObject Tracer in Tracers)
-		{
-			Destroy(Tracer);
-		}
-		Tracers.Clear();
-	}
-	/// <summary>
-	/// Draws targets and tracers when ranged weapon is selected
-	/// </summary>
-	public void DrawTargetsAndTracers()
-	{
-		ClearTargetsAndTracers();
 		int weaponRange = Player.GetWeaponRange();
 		if (weaponRange > 0
-			&& !enemiesInMovement
+			&& TurnManager.IsPlayersTurn
 			&& Player.HasEnergy())
 		{
-			foreach (Enemy Enemy in Enemies)
-			{
-				// Don't draw targets and tracers if enemy is currently stunned and using stunning ranged weapon
-				if (Enemy.StunIcon.activeSelf && Player.SelectedItemInfo.IsStunning)
-				{
-					continue;
-				}
-				Vector3 EnemyPoint = Enemy.transform.position;
-				if (TracerPath.Count > 0)
-				{
-					foreach (Vector3 tracerPosition in TracerPath)
-					{
-						GameObject Tracer = Instantiate(TracerTemplate, tracerPosition, Quaternion.identity);
-						Tracers.Add(Tracer);
-					}
-				}
-				if (IsInLineOfSight(Player.transform.position, EnemyPoint, weaponRange))
-				{
-					GameObject Target = Instantiate(TargetTemplate, Enemy.transform.position, Quaternion.identity);
-					Targets.Add(Target);
-				}
-			}
-			TracerPath.Clear();
+			TileManager.DrawTargetsAndTracers(EnemyManager.Enemies, Player.transform.position, weaponRange, Player.SelectedItemInfo.IsStunning, TilemapWalls);
 		}
 	}
-	/// <summary>
-	/// Returns true if player can target enemy with ranged weapon
-	/// </summary>
-	private bool IsInLineOfSight(Vector3 PlayerPosition, Vector3 EnemyPosition, int weaponRange)
-	{
-		float distanceFromPlayerToEnemy = Mathf.Sqrt(Mathf.Pow(EnemyPosition.x - PlayerPosition.x, 2) + Mathf.Pow(EnemyPosition.y - PlayerPosition.y, 2));
-		if (distanceFromPlayerToEnemy > weaponRange)
-		{
-			return false;
-		}
-		Vector3Int PlayerPositionInt = new((int)(PlayerPosition.x - 0.5f), (int)(PlayerPosition.y - 0.5f), 0);
-		Vector3Int EnemyPositionInt = new((int)(EnemyPosition.x - 0.5f), (int)(EnemyPosition.y - 0.5f), 0);
-		TracerPath = BresenhamsAlgorithm(PlayerPositionInt.x, PlayerPositionInt.y, EnemyPositionInt.x, EnemyPositionInt.y);
-		foreach (Vector3 TracerPosition in TracerPath)
-		{
-			Vector3Int TracerPositionInt = new((int)TracerPosition.x, (int)TracerPosition.y, 0);
-			if (TilemapWalls.HasTile(TracerPositionInt))
-			{
-				return false;
-			}
-		}
-		return true;
-	}
-	/// <summary>
-	/// Returns list of points on line from (x0, y0) to (x1, y1)
-	/// </summary>
-	private static List<Vector3> BresenhamsAlgorithm(int x0, int y0, int x1, int y1)
-	{
-		List<Vector3> PointsOnLine = new();
-		int dx = Mathf.Abs(x1 - x0);
-		int dy = Mathf.Abs(y1 - y0);
-		int sx = (x0 < x1) ? 1 : -1;
-		int sy = (y0 < y1) ? 1 : -1;
-		int err = dx - dy;
-		while (true)
-		{
-			PointsOnLine.Add(new(x0, y0, 0));
-			if ((x0 == x1) && (y0 == y1))
-			{
-				break;
-			}
-			int e2 = 2 * err;
-			if (e2 > -dy)
-			{
-				err -= dy;
-				x0 += sx;
-			}
-			if (e2 < dx)
-			{
-				err += dx;
-				y0 += sy;
-			}
-		}
-		return PointsOnLine;
-	}
-	#endregion
 }

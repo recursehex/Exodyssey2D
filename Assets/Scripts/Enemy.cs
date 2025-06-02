@@ -11,7 +11,6 @@ public class Enemy : MonoBehaviour
 	#endregion
 	#region AUDIO
 	public AudioClip Move;
-	public AudioClip Attack;
 	#endregion
 	#region PATHFINDING
 	public bool IsInMovement { get; private set; } = false;
@@ -23,13 +22,13 @@ public class Enemy : MonoBehaviour
 	private AStar AStar;
 	private Coroutine MoveRoutine;
 	#endregion
-	public void Initialize(Tilemap Ground, Tilemap Walls, EnemyInfo EnemyInfo, Player Player)
+	public void Initialize(Tilemap Ground, Tilemap Walls, EnemyInfo EnemyInfo)
 	{
 		TilemapGround = Ground;
 		TilemapWalls = Walls;
 		Info = EnemyInfo;
 		AStar = new(TilemapGround, TilemapWalls);
-		this.Player = Player;
+		Player = FindFirstObjectByType<Player>();
 		StunIcon = Instantiate(StunIcon, transform.position, Quaternion.identity);
 	}
 	#region MOVEMENT
@@ -167,7 +166,6 @@ public class Enemy : MonoBehaviour
 	private void AttackPlayer()
 	{
 		Info.DecrementEnergy();
-		SoundManager.Instance.PlaySound(Attack);
 		// If Player is in Vehicle, damage Vehicle
 		if (Player.IsInVehicle)
 		{
