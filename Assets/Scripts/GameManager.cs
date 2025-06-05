@@ -248,46 +248,46 @@ public class GameManager : MonoBehaviour
 		}
 		return false;
 	}
-	private void HandlePlayerClick(Vector3 worldPoint, Vector3Int tilePoint, Vector3 shiftedClickPoint)
+	private void HandlePlayerClick(Vector3 WorldPoint, Vector3Int TilePoint, Vector3 ShiftedClickPoint)
 	{
 		if (!Player.IsInMovement
 			&& TurnManager.IsPlayersTurn
-			&& !LevelManager.HasWallAtPosition(tilePoint))
+			&& !LevelManager.HasWallAtPosition(TilePoint))
 		{
-			if (PlayerIsInVehicle(worldPoint, tilePoint, shiftedClickPoint)) return;
-			if (TryAddItem(shiftedClickPoint)) return;
+			if (PlayerIsInVehicle(WorldPoint, TilePoint, ShiftedClickPoint)) return;
+			if (TryAddItem(ShiftedClickPoint)) return;
 			if (!Player.HasEnergy()) return;
-			if (TryUseItemOnPlayer(shiftedClickPoint)) return;
-			if (TryEnterVehicle(tilePoint)) return;
-			if (TryPlayerMovement(worldPoint, tilePoint, shiftedClickPoint)) return;
-			TryPlayerAttack(tilePoint, shiftedClickPoint);
+			if (TryUseItemOnPlayer(ShiftedClickPoint)) return;
+			if (TryEnterVehicle(TilePoint)) return;
+			if (TryPlayerMovement(WorldPoint, TilePoint, ShiftedClickPoint)) return;
+			TryPlayerAttack(TilePoint, ShiftedClickPoint);
 		}
 	}
-	private void HandlePlayerHover(Vector3 worldPoint, Vector3Int tilePoint, Vector3 shiftedClickPoint)
+	private void HandlePlayerHover(Vector3 WorldPoint, Vector3Int TilePoint, Vector3 ShiftedClickPoint)
 	{
-		if (TileManager.IsInMovementRange(tilePoint))
+		if (TileManager.IsInMovementRange(TilePoint))
 		{
 			TileManager.TileDot.SetActive(true);
-			TileManager.TileDot.transform.position = shiftedClickPoint;
+			TileManager.TileDot.transform.position = ShiftedClickPoint;
 		}
 	}
-    private bool TryAddItem(Vector3 shiftedClickPoint)
+    private bool TryAddItem(Vector3 ShiftedClickPoint)
     {
-        if (shiftedClickPoint != Player.transform.position
-			|| GetItemAtPosition(shiftedClickPoint) is not Item itemAtPosition)
+        if (ShiftedClickPoint != Player.transform.position
+			|| GetItemAtPosition(ShiftedClickPoint) is not Item Item)
         {
             return false;
         }
-        if (Player.TryAddItem(itemAtPosition))
+        if (Player.TryAddItem(Item))
         {
-            ItemManager.DestroyItemAtPosition(shiftedClickPoint);
+            ItemManager.DestroyItemAtPosition(ShiftedClickPoint);
 			return true;
         }
 		return false;
     }
-    private bool TryUseItemOnPlayer(Vector3 shiftedClickPoint) 
+    private bool TryUseItemOnPlayer(Vector3 ShiftedClickPoint) 
 	{
-		if (shiftedClickPoint != Player.transform.position
+		if (ShiftedClickPoint != Player.transform.position
 			|| !Player.ClickOnPlayerToUseItem())
 		{
 			return false;
@@ -295,28 +295,28 @@ public class GameManager : MonoBehaviour
 		TurnManager.TurnTimer.StartTimer();
 		return true;
 	}
-	private bool TryPlayerMovement(Vector3 worldPoint, Vector3Int tilePoint, Vector3 shiftedClickPoint)
+	private bool TryPlayerMovement(Vector3 WorldPoint, Vector3Int TilePoint, Vector3 ShiftedClickPoint)
     {
-		bool isInMovementRange = TileManager.IsInMovementRange(tilePoint);
-		int enemyIndex = EnemyManager.GetEnemyIndexAtPosition(tilePoint);
+		bool isInMovementRange = TileManager.IsInMovementRange(TilePoint);
+		int enemyIndex = EnemyManager.GetEnemyIndexAtPosition(TilePoint);
         if (!isInMovementRange
 			|| enemyIndex != -1
-			|| shiftedClickPoint == Player.transform.position)
+			|| ShiftedClickPoint == Player.transform.position)
         {
             return false;
         }
         TurnManager.SetEndTurnButtonInteractable(false);
         Player.IsInMovement = true;
-        Player.ComputePathAndStartMovement(worldPoint);
+        Player.ComputePathAndStartMovement(WorldPoint);
         TileManager.ClearTileAreas();
         TurnManager.TurnTimer.StartTimer();
         return true;
     }
-    private void TryPlayerAttack(Vector3Int tilePoint, Vector3 shiftedClickPoint)
+    private void TryPlayerAttack(Vector3Int TilePoint, Vector3 ShiftedClickPoint)
     {
-		int enemyIndex = EnemyManager.GetEnemyIndexAtPosition(tilePoint);
-		bool isInMeleeRange = IsPlayerAdjacentTo(shiftedClickPoint);
-		bool isInRangedWeaponRange = Player.GetWeaponRange() > 0 && TileManager.IsInRangedWeaponRange(shiftedClickPoint);
+		int enemyIndex = EnemyManager.GetEnemyIndexAtPosition(TilePoint);
+		bool isInMeleeRange = IsPlayerAdjacentTo(ShiftedClickPoint);
+		bool isInRangedWeaponRange = Player.GetWeaponRange() > 0 && TileManager.IsInRangedWeaponRange(ShiftedClickPoint);
         if (enemyIndex == -1
 			|| !isInMeleeRange
 			&& !isInRangedWeaponRange
@@ -326,7 +326,7 @@ public class GameManager : MonoBehaviour
         }
 		if (Player.SelectedItemInfo.Tag == ItemInfo.Tags.Rock)
 		{
-			SpawnItem((int)Player.SelectedItemInfo.Tag, shiftedClickPoint);
+			SpawnItem((int)Player.SelectedItemInfo.Tag, ShiftedClickPoint);
 		}
         EnemyManager.HandleDamageToEnemy(enemyIndex, Player.DamagePoints, Player.SelectedItemInfo.IsStunning);
         Player.AttackEnemy();
@@ -334,9 +334,9 @@ public class GameManager : MonoBehaviour
         TileManager.TileDot.SetActive(false);
         UpdateTargetsAndTracers();
     }
-    private bool TryEnterVehicle(Vector3Int tilePoint)
+    private bool TryEnterVehicle(Vector3Int TilePoint)
     {
-		int vehicleIndex = VehicleManager.GetVehicleIndexAtPosition(tilePoint);
+		int vehicleIndex = VehicleManager.GetVehicleIndexAtPosition(TilePoint);
         if (vehicleIndex == -1)
         {
             return false;
@@ -350,29 +350,29 @@ public class GameManager : MonoBehaviour
 		TileManager.ClearTargetsAndTracers();
 		return true;
     }
-	private void TryVehicleMovement(Vector3 worldPoint, Vector3Int tilePoint, Vector3 shiftedClickPoint)
+	private void TryVehicleMovement(Vector3 WorldPoint, Vector3Int TilePoint, Vector3 ShiftedClickPoint)
     {
-		bool isInMovementRange = TileManager.IsInMovementRange(tilePoint);
-		int enemyIndex = EnemyManager.GetEnemyIndexAtPosition(tilePoint);
+		bool isInMovementRange = TileManager.IsInMovementRange(TilePoint);
+		int enemyIndex = EnemyManager.GetEnemyIndexAtPosition(TilePoint);
         if (!isInMovementRange
 			|| enemyIndex != -1
-			|| shiftedClickPoint == Player.transform.position)
+			|| ShiftedClickPoint == Player.transform.position)
         {
             return;
         }
         TurnManager.SetEndTurnButtonInteractable(false);
         Player.IsInMovement = true;
-		Player.VehicleMovement(worldPoint);
+		Player.VehicleMovement(WorldPoint);
         TileManager.ClearTileAreas();
         TurnManager.TurnTimer.StartTimer();
     }
-    private void TryExitVehicle(Vector3 worldPoint, Vector3Int tilePoint, Vector3 shiftedClickPoint)
+    private void TryExitVehicle(Vector3 WorldPoint, Vector3Int TilePoint, Vector3 ShiftedClickPoint)
     {
-        bool isInMovementRange = TileManager.IsInMovementRange(tilePoint);
-        int enemyIndex = EnemyManager.GetEnemyIndexAtPosition(tilePoint);
+        bool isInMovementRange = TileManager.IsInMovementRange(TilePoint);
+        int enemyIndex = EnemyManager.GetEnemyIndexAtPosition(TilePoint);
         if (!isInMovementRange
 			|| enemyIndex != -1
-			|| shiftedClickPoint == Player.transform.position
+			|| ShiftedClickPoint == Player.transform.position
 			|| !Player.HasEnergy())
         {
             return;
@@ -380,30 +380,30 @@ public class GameManager : MonoBehaviour
         TurnManager.SetEndTurnButtonInteractable(false);
         Player.IsInMovement = true;
         Player.ExitVehicle();
-        Player.ComputePathAndStartMovement(worldPoint);
+        Player.ComputePathAndStartMovement(WorldPoint);
         TileManager.ClearTileAreas();
 		UpdateTargetsAndTracers();
         TurnManager.TurnTimer.StartTimer();
     }
-	private bool PlayerIsInVehicle(Vector3 worldPoint, Vector3Int tilePoint, Vector3 shiftedClickPoint)
+	private bool PlayerIsInVehicle(Vector3 WorldPoint, Vector3Int TilePoint, Vector3 ShiftedClickPoint)
 	{
 		if (!Player.IsInVehicle)
 		{
 			return false;
 		}
-		if (Player.Vehicle.transform.position == shiftedClickPoint)
+		if (Player.Vehicle.transform.position == ShiftedClickPoint)
 		{
 			Player.Vehicle.SwitchIgnition();
 			TileManager.ClearTileAreas();
 			TileManager.ClearTargetsAndTracers();
 		}
-		else if (!Player.Vehicle.Info.IsOn && TileManager.IsInMovementRange(tilePoint))
+		else if (!Player.Vehicle.Info.IsOn && TileManager.IsInMovementRange(TilePoint))
 		{
-			TryExitVehicle(worldPoint, tilePoint, shiftedClickPoint);
+			TryExitVehicle(WorldPoint, TilePoint, ShiftedClickPoint);
 		}
 		else if (Player.Vehicle.Info.IsOn && Player.Vehicle.HasFuel())
 		{
-			TryVehicleMovement(worldPoint, tilePoint, shiftedClickPoint);
+			TryVehicleMovement(WorldPoint, TilePoint, ShiftedClickPoint);
 		}
 		return true;
 	}
