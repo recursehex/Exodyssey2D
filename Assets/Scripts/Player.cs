@@ -201,7 +201,7 @@ public class Player : MonoBehaviour
 		{
 			SoundManager.Instance.PlaySound(GameOver);
 			GameManager.Instance.GameOver();
-			SoundManager.Instance.FadeOutMusic(2.0f);
+			StartCoroutine(SoundManager.Instance.FadeOutMusic(2.0f));
 			return;
 		}
 		// Update health display and animation state

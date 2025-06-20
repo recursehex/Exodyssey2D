@@ -43,7 +43,7 @@ public class ItemManager : MonoBehaviour
     }
     public void DestroyItemAtPosition(Vector3 Position)
     {
-        Item Item = Items.Find(item => item.transform.position == Position);
+        Item Item = Items.Find(Item => Item.transform.position == Position);
         Items.Remove(Item);
         Destroy(Item.gameObject);
     }
