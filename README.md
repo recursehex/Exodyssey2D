@@ -17,7 +17,7 @@ Exodyssey 2D is a sci-fi turn-based strategy roguelike by Axiomatic Systems.
 	- Windows: Open `Exodyssey2D.exe`
 
 > [!IMPORTANT]  
-> Once the game has launched, press **Esc** to open the list of controls. Note that items can only be used once selected.
+> Once the game has launched, press **Esc** to open the list of controls.
 
 ## Releases
 
