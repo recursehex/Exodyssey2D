@@ -170,26 +170,17 @@ public class GameManager : MonoBehaviour
 		enabled = false;
 	}
 	// Public methods for spawning entities (called by WeightedRarityGeneration)
-	public void SpawnItem(int index, Vector3 Position)
-	{
-		ItemManager.SpawnItem(index, Position);
-	}
-	public void SpawnEnemy(int index, Vector3 Position)
-	{
-		EnemyManager.SpawnEnemy(index, Position);
-	}
-	public void SpawnVehicle(int index, Vector3 Position)
-	{
-		VehicleManager.SpawnVehicle(index, Position);
-	}
+	public void SpawnItem(int index, Vector3 Position) => ItemManager.SpawnItem(index, Position);
+	public void SpawnEnemy(int index, Vector3 Position) => EnemyManager.SpawnEnemy(index, Position);
+	public void SpawnVehicle(int index, Vector3 Position) => VehicleManager.SpawnVehicle(index, Position);
 	// Public accessor methods
 	public bool HasItemAtPosition(Vector3 Position) => ItemManager.HasItemAtPosition(Position);
 	public Item GetItemAtPosition(Vector3 Position) => ItemManager.GetItemAtPosition(Position);
-	public void RemoveItemAtPosition(Item item) => ItemManager.RemoveItemAtPosition(item);
+	public void RemoveItemAtPosition(Item Item) => ItemManager.RemoveItemAtPosition(Item);
 	public bool HasEnemyAtPosition(Vector3 Position) => EnemyManager.HasEnemyAtPosition(Position);
 	public bool HasVehicleAtPosition(Vector3 Position) => VehicleManager.HasVehicleAtPosition(Position);
 	public bool HasWallAtPosition(Vector3Int Position) => LevelManager.HasWallAtPosition(Position);
-	public void DestroyVehicle(Vehicle vehicle) => VehicleManager.DestroyVehicle(vehicle);
+	public void DestroyVehicle(Vehicle Vehicle) => VehicleManager.DestroyVehicle(Vehicle);
 	private void MovePlayerToVehicle()
 	{
 		if (Player.IsInVehicle && !Player.Vehicle.IsInMovement)
