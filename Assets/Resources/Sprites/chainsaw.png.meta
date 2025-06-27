@@ -1,7 +1,10 @@
 fileFormatVersion: 2
 guid: 902c95ac0d6b08143854f794969f02ff
 TextureImporter:
-  internalIDToNameTable: []
+  internalIDToNameTable:
+  - first:
+      213: 5881040114983578648
+    second: chainsaw_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:

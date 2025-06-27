@@ -99,10 +99,7 @@ public class GameManager : MonoBehaviour
 			return;
 		}
 		MovePlayerToVehicle();
-		if (!Player.IsInMovement)
-		{
-			PlayerIsOnExitTile();
-		}
+		HandlePlayerExitTile();
 		UpdateTileAreas();
 		if (TurnManager.EndTurnButton.interactable == false
 			&& TurnManager.IsPlayersTurn)
@@ -229,15 +226,17 @@ public class GameManager : MonoBehaviour
 		if (!Player.IsInVehicle)
 			UpdateTargetsAndTracers();
 	}
-	private bool PlayerIsOnExitTile()
+	private void HandlePlayerExitTile()
 	{
+		if (Player.IsInMovement)
+		{
+			return;
+		}
 		if (LevelManager.HasExitTileAtPosition(Vector3Int.FloorToInt(Player.transform.position)))
 		{
 			TileManager.TileDot.SetActive(false);
 			ResetForNextLevel();
-			return true;
 		}
-		return false;
 	}
 	private void HandlePlayerClick(Vector3 WorldPoint, Vector3Int TilePoint, Vector3 ShiftedClickPoint)
 	{
