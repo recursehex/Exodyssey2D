@@ -26,12 +26,12 @@ public class VehicleInfo
 	public Types Type 			= Types.Unknown;				// Type of vehicle
 	public string Name 			{ get; private set; }			// Ingame name of vehicle
 	public string Description 	{ get; private set; }			// Ingame description of vehicle
-	public int Efficiency 		{ get; private set; } = 1;		// Fuel used per 100 km, lower is better
+	public int Efficiency 		{ get; private set; } = 1;		// Charge used per 100 km, lower is better
 	public float Speed 			{ get; private set; } = 2;		// Movement speed for pathfinding
 	public int MovementRange 	{ get; private set; } = 3;		// How many tiles vehicle can move per turn
 	public int Storage 			{ get; private set; } = 1;		// Number of inventory slots
-	private readonly int maxFuel = 1;							// Fuel capacity
-	public int CurrentFuel 		{ get; private set; } = 1;		// Current fuel
+	private readonly int maxCharge = 1;							// Charge capacity
+	public int CurrentCharge 		{ get; private set; } = 1;		// Current charge
 	private readonly int maxHealth = 1;							// Max health
 	public int CurrentHealth 	{ get; private set; } = 1;		// Current health
 	public bool CanOffroad 		{ get; private set; } = false;	// If vehicle can drive offroad
@@ -65,30 +65,39 @@ public class VehicleInfo
 	/// <summary>
 	/// Resets vehicle's CurrentHealth to maxHealth
 	/// </summary>
-	public void RestoreHealth()
+	public bool RestoreHealth()
 	{
-		CurrentHealth = maxHealth;
-	}
-	/// <summary>
-	/// Refuels vehicle by amount, subtract from input
-	/// </summary>
-	public void RefuelBy(ref int amount)
-	{
-		if (CurrentFuel + amount > maxFuel)
-		{
-			amount -= maxFuel - CurrentFuel;
-			CurrentFuel = maxFuel;
-			return;
-		}
-		CurrentFuel += amount;
-	}
-	public bool DecreaseFuelBy(int amount)
-	{
-		if (CurrentFuel - amount < 0)
+		if (CurrentHealth == maxHealth)
 		{
 			return false;
 		}
-		CurrentFuel -= amount;
+		CurrentHealth = maxHealth;
+		return true;
+	}
+	/// <summary>
+	/// Recharges vehicle by amount, subtract from input
+	/// </summary>
+	public bool RechargeBy(ref int amount)
+	{
+		// Return false if vehicle is already fully charged
+		if (CurrentCharge == maxCharge)
+		{
+			return false;
+		}
+		// Calculate how much charge to add
+		int chargeToAdd = Mathf.Clamp(amount, 0, maxCharge - CurrentCharge);
+		// Add charge and subtract what was used from the amount
+		CurrentCharge += chargeToAdd;
+		amount -= chargeToAdd;
+		return true;
+	}
+	public bool DecreaseChargeBy(int amount)
+	{
+		if (CurrentCharge - amount < 0)
+		{
+			return false;
+		}
+		CurrentCharge -= amount;
 		return true;
 	}
 	public void SwitchIgnition()
@@ -113,8 +122,8 @@ public class VehicleInfo
 				Efficiency 		= 2;
 				Speed 			= 2f;
 				MovementRange 	= 4;
-				maxFuel 		= 10;
-				CurrentFuel 	= maxFuel;
+				maxCharge 		= 10;
+				CurrentCharge 	= maxCharge;
 				maxHealth 		= 2;
 				CurrentHealth 	= maxHealth;
 				break;
@@ -128,8 +137,8 @@ public class VehicleInfo
 				Efficiency 		= 3;
 				Speed 			= 1f;
 				MovementRange 	= 3;
-				maxFuel 		= 15;
-				CurrentFuel 	= maxFuel;
+				maxCharge 		= 15;
+				CurrentCharge 	= maxCharge;
 				maxHealth 		= 3;
 				CurrentHealth 	= maxHealth;
 				break;
@@ -143,8 +152,8 @@ public class VehicleInfo
 				Efficiency 		= 1;
 				Speed 			= 4f;
 				MovementRange 	= 5;
-				maxFuel 		= 5;
-				CurrentFuel 	= maxFuel;
+				maxCharge 		= 5;
+				CurrentCharge 	= maxCharge;
 				maxHealth 		= 1;
 				CurrentHealth 	= maxHealth;
 				CanOffroad 		= true;
@@ -159,8 +168,8 @@ public class VehicleInfo
 				Efficiency 		= 5;
 				Speed 			= 0.5f;
 				MovementRange 	= 2;
-				maxFuel 		= 20;
-				CurrentFuel 	= maxFuel;
+				maxCharge 		= 20;
+				CurrentCharge 	= maxCharge;
 				maxHealth 		= 10;
 				CurrentHealth 	= maxHealth;
 				CanOffroad		= true;

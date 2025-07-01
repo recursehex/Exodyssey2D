@@ -115,31 +115,47 @@ public class Vehicle : MonoBehaviour
 		}
 		return false;
 	}
-	public void RestoreHealth()
-	{
-		Info.RestoreHealth();
-	}
 	#endregion
-	#region FUEL METHODS
-	public void RefuelBy(int amount)
+	#region CHARGE METHODS
+	/// <summary>
+	/// Uses a Power Cell from inventory to recharge vehicle, returns false if Vehicle is already fully charged
+	/// </summary>
+	/// <param name="Item"></param>
+	/// <returns></returns>
+	public bool ClickOnToRecharge(ItemInfo Item)
 	{
-		Info.RefuelBy(ref amount);
+		int currentUses = Item.CurrentUses;
+		// Try to recharge vehicle
+		if (!Info.RechargeBy(ref currentUses))
+		{
+			return false;
+		}
+		// Update item durability
+		Item.DecreaseDurability(currentUses);
+		SoundManager.Instance.PlaySound(Select);
+		return true;
 	}
 	/// <summary>
-	/// Decreases vehicle's CurrentFuel by amount, returns false if vehicle would have negative fuel after decrease
+	/// Decreases vehicle's CurrentCharge by amount, returns false if vehicle would have negative charge after decrease
 	/// </summary>
-	public bool DecreaseFuelBy(int amount)
-	{
-		return Info.DecreaseFuelBy(amount);
-	}
+	/// <param name="amount"></param>
+	/// <returns></returns>
+	public bool DecreaseChargeBy(int amount) => Info.DecreaseChargeBy(amount);
+	/// <summary>
+	/// Toggles vehicle ignition
+	/// </summary>
 	public void SwitchIgnition()
 	{
 		SoundManager.Instance.PlaySound(Select);
 		Info.SwitchIgnition();
 	}
-	public bool HasFuel()
+	/// <summary>
+	/// Returns true if vehicle has charge remaining
+	/// </summary>
+	/// <returns></returns>
+	public bool HasCharge()
 	{
-		return Info.CurrentFuel > 0;
+		return Info.CurrentCharge > 0;
 	}
 	#endregion
 }

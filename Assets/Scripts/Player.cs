@@ -10,12 +10,12 @@ using UnityEngine.Tilemaps;
 public class Player : MonoBehaviour
 {
 	#region DATA
-	private readonly int maxHealth = 3;
-	private int maxEnergy = 3;
-	private int currentHealth = 3;
-	public int currentEnergy = 3;
+	private readonly int maxHealth 	= 3;
+	private int maxEnergy 			= 3;
+	private int currentHealth 		= 3;
+	public int currentEnergy 		= 3;
 	public int DamagePoints { get; private set; } = 0;
-	private readonly int walkSpeed = 2;
+	private readonly int walkSpeed 	= 2;
 	public Vehicle Vehicle;
 	public bool IsInVehicle => Vehicle != null;
 	private bool hasHelmet = false;
@@ -270,25 +270,36 @@ public class Player : MonoBehaviour
 		SoundManager.Instance.PlaySound(Attack);
 		Animator.SetTrigger("playerAttack");
 		DecrementEnergy();
-		DecrementWeaponDurability();
+		DecrementItemDurability();
 	}
 	/// <summary>
-	/// Decreases weapon durability by 1, removes weapon if uses == 0
+	/// Decreases item durability by 1, removes item if uses == 0
 	/// </summary>
-	public void DecrementWeaponDurability()
+	public void DecrementItemDurability()
 	{
 		SelectedItemInfo.DecreaseDurability();
 		InventoryUI.SetCurrentSelected(InventoryUI.SelectedIndex);
-		// When weapon durability reaches 0
-		if (SelectedItemInfo.CurrentUses == 0)
+		// Remove item if durability is 0
+		if (SelectedItemInfo.CurrentUses <= 0)
 		{
-			InventoryUI.RemoveItem(InventoryUI.SelectedIndex);
-			InventoryUI.SetCurrentSelected(-1);
+			RemoveSelectedItem();
 			GameManager.Instance.TileManager.ClearTargetsAndTracers();
-			SelectedItemInfo = null;
-			DamagePoints = 0;
 		}
 	}
+	/// <summary>
+	/// Removes selected item from inventory and resets related variables
+	/// </summary>
+	public void RemoveSelectedItem()
+	{
+		InventoryUI.RemoveItem(InventoryUI.SelectedIndex);
+		InventoryUI.SetCurrentSelected(-1);
+		SelectedItemInfo = null;
+		DamagePoints = 0;
+	}
+	/// <summary>
+	/// Returns weapon range of selected item, 0 if no item is selected or item is not a weapon
+	/// </summary>
+	/// <returns></returns>
 	public int GetWeaponRange()
 	{
 		return SelectedItemInfo == null ? 0 : SelectedItemInfo.Range;
@@ -350,19 +361,13 @@ public class Player : MonoBehaviour
 	/// <summary>
 	/// Handles when ClickTarget() clicks on Player, returns false if item is not valid or was not used
 	/// </summary>
-	public bool ClickOnPlayerToUseItem()
+	public bool ClickOnToUseItem()
 	{
 		if (SelectedItemInfo == null)
 		{
 			return false;
 		}
 		bool wasUsed = WasItemUsed();
-		if (SelectedItemInfo.CurrentUses == 0)
-		{
-			InventoryUI.RemoveItem(InventoryUI.SelectedIndex);
-			SelectedItemInfo = null;
-			wasUsed = true;
-		}
 		return wasUsed;
 	}
 	/// <summary>
@@ -383,7 +388,7 @@ public class Player : MonoBehaviour
 			// Uses MedKit if profession is not master medic
 			if (!(Job.IsMaster && Job.Tag is Profession.Tags.Medic))
 			{
-				SelectedItemInfo.DecreaseDurability();
+				DecrementItemDurability();
 			}
 			return true;
 		}
@@ -411,6 +416,39 @@ public class Player : MonoBehaviour
 		// 	return true;
 		// }
 		return false;
+	}
+	/// <summary>
+	/// Uses an item from inventory on vehicle, returns false if item cannot be used on vehicle
+	/// </summary>
+	/// <returns></returns>
+	public bool ClickOnVehicleToUseItem()
+	{
+		// Returns if no item is selected
+		if (SelectedItemInfo == null)
+		{
+			return false;
+		}
+		bool wasUsed = false;
+		// Try to use ToolKit on vehicle
+		if (SelectedItemInfo.Tag is ItemInfo.Tags.ToolKit
+			&& Vehicle.Info.RestoreHealth())
+		{
+			DecrementItemDurability();
+			return true;
+		}
+		// Try to use PowerCell on vehicle
+		if (SelectedItemInfo.Tag is ItemInfo.Tags.PowerCell
+			&& Vehicle.ClickOnToRecharge(SelectedItemInfo))
+		{
+			DecrementItemDurability();
+			return true;
+		}
+		// Decrement item durability if item was used
+		if (wasUsed)
+		{
+			DecrementItemDurability();
+		}
+		return wasUsed;
 	}
 	/// <summary>
 	/// Tries to drop item from inventory onto the ground, called by InventoryIcons
