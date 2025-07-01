@@ -421,7 +421,7 @@ public class Player : MonoBehaviour
 	/// Uses an item from inventory on vehicle, returns false if item cannot be used on vehicle
 	/// </summary>
 	/// <returns></returns>
-	public bool ClickOnVehicleToUseItem()
+	public bool ClickOnVehicleToUseItem(Vehicle Vehicle)
 	{
 		// Returns if no item is selected
 		if (SelectedItemInfo == null)
