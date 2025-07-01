@@ -15,7 +15,7 @@ public class ItemInfo
 		// CONSUMABLE
 		MedKit = 0,
 		ToolKit,
-		//PowerCell,
+		PowerCell,
 
 		// MELEE
 		Branch,
@@ -98,11 +98,11 @@ public class ItemInfo
 		return indices[Random.Range(0, indices.Count)];
 	}
 	/// <summary>
-	/// Decreases item durability by 1 and updates description
+	/// Decreases item durability by amount and updates description
 	/// </summary>
-	public void DecreaseDurability() 
+	public void DecreaseDurability(int amount = 1)
 	{
-		CurrentUses--;
+		CurrentUses -= amount;
 		Stats = $"\nUP:{CurrentUses}/{maxUses}";
 		if (Type is Types.Weapon) 
 		{
@@ -146,18 +146,18 @@ public class ItemInfo
 				Description 	= "Fully repairs vehicles";
 				Stats 			= $"\nUP:{maxUses}/{maxUses}";
 				break;
-			// case 2:
-			// 	Tag 			= Tags.PowerCell;
-			// 	Rarity 			= Rarity.Rare;
-			// 	Type 			= Types.Consumable;
-			// 	Name 			= "POWER CELL";
-			// 	maxUses 		= 5; 		// max charge
-			// 	CurrentUses 	= maxUses; 	// current charge
-			// 	IsFlammable 	= true;
-			// 	Description 	= "Powers vehicles";
-			// 	Stats 			= $"\n\CHARGE:{maxUses}/{maxUses}";
-			// 	break;
 			case 2:
+				Tag 			= Tags.PowerCell;
+				Rarity 			= Rarity.Rare;
+				Type 			= Types.Consumable;
+				Name 			= "POWER CELL";
+				maxUses 		= 5;
+				CurrentUses 	= maxUses;
+				IsFlammable 	= true;
+				Description 	= "Powers vehicles";
+				Stats 			= $"\nUP:{maxUses}/{maxUses}";
+				break;
+			case 3:
 				Tag 			= Tags.Branch;
 				Rarity 			= Rarity.Common;
 				Type 			= Types.Weapon;
@@ -170,7 +170,7 @@ public class ItemInfo
 				Description 	= "Fragile stick";
 				Stats 			= $"\nUP:{maxUses}/{maxUses}\tDP:{DamagePoints}\nAD:{ArmorDamage}";
 				break;
-			case 3:
+			case 4:
 				Tag 			= Tags.Knife;
 				Rarity 			= Rarity.Limited;
 				Type 			= Types.Weapon;
@@ -182,7 +182,7 @@ public class ItemInfo
 				Description 	= "Can stab through armor";
 				Stats 			= $"\nUP:{maxUses}/{maxUses}\tDP:{DamagePoints}\nAD:{ArmorDamage}";
 				break;
-			case 4:
+			case 5:
 				Tag 			= Tags.Wrench;
 				Rarity 			= Rarity.Scarce;
 				Type 			= Types.Weapon;
@@ -194,7 +194,7 @@ public class ItemInfo
 				Description 	= "Weak against armor";
 				Stats 			= $"\nUP:{maxUses}/{maxUses}\tDP:{DamagePoints}\nAD:{ArmorDamage}";
 				break;
-			case 5:
+			case 6:
 				Tag 			= Tags.Mallet;
 				Rarity 			= Rarity.Rare;
 				Type 			= Types.Weapon;
@@ -207,7 +207,7 @@ public class ItemInfo
 				Description 	= "Stuns, bounces off armor";
 				Stats 			= $"\nUP:{maxUses}/{maxUses}\tDP:{DamagePoints}\nAD:{ArmorDamage}";
 				break;
-			case 6:
+			case 7:
 				Tag 			= Tags.FireAxe;
 				Rarity 			= Rarity.Rare;
 				Type 			= Types.Weapon;
@@ -219,7 +219,7 @@ public class ItemInfo
 				Description 	= "Cuts through armor";
 				Stats 			= $"\nUP:{maxUses}/{maxUses}\tDP:{DamagePoints}\nAD:{ArmorDamage}";
 				break;
-			case 7:
+			case 8:
 				Tag 			= Tags.Chainsaw;
 				Rarity 			= Rarity.Anomalous;
 				Type 			= Types.Weapon;
@@ -230,7 +230,7 @@ public class ItemInfo
 				Description 	= "Handheld rock saw";
 				Stats 			= $"\nUP:{maxUses}/{maxUses}\tDP:{DamagePoints}";
 				break;
-			case 8:
+			case 9:
 				Tag 			= Tags.Tranquilizer;
 				Rarity 			= Rarity.Scarce;
 				Type 			= Types.Weapon;
@@ -243,7 +243,7 @@ public class ItemInfo
 				Description 	= "Stuns enemies for 1 turn";
 				Stats 			= $"\nUP:{maxUses}/{maxUses}\tDP:{DamagePoints}\nRP:{Range}";
 				break;
-			case 9:
+			case 10:
 				Tag 			= Tags.Carbine;
 				Rarity 			= Rarity.Rare;
 				Type 			= Types.Weapon;
@@ -255,7 +255,7 @@ public class ItemInfo
 				Description 	= "Fires rifle bullets";
 				Stats 			= $"\nUP:{maxUses}/{maxUses}\tDP:{DamagePoints}\nRP:{Range}";
 				break;
-			// case ?:
+			// case 11:
 			// 	Tag 			= Tags.Flamethrower;
 			// 	Rarity 			= Rarity.Rare;
 			// 	Type 			= Types.Weapon;
@@ -268,7 +268,7 @@ public class ItemInfo
 			// 	Description 	= "Sprays streaks of fire";
 			// 	Stats 			= $"\nUP:{maxUses}/{maxUses}\tDP:{DamagePoints}\nRP:{Range}";
 			// 	break;
-			case 10:
+			case 11:
 				Tag 			= Tags.HuntingRifle;
 				Rarity 			= Rarity.Rare;
 				Type 			= Types.Weapon;
@@ -280,7 +280,7 @@ public class ItemInfo
 				Description 	= "Fires armor piercing rounds";
 				Stats 			= $"\nUP:{maxUses}/{maxUses}\tDP:{DamagePoints}\nRP:{Range}";
 				break;
-			case 11:
+			case 12:
 				Tag 			= Tags.PlasmaRailgun;
 				Rarity 			= Rarity.Anomalous;
 				Type 			= Types.Weapon;
@@ -292,7 +292,7 @@ public class ItemInfo
 				Description 	= "Fires a voltaic bolt of plasma";
 				Stats 			= $"\nUP:{maxUses}/{maxUses}\tDP:{DamagePoints}\nRP:{Range}";
 				break;
-			case 12:
+			case 13:
 				Tag 			= Tags.Rock;
 				Rarity 			= Rarity.Common;
 				Type 			= Types.Weapon;
@@ -390,7 +390,7 @@ public class ItemInfo
 				Stats 			= $"\nCHARGE:{maxUses}/{maxUses}";
 				break;
 			*/
-			case 13:
+			case 14:
 				Tag 			= Tags.Flare;
 				Rarity 			= Rarity.Limited;
 				Type 			= Types.Utility;
@@ -408,7 +408,7 @@ public class ItemInfo
 				Description 	= "Illuminates surroundings";
 				break;
 			*/
-			case 14:
+			case 15:
 				Tag 			= Tags.Extinguisher;
 				Rarity 			= Rarity.Scarce;
 				Type 			= Types.Utility;

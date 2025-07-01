@@ -9,7 +9,6 @@ public class InputManager : MonoBehaviour
     public delegate void PlayerActionDelegate(Vector3 WorldPoint, Vector3Int TilePoint, Vector3 ShiftedClickPoint);
     public event PlayerActionDelegate OnPlayerClick;
     public event PlayerActionDelegate OnPlayerHover;
-    
     public void Initialize(Camera MainCamera, Tilemap TilemapGround, Player Player)
     {
         this.MainCamera     = MainCamera;
