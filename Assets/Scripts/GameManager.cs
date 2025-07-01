@@ -432,7 +432,7 @@ public class GameManager : MonoBehaviour
 		Vehicle Vehicle = VehicleManager.Vehicles[vehicleIndex];
 		// Return false if player is not adjacent to vehicle or if click fails
 		if (!IsPlayerAdjacentTo(Vehicle.transform.position)
-			|| !Player.ClickOnVehicleToUseItem())
+			|| !Player.ClickOnVehicleToUseItem(Vehicle))
 		{
 			return false;
 		}
