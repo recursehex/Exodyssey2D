@@ -20,8 +20,8 @@ public class EnemyManager : MonoBehaviour
     }
     public void GenerateEnemies()
     {
-        spawnEnemyCount = Random.Range(1 + (int)(GameManager.Instance.LevelManager.Level * 0.5),
-                                       3 + (int)(GameManager.Instance.LevelManager.Level * 0.5));
+        spawnEnemyCount = Random.Range(1 + (int)(GameManager.Instance.Level * 0.5),
+                                       3 + (int)(GameManager.Instance.Level * 0.5));
         int cap = spawnEnemyCount * 2;
         while (cap > 0 && spawnEnemyCount > 0)
         {
@@ -89,8 +89,8 @@ public class EnemyManager : MonoBehaviour
             NeedToStartEnemyMovement = false;
             indexOfMovingEnemy = 0;
             Enemies[indexOfMovingEnemy].ComputePathAndStartMovement();
-            GameManager.Instance.TileManager.ClearTileAreas();
-            GameManager.Instance.TileManager.ClearTargetsAndTracers();
+            GameManager.Instance.ClearTileAreas();
+            GameManager.Instance.ClearTargetsAndTracers();
             EnemiesAreMoving = true;
             return;
         }

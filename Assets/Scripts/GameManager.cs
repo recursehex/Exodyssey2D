@@ -13,12 +13,12 @@ public class GameManager : MonoBehaviour
 	[SerializeField] private bool doingSetup;
 	
 	[Header("Managers")]
-	[SerializeField] public EnemyManager EnemyManager;
-	[SerializeField] public ItemManager ItemManager;
+	[SerializeField] private EnemyManager EnemyManager;
+	[SerializeField] private ItemManager ItemManager;
 	[SerializeField] private VehicleManager VehicleManager;
-	[SerializeField] public TileManager TileManager;
+	[SerializeField] private TileManager TileManager;
 	[SerializeField] private TurnManager TurnManager;
-	[SerializeField] public LevelManager LevelManager;
+	[SerializeField] private LevelManager LevelManager;
 	[SerializeField] private InputManager InputManager;
 	
 	[Header("Prefab Templates")]
@@ -184,6 +184,11 @@ public class GameManager : MonoBehaviour
 	public bool HasVehicleAtPosition(Vector3 Position) 		=> VehicleManager.HasVehicleAtPosition(Position);
 	public bool HasWallAtPosition(Vector3Int Position) 		=> LevelManager.HasWallAtPosition(Position);
 	public void DestroyVehicle(Vehicle Vehicle) 			=> VehicleManager.DestroyVehicle(Vehicle);
+	public void ClearTileAreas() 							=> TileManager.ClearTileAreas();
+	public void ClearTargetsAndTracers() 					=> TileManager.ClearTargetsAndTracers();
+	public bool HasEnemies() 								=> EnemyManager.Enemies.Count > 0;
+	public bool HasExitTileAtPosition(Vector3Int Position) => LevelManager.HasExitTileAtPosition(Position);
+	public int Level => LevelManager.Level;
 	private void MovePlayerToVehicle()
 	{
 		if (Player.IsInVehicle && !Player.Vehicle.IsInMovement)
@@ -286,6 +291,7 @@ public class GameManager : MonoBehaviour
 	/// <param name="ShiftedClickPoint"></param>
 	private void HandlePlayerHover(Vector3 WorldPoint, Vector3Int TilePoint, Vector3 ShiftedClickPoint)
 	{
+		// Move TileDot to hovered tile if Player is in movement range
 		if (TileManager.IsInMovementRange(TilePoint))
 		{
 			TileManager.TileDot.SetActive(true);
@@ -530,24 +536,26 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	private void UpdateTileAreas()
 	{
+		// Only update areas if Player is not in movement, it is Player's turn, and Player has energy
 		if (!Player.IsInMovement
 			&& TurnManager.IsPlayersTurn
 			&& Player.HasEnergy())
 		{
 			Dictionary<Vector3Int, Node> AreasToDraw = null;
-
+			// If Player is in a vehicle that is on and has charge, calculate vehicle area
 			if (Player.IsInVehicle
 				&& Player.Vehicle.Info.IsOn
 				&& Player.Vehicle.HasCharge())
 			{
 				AreasToDraw = Player.Vehicle.CalculateArea();
 			}
+			// If Player is not in a vehicle, or is in a vehicle that is off, calculate player area
 			else if (!Player.IsInVehicle
 					|| (Player.IsInVehicle && !Player.Vehicle.Info.IsOn))
 			{
 				AreasToDraw = Player.CalculateArea();
 			}
-
+			// Draw areas if any needed
 			if (AreasToDraw != null)
 			{
 				TileManager.DrawTileAreas(AreasToDraw);
@@ -559,6 +567,7 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	public void UpdateTargetsAndTracers()
 	{
+		// Only update targets and tracers if Player is not in movement, has a ranged weapon, it is Player's turn, and Player has energy
 		int weaponRange = Player.GetWeaponRange();
 		if (weaponRange > 0
 			&& TurnManager.IsPlayersTurn
