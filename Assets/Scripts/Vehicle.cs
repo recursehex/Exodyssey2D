@@ -124,14 +124,14 @@ public class Vehicle : MonoBehaviour
 	/// <returns></returns>
 	public bool ClickOnToRecharge(ItemInfo Item)
 	{
-		int currentUses = Item.CurrentUses;
+		int amount = Item.CurrentUses;
 		// Try to recharge vehicle
-		if (!Info.RechargeBy(ref currentUses))
+		if (!Info.RechargeBy(ref amount))
 		{
 			return false;
 		}
-		// Update item durability
-		Item.DecreaseDurability(currentUses);
+		// Decrease item durability by amount used to recharge vehicle
+		Item.DecreaseDurability(amount);
 		SoundManager.Instance.PlaySound(Select);
 		return true;
 	}

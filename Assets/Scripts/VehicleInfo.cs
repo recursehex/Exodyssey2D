@@ -86,9 +86,10 @@ public class VehicleInfo
 		}
 		// Calculate how much charge to add
 		int chargeToAdd = Mathf.Clamp(amount, 0, maxCharge - CurrentCharge);
-		// Add charge and subtract what was used from the amount
+		// Add charge to vehicle
 		CurrentCharge += chargeToAdd;
-		amount -= chargeToAdd;
+		// Amount will be subtracted from item durability
+		amount = chargeToAdd;
 		return true;
 	}
 	public bool DecreaseChargeBy(int amount)

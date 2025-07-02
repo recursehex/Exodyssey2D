@@ -275,26 +275,26 @@ public class Player : MonoBehaviour
 	/// <summary>
 	/// Decreases item durability by 1, removes item if uses == 0
 	/// </summary>
-	public void DecrementItemDurability()
+	private void DecrementItemDurability()
 	{
 		SelectedItemInfo.DecreaseDurability();
 		InventoryUI.SetCurrentSelected(InventoryUI.SelectedIndex);
-		// Remove item if durability is 0
-		if (SelectedItemInfo.CurrentUses <= 0)
-		{
-			RemoveSelectedItem();
-			GameManager.Instance.TileManager.ClearTargetsAndTracers();
-		}
+		TryRemoveSelectedItem();
 	}
 	/// <summary>
 	/// Removes selected item from inventory and resets related variables
 	/// </summary>
-	public void RemoveSelectedItem()
+	private void TryRemoveSelectedItem()
 	{
+		if (SelectedItemInfo.CurrentUses > 0)
+		{
+			return;
+		}
 		InventoryUI.RemoveItem(InventoryUI.SelectedIndex);
 		InventoryUI.SetCurrentSelected(-1);
 		SelectedItemInfo = null;
 		DamagePoints = 0;
+		GameManager.Instance.TileManager.ClearTargetsAndTracers();
 	}
 	/// <summary>
 	/// Returns weapon range of selected item, 0 if no item is selected or item is not a weapon
@@ -428,7 +428,6 @@ public class Player : MonoBehaviour
 		{
 			return false;
 		}
-		bool wasUsed = false;
 		// Try to use ToolKit on vehicle
 		if (SelectedItemInfo.Tag is ItemInfo.Tags.ToolKit
 			&& Vehicle.Info.RestoreHealth())
@@ -440,15 +439,12 @@ public class Player : MonoBehaviour
 		if (SelectedItemInfo.Tag is ItemInfo.Tags.PowerCell
 			&& Vehicle.ClickOnToRecharge(SelectedItemInfo))
 		{
-			DecrementItemDurability();
+			// Durability is decreased in Vehicle.ClickOnToRecharge()
+			InventoryUI.SetCurrentSelected(InventoryUI.SelectedIndex);
+			TryRemoveSelectedItem();
 			return true;
 		}
-		// Decrement item durability if item was used
-		if (wasUsed)
-		{
-			DecrementItemDurability();
-		}
-		return wasUsed;
+		return false;
 	}
 	/// <summary>
 	/// Tries to drop item from inventory onto the ground, called by InventoryIcons
