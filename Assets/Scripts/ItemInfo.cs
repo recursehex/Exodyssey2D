@@ -148,7 +148,7 @@ public class ItemInfo
 				break;
 			case 2:
 				Tag 			= Tags.PowerCell;
-				Rarity 			= Rarity.Rare;
+				Rarity 			= Rarity.Scarce;
 				Type 			= Types.Consumable;
 				Name 			= "POWER CELL";
 				maxUses 		= 5;
