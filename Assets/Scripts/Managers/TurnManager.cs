@@ -24,7 +24,7 @@ public class TurnManager : MonoBehaviour
         TurnTimer.timerIsRunning = false;
         TurnTimer.ResetTimer();
         // Check if there are enemies before changing turns
-        if (GameManager.Instance.EnemyManager.Enemies.Count > 0)
+        if (GameManager.Instance.HasEnemies())
         {
             IsPlayersTurn = false;
         }

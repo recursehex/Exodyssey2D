@@ -294,7 +294,7 @@ public class Player : MonoBehaviour
 		InventoryUI.SetCurrentSelected(-1);
 		SelectedItemInfo = null;
 		DamagePoints = 0;
-		GameManager.Instance.TileManager.ClearTargetsAndTracers();
+		GameManager.Instance.ClearTargetsAndTracers();
 	}
 	/// <summary>
 	/// Returns weapon range of selected item, 0 if no item is selected or item is not a weapon
@@ -346,7 +346,7 @@ public class Player : MonoBehaviour
 			// Clear targets for all other items
 			else
 			{
-				GameManager.Instance.TileManager.ClearTargetsAndTracers();
+				GameManager.Instance.ClearTargetsAndTracers();
 			}
 		}
 		// Item was deselected
@@ -355,7 +355,7 @@ public class Player : MonoBehaviour
 			InventoryUI.SetCurrentSelected(-1);
 			SelectedItemInfo = null;
 			DamagePoints = 0;
-			GameManager.Instance.TileManager.ClearTargetsAndTracers();
+			GameManager.Instance.ClearTargetsAndTracers();
 		}
 	}
 	/// <summary>
@@ -464,7 +464,7 @@ public class Player : MonoBehaviour
 			// Clears targeting if ranged weapon is dropped
 			if (GetWeaponRange() > 0)
 			{
-				GameManager.Instance.TileManager.ClearTargetsAndTracers();
+				GameManager.Instance.ClearTargetsAndTracers();
 			}
 		}
 		// Put dropped item in temp slot out of inventory
@@ -480,7 +480,7 @@ public class Player : MonoBehaviour
 		{
 			// Swap dropped item with ground item
 			Inventory[itemIndex].Info = ItemAtPosition.Info;
-			GameManager.Instance.ItemManager.RemoveItemAtPosition(ItemAtPosition);
+			GameManager.Instance.RemoveItemAtPosition(ItemAtPosition);
 			Destroy(ItemAtPosition.gameObject);
 			InventoryUI.RefreshInventoryIcons();
 		}
