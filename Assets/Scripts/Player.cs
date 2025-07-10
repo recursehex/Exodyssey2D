@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -24,6 +23,9 @@ public class Player : MonoBehaviour
 	private int vestHealth;
 	private bool hasNightVision = false;
 	public Profession Job;
+	#endregion
+	#region EVENTS
+	public System.Action OnMovementComplete;
 	#endregion
 	#region AUDIO
 	[SerializeField] private AudioClip Move;
@@ -119,6 +121,8 @@ public class Player : MonoBehaviour
 		{
 			GameManager.Instance.UpdateTargetsAndTracers();
 		}
+		// Notify that movement is complete
+		OnMovementComplete?.Invoke();
 	}
 	/// <summary>
 	/// Calculates area Player can move to in a turn based on currentEnergy
@@ -151,18 +155,26 @@ public class Player : MonoBehaviour
 		{
 			return;
 		}
+		// Subscribe to vehicle movement complete event
+		Vehicle.OnVehicleMovementComplete = () => {
+			IsInMovement = false;
+			// Trigger player movement complete event
+			OnMovementComplete?.Invoke();
+			// Unsubscribe to prevent memory leaks
+			Vehicle.OnVehicleMovementComplete = null;
+		};
 		Vehicle.ComputePathAndStartMovement(WorldPoint);
 		DecrementEnergy();
-		IsInMovement = false;
+		// Keep IsInMovement true until vehicle finishes moving
 	}
 	/// <summary>
 	/// Sets Player visibility when entering and exiting vehicles
 	/// </summary>
 	private void SetPlayerVisibility(bool isVisible)
 	{
-		if (TryGetComponent<SpriteRenderer>(out var spriteRenderer))
+		if (TryGetComponent(out SpriteRenderer SpriteRenderer))
 		{
-			spriteRenderer.enabled = isVisible;
+			SpriteRenderer.enabled = isVisible;
 		}
 		// Also hide or show the animator component
 		if (Animator != null)
@@ -182,32 +194,32 @@ public class Player : MonoBehaviour
 		{
 			int absorbed = Mathf.Min(damage, helmetHealth);
 			helmetHealth -= absorbed;
-			damage -= absorbed;
+			damage 		 -= absorbed;
 			if (helmetHealth <= 0) hasHelmet = false;
 		}
 		else if (!isMeleeDamage && hasVest)
 		{
 			int absorbed = Mathf.Min(damage, vestHealth);
-			vestHealth -= absorbed;
-			damage -= absorbed;
+			vestHealth 	-= absorbed;
+			damage 	   	-= absorbed;
 			if (vestHealth <= 0) hasVest = false;
 		}
+		// Return if there is no more remaining damage
 		if (damage <= 0) return;
 		// Damage Player
 		currentHealth -= damage;
 		SoundManager.Instance.PlaySound(Hurt);
-		// If Player is killed
+		// Game over if Player is killed
 		if (currentHealth <= 0)
 		{
 			SoundManager.Instance.PlaySound(GameOver);
 			GameManager.Instance.GameOver();
-			StartCoroutine(SoundManager.Instance.FadeOutMusic(2.0f));
 			return;
 		}
 		// Update health display and animation state
 		StatsDisplayManager.DecreaseHealthDisplay(currentHealth, maxHealth);
 		Animator.SetTrigger("playerHit");
-		// Reduce max energy to simulate weakness at 1 health
+		// If 1 health left, reduce max energy to simulate weakness
 		if (currentHealth == 1)
 		{
 			currentEnergy = 1;

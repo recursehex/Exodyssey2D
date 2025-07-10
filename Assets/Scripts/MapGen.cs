@@ -45,8 +45,6 @@ public static class MapGen
         {-1, -2},
         { 2, -2}
     };
-
-
     private static int[,] Rotate3by3(int[,] t)
     {
         int[,] res = new int[3, 3];
@@ -59,9 +57,7 @@ public static class MapGen
         }
         return res;
     }
-
     private const float minimumChance = 0.15f;
-
     public static void GenerateMap(Tilemap TilemapWalls, Tile[] WallTiles)
     {
         int totalTemplates = Templates.Count;

@@ -82,6 +82,8 @@ public class GameManager : MonoBehaviour
 		LevelManager.OnLevelInitialized += OnLevelInitialized;
 		InputManager.OnPlayerClick 		+= HandlePlayerClick;
 		InputManager.OnPlayerHover 		+= HandlePlayerHover;
+		Player.OnMovementComplete 		+= OnPlayerMovementComplete;
+		EnemyManager.OnEnemyKilled 		+= OnEnemyKilled;
 	}
 	private void Start()
 	{
@@ -101,12 +103,6 @@ public class GameManager : MonoBehaviour
 		}
 		MovePlayerToVehicle();
 		HandlePlayerExitTile();
-		UpdateTileAreas();
-		if (TurnManager.EndTurnButton.interactable == false
-			&& TurnManager.IsPlayersTurn)
-		{
-			TurnManager.SetEndTurnButtonInteractable(true);
-		}
 		InputManager.ProcessInput();
 		if (!TurnManager.IsPlayersTurn)
 		{
@@ -163,12 +159,15 @@ public class GameManager : MonoBehaviour
 		{
 			UpdateTargetsAndTracers();
 		}
+		// Draw tile areas at start of game
+		UpdateTileAreas();
 	}
 	/// <summary>
 	/// Called when Player dies
 	/// </summary>
 	public void GameOver()
 	{
+		StartCoroutine(SoundManager.Instance.FadeOutMusic(2.0f));
 		LevelManager.ShowGameOver();
 		enabled = false;
 	}
@@ -190,18 +189,16 @@ public class GameManager : MonoBehaviour
 	public bool HasExitTileAtPosition(Vector3Int Position) => LevelManager.HasExitTileAtPosition(Position);
 	public int Level => LevelManager.Level;
 	private void MovePlayerToVehicle()
-	{
-		if (Player.IsInVehicle && !Player.Vehicle.IsInMovement)
-		{
-			Player.transform.position = Player.Vehicle.transform.position;
-			Player.IsInMovement = false;
-			if (TurnManager.IsPlayersTurn)
-			{
-				TurnManager.SetEndTurnButtonInteractable(true);
-			}
-		}
-	}
-	public void StopTurnTimer()
+    {
+        if (!Player.IsInVehicle || Player.Vehicle.IsInMovement)
+        {
+            return;
+        }
+        Player.transform.position = Player.Vehicle.transform.position;
+        Player.IsInMovement = false;
+        // End turn button is re-enabled via OnPlayerMovementComplete event
+    }
+    public void StopTurnTimer()
 	{
 		TurnManager.StopTurnTimer();
 	}
@@ -219,11 +216,15 @@ public class GameManager : MonoBehaviour
 	private void OnPlayerTurnEnded()
 	{
 		Player.RestoreEnergy();
+		// Hide TileDot during enemy turn
+		TileManager.TileDot.SetActive(false);
+		EnemyManager.NeedToStartEnemyMovement = EnemyManager.Enemies.Count > 0;
+		// If no enemies left, immediately start next player turn
 		if (EnemyManager.Enemies.Count == 0)
 		{
-			TileManager.TileDot.SetActive(true);
+			// Trigger enemy turn ended to start player turn
+			TurnManager.EndEnemyTurn();
 		}
-		EnemyManager.NeedToStartEnemyMovement = EnemyManager.Enemies.Count > 0;
 	}
 	/// <summary>
 	/// Clears tile areas, targets, and tracers after turn timer ends
@@ -245,6 +246,26 @@ public class GameManager : MonoBehaviour
 		TileManager.TileDot.SetActive(true);
 		if (!Player.IsInVehicle)
 			UpdateTargetsAndTracers();
+		// Draw tile areas at start of player's turn
+		UpdateTileAreas();
+	}
+	/// <summary>
+	/// Called when Player stops moving
+	/// </summary>
+	private void OnPlayerMovementComplete()
+	{
+		if (TurnManager.IsPlayersTurn)
+		{
+			TurnManager.SetEndTurnButtonInteractable(true);
+			UpdateTileAreas();
+		}
+	}
+	/// <summary>
+	/// Called when an enemy is killed
+	/// </summary>
+	private void OnEnemyKilled()
+	{
+		UpdateTileAreas();
 	}
 	/// <summary>
 	/// Checks if Player is on exit tile to reset for next level
@@ -291,6 +312,12 @@ public class GameManager : MonoBehaviour
 	/// <param name="ShiftedClickPoint"></param>
 	private void HandlePlayerHover(Vector3 WorldPoint, Vector3Int TilePoint, Vector3 ShiftedClickPoint)
 	{
+		// Hide TileDot if player is in vehicle with no charge
+		if (Player.IsInVehicle && Player.Vehicle.Info.IsOn && !Player.Vehicle.HasCharge())
+		{
+			TileManager.TileDot.SetActive(false);
+			return;
+		}
 		// Move TileDot to hovered tile if Player is in movement range
 		if (TileManager.IsInMovementRange(TilePoint))
 		{
@@ -318,6 +345,7 @@ public class GameManager : MonoBehaviour
 			Player.Vehicle.SwitchIgnition();
 			TileManager.ClearTileAreas();
 			TileManager.ClearTargetsAndTracers();
+			UpdateTileAreas();
 		}
 		// If Player's vehicle is off and clicked tile is in movement range, try to exit vehicle
 		else if (!Player.Vehicle.Info.IsOn && TileManager.IsInMovementRange(TilePoint))
@@ -419,6 +447,7 @@ public class GameManager : MonoBehaviour
 			return false;
 		}
 		TurnManager.TurnTimer.StartTimer();
+		UpdateTileAreas();
 		return true;
 	}
 	/// <summary>
@@ -443,6 +472,7 @@ public class GameManager : MonoBehaviour
 			return false;
 		}
 		TurnManager.TurnTimer.StartTimer();
+		UpdateTileAreas();
 		return true;
 	}
 	private bool TryEnterVehicle(Vector3Int TilePoint)
@@ -462,6 +492,7 @@ public class GameManager : MonoBehaviour
 		Player.EnterVehicle(VehicleManager.Vehicles[vehicleIndex]);
         TurnManager.TurnTimer.StartTimer();
 		TileManager.ClearTargetsAndTracers();
+		UpdateTileAreas();
 		return true;
     }
 	/// <summary>
@@ -521,6 +552,7 @@ public class GameManager : MonoBehaviour
 		TurnManager.TurnTimer.StartTimer();
 		TileManager.TileDot.SetActive(false);
 		UpdateTargetsAndTracers();
+		UpdateTileAreas();
 	}
 	/// <summary>
 	/// Checks if Player is adjacent to a specified position
@@ -536,11 +568,15 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	private void UpdateTileAreas()
 	{
-		// Only update areas if Player is not in movement, it is Player's turn, and Player has energy
-		if (!Player.IsInMovement
-			&& TurnManager.IsPlayersTurn
-			&& Player.HasEnergy())
+		// Only update areas if Player is not in movement and it is Player's turn
+		if (!Player.IsInMovement && TurnManager.IsPlayersTurn)
 		{
+			// Clear areas if player has no energy
+			if (!Player.HasEnergy())
+			{
+				TileManager.ClearTileAreas();
+				return;
+			}
 			Dictionary<Vector3Int, Node> AreasToDraw = null;
 			// If Player is in a vehicle that is on and has charge, calculate vehicle area
 			if (Player.IsInVehicle
@@ -559,6 +595,11 @@ public class GameManager : MonoBehaviour
 			if (AreasToDraw != null)
 			{
 				TileManager.DrawTileAreas(AreasToDraw);
+			}
+			// Clear areas if in vehicle with no charge
+			else if (Player.IsInVehicle && Player.Vehicle.Info.IsOn && !Player.Vehicle.HasCharge())
+			{
+				TileManager.ClearTileAreas();
 			}
 		}
 	}

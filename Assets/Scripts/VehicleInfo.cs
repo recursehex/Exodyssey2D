@@ -48,9 +48,9 @@ public class VehicleInfo
 	}
 	public static int GetRandomIndexFrom(Rarity Rarity)
 	{
-		var indices = Enumerable.Range(0, VehicleRarityList.Count)
-								.Where(i => VehicleRarityList[i] == Rarity)
-								.ToList();
+		List<int> indices = Enumerable.Range(0, VehicleRarityList.Count)
+									  .Where(i => VehicleRarityList[i] == Rarity)
+									  .ToList();
 		if (indices.Count == 0)
 			return -1;
 		return indices[Random.Range(0, indices.Count)];
@@ -111,69 +111,70 @@ public class VehicleInfo
 	/// </summary>
 	public VehicleInfo(int n)
 	{
-		switch (n)
+		Tags tag = (Tags)n;
+		switch (tag)
 		{
-			case 0:
-				Tag 			= Tags.Rover;
-				Rarity 			= Rarity.Scarce;
-				Type 			= Types.Car;
-				Name 			= "ROVER";
-				Description 	= "Standard ISA vehicle";
-				Storage 		= 2;
-				Efficiency 		= 2;
-				Speed 			= 2f;
-				MovementRange 	= 4;
-				maxCharge 		= 10;
-				CurrentCharge 	= maxCharge;
-				maxHealth 		= 2;
-				CurrentHealth 	= maxHealth;
+			case Tags.Rover:
+				Tag = Tags.Rover;
+				Rarity = Rarity.Scarce;
+				Type = Types.Car;
+				Name = "ROVER";
+				Description = "Standard ISA vehicle";
+				Storage = 2;
+				Efficiency = 2;
+				Speed = 2f;
+				MovementRange = 4;
+				maxCharge = 10;
+				CurrentCharge = maxCharge;
+				maxHealth = 2;
+				CurrentHealth = maxHealth;
 				break;
-			case 1:
-				Tag 			= Tags.Trailer;
-				Rarity 			= Rarity.Scarce;
-				Type 			= Types.Car;
-				Name 			= "TRAILER";
-				Description 	= "Has a storage bay";
-				Storage 		= 4;
-				Efficiency 		= 3;
-				Speed 			= 1f;
-				MovementRange 	= 3;
-				maxCharge 		= 15;
-				CurrentCharge 	= maxCharge;
-				maxHealth 		= 3;
-				CurrentHealth 	= maxHealth;
+			case Tags.Trailer:
+				Tag = Tags.Trailer;
+				Rarity = Rarity.Scarce;
+				Type = Types.Car;
+				Name = "TRAILER";
+				Description = "Has a storage bay";
+				Storage = 4;
+				Efficiency = 3;
+				Speed = 1f;
+				MovementRange = 3;
+				maxCharge = 15;
+				CurrentCharge = maxCharge;
+				maxHealth = 3;
+				CurrentHealth = maxHealth;
 				break;
-			case 2:
-				Tag 			= Tags.Buggy;
-				Rarity 			= Rarity.Rare;
-				Type 			= Types.Car;
-				Name 			= "BUGGY";
-				Description 	= "Lightweight and efficient";
-				Storage 		= 0;
-				Efficiency 		= 1;
-				Speed 			= 4f;
-				MovementRange 	= 5;
-				maxCharge 		= 5;
-				CurrentCharge 	= maxCharge;
-				maxHealth 		= 1;
-				CurrentHealth 	= maxHealth;
-				CanOffroad 		= true;
+			case Tags.Buggy:
+				Tag = Tags.Buggy;
+				Rarity = Rarity.Rare;
+				Type = Types.Car;
+				Name = "BUGGY";
+				Description = "Lightweight and efficient";
+				Storage = 0;
+				Efficiency = 1;
+				Speed = 4f;
+				MovementRange = 5;
+				maxCharge = 5;
+				CurrentCharge = maxCharge;
+				maxHealth = 1;
+				CurrentHealth = maxHealth;
+				CanOffroad = true;
 				break;
-			case 3:
-				Tag 			= Tags.Carrier;
-				Rarity 			= Rarity.Anomalous;
-				Type 			= Types.LargeVehicle;
-				Name 			= "CARRIER";
-				Description 	= "Armored transport vehicle";
-				Storage 		= 6;
-				Efficiency 		= 5;
-				Speed 			= 0.5f;
-				MovementRange 	= 2;
-				maxCharge 		= 20;
-				CurrentCharge 	= maxCharge;
-				maxHealth 		= 10;
-				CurrentHealth 	= maxHealth;
-				CanOffroad		= true;
+			case Tags.Carrier:
+				Tag = Tags.Carrier;
+				Rarity = Rarity.Anomalous;
+				Type = Types.LargeVehicle;
+				Name = "CARRIER";
+				Description = "Armored transport vehicle";
+				Storage = 6;
+				Efficiency = 5;
+				Speed = 0.5f;
+				MovementRange = 2;
+				maxCharge = 20;
+				CurrentCharge = maxCharge;
+				maxHealth = 10;
+				CurrentHealth = maxHealth;
+				CanOffroad = true;
 				break;
 		}
 	}

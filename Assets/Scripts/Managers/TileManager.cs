@@ -20,7 +20,6 @@ public class TileManager : MonoBehaviour
         this.TargetTemplate = TargetTemplate;
         this.TracerTemplate = TracerTemplate;
     }
-    
     public void ClearTileAreas()
     {
         if (TileAreas.Count == 0)
@@ -31,19 +30,26 @@ public class TileManager : MonoBehaviour
         TileAreas.Clear();
         TileAreasToDraw = null;
     }
-    
+    /// <summary>
+    /// Draws tile areas based on areas to draw
+    /// </summary>
+    /// <param name="AreasToDraw"></param>
     public void DrawTileAreas(Dictionary<Vector3Int, Node> AreasToDraw)
     {
+        // Need to clear previous areas
         ClearTileAreas();
         TileAreasToDraw = AreasToDraw;
-        if (TileAreasToDraw != null && TileAreasToDraw.Count > 0)
+        // Return if no areas to draw
+        if (TileAreasToDraw == null || TileAreasToDraw.Count <= 0)
         {
-            foreach (KeyValuePair<Vector3Int, Node> TileAreaPosition in TileAreasToDraw)
-            {
-                Vector3 ShiftedDistance = TileAreaPosition.Value.Position + new Vector3(0.5f, 0.5f, 0);
-                GameObject TileArea = Instantiate(TileAreaTemplate, ShiftedDistance, Quaternion.identity);
-                TileAreas.Add(TileArea);
-            }
+            return;
+        }
+        // Draw new areas
+        foreach (KeyValuePair<Vector3Int, Node> TileAreaPosition in TileAreasToDraw)
+        {
+            Vector3 ShiftedDistance = TileAreaPosition.Value.Position + new Vector3(0.5f, 0.5f, 0);
+            GameObject TileArea = Instantiate(TileAreaTemplate, ShiftedDistance, Quaternion.identity);
+            TileAreas.Add(TileArea);
         }
     }
     public void ClearTargetsAndTracers()
@@ -60,21 +66,34 @@ public class TileManager : MonoBehaviour
     {
         Tracers.ForEach(Tracer => Destroy(Tracer));
         Tracers.Clear();
-    }    
+    }
+    /// <summary>
+    /// Draws targets and tracers for enemies in range and line of sight
+    /// </summary>
+    /// <param name="Enemies"></param>
+    /// <param name="PlayerPosition"></param>
+    /// <param name="weaponRange"></param>
+    /// <param name="isStunning"></param>
+    /// <param name="Walls"></param>
     public void DrawTargetsAndTracers(List<Enemy> Enemies, Vector3 PlayerPosition, int weaponRange, bool isStunning, Tilemap Walls)
     {
+        // Need to clear previous targets and tracers
         ClearTargetsAndTracers();
+        // Return if weapon has no range
         if (weaponRange <= 0)
         {
             return;
         }
+        // Draw new targets and tracers
         foreach (Enemy Enemy in Enemies)
         {
+            // Skip enemies that are stunned and if weapon is stunning
             if (Enemy.StunIcon.activeSelf && isStunning)
             {
                 continue;
             }
             Vector3 EnemyPosition = Enemy.transform.position;
+            // Draw tracers
             if (TracerPath.Count > 0)
             {
                 foreach (Vector3 tracerPosition in TracerPath)
@@ -83,6 +102,7 @@ public class TileManager : MonoBehaviour
                     Tracers.Add(Tracer);
                 }
             }
+            // Check if enemy is in line of sight and range to draw target
             if (IsInLineOfSight(PlayerPosition, EnemyPosition, weaponRange, Walls))
             {
                 GameObject Target = Instantiate(TargetTemplate, EnemyPosition, Quaternion.identity);
@@ -91,7 +111,14 @@ public class TileManager : MonoBehaviour
         }
         TracerPath.Clear();
     }
-    
+    /// <summary>
+    /// Checks if enemy is in line of sight and range
+    /// </summary>
+    /// <param name="PlayerPosition"></param>
+    /// <param name="EnemyPosition"></param>
+    /// <param name="weaponRange"></param>
+    /// <param name="Walls"></param>
+    /// <returns></returns>
     private bool IsInLineOfSight(Vector3 PlayerPosition, Vector3 EnemyPosition, int weaponRange, Tilemap Walls)
     {
         float distance = Mathf.Sqrt(Mathf.Pow(EnemyPosition.x - PlayerPosition.x, 2) + Mathf.Pow(EnemyPosition.y - PlayerPosition.y, 2));
@@ -112,6 +139,14 @@ public class TileManager : MonoBehaviour
         }
         return true;
     }    
+    /// <summary>
+    /// Bresenham's Line Algorithm to get points between two positions
+    /// </summary>
+    /// <param name="x0"></param>
+    /// <param name="y0"></param>
+    /// <param name="x1"></param>
+    /// <param name="y1"></param>
+    /// <returns></returns>
     private static List<Vector3> BresenhamsAlgorithm(int x0, int y0, int x1, int y1)
     {
         List<Vector3> PointsOnLine = new();
@@ -120,7 +155,7 @@ public class TileManager : MonoBehaviour
         int sx = (x0 < x1) ? 1 : -1;
         int sy = (y0 < y1) ? 1 : -1;
         int err = dx - dy;
-        
+
         while (true)
         {
             PointsOnLine.Add(new(x0, y0, 0));

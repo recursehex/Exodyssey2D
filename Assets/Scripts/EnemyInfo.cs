@@ -55,9 +55,9 @@ public class EnemyInfo
 	}
 	public static int GetRandomIndexFrom(Rarity Rarity)
 	{
-		var indices = Enumerable.Range(0, EnemyRarityList.Count)
-								.Where(i => EnemyRarityList[i] == Rarity)
-								.ToList();
+		List<int> indices = Enumerable.Range(0, EnemyRarityList.Count)
+									  .Where(i => EnemyRarityList[i] == Rarity)
+									  .ToList();
 		if (indices.Count == 0)
 			return -1;
 		return indices[Random.Range(0, indices.Count)];
@@ -89,33 +89,34 @@ public class EnemyInfo
 	/// </summary>
 	public EnemyInfo(int n)
 	{
-		switch (n)
+		Tags tag = (Tags)n;
+		switch (tag)
 		{
-			case 0:
-				Tag 			= Tags.Crawler;
-				Rarity 			= Rarity.Common;
-				Type 			= Types.Weak;
-				maxHealth 		= 2;
-				CurrentHealth 	= maxHealth;
-				maxEnergy 		= 1;
-				CurrentEnergy 	= maxEnergy;
-				Speed 			= 3;
-				DamagePoints 	= 1;
-				Name 			= "CRAWLER";
-				IsHunting 		= true;
+			case Tags.Crawler:
+				Tag = Tags.Crawler;
+				Rarity = Rarity.Common;
+				Type = Types.Weak;
+				maxHealth = 2;
+				CurrentHealth = maxHealth;
+				maxEnergy = 1;
+				CurrentEnergy = maxEnergy;
+				Speed = 3;
+				DamagePoints = 1;
+				Name = "CRAWLER";
+				IsHunting = true;
 				break;
-			case 1:
-				Tag 			= Tags.Launcher;
-				Rarity 			= Rarity.Limited;
-				Type 			= Types.Mediocre;
-				maxHealth 		= 4;
-				CurrentHealth 	= maxHealth;
-				maxEnergy 		= 2;
-				CurrentEnergy 	= maxEnergy;
-				DamagePoints 	= 2;
-				Range 			= 3;
-				Name 			= "LAUNCHER";
-				IsHunting 		= false;
+			case Tags.Launcher:
+				Tag = Tags.Launcher;
+				Rarity = Rarity.Limited;
+				Type = Types.Mediocre;
+				maxHealth = 4;
+				CurrentHealth = maxHealth;
+				maxEnergy = 2;
+				CurrentEnergy = maxEnergy;
+				DamagePoints = 2;
+				Range = 3;
+				Name = "LAUNCHER";
+				IsHunting = false;
 				break;
 		}
 	}
