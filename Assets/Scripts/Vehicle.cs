@@ -9,6 +9,9 @@ public class Vehicle : MonoBehaviour
 	public VehicleInfo Info;
 	public Inventory Inventory;
 	#endregion
+	#region EVENTS
+	public System.Action OnVehicleMovementComplete;
+	#endregion
 	#region AUDIO
 	public AudioClip Move;
 	public AudioClip Select;
@@ -86,6 +89,8 @@ public class Vehicle : MonoBehaviour
 		Path = null;
 		IsInMovement = false;
 		MoveRoutine = null;
+		// Notify player that vehicle movement is complete
+		OnVehicleMovementComplete?.Invoke();
 	}
 	/// <summary>
 	/// Calculates area Vehicle can move to in a turn based on movement range

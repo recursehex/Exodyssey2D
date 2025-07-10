@@ -38,19 +38,16 @@ public class VehicleManager : MonoBehaviour
     {
         return Vehicles.Find(vehicle => vehicle.transform.position == Position) != null;
     }
-    
     public int GetVehicleIndexAtPosition(Vector3Int Position)
     {
         Vector3 ShiftedPosition = Position + new Vector3(0.5f, 0.5f, 0);
         return Vehicles.FindIndex(Vehicle => Vehicle.transform.position == ShiftedPosition);
     }
-    
     public void DestroyVehicle(Vehicle Vehicle)
     {
         Destroy(Vehicle.gameObject);
         Vehicles.Remove(Vehicle);
     }
-    
     public void DestroyAllVehicles(Vehicle ExcludedVehicle = null)
     {
         Vehicles.ForEach(Vehicle =>

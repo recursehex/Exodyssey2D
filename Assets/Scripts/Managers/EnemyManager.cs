@@ -12,6 +12,7 @@ public class EnemyManager : MonoBehaviour
     [SerializeField] private int indexOfMovingEnemy = -1;
     private Tilemap TilemapGround;
     private Tilemap TilemapWalls;
+    public System.Action OnEnemyKilled;
     public void Initialize(Tilemap Ground, Tilemap Walls, GameObject[] Templates)
     {
         TilemapGround = Ground;
@@ -69,6 +70,7 @@ public class EnemyManager : MonoBehaviour
         {
             Enemies.RemoveAt(index);
             DestroyEnemy(DamagedEnemy);
+            OnEnemyKilled?.Invoke();
             return;
         }
         if (isStunning)
