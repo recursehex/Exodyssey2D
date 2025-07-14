@@ -9,12 +9,14 @@ using UnityEngine.Tilemaps;
 public class Player : MonoBehaviour
 {
 	#region DATA
-	private readonly int maxHealth 	= 3;
-	private int maxEnergy 			= 3;
-	private int currentHealth 		= 3;
-	public int currentEnergy 		= 3;
+	private readonly int maxHealth 		= 3;
+	private int maxEnergy 				= 3;
+	private readonly int fixedMaxEnergy = 3; // Used to restore energy to original value
+	private int currentHealth 			= 3;
+	public int currentEnergy 			= 3;
+	private readonly int walkSpeed 		= 2;
+	private readonly int inventorySize 	= 2;
 	public int DamagePoints { get; private set; } = 0;
-	private readonly int walkSpeed 	= 2;
 	public Vehicle Vehicle;
 	public bool IsInVehicle => Vehicle != null;
 	private bool hasHelmet = false;
@@ -55,7 +57,7 @@ public class Player : MonoBehaviour
 	protected virtual void Start()
 	{
 		AStar = new(TilemapGround, TilemapWalls);
-		Inventory = new(2);
+		Inventory = new(inventorySize);
 		InventoryUI.Inventory = Inventory;
 		Animator = GetComponent<Animator>();
 		Job = Profession.GetRandomProfession();
@@ -165,7 +167,6 @@ public class Player : MonoBehaviour
 		};
 		Vehicle.ComputePathAndStartMovement(WorldPoint);
 		DecrementEnergy();
-		// Keep IsInMovement true until vehicle finishes moving
 	}
 	/// <summary>
 	/// Sets Player visibility when entering and exiting vehicles
@@ -235,7 +236,7 @@ public class Player : MonoBehaviour
 		currentHealth = maxHealth;
 		StatsDisplayManager.RestoreHealthDisplay();
 		SoundManager.Instance.PlaySound(Heal);
-		maxEnergy = 3;
+		maxEnergy = fixedMaxEnergy;
 	}
 	#endregion
 	#region ENERGY METHODS
@@ -451,7 +452,6 @@ public class Player : MonoBehaviour
 		if (SelectedItemInfo.Tag is ItemInfo.Tags.PowerCell
 			&& Vehicle.ClickOnToRecharge(SelectedItemInfo))
 		{
-			// Durability is decreased in Vehicle.ClickOnToRecharge()
 			InventoryUI.SetCurrentSelected(InventoryUI.SelectedIndex);
 			TryRemoveSelectedItem();
 			return true;

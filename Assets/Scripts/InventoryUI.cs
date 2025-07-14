@@ -30,9 +30,9 @@ public class InventoryUI : MonoBehaviour
 			SelectedIndex = -1;
 			InventoryPressed0.transform.localScale = Vector3.one;
 			InventoryPressed1.transform.localScale = Vector3.one;
-			ItemName.GetComponent<Text>().text = "";
+			ItemName.GetComponent<Text>().text 	= "";
 			ItemName.GetComponent<Text>().color = defaultColor;
-			ItemDesc.GetComponent<Text>().text = "";
+			ItemDesc.GetComponent<Text>().text 	= "";
 		}
 		else if (index == 0 && SelectedIndex != -1)
 		{
@@ -50,9 +50,9 @@ public class InventoryUI : MonoBehaviour
 	{
 		SelectedIndex = -1;
 		GameObject.Find("InventoryPressed" + index).transform.localScale = Vector3.one;
-		ItemName.GetComponent<Text>().text = "";
+		ItemName.GetComponent<Text>().text 	= "";
 		ItemName.GetComponent<Text>().color = defaultColor;
-		ItemDesc.GetComponent<Text>().text = "";
+		ItemDesc.GetComponent<Text>().text 	= "";
 	}
 	/// <summary>
 	/// Refreshes inventory text, called by TryDropItem
@@ -61,10 +61,10 @@ public class InventoryUI : MonoBehaviour
 	{
 		if (SelectedIndex != -1)
 		{
-			ItemName.GetComponent<Text>().text = Inventory[SelectedIndex].Info.Name;
+			ItemName.GetComponent<Text>().text 	= Inventory[SelectedIndex].Info.Name;
 			ItemName.GetComponent<Text>().color = Inventory[SelectedIndex].Info.Rarity.Color;
-			ItemDesc.GetComponent<Text>().text = Inventory[SelectedIndex].Info.Description
-			+ Inventory[SelectedIndex].Info.Stats;
+			ItemDesc.GetComponent<Text>().text 	= Inventory[SelectedIndex].Info.Description
+												+ Inventory[SelectedIndex].Info.Stats;
 		}
 		else
 		{
@@ -101,20 +101,20 @@ public class InventoryUI : MonoBehaviour
 		SelectedIndex = itemIndex;
 		if (SelectedIndex >= 0)
 		{
-			cachedName = Inventory[SelectedIndex].Info.Name;
+			cachedName 	= Inventory[SelectedIndex].Info.Name;
 			cachedColor = Inventory[SelectedIndex].Info.Rarity.Color;
-			cachedDesc = Inventory[SelectedIndex].Info.Description
-			+ Inventory[SelectedIndex].Info.Stats;
+			cachedDesc 	= Inventory[SelectedIndex].Info.Description
+						+ Inventory[SelectedIndex].Info.Stats;
 		}
 		else
 		{
-			cachedName = "";
+			cachedName 	= "";
 			cachedColor = defaultColor;
-			cachedDesc = "";
+			cachedDesc 	= "";
 		}
-		ItemName.GetComponent<Text>().text = cachedName;
+		ItemName.GetComponent<Text>().text 	= cachedName;
 		ItemName.GetComponent<Text>().color = cachedColor;
-		ItemDesc.GetComponent<Text>().text = cachedDesc;
+		ItemDesc.GetComponent<Text>().text 	= cachedDesc;
 	}
 	/// <summary>
 	/// Called by ClickItem when item is selected or deselected
@@ -157,9 +157,9 @@ public class InventoryUI : MonoBehaviour
 			 && Math.Abs(IconPosition.y - MousePosition.y) <= sensitivityDistance)
 			{
 				mouseIsOverIcon = true;
-				NameText.text = Item.Info.Name;
-				NameText.color = Item.Info.Rarity.Color;
-				DescText.text = Item.Info.Description + Item.Info.Stats;
+				NameText.text 	= Item.Info.Name;
+				NameText.color 	= Item.Info.Rarity.Color;
+				DescText.text 	= Item.Info.Description + Item.Info.Stats;
 				break;
 			}
 			itemIndex++;
@@ -170,15 +170,15 @@ public class InventoryUI : MonoBehaviour
 		}
 		if (SelectedIndex == -1)
 		{
-			NameText.text = "";
-			NameText.color = Color.white;
-			DescText.text = "";
+			NameText.text 	= "";
+			NameText.color 	= Color.white;
+			DescText.text 	= "";
 		}
 		else
 		{
-			NameText.text = cachedName;
-			NameText.color = cachedColor;
-			DescText.text = cachedDesc;
+			NameText.text 	= cachedName;
+			NameText.color 	= cachedColor;
+			DescText.text 	= cachedDesc;
 		}
 	}
 }
