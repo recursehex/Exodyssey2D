@@ -6,12 +6,13 @@ using UnityEngine.Tilemaps;
 public class GameManager : MonoBehaviour
 {
 	public static GameManager Instance;
-	
 	[Header("Core References")]
 	[SerializeField] private Camera MainCamera;
 	[SerializeField] private Player Player;
 	[SerializeField] private bool doingSetup;
-	
+	[SerializeField] private float levelStartDelay = 1.5f;
+	[SerializeField] private Vector3 PlayerStartPosition = new(-3.5f, 0.5f, 0f);
+	[SerializeField] private float FadeOutDuration = 2.0f;
 	[Header("Managers")]
 	[SerializeField] private EnemyManager EnemyManager;
 	[SerializeField] private ItemManager ItemManager;
@@ -20,12 +21,10 @@ public class GameManager : MonoBehaviour
 	[SerializeField] private TurnManager TurnManager;
 	[SerializeField] private LevelManager LevelManager;
 	[SerializeField] private InputManager InputManager;
-	
 	[Header("Prefab Templates")]
 	[SerializeField] private GameObject[] EnemyTemplates;
 	[SerializeField] private GameObject[] ItemTemplates;
 	[SerializeField] private GameObject[] VehicleTemplates;
-	
 	[Header("UI Elements")]
 	[SerializeField] private GameObject TileDot;
 	[SerializeField] private GameObject TileArea;
@@ -36,14 +35,12 @@ public class GameManager : MonoBehaviour
 	[SerializeField] private Text DayText;
 	[SerializeField] private Text LevelText;
 	[SerializeField] private GameObject LevelImage;
-	
 	[Header("Tilemaps")]
 	[SerializeField] private Tilemap TilemapGround;
 	[SerializeField] private Tilemap TilemapWalls;
 	[SerializeField] private Tilemap TilemapExit;
 	[SerializeField] private Tile[] GroundTiles;
 	[SerializeField] private Tile[] WallTiles;
-	
 	void Awake()
 	{
 		if (Instance == null)
@@ -120,7 +117,7 @@ public class GameManager : MonoBehaviour
 		ItemManager.DestroyAllItems();
 		EnemyManager.DestroyAllEnemies();
 		VehicleManager.DestroyAllVehicles(Player.Vehicle);
-		Player.transform.position = new(-3.5f, 0.5f, 0f);
+		Player.transform.position = PlayerStartPosition;
 		if (Player.IsInVehicle)
 		{
 			Player.Vehicle.transform.position = Player.transform.position;
@@ -145,7 +142,7 @@ public class GameManager : MonoBehaviour
 		EnemyManager.GenerateEnemies();
 		ItemManager.GenerateItems();
 		VehicleManager.GenerateVehicles();
-		Invoke(nameof(OnLevelLoadComplete), 1.5f);
+		Invoke(nameof(OnLevelLoadComplete), levelStartDelay);
 	}
 	/// <summary>
 	/// Sets EndTurnButton interactable and updates targets and tracers after level load is complete
@@ -167,7 +164,7 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	public void GameOver()
 	{
-		StartCoroutine(SoundManager.Instance.FadeOutMusic(2.0f));
+		StartCoroutine(SoundManager.Instance.FadeOutMusic(FadeOutDuration));
 		LevelManager.ShowGameOver();
 		enabled = false;
 	}
