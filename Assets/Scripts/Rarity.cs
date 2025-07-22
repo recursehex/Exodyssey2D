@@ -49,4 +49,23 @@ public struct Rarity
     {
         return !(Left == Right);
     }
+    public static Rarity Parse(string RarityString)
+    {
+        switch (RarityString)
+        {
+            case "Common":
+                return Common;
+            case "Limited":
+                return Limited;
+            case "Scarce":
+                return Scarce;
+            case "Rare":
+                return Rare;
+            case "Anomalous":
+                return Anomalous;
+            default:
+                Debug.LogWarning($"Unknown rarity: {RarityString}, defaulting to Common");
+                return Common;
+        }
+    }
 }

@@ -1,0 +1,32 @@
+{
+  "Enemies": [
+    {
+      "Tag": "Crawler",
+      "Rarity": "Common",
+      "Type": "Weak",
+      "Name": "CRAWLER",
+      "Description": "Basic enemy unit",
+      "maxHealth": 2,
+      "maxEnergy": 1,
+      "speed": 3,
+      "damagePoints": 1,
+      "range": 0,
+      "isHunting": true,
+      "isArmored": false
+    },
+    {
+      "Tag": "Launcher",
+      "Rarity": "Limited",
+      "Type": "Mediocre",
+      "Name": "LAUNCHER",
+      "Description": "Ranged enemy unit",
+      "maxHealth": 4,
+      "maxEnergy": 2,
+      "speed": 2,
+      "damagePoints": 2,
+      "range": 3,
+      "isHunting": false,
+      "isArmored": false
+    }
+  ]
+}
