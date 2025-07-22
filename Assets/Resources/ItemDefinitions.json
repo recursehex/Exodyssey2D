@@ -1,0 +1,160 @@
+{
+  "Items": [
+    {
+      "Tag": "MedKit",
+      "Rarity": "Limited",
+      "Type": "Consumable",
+      "Name": "MEDKIT",
+      "Description": "Fully heals injuries",
+      "maxUses": 1,
+      "isFlammable": true
+    },
+    {
+      "Tag": "ToolKit",
+      "Rarity": "Scarce",
+      "Type": "Consumable",
+      "Name": "TOOLKIT",
+      "Description": "Fully repairs vehicles",
+      "maxUses": 1
+    },
+    {
+      "Tag": "PowerCell",
+      "Rarity": "Scarce",
+      "Type": "Consumable",
+      "Name": "POWER CELL",
+      "Description": "Powers vehicles",
+      "maxUses": 5,
+      "isFlammable": true
+    },
+    {
+      "Tag": "Branch",
+      "Rarity": "Common",
+      "Type": "Weapon",
+      "Name": "BRANCH",
+      "Description": "Fragile stick",
+      "maxUses": 1,
+      "damagePoints": 1,
+      "armorDamage": 0,
+      "isFlammable": true
+    },
+    {
+      "Tag": "Knife",
+      "Rarity": "Limited",
+      "Type": "Weapon",
+      "Name": "KNIFE",
+      "Description": "Can stab through armor",
+      "maxUses": 2,
+      "damagePoints": 2,
+      "armorDamage": 1
+    },
+    {
+      "Tag": "Wrench",
+      "Rarity": "Scarce",
+      "Type": "Weapon",
+      "Name": "WRENCH",
+      "Description": "Weak against armor",
+      "maxUses": 4,
+      "damagePoints": 2,
+      "armorDamage": 1
+    },
+    {
+      "Tag": "Mallet",
+      "Rarity": "Rare",
+      "Type": "Weapon",
+      "Name": "MALLET",
+      "Description": "Stuns, bounces off armor",
+      "maxUses": 6,
+      "damagePoints": 3,
+      "armorDamage": 0,
+      "isStunning": true
+    },
+    {
+      "Tag": "FireAxe",
+      "Rarity": "Rare",
+      "Type": "Weapon",
+      "Name": "FIRE AXE",
+      "Description": "Cuts through armor",
+      "maxUses": 4,
+      "damagePoints": 4,
+      "armorDamage": 2
+    },
+    {
+      "Tag": "Chainsaw",
+      "Rarity": "Anomalous",
+      "Type": "Weapon",
+      "Name": "CHAINSAW",
+      "Description": "Handheld rock saw",
+      "maxUses": 8,
+      "damagePoints": 5
+    },
+    {
+      "Tag": "Tranquilizer",
+      "Rarity": "Scarce",
+      "Type": "Weapon",
+      "Name": "TRANQUILIZER",
+      "Description": "Stuns enemies for 1 turn",
+      "maxUses": 2,
+      "damagePoints": 0,
+      "range": 4,
+      "isStunning": true
+    },
+    {
+      "Tag": "Carbine",
+      "Rarity": "Rare",
+      "Type": "Weapon",
+      "Name": "CARBINE",
+      "Description": "Fires rifle bullets",
+      "maxUses": 4,
+      "damagePoints": 3,
+      "range": 4
+    },
+    {
+      "Tag": "HuntingRifle",
+      "Rarity": "Rare",
+      "Type": "Weapon",
+      "Name": "HUNTING RIFLE",
+      "Description": "Fires armor piercing rounds",
+      "maxUses": 3,
+      "damagePoints": 5,
+      "range": 10
+    },
+    {
+      "Tag": "PlasmaRailgun",
+      "Rarity": "Anomalous",
+      "Type": "Weapon",
+      "Name": "PLASMA RAILGUN",
+      "Description": "Fires a voltaic bolt of plasma",
+      "maxUses": 5,
+      "damagePoints": 10,
+      "range": 5
+    },
+    {
+      "Tag": "Rock",
+      "Rarity": "Common",
+      "Type": "Weapon",
+      "Name": "ROCK",
+      "Description": "Can be thrown again",
+      "maxUses": 1,
+      "damagePoints": 1,
+      "range": 3
+    },
+    {
+      "Tag": "Flare",
+      "Rarity": "Limited",
+      "Type": "Utility",
+      "Name": "FLARE",
+      "Description": "Temporary light",
+      "maxUses": 1,
+      "isFlammable": true
+    },
+    {
+      "Tag": "Extinguisher",
+      "Rarity": "Scarce",
+      "Type": "Utility",
+      "Name": "EXTINGUISHER",
+      "Description": "Extinguishes fires",
+      "maxUses": 4,
+      "isFlammable": true
+    }
+  ]
+}

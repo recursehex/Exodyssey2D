@@ -1,0 +1,68 @@
+{
+  "Vehicles": [
+    {
+      "Tag": "Rover",
+      "Rarity": "Scarce",
+      "Type": "Car",
+      "Name": "ROVER",
+      "Description": "Standard ISA vehicle",
+      "efficiency": 2,
+      "speed": 2.0,
+      "movementRange": 4,
+      "storage": 2,
+      "maxCharge": 10,
+      "maxHealth": 2,
+      "canOffroad": false,
+      "hasBattery": false,
+      "hasSpotlight": false
+    },
+    {
+      "Tag": "Trailer",
+      "Rarity": "Scarce",
+      "Type": "Car",
+      "Name": "TRAILER",
+      "Description": "Has a storage bay",
+      "efficiency": 3,
+      "speed": 1.0,
+      "movementRange": 3,
+      "storage": 4,
+      "maxCharge": 15,
+      "maxHealth": 3,
+      "canOffroad": false,
+      "hasBattery": false,
+      "hasSpotlight": false
+    },
+    {
+      "Tag": "Buggy",
+      "Rarity": "Rare",
+      "Type": "Car",
+      "Name": "BUGGY",
+      "Description": "Lightweight and efficient",
+      "efficiency": 1,
+      "speed": 4.0,
+      "movementRange": 5,
+      "storage": 0,
+      "maxCharge": 5,
+      "maxHealth": 1,
+      "canOffroad": true,
+      "hasBattery": false,
+      "hasSpotlight": false
+    },
+    {
+      "Tag": "Carrier",
+      "Rarity": "Anomalous",
+      "Type": "LargeVehicle",
+      "Name": "CARRIER",
+      "Description": "Armored transport vehicle",
+      "efficiency": 5,
+      "speed": 0.5,
+      "movementRange": 2,
+      "storage": 6,
+      "maxCharge": 20,
+      "maxHealth": 10,
+      "canOffroad": true,
+      "hasBattery": false,
+      "hasSpotlight": false
+    }
+  ]
+}

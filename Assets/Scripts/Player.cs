@@ -10,8 +10,8 @@ public class Player : MonoBehaviour
 {
 	#region DATA
 	private readonly int maxHealth 		= 3;
-	private int maxEnergy 				= 3;
-	private readonly int fixedMaxEnergy = 3; // Used to restore energy to original value
+	private static readonly int fixedMaxEnergy = 3; // Used to restore energy to original value
+	private int maxEnergy 				= fixedMaxEnergy;
 	private int currentHealth 			= 3;
 	public int currentEnergy 			= 3;
 	private readonly int walkSpeed 		= 2;
