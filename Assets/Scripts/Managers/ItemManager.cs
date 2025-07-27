@@ -29,6 +29,13 @@ public class ItemManager : MonoBehaviour
         Item.Info = new ItemInfo(index);
         Items.Add(Item);
     }
+    public void SpawnItem(ItemInfo existingInfo, Vector3 Position)
+    {
+        int index = (int)existingInfo.Tag;
+        Item Item = Instantiate(ItemTemplates[index], Position, Quaternion.identity).GetComponent<Item>();
+        Item.Info = existingInfo;
+        Items.Add(Item);
+    }
     public bool HasItemAtPosition(Vector3 Position)
     {
         return GetItemAtPosition(Position) != null;
