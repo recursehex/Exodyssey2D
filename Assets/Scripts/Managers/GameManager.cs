@@ -170,6 +170,7 @@ public class GameManager : MonoBehaviour
 	}
 	// Public methods for spawning entities (called by WeightedRarityGeneration)
 	public void SpawnItem(int index, Vector3 Position) 		=> ItemManager.SpawnItem(index, Position);
+	public void SpawnItem(ItemInfo existingInfo, Vector3 Position) => ItemManager.SpawnItem(existingInfo, Position);
 	public void SpawnEnemy(int index, Vector3 Position) 	=> EnemyManager.SpawnEnemy(index, Position);
 	public void SpawnVehicle(int index, Vector3 Position) 	=> VehicleManager.SpawnVehicle(index, Position);
 	// Public accessor methods
