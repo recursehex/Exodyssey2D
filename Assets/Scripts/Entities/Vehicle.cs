@@ -106,6 +106,15 @@ public class Vehicle : MonoBehaviour
 	}
 	#endregion
 	#region HEALTH METHODS
+	public bool Repair()
+	{
+		if (Info.RestoreHealth())
+		{
+			SoundManager.Instance.PlaySound(Select);
+			return true;
+		}
+		return false;
+	}
 	/// <summary>
 	/// Returns true if vehicle's health reaches 0
 	/// </summary>

@@ -98,8 +98,6 @@ public class GameManager : MonoBehaviour
 		{
 			return;
 		}
-		MovePlayerToVehicle();
-		HandlePlayerExitTile();
 		InputManager.ProcessInput();
 		if (!TurnManager.IsPlayersTurn)
 		{
@@ -186,15 +184,6 @@ public class GameManager : MonoBehaviour
 	public bool HasEnemies() 								=> EnemyManager.Enemies.Count > 0;
 	public bool HasExitTileAtPosition(Vector3Int Position) => LevelManager.HasExitTileAtPosition(Position);
 	public int Level => LevelManager.Level;
-	private void MovePlayerToVehicle()
-    {
-        if (!Player.IsInVehicle || Player.Vehicle.IsInMovement)
-        {
-            return;
-        }
-        Player.transform.position = Player.Vehicle.transform.position;
-        Player.IsInMovement = false;
-    }
     public void StopTurnTimer()
 	{
 		TurnManager.StopTurnTimer();
@@ -251,6 +240,13 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	private void OnPlayerMovementComplete()
 	{
+		// Move Player to vehicle position if in vehicle
+		if (Player.IsInVehicle && Player.Vehicle != null)
+		{
+			Player.transform.position = Player.Vehicle.transform.position;
+		}
+		// Check if player is on exit tile
+		HandlePlayerExitTile();
 		if (TurnManager.IsPlayersTurn)
 		{
 			TurnManager.SetEndTurnButtonInteractable(true);
@@ -269,10 +265,6 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	private void HandlePlayerExitTile()
 	{
-		if (Player.IsInMovement)
-		{
-			return;
-		}
 		if (LevelManager.HasExitTileAtPosition(Vector3Int.FloorToInt(Player.transform.position)))
 		{
 			TileManager.TileDot.SetActive(false);
