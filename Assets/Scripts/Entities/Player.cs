@@ -443,7 +443,7 @@ public class Player : MonoBehaviour
 		}
 		// Try to use ToolKit on vehicle
 		if (SelectedItemInfo.Tag is ItemInfo.Tags.ToolKit
-			&& Vehicle.Info.RestoreHealth())
+			&& Vehicle.Repair())
 		{
 			DecrementItemDurability();
 			return true;
