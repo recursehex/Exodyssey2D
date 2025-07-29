@@ -66,7 +66,7 @@ public class ItemInfo
 		Utility,
 		Unknown,
 	}
-	private ItemData Data = new();						// Internal data storage
+	private ItemData Data = new();										// Internal data
 	public Tags Tag 			{ get; private set; } = Tags.Unknown;	// Name of item
 	public Rarity Rarity 		{ get; private set; } = Rarity.Common;	// Rarity of item
 	public Types Type 			{ get; private set; } = Types.Unknown;	// Type of item
@@ -80,7 +80,7 @@ public class ItemInfo
 	public bool IsEquipable 	=> Data.isEquipable;					// If item can be equipped, enabling and removing from inventory
 	public bool IsAttachable 	=> Data.isAttachable;					// If item can be attached to vehicles, enabling and removing from inventory
 	public bool IsFlammable 	=> Data.isFlammable;					// If item is flammable, can be destroyed by fire and helps it spread
-	public bool IsStunning 		=> Data.isStunning;					// If item stuns enemies when used
+	public bool IsStunning 		=> Data.isStunning;						// If item stuns enemies when used
 	private static readonly int lastItemIndex = (int)Tags.Unknown;
 	private static readonly List<Rarity> ItemRarityList = GenerateAllRarities();
 	private static ItemDatabase ItemDatabase;
@@ -117,10 +117,15 @@ public class ItemInfo
 				Tags tag 		= (Tags)i;
 				string tagName 	= tag.ToString();
 				ItemData data = ItemDatabase.Items.Find(item => item.Tag == tagName);
-				if (data != null)
+				if (data != null && !data.disabled)
 				{
 					Rarity parsedRarity = Rarity.Parse(data.Rarity);
 					rarities.Add(parsedRarity);
+				}
+				else if (data != null && data.disabled)
+				{
+					// Skip disabled items
+					continue;
 				}
 				else
 				{
@@ -180,11 +185,15 @@ public class ItemInfo
 		 && ItemDatabase.Items != null)
 		{
 			ItemData Data = ItemDatabase.Items.Find(Item => Item.Tag == TagName);
-			if (Data != null)
+			if (Data != null && !Data.disabled)
 			{
 				LoadFromData(Data);
 				CurrentUses = Data.maxUses;
 				return;
+			}
+			else if (Data != null && Data.disabled)
+			{
+				Debug.LogWarning($"Item {n} {TagName} is disabled in JSON");
 			}
 		}
 		

@@ -18,6 +18,7 @@ public class VehicleData
     public bool canOffroad = false;
     public bool hasBattery = false;
     public bool hasSpotlight = false;
+    public bool disabled = false;
 }
 
 [Serializable]

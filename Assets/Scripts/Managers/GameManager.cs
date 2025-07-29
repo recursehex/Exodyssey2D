@@ -194,7 +194,6 @@ public class GameManager : MonoBehaviour
         }
         Player.transform.position = Player.Vehicle.transform.position;
         Player.IsInMovement = false;
-        // End turn button is re-enabled via OnPlayerMovementComplete event
     }
     public void StopTurnTimer()
 	{
@@ -202,7 +201,7 @@ public class GameManager : MonoBehaviour
 	}
 	public void OnEndTurnPress()
 	{
-		if (Player.IsInMovement)
+		if (Player.IsInMovement || doingSetup)
 		{
 			return;
 		}

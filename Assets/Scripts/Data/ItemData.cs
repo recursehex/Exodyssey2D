@@ -17,6 +17,7 @@ public class ItemData
     public bool isAttachable = false;
     public bool isFlammable = false;
     public bool isStunning = false;
+    public bool disabled = false;
 }
 
 [Serializable]

@@ -16,6 +16,7 @@ public class EnemyData
     public int range = 0;
     public bool isHunting = true;
     public bool isArmored = false;
+    public bool disabled = false;
 }
 
 [Serializable]

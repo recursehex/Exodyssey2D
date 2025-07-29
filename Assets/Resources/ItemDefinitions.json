@@ -109,6 +109,18 @@
       "range": 4
     },
     {
+      "disabled": true,
+      "Tag": "Flamethrower",
+      "Rarity": "Rare",
+      "Type": "Weapon",
+      "Name": "FLAMETHROWER",
+      "Description": "Sprays streaks of fire",
+      "maxUses": 4,
+      "damagePoints": 1,
+      "range": 3,
+      "isFlammable": true
+    },
+    {
       "Tag": "HuntingRifle",
       "Rarity": "Rare",
       "Type": "Weapon",
@@ -139,11 +151,98 @@
       "range": 3
     },
     {
+      "disabled": true,
+      "Tag": "SmokeGrenade",
+      "Rarity": "Scarce",
+      "Type": "Weapon",
+      "Name": "SMOKE GRENADE",
+      "Description": "Stuns nearby enemies for 1 turn",
+      "maxUses": 1,
+      "damagePoints": 0,
+      "range": 3,
+      "isStunning": true
+    },
+    {
+      "disabled": true,
+      "Tag": "Dynamite",
+      "Rarity": "Scarce",
+      "Type": "Weapon",
+      "Name": "DYNAMITE",
+      "Description": "Explodes after enemy turn",
+      "maxUses": 1,
+      "damagePoints": 5,
+      "range": 3,
+      "isFlammable": true
+    },
+    {
+      "disabled": true,
+      "Tag": "StickyGrenade",
+      "Rarity": "Anomalous",
+      "Type": "Weapon",
+      "Name": "STICKY GRENADE",
+      "Description": "Sticks to enemy and explodes",
+      "maxUses": 1,
+      "damagePoints": 3,
+      "range": 5,
+      "isFlammable": true
+    },
+    {
+      "disabled": true,
+      "Tag": "Helmet",
+      "Rarity": "Scarce",
+      "Type": "Armor",
+      "Name": "HELMET",
+      "Description": "Absorbs 2 melee DP",
+      "maxUses": 2,
+      "isEquipable": true
+    },
+    {
+      "disabled": true,
+      "Tag": "Vest",
+      "Rarity": "Rare",
+      "Type": "Armor",
+      "Name": "VEST",
+      "Description": "Absorbs 3 ranged DP",
+      "maxUses": 3,
+      "isEquipable": true,
+      "isFlammable": true
+    },
+    {
+      "disabled": true,
+      "Tag": "GrapheneShield",
+      "Rarity": "Anomalous",
+      "Type": "Armor",
+      "Name": "GRAPHENE SHIELD",
+      "Description": "Blocks all DP except boss DP",
+      "maxUses": 1
+    },
+    {
+      "disabled": true,
+      "Tag": "Battery",
+      "Rarity": "Anomalous",
+      "Type": "Utility",
+      "Name": "BATTERY",
+      "Description": "Adds 5 power charges",
+      "maxUses": 5,
+      "isAttachable": true,
+      "isFlammable": true
+    },
+    {
       "Tag": "Flare",
       "Rarity": "Limited",
       "Type": "Utility",
       "Name": "FLARE",
       "Description": "Temporary light",
+      "maxUses": 1,
+      "isFlammable": true
+    },
+    {
+      "disabled": true,
+      "Tag": "Lightrod",
+      "Rarity": "Scarce",
+      "Type": "Utility",
+      "Name": "LIGHTROD",
+      "Description": "Illuminates surroundings",
       "maxUses": 1,
       "isFlammable": true
     },
@@ -155,6 +254,45 @@
       "Description": "Extinguishes fires",
       "maxUses": 4,
       "isFlammable": true
+    },
+    {
+      "disabled": true,
+      "Tag": "Spotlight",
+      "Rarity": "Rare",
+      "Type": "Utility",
+      "Name": "SPOTLIGHT",
+      "Description": "Outputs directional light",
+      "maxUses": 1,
+      "isAttachable": true
+    },
+    {
+      "disabled": true,
+      "Tag": "Blowtorch",
+      "Rarity": "Rare",
+      "Type": "Utility",
+      "Name": "BLOWTORCH",
+      "Description": "Sets objects on fire",
+      "maxUses": 4,
+      "isFlammable": true
+    },
+    {
+      "disabled": true,
+      "Tag": "ThermalImager",
+      "Rarity": "Rare",
+      "Type": "Utility",
+      "Name": "THERMAL IMAGER",
+      "Description": "Reveals heat signatures",
+      "maxUses": 4
+    },
+    {
+      "disabled": true,
+      "Tag": "NightVision",
+      "Rarity": "Anomalous",
+      "Type": "Utility",
+      "Name": "NIGHT VISION",
+      "Description": "Enables nighttime visibility",
+      "maxUses": 1,
+      "isEquipable": true
     }
   ]
 }
