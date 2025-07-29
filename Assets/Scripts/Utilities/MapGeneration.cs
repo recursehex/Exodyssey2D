@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-public static class MapGen
+public static class MapGeneration
 {
     // 0 means no wall, 1 means place wall
     private static readonly int[,] template1 = new int[3, 3]

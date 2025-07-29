@@ -75,7 +75,7 @@ public class LevelManager : MonoBehaviour
     }
     private void GenerateWalls()
     {
-        MapGen.GenerateMap(TilemapWalls, WallTiles);
+        MapGeneration.GenerateMap(TilemapWalls, WallTiles);
     }
     public bool HasWallAtPosition(Vector3Int Position)
     {

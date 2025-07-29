@@ -31,7 +31,7 @@ public class EnemyInfo
 
 		Unknown,
 	}
-	private EnemyData Data = new();								// Internal data storage
+	private EnemyData Data = new();										// Internal data
 	public Tags Tag 			{ get; private set; } = Tags.Unknown;	// Name of enemy
 	public Rarity Rarity 		{ get; private set; } = Rarity.Common;	// Rarity of enemy
 	public Types Type 			{ get; private set; } = Types.Unknown;	// Type of enemy
@@ -80,10 +80,15 @@ public class EnemyInfo
 				Tags tag = (Tags)i;
 				string tagName = tag.ToString();
 				EnemyData data = EnemyDatabase.Enemies.Find(enemy => enemy.Tag == tagName);
-				if (data != null)
+				if (data != null && !data.disabled)
 				{
 					Rarity parsedRarity = Rarity.Parse(data.Rarity);
 					rarities.Add(parsedRarity);
+				}
+				else if (data != null && data.disabled)
+				{
+					// Skip disabled items
+					continue;
 				}
 				else
 				{
@@ -144,12 +149,16 @@ public class EnemyInfo
 		 && EnemyDatabase.Enemies != null)
 		{
 			EnemyData Data = EnemyDatabase.Enemies.Find(Enemy => Enemy.Tag == TagName);
-			if (Data != null)
+			if (Data != null && !Data.disabled)
 			{
 				LoadFromData(Data);
 				CurrentHealth = Data.maxHealth;
 				CurrentEnergy = Data.maxEnergy;
 				return;
+			}
+			else if (Data != null && Data.disabled)
+			{
+				Debug.LogWarning($"Enemy {n} {TagName} is disabled in JSON");
 			}
 		}
 		

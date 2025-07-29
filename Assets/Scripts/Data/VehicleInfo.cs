@@ -22,20 +22,20 @@ public class VehicleInfo
 		LargeVehicle,
 		Unknown,
 	}
-	private VehicleData Data = new();								// Internal data storage
+	private VehicleData Data = new();									// Internal data storage
 	public Tags Tag 			{ get; private set; } = Tags.Unknown;	// Name of vehicle
 	public Rarity Rarity 		{ get; private set; } = Rarity.Common;	// Rarity of vehicle
 	public Types Type 			{ get; private set; } = Types.Unknown;	// Type of vehicle
 	public string Name 			=> Data.Name;							// Ingame name of vehicle
 	public string Description 	=> Data.Description;					// Ingame description of vehicle
-	public int Efficiency 		=> Data.efficiency;					// Charge used per 100 km, lower is better
+	public int Efficiency 		=> Data.efficiency;						// Charge used per 100 km, lower is better
 	public float Speed 			=> Data.speed;							// Movement speed for pathfinding
 	public int MovementRange 	=> Data.movementRange;					// How many tiles vehicle can move per turn
 	public int Storage 			=> Data.storage;						// Number of inventory slots
 	public int CurrentCharge 	{ get; private set; } = 1;				// Current charge
 	public int CurrentHealth 	{ get; private set; } = 1;				// Current health
-	public bool CanOffroad 		=> Data.canOffroad;					// If vehicle can drive offroad
-	public bool HasBattery 		=> Data.hasBattery;					// If vehicle has battery
+	public bool CanOffroad 		=> Data.canOffroad;						// If vehicle can drive offroad
+	public bool HasBattery 		=> Data.hasBattery;						// If vehicle has battery
 	public bool HasSpotlight 	=> Data.hasSpotlight;					// If vehicle has spotlight
 	public bool IsOn 			{ get; private set; } = false;			// If vehicle is turned on
 	private static readonly int lastVehicleIndex = (int)Tags.Unknown;
@@ -73,10 +73,15 @@ public class VehicleInfo
 				Tags tag = (Tags)i;
 				string tagName = tag.ToString();
 				VehicleData data = VehicleDatabase.Vehicles.Find(vehicle => vehicle.Tag == tagName);
-				if (data != null)
+				if (data != null && !data.disabled)
 				{
 					Rarity parsedRarity = Rarity.Parse(data.Rarity);
 					rarities.Add(parsedRarity);
+				}
+				else if (data != null && data.disabled)
+				{
+					// Skip disabled items
+					continue;
 				}
 				else
 				{
@@ -166,12 +171,16 @@ public class VehicleInfo
 		 && VehicleDatabase.Vehicles != null)
 		{
 			VehicleData Data = VehicleDatabase.Vehicles.Find(Vehicle => Vehicle.Tag == TagName);
-			if (Data != null)
+			if (Data != null && !Data.disabled)
 			{
 				LoadFromData(Data);
 				CurrentCharge = Data.maxCharge;
 				CurrentHealth = Data.maxHealth;
 				return;
+			}
+			else if (Data != null && Data.disabled)
+			{
+				Debug.LogWarning($"Vehicle {n} {TagName} is disabled in JSON");
 			}
 		}
 		
