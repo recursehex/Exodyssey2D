@@ -52,7 +52,7 @@ public class ItemInfo
 		//Spotlight,
 		//Blowtorch,
 		//ThermalImager,
-		//NightVision,
+		NightVision,
 		Unknown,
 	}
 	/// <summary>

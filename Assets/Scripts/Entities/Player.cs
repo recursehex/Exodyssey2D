@@ -372,7 +372,7 @@ public class Player : MonoBehaviour
 		}
 	}
 	/// <summary>
-	/// Handles when ClickTarget() clicks on Player, returns false if item is not valid or was not used
+	/// Handles when Player is clicked on, returns false if item is not valid or was not used
 	/// </summary>
 	public bool ClickOnToUseItem()
 	{
@@ -410,7 +410,8 @@ public class Player : MonoBehaviour
 		// {
 		// 	hasHelmet = true;
 		// 	helmetHealth = SelectedItemInfo.CurrentUses;
-		// 	SelectedItemInfo = null;
+		// 	DecrementItemDurability();
+		// 	DecrementEnergy();
 		// 	return true;
 		// }
 		// else if (SelectedItemInfo.Tag is ItemInfo.Tags.Vest
@@ -418,16 +419,18 @@ public class Player : MonoBehaviour
 		// {
 		// 	hasVest = true;
 		// 	vestHealth = SelectedItemInfo.CurrentUses;
-		// 	SelectedItemInfo = null;
+		// 	DecrementItemDurability();
+		// 	DecrementEnergy();
 		// 	return true;
 		// }
-		// else if (SelectedItemInfo.Tag is ItemInfo.Tags.NightVision
-		// 	&& !hasNightVision)
-		// {
-		// 	hasNightVision = true;
-		// 	SelectedItemInfo = null;
-		// 	return true;
-		// }
+		else if (SelectedItemInfo.Tag is ItemInfo.Tags.NightVision
+			&& !hasNightVision)
+		{
+			hasNightVision = true;
+			DecrementItemDurability();
+			DecrementEnergy();
+			return true;
+		}
 		return false;
 	}
 	/// <summary>
