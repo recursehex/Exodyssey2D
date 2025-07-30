@@ -860,6 +860,9 @@ MonoBehaviour:
   MainCamera: {fileID: 519420031}
   Player: {fileID: 569674968}
   doingSetup: 0
+  levelStartDelay: 1.5
+  PlayerStartPosition: {x: -3.5, y: 0.5, z: 0}
+  FadeOutDuration: 2
   EnemyManager: {fileID: 0}
   ItemManager: {fileID: 0}
   VehicleManager: {fileID: 0}
@@ -887,6 +890,7 @@ MonoBehaviour:
   - {fileID: 2145379877062402088, guid: 1a6b4107ceb4a4d4db276eae951f74b4, type: 3}
   - {fileID: 1336611518689343522, guid: aeb86c0077d274d9b8a3e58629e201f1, type: 3}
   - {fileID: 1336611518689343522, guid: 9ec3ca548544e4c8ea2d94a4aefa9fac, type: 3}
+  - {fileID: 1336611518689343522, guid: 2425e56511d084687aa3ddc01200d2a1, type: 3}
   VehicleTemplates:
   - {fileID: 283541130281458624, guid: b85441ba2624a4848a67b0e4673e5212, type: 3}
   - {fileID: 283541130281458624, guid: 70bcb0b5b6c344e258342aae4df51e07, type: 3}

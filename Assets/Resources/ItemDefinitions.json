@@ -285,7 +285,6 @@
       "maxUses": 4
     },
     {
-      "disabled": true,
       "Tag": "NightVision",
       "Rarity": "Anomalous",
       "Type": "Utility",
