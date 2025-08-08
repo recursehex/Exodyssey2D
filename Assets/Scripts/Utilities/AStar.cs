@@ -61,26 +61,21 @@ public class AStar
 		}
 		return ReachableArea;
 	}
-	public Stack<Vector3Int> ComputePath(Vector3 Start, Vector3 Goal, bool allowPartialPath = false)
-	{
-		StartPosition = TilemapGround.WorldToCell(Start);
-		GoalPosition = TilemapGround.WorldToCell(Goal);
-		AllNodes.Clear();
-		Current = GetNode(StartPosition);
-		// For nodes to be looked at later
-		OpenList = new();
-		// For examined nodes
-		ClosedList = new();
-		foreach (KeyValuePair<Vector3Int, Node> Node in AllNodes)
-		{
-			Node.Value.Parent = null;
-		}
-		AllNodes.Clear();
-		// Adds the current node to OpenList (has been examined)
-		OpenList.Add(Current);
-		Path = null;
-		while (OpenList.Count > 0 && Path == null)
-		{
+    public Stack<Vector3Int> ComputePath(Vector3 Start, Vector3 Goal, bool allowPartialPath = false)
+    {
+        StartPosition = TilemapGround.WorldToCell(Start);
+        GoalPosition = TilemapGround.WorldToCell(Goal);
+        AllNodes.Clear();
+        Current = GetNode(StartPosition);
+        // For nodes to be looked at later
+        OpenList = new();
+        // For examined nodes
+        ClosedList = new();
+        // Adds the current node to OpenList (has been examined)
+        OpenList.Add(Current);
+        Path = null;
+        while (OpenList.Count > 0 && Path == null)
+        {
 			List<Node> Neighbors = FindNeighbors(Current.Position, allowPartialPath);
 			ExamineNeighbors(Neighbors, Current);
 			UpdateCurrentTile(ref Current);

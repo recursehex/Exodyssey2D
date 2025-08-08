@@ -11,7 +11,6 @@ public class TileManager : MonoBehaviour
     private readonly List<GameObject> TileAreas = new();
     private readonly List<GameObject> Targets = new();
     private readonly List<GameObject> Tracers = new();
-    private List<Vector3> TracerPath = new();
     private Dictionary<Vector3Int, Node> TileAreasToDraw = null;
     public void Initialize(GameObject TileDot, GameObject TileArea, GameObject TargetTemplate, GameObject TracerTemplate)
     {
@@ -93,23 +92,18 @@ public class TileManager : MonoBehaviour
                 continue;
             }
             Vector3 EnemyPosition = Enemy.transform.position;
-            // Draw tracers
-            if (TracerPath.Count > 0)
+            // Check LOS and draw tracers for this enemy only
+            if (IsInLineOfSight(PlayerPosition, EnemyPosition, weaponRange, Walls, out List<Vector3> Path))
             {
-                foreach (Vector3 tracerPosition in TracerPath)
+                foreach (Vector3 tracerPosition in Path)
                 {
                     GameObject Tracer = Instantiate(TracerTemplate, tracerPosition, Quaternion.identity);
                     Tracers.Add(Tracer);
                 }
-            }
-            // Check if enemy is in line of sight and range to draw target
-            if (IsInLineOfSight(PlayerPosition, EnemyPosition, weaponRange, Walls))
-            {
                 GameObject Target = Instantiate(TargetTemplate, EnemyPosition, Quaternion.identity);
                 Targets.Add(Target);
             }
         }
-        TracerPath.Clear();
     }
     /// <summary>
     /// Checks if enemy is in line of sight and range
@@ -119,8 +113,9 @@ public class TileManager : MonoBehaviour
     /// <param name="weaponRange"></param>
     /// <param name="Walls"></param>
     /// <returns></returns>
-    private bool IsInLineOfSight(Vector3 PlayerPosition, Vector3 EnemyPosition, int weaponRange, Tilemap Walls)
+    private bool IsInLineOfSight(Vector3 PlayerPosition, Vector3 EnemyPosition, int weaponRange, Tilemap Walls, out List<Vector3> Path)
     {
+        Path = null;
         float distance = Mathf.Sqrt(Mathf.Pow(EnemyPosition.x - PlayerPosition.x, 2) + Mathf.Pow(EnemyPosition.y - PlayerPosition.y, 2));
         if (distance > weaponRange)
         {
@@ -128,8 +123,8 @@ public class TileManager : MonoBehaviour
         }
         Vector3Int PlayerPositionInt = new((int)(PlayerPosition.x - 0.5f), (int)(PlayerPosition.y - 0.5f), 0);
         Vector3Int EnemyPositionInt = new((int)(EnemyPosition.x - 0.5f), (int)(EnemyPosition.y - 0.5f), 0);
-        TracerPath = BresenhamsAlgorithm(PlayerPositionInt.x, PlayerPositionInt.y, EnemyPositionInt.x, EnemyPositionInt.y);
-        foreach (Vector3 tracerPosition in TracerPath)
+        Path = BresenhamsAlgorithm(PlayerPositionInt.x, PlayerPositionInt.y, EnemyPositionInt.x, EnemyPositionInt.y);
+        foreach (Vector3 tracerPosition in Path)
         {
             Vector3Int tracerPositionInt = new((int)tracerPosition.x, (int)tracerPosition.y, 0);
             if (Walls.HasTile(tracerPositionInt))
@@ -183,6 +178,6 @@ public class TileManager : MonoBehaviour
     }
     public bool IsInRangedWeaponRange(Vector3 Position)
     {
-        return Targets.Find(Target => Target.transform.position == Position);
+        return Targets.Exists(Target => Target.transform.position == Position);
     }
 }

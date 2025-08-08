@@ -99,6 +99,7 @@ public class GameManager : MonoBehaviour
 			return;
 		}
 		InputManager.ProcessInput();
+		// Process enemy movement if it is not Player's turn
 		if (!TurnManager.IsPlayersTurn)
 		{
 			EnemyManager.ProcessEnemyMovement(() => TurnManager.EndEnemyTurn());
@@ -166,7 +167,7 @@ public class GameManager : MonoBehaviour
 		LevelManager.ShowGameOver();
 		enabled = false;
 	}
-	// Public methods for spawning entities (called by WeightedRarityGeneration)
+	// Public methods for spawning entities, called by WeightedRarityGeneration
 	public void SpawnItem(int index, Vector3 Position) 		=> ItemManager.SpawnItem(index, Position);
 	public void SpawnItem(ItemInfo existingInfo, Vector3 Position) => ItemManager.SpawnItem(existingInfo, Position);
 	public void SpawnEnemy(int index, Vector3 Position) 	=> EnemyManager.SpawnEnemy(index, Position);
