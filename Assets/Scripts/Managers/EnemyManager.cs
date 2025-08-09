@@ -10,6 +10,8 @@ public class EnemyManager : MonoBehaviour
     public bool NeedToStartEnemyMovement { get; set; } = false;
     [SerializeField] private bool EnemiesAreMoving = false;
     [SerializeField] private int indexOfMovingEnemy = -1;
+    private readonly List<Enemy> BlockedEnemies = new();
+    private bool IsRetryingBlockedEnemies = false;
     private Tilemap TilemapGround;
     private Tilemap TilemapWalls;
     public System.Action OnEnemyKilled;
@@ -90,6 +92,8 @@ public class EnemyManager : MonoBehaviour
         {
             NeedToStartEnemyMovement = false;
             indexOfMovingEnemy = 0;
+            BlockedEnemies.Clear();
+            IsRetryingBlockedEnemies = false;
             Enemies[indexOfMovingEnemy].ComputePathAndStartMovement();
             GameManager.Instance.ClearTileAreas();
             GameManager.Instance.ClearTargets();
@@ -98,10 +102,35 @@ public class EnemyManager : MonoBehaviour
         }
         if (EnemiesAreMoving && !Enemies[indexOfMovingEnemy].IsInMovement)
         {
-            if (indexOfMovingEnemy < Enemies.Count - 1)
+            // Check if current enemy was blocked
+            Enemy currentEnemy = IsRetryingBlockedEnemies ? BlockedEnemies[indexOfMovingEnemy] : Enemies[indexOfMovingEnemy];
+            if (!IsRetryingBlockedEnemies && currentEnemy.WasBlockedThisTurn)
+            {
+                BlockedEnemies.Add(currentEnemy);
+            }
+            // Continue with next enemy in current list
+            int maxIndex = IsRetryingBlockedEnemies
+                            ? BlockedEnemies.Count - 1
+                            : Enemies.Count - 1;
+            if (indexOfMovingEnemy < maxIndex)
             {
                 indexOfMovingEnemy++;
-                Enemies[indexOfMovingEnemy].ComputePathAndStartMovement();
+                if (IsRetryingBlockedEnemies)
+                {
+                    BlockedEnemies[indexOfMovingEnemy].ComputePathAndStartMovement();
+                }
+                else
+                {
+                    Enemies[indexOfMovingEnemy].ComputePathAndStartMovement();
+                }
+                return;
+            }
+            // If finished first pass and have blocked enemies, retry them
+            if (!IsRetryingBlockedEnemies && BlockedEnemies.Count > 0)
+            {
+                IsRetryingBlockedEnemies = true;
+                indexOfMovingEnemy = 0;
+                BlockedEnemies[0].ComputePathAndStartMovement();
                 return;
             }
             EndEnemyTurn(OnMovementComplete);
