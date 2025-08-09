@@ -14,6 +14,7 @@ public class Enemy : MonoBehaviour
 	#endregion
 	#region PATHFINDING
 	public bool IsInMovement { get; private set; } = false;
+	public bool WasBlockedThisTurn { get; set; } = false;
 	private Tilemap TilemapGround;
 	private Tilemap TilemapWalls;
 	private Stack<Vector3Int> Path;
@@ -38,6 +39,7 @@ public class Enemy : MonoBehaviour
 	/// </summary>
 	public void ComputePathAndStartMovement()
 	{
+		WasBlockedThisTurn = false;
 		// Stuns enemy for one turn
 		if (Info.IsStunned)
 		{
@@ -60,7 +62,9 @@ public class Enemy : MonoBehaviour
             isUsingRandomPath = true;
         }
         // Handle movement for paths with more than 2 nodes OR random paths with exactly 2 nodes
-        if (Path != null && Info.CurrentEnergy > 0 && (Path.Count > 2 || (Path.Count == 2 && isUsingRandomPath)))
+        if (Path != null
+			&& Info.CurrentEnergy > 0
+			&& (Path.Count > 2 || (Path.Count == 2 && isUsingRandomPath)))
 		{
 			Info.DecrementEnergy();
 			IsInMovement = true;
@@ -85,10 +89,13 @@ public class Enemy : MonoBehaviour
 				Path = null;
 				IsInMovement = false;
 				isUsingRandomPath = false;
+				WasBlockedThisTurn = true;
 			}
 		}
 		// If enemy is adjacent to Player, attack (but only if not using a random path)
-		else if (Path != null && Path.Count == 2 && !isUsingRandomPath)
+		else if (Path != null
+				&& Path.Count == 2
+				&& !isUsingRandomPath)
 		{
 			while (Info.CurrentEnergy > 0)
 			{
@@ -101,6 +108,11 @@ public class Enemy : MonoBehaviour
 			Path = null;
 			IsInMovement = false;
 			isUsingRandomPath = false;
+			// Mark as blocked if enemy has energy but couldn't move
+			if (Info.CurrentEnergy > 0 && Path == null)
+			{
+				WasBlockedThisTurn = true;
+			}
 		}
 	}
 	/// <summary>
@@ -123,7 +135,6 @@ public class Enemy : MonoBehaviour
 				yield return null;
 			}
 		}
-		
 		// Then continue with remaining path if any
 		while (Path != null && Path.Count > 0)
 		{
@@ -132,7 +143,6 @@ public class Enemy : MonoBehaviour
 			{
 				Vector3Int NextDestination = Path.Peek();
 				Vector3 NextShiftedDestination = new(NextDestination.x + 0.5f, NextDestination.y + 0.5f, 0);
-				
 				// Check if next destination is still free before moving
 				if (!GameManager.Instance.HasEnemyAtPosition(NextShiftedDestination)
 					&& !GameManager.Instance.HasVehicleAtPosition(NextShiftedDestination))
@@ -158,7 +168,9 @@ public class Enemy : MonoBehaviour
 				}
 			}
 			// Enemy attacks Player if enemy moves to an adjacent tile (but not when using random path)
-			else if (Path.Count == 1 && Info.CurrentEnergy > 0 && !isUsingRandomPath)
+			else if (Path.Count == 1
+					&& Info.CurrentEnergy > 0
+					&& !isUsingRandomPath)
 			{
 				AttackPlayer();
 				break;
@@ -169,7 +181,6 @@ public class Enemy : MonoBehaviour
 				break;
 			}
 		}
-		
 		// Clean up after movement ends
 		Path = null;
 		IsInMovement = false;
