@@ -21,6 +21,7 @@ public class Enemy : MonoBehaviour
 	private Player Player;
 	private AStar AStar;
 	private Coroutine MoveRoutine;
+	private bool isUsingRandomPath = false;
 	#endregion
 	public void Initialize(Tilemap Ground, Tilemap Walls, EnemyInfo EnemyInfo)
 	{
@@ -46,18 +47,26 @@ public class Enemy : MonoBehaviour
 		StunIcon.SetActive(false);
 		AStar.Initialize();
 		AStar.SetAllowDiagonal(false);
+		// Track if we're using a random path (not targeting the player)
+		isUsingRandomPath = false;
 		// First try to find a complete path to the player
 		Path = AStar.ComputePath(transform.position, Player.transform.position);
-		// If no complete path is available, try partial pathfinding
+		// If no complete path is available (other enemy is in the way), try partial pathfinding
 		Path ??= AStar.ComputePath(transform.position, Player.transform.position, true);
-		// Compute path to Player and prevent enemy from colliding into Player
-		if (Path != null && Info.CurrentEnergy > 0 && Path.Count > 2)
+        // If still no path (enemy is completely blocked from player), try to find a random position within 5 tiles to move to
+        if (Path == null)
+        {
+            Path = AStar.ComputeRandomPath(transform.position, 5);
+            isUsingRandomPath = true;
+        }
+        // Handle movement for paths with more than 2 nodes OR random paths with exactly 2 nodes
+        if (Path != null && Info.CurrentEnergy > 0 && (Path.Count > 2 || (Path.Count == 2 && isUsingRandomPath)))
 		{
 			Info.DecrementEnergy();
 			IsInMovement = true;
 			// Remove first tile in path
 			Path.Pop();
-			// Move one tile closer to Player
+			// Move one tile closer to destination
 			Vector3Int TryDistance = Path.Pop();
 			Vector3 ShiftedTryDistance = TryDistance + new Vector3(0.5f, 0.5f);
 			if (!GameManager.Instance.HasEnemyAtPosition(ShiftedTryDistance) 
@@ -75,21 +84,23 @@ public class Enemy : MonoBehaviour
 			{
 				Path = null;
 				IsInMovement = false;
+				isUsingRandomPath = false;
 			}
 		}
-		// If enemy is adjacent to Player, attack
-		else if (Path != null && Path.Count == 2)
+		// If enemy is adjacent to Player, attack (but only if not using a random path)
+		else if (Path != null && Path.Count == 2 && !isUsingRandomPath)
 		{
 			while (Info.CurrentEnergy > 0)
 			{
 				AttackPlayer();
 			}
 		}
-		// If no path to Player, do not start moving
+		// If no valid movement available
 		else
 		{
 			Path = null;
 			IsInMovement = false;
+			isUsingRandomPath = false;
 		}
 	}
 	/// <summary>
@@ -97,11 +108,12 @@ public class Enemy : MonoBehaviour
 	/// </summary>
 	private IEnumerator MoveAlongPath()
 	{
-		while (Path != null && Path.Count > 0)
+		// First, move to the initial destination that was already popped
+		if (Destination != null)
 		{
 			SoundManager.Instance.PlaySound(Move);
 			Vector3 ShiftedDistance = Destination + new Vector3(0.5f, 0.5f);
-			// Move one tile closer to Player
+			// Move to the destination
 			while (Vector3.Distance(transform.position, ShiftedDistance) > 0f)
 			{
 				transform.position = Vector3.MoveTowards(
@@ -110,7 +122,12 @@ public class Enemy : MonoBehaviour
 					Info.Speed * Time.deltaTime);
 				yield return null;
 			}
-			// Pop next tile in path
+		}
+		
+		// Then continue with remaining path if any
+		while (Path != null && Path.Count > 0)
+		{
+			// Check for next tile in path
 			if (Path.Count > 1 && Info.CurrentEnergy > 0)
 			{
 				Vector3Int NextDestination = Path.Peek();
@@ -122,28 +139,43 @@ public class Enemy : MonoBehaviour
 				{
 					Info.DecrementEnergy();
 					Destination = Path.Pop();
+					SoundManager.Instance.PlaySound(Move);
+					Vector3 ShiftedDistance = Destination + new Vector3(0.5f, 0.5f);
+					// Move to next tile
+					while (Vector3.Distance(transform.position, ShiftedDistance) > 0f)
+					{
+						transform.position = Vector3.MoveTowards(
+							transform.position, 
+							ShiftedDistance, 
+							Info.Speed * Time.deltaTime);
+						yield return null;
+					}
 				}
 				else
 				{
 					// Stop moving if next position is now occupied
-					Path = null;
-					IsInMovement = false;
-					StunIcon.transform.position = transform.position;
+					break;
 				}
 			}
-			// Enemy attacks Player if enemy moves to an adjacent tile
-			else if (Path.Count == 1 && Info.CurrentEnergy > 0)
+			// Enemy attacks Player if enemy moves to an adjacent tile (but not when using random path)
+			else if (Path.Count == 1 && Info.CurrentEnergy > 0 && !isUsingRandomPath)
 			{
 				AttackPlayer();
+				break;
 			}
 			else
 			{
-				Path = null;
-				IsInMovement = false;
-				StunIcon.transform.position = transform.position;
+				// No more moves available
+				break;
 			}
 		}
+		
+		// Clean up after movement ends
+		Path = null;
+		IsInMovement = false;
+		StunIcon.transform.position = transform.position;
 		MoveRoutine = null;
+		isUsingRandomPath = false;
 	}
 	#endregion
 	#region HEALTH METHODS

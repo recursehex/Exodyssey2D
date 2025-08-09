@@ -61,6 +61,31 @@ public class AStar
 		}
 		return ReachableArea;
 	}
+	/// <summary>
+	/// Computes a path to a random reachable position within specified distance
+	/// Used when enemy cannot path to player
+	/// </summary>
+	public Stack<Vector3Int> ComputeRandomPath(Vector3 Start, int maxDistance)
+	{
+		// Get all reachable positions within the specified distance
+		Dictionary<Vector3Int, Node> ReachableArea = GetReachableAreaByDistance(Start, maxDistance);
+		// Remove the starting position from candidates
+		Vector3Int StartPosition = TilemapGround.WorldToCell(Start);
+		ReachableArea.Remove(StartPosition);
+		// If no reachable positions, return null
+		if (ReachableArea.Count == 0)
+			return null;
+		// Convert to list and pick a random position
+		List<Vector3Int> Positions = new(ReachableArea.Keys);
+		int randomIndex = UnityEngine.Random.Range(0, Positions.Count);
+		Vector3Int RandomGoal = Positions[randomIndex];
+		// Compute path to the random goal
+		Stack<Vector3Int> path = ComputePath(Start, TilemapGround.CellToWorld(RandomGoal) + new Vector3(0.5f, 0.5f));
+		// Verify the path actually moves the entity (more than just the starting position)
+		if (path != null && path.Count <= 1)
+			return null;
+		return path;
+	}
     public Stack<Vector3Int> ComputePath(Vector3 Start, Vector3 Goal, bool allowPartialPath = false)
     {
         StartPosition = TilemapGround.WorldToCell(Start);
