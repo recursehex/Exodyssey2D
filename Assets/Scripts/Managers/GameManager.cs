@@ -29,7 +29,6 @@ public class GameManager : MonoBehaviour
 	[SerializeField] private GameObject TileDot;
 	[SerializeField] private GameObject TileArea;
 	[SerializeField] private GameObject TargetTemplate;
-	[SerializeField] private GameObject TracerTemplate;
 	[SerializeField] private TurnTimer TurnTimer;
 	[SerializeField] private Button EndTurnButton;
 	[SerializeField] private Text DayText;
@@ -70,7 +69,7 @@ public class GameManager : MonoBehaviour
 		EnemyManager	.Initialize(TilemapGround, TilemapWalls, EnemyTemplates);
 		ItemManager		.Initialize(ItemTemplates);
 		VehicleManager	.Initialize(TilemapGround, TilemapWalls, VehicleTemplates);
-		TileManager		.Initialize(TileDot, TileArea, TargetTemplate, TracerTemplate);
+		TileManager		.Initialize(TileDot, TileArea, TargetTemplate);
 		TurnManager		.Initialize(TurnTimer, EndTurnButton);
 		LevelManager	.Initialize(TilemapGround, TilemapWalls, TilemapExit, GroundTiles, WallTiles, DayText, LevelText, LevelImage);
 		// Subscribe to events
@@ -144,16 +143,16 @@ public class GameManager : MonoBehaviour
 		Invoke(nameof(OnLevelLoadComplete), levelStartDelay);
 	}
 	/// <summary>
-	/// Sets EndTurnButton interactable and updates targets and tracers after level load is complete
+	/// Sets EndTurnButton interactable and updates targets after level load is complete
 	/// </summary>
 	private void OnLevelLoadComplete()
 	{
 		TurnManager.SetEndTurnButtonInteractable(true);
 		doingSetup = false;
-		// Update targets and tracers if player has ranged weapon
+		// Update targets if player has ranged weapon
 		if (!Player.IsInVehicle)
 		{
-			UpdateTargetsAndTracers();
+			UpdateTargets();
 		}
 		// Draw tile areas at start of game
 		UpdateTileAreas();
@@ -181,7 +180,7 @@ public class GameManager : MonoBehaviour
 	public bool HasWallAtPosition(Vector3Int Position) 		=> LevelManager.HasWallAtPosition(Position);
 	public void DestroyVehicle(Vehicle Vehicle) 			=> VehicleManager.DestroyVehicle(Vehicle);
 	public void ClearTileAreas() 							=> TileManager.ClearTileAreas();
-	public void ClearTargetsAndTracers() 					=> TileManager.ClearTargetsAndTracers();
+	public void ClearTargets() 					=> TileManager.ClearTargets();
 	public bool HasEnemies() 								=> EnemyManager.Enemies.Count > 0;
 	public bool HasExitTileAtPosition(Vector3Int Position) => LevelManager.HasExitTileAtPosition(Position);
 	public int Level => LevelManager.Level;
@@ -214,14 +213,14 @@ public class GameManager : MonoBehaviour
 		}
 	}
 	/// <summary>
-	/// Clears tile areas, targets, and tracers after turn timer ends
+	/// Clears tile areas, targets, after turn timer ends
 	/// </summary>
 	public void OnTurnTimerEnd()
 	{
 		TileManager.TileDot.SetActive(false);
 		Player.SetEnergyToZero();
 		TileManager.ClearTileAreas();
-		TileManager.ClearTargetsAndTracers();
+		TileManager.ClearTargets();
 		TileDot.SetActive(false);
 		TurnManager.OnTurnTimerEnd();
 	}
@@ -232,7 +231,7 @@ public class GameManager : MonoBehaviour
 	{
 		TileManager.TileDot.SetActive(true);
 		if (!Player.IsInVehicle)
-			UpdateTargetsAndTracers();
+			UpdateTargets();
 		// Draw tile areas at start of player's turn
 		UpdateTileAreas();
 	}
@@ -334,7 +333,7 @@ public class GameManager : MonoBehaviour
 		{
 			Player.Vehicle.SwitchIgnition();
 			TileManager.ClearTileAreas();
-			TileManager.ClearTargetsAndTracers();
+			TileManager.ClearTargets();
 			UpdateTileAreas();
 		}
 		// If Player's vehicle is off and clicked tile is in movement range, try to exit vehicle
@@ -374,7 +373,7 @@ public class GameManager : MonoBehaviour
 		Player.ExitVehicle();
 		Player.ComputePathAndStartMovement(WorldPoint);
 		TileManager.ClearTileAreas();
-		UpdateTargetsAndTracers();
+		UpdateTargets();
 		TurnManager.TurnTimer.StartTimer();
 	}
 	/// <summary>
@@ -481,7 +480,7 @@ public class GameManager : MonoBehaviour
 		}
 		Player.EnterVehicle(VehicleManager.Vehicles[vehicleIndex]);
         TurnManager.TurnTimer.StartTimer();
-		TileManager.ClearTargetsAndTracers();
+		TileManager.ClearTargets();
 		UpdateTileAreas();
 		return true;
     }
@@ -541,7 +540,7 @@ public class GameManager : MonoBehaviour
 		Player.AttackEnemy();
 		TurnManager.TurnTimer.StartTimer();
 		TileManager.TileDot.SetActive(false);
-		UpdateTargetsAndTracers();
+		UpdateTargets();
 		UpdateTileAreas();
 	}
 	/// <summary>
@@ -594,17 +593,17 @@ public class GameManager : MonoBehaviour
 		}
 	}
 	/// <summary>
-	/// Updates targets and tracers based on Player's weapon range and energy
+	/// Updates targets based on Player's weapon range and energy
 	/// </summary>
-	public void UpdateTargetsAndTracers()
+	public void UpdateTargets()
 	{
-		// Only update targets and tracers if Player is not in movement, has a ranged weapon, it is Player's turn, and Player has energy
+		// Only update targets if Player is not in movement, has a ranged weapon, it is Player's turn, and Player has energy
 		int weaponRange = Player.GetWeaponRange();
 		if (weaponRange > 0
 			&& TurnManager.IsPlayersTurn
 			&& Player.HasEnergy())
 		{
-			TileManager.DrawTargetsAndTracers(EnemyManager.Enemies, Player.transform.position, weaponRange, Player.SelectedItemInfo.IsStunning, TilemapWalls);
+			TileManager.DrawTargets(EnemyManager.Enemies, Player.transform.position, weaponRange, Player.SelectedItemInfo.IsStunning, TilemapWalls);
 		}
 	}
 }

@@ -95,7 +95,7 @@ public class Player : MonoBehaviour
 		{
 			DecrementEnergy();
 			SoundManager.Instance.PlaySound(Move);
-			Vector3 ShiftedDistance = Destination + new Vector3(0.5f, 0.5f, 0);
+			Vector3 ShiftedDistance = Destination + new Vector3(0.5f, 0.5f);
 			// Move Player smoothly to next tile
 			while (Vector3.Distance(transform.position, ShiftedDistance) > 0f)
 			{
@@ -118,10 +118,10 @@ public class Player : MonoBehaviour
 		// When Player stops moving
 		Path = null;
 		IsInMovement = false;
-		// Update targets and tracers if a ranged weapon is selected
+		// Update targets if a ranged weapon is selected
 		if (SelectedItemInfo != null && SelectedItemInfo.Range > 0 && !IsInVehicle)
 		{
-			GameManager.Instance.UpdateTargetsAndTracers();
+			GameManager.Instance.UpdateTargets();
 		}
 		// Notify that movement is complete
 		OnMovementComplete?.Invoke();
@@ -307,7 +307,7 @@ public class Player : MonoBehaviour
 		InventoryUI.SetCurrentSelected(-1);
 		SelectedItemInfo = null;
 		DamagePoints = 0;
-		GameManager.Instance.ClearTargetsAndTracers();
+		GameManager.Instance.ClearTargets();
 	}
 	/// <summary>
 	/// Returns weapon range of selected item, 0 if no item is selected or item is not a weapon
@@ -350,16 +350,15 @@ public class Player : MonoBehaviour
 			SelectedItemInfo = ClickedItem;
 			SoundManager.Instance.PlaySound(Select);
 			DamagePoints = ClickedItem.DamagePoints;
-			// Only draw targets if ranged weapon is selected
+			// Only update targets if ranged weapon is selected
 			if (ClickedItem.Range > 0 && !IsInVehicle)
 			{
-				// Draw targets and tracers for ranged weapon
-				GameManager.Instance.UpdateTargetsAndTracers();
+				GameManager.Instance.UpdateTargets();
 			}
-			// Clear targets for all other items
+			// Clear targets for non-ranged weapons
 			else
 			{
-				GameManager.Instance.ClearTargetsAndTracers();
+				GameManager.Instance.ClearTargets();
 			}
 		}
 		// Item was deselected
@@ -368,7 +367,7 @@ public class Player : MonoBehaviour
 			InventoryUI.SetCurrentSelected(-1);
 			SelectedItemInfo = null;
 			DamagePoints = 0;
-			GameManager.Instance.ClearTargetsAndTracers();
+			GameManager.Instance.ClearTargets();
 		}
 	}
 	/// <summary>
@@ -479,7 +478,7 @@ public class Player : MonoBehaviour
 			// Clears targeting if ranged weapon is dropped
 			if (GetWeaponRange() > 0)
 			{
-				GameManager.Instance.ClearTargetsAndTracers();
+				GameManager.Instance.ClearTargets();
 			}
 		}
 		// Put dropped item in temp slot out of inventory
