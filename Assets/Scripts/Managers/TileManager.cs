@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
@@ -7,17 +8,14 @@ public class TileManager : MonoBehaviour
     public GameObject TileDot;
     [SerializeField] private GameObject TileAreaTemplate;
     [SerializeField] private GameObject TargetTemplate;
-    [SerializeField] private GameObject TracerTemplate;
     private readonly List<GameObject> TileAreas = new();
     private readonly List<GameObject> Targets = new();
-    private readonly List<GameObject> Tracers = new();
     private Dictionary<Vector3Int, Node> TileAreasToDraw = null;
-    public void Initialize(GameObject TileDot, GameObject TileArea, GameObject TargetTemplate, GameObject TracerTemplate)
+    public void Initialize(GameObject TileDot, GameObject TileArea, GameObject TargetTemplate)
     {
         this.TileDot = TileDot;
         TileAreaTemplate = TileArea;
         this.TargetTemplate = TargetTemplate;
-        this.TracerTemplate = TracerTemplate;
     }
     public void ClearTileAreas()
     {
@@ -46,44 +44,34 @@ public class TileManager : MonoBehaviour
         // Draw new areas
         foreach (KeyValuePair<Vector3Int, Node> TileAreaPosition in TileAreasToDraw)
         {
-            Vector3 ShiftedDistance = TileAreaPosition.Value.Position + new Vector3(0.5f, 0.5f, 0);
+            Vector3 ShiftedDistance = TileAreaPosition.Value.Position + new Vector3(0.5f, 0.5f);
             GameObject TileArea = Instantiate(TileAreaTemplate, ShiftedDistance, Quaternion.identity);
             TileAreas.Add(TileArea);
         }
     }
-    public void ClearTargetsAndTracers()
-    {
-        ClearTargets();
-        ClearTracers();
-    }
-    private void ClearTargets()
+    public void ClearTargets()
     {
         Targets.ForEach(Target => Destroy(Target));
         Targets.Clear();
     }
-    private void ClearTracers()
-    {
-        Tracers.ForEach(Tracer => Destroy(Tracer));
-        Tracers.Clear();
-    }
     /// <summary>
-    /// Draws targets and tracers for enemies in range and line of sight
+    /// Draws targets for enemies in range and line of sight
     /// </summary>
     /// <param name="Enemies"></param>
     /// <param name="PlayerPosition"></param>
     /// <param name="weaponRange"></param>
     /// <param name="isStunning"></param>
     /// <param name="Walls"></param>
-    public void DrawTargetsAndTracers(List<Enemy> Enemies, Vector3 PlayerPosition, int weaponRange, bool isStunning, Tilemap Walls)
+    public void DrawTargets(List<Enemy> Enemies, Vector3 PlayerPosition, int weaponRange, bool isStunning, Tilemap Walls)
     {
-        // Need to clear previous targets and tracers
-        ClearTargetsAndTracers();
+        // Need to clear previous targets
+        ClearTargets();
         // Return if weapon has no range
         if (weaponRange <= 0)
         {
             return;
         }
-        // Draw new targets and tracers
+        // Draw new targets
         foreach (Enemy Enemy in Enemies)
         {
             // Skip enemies that are stunned and if weapon is stunning
@@ -92,14 +80,9 @@ public class TileManager : MonoBehaviour
                 continue;
             }
             Vector3 EnemyPosition = Enemy.transform.position;
-            // Check LOS and draw tracers for this enemy only
-            if (IsInLineOfSight(PlayerPosition, EnemyPosition, weaponRange, Walls, out List<Vector3> Path))
+            // Draw targets if enemy is in line of sight and range
+            if (IsInLineOfSight(PlayerPosition, EnemyPosition, weaponRange, Walls))
             {
-                foreach (Vector3 tracerPosition in Path)
-                {
-                    GameObject Tracer = Instantiate(TracerTemplate, tracerPosition, Quaternion.identity);
-                    Tracers.Add(Tracer);
-                }
                 GameObject Target = Instantiate(TargetTemplate, EnemyPosition, Quaternion.identity);
                 Targets.Add(Target);
             }
@@ -113,21 +96,20 @@ public class TileManager : MonoBehaviour
     /// <param name="weaponRange"></param>
     /// <param name="Walls"></param>
     /// <returns></returns>
-    private bool IsInLineOfSight(Vector3 PlayerPosition, Vector3 EnemyPosition, int weaponRange, Tilemap Walls, out List<Vector3> Path)
+    private bool IsInLineOfSight(Vector3 PlayerPosition, Vector3 EnemyPosition, int weaponRange, Tilemap Walls)
     {
-        Path = null;
-        float distance = Mathf.Sqrt(Mathf.Pow(EnemyPosition.x - PlayerPosition.x, 2) + Mathf.Pow(EnemyPosition.y - PlayerPosition.y, 2));
+        float distance = Vector3.Distance(PlayerPosition, EnemyPosition);
+        // Return if enemy is out of range
         if (distance > weaponRange)
         {
             return false;
         }
-        Vector3Int PlayerPositionInt = new((int)(PlayerPosition.x - 0.5f), (int)(PlayerPosition.y - 0.5f), 0);
-        Vector3Int EnemyPositionInt = new((int)(EnemyPosition.x - 0.5f), (int)(EnemyPosition.y - 0.5f), 0);
-        Path = BresenhamsAlgorithm(PlayerPositionInt.x, PlayerPositionInt.y, EnemyPositionInt.x, EnemyPositionInt.y);
-        foreach (Vector3 tracerPosition in Path)
+        // Check if there are walls in the line of sight
+        List<Vector3> Path = BresenhamsAlgorithm(PlayerPosition, EnemyPosition);
+        foreach (Vector3 Position in Path)
         {
-            Vector3Int tracerPositionInt = new((int)tracerPosition.x, (int)tracerPosition.y, 0);
-            if (Walls.HasTile(tracerPositionInt))
+            Vector3Int PositionInt = Vector3Int.FloorToInt(Position);
+            if (Walls.HasTile(PositionInt))
             {
                 return false;
             }
@@ -137,20 +119,26 @@ public class TileManager : MonoBehaviour
     /// <summary>
     /// Bresenham's Line Algorithm to get points between two positions
     /// </summary>
-    /// <param name="x0"></param>
-    /// <param name="y0"></param>
-    /// <param name="x1"></param>
-    /// <param name="y1"></param>
+    /// <param name="Start"></param>
+    /// <param name="End"></param>
     /// <returns></returns>
-    private static List<Vector3> BresenhamsAlgorithm(int x0, int y0, int x1, int y1)
+    private static List<Vector3> BresenhamsAlgorithm(Vector3 Start, Vector3 End)
     {
+        // Ensure Start and End are Vector3Int
+        Vector3Int StartInt = Vector3Int.FloorToInt(Start);
+        Vector3Int EndInt   = Vector3Int.FloorToInt(End);
+        int x0 = StartInt.x;
+        int y0 = StartInt.y;
+        int x1 = EndInt.x;
+        int y1 = EndInt.y;
+        // Initialize list to hold points on the line
         List<Vector3> PointsOnLine = new();
         int dx = Mathf.Abs(x1 - x0);
         int dy = Mathf.Abs(y1 - y0);
         int sx = (x0 < x1) ? 1 : -1;
         int sy = (y0 < y1) ? 1 : -1;
         int err = dx - dy;
-
+        // Bresenham's algorithm loop
         while (true)
         {
             PointsOnLine.Add(new(x0, y0, 0));

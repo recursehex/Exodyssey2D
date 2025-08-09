@@ -40,7 +40,7 @@ public class VehicleManager : MonoBehaviour
     }
     public int GetVehicleIndexAtPosition(Vector3Int Position)
     {
-        Vector3 ShiftedPosition = Position + new Vector3(0.5f, 0.5f, 0);
+        Vector3 ShiftedPosition = Position + new Vector3(0.5f, 0.5f);
         return Vehicles.FindIndex(Vehicle => Vehicle.transform.position == ShiftedPosition);
     }
     public void DestroyVehicle(Vehicle Vehicle)

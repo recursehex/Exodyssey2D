@@ -59,7 +59,7 @@ public class Enemy : MonoBehaviour
 			Path.Pop();
 			// Move one tile closer to Player
 			Vector3Int TryDistance = Path.Pop();
-			Vector3 ShiftedTryDistance = TryDistance + new Vector3(0.5f, 0.5f, 0);
+			Vector3 ShiftedTryDistance = TryDistance + new Vector3(0.5f, 0.5f);
 			if (!GameManager.Instance.HasEnemyAtPosition(ShiftedTryDistance) 
 				&& !GameManager.Instance.HasVehicleAtPosition(ShiftedTryDistance))
 			{
@@ -100,7 +100,7 @@ public class Enemy : MonoBehaviour
 		while (Path != null && Path.Count > 0)
 		{
 			SoundManager.Instance.PlaySound(Move);
-			Vector3 ShiftedDistance = Destination + new Vector3(0.5f, 0.5f, 0);
+			Vector3 ShiftedDistance = Destination + new Vector3(0.5f, 0.5f);
 			// Move one tile closer to Player
 			while (Vector3.Distance(transform.position, ShiftedDistance) > 0f)
 			{

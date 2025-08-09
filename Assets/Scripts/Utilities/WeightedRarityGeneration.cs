@@ -23,7 +23,7 @@ public static class WeightedRarityGeneration
 				{
 					return false;
 				}
-				Vector3 ShiftedPosition = Position + new Vector3(0.5f, 0.5f, 0);
+				Vector3 ShiftedPosition = Position + new Vector3(0.5f, 0.5f);
 				// Fails if item, enemy, or vehicle is at selected position
 				if (GameManager.Instance.HasItemAtPosition(ShiftedPosition)
 				 || GameManager.Instance.HasEnemyAtPosition(ShiftedPosition)

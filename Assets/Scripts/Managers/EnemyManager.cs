@@ -45,7 +45,7 @@ public class EnemyManager : MonoBehaviour
     }
     public int GetEnemyIndexAtPosition(Vector3Int Position)
     {
-        Vector3 ShiftedPosition = Position + new Vector3(0.5f, 0.5f, 0);
+        Vector3 ShiftedPosition = Position + new Vector3(0.5f, 0.5f);
         return Enemies.FindIndex(Enemy => Enemy.transform.position == ShiftedPosition);
     }
     private void DestroyEnemy(Enemy Enemy)
@@ -92,7 +92,7 @@ public class EnemyManager : MonoBehaviour
             indexOfMovingEnemy = 0;
             Enemies[indexOfMovingEnemy].ComputePathAndStartMovement();
             GameManager.Instance.ClearTileAreas();
-            GameManager.Instance.ClearTargetsAndTracers();
+            GameManager.Instance.ClearTargets();
             EnemiesAreMoving = true;
             return;
         }
