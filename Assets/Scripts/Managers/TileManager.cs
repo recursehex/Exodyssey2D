@@ -13,8 +13,8 @@ public class TileManager : MonoBehaviour
     private Dictionary<Vector3Int, Node> TileAreasToDraw = null;
     public void Initialize(GameObject TileDot, GameObject TileArea, GameObject TargetTemplate)
     {
-        this.TileDot = TileDot;
-        TileAreaTemplate = TileArea;
+        this.TileDot        = TileDot;
+        TileAreaTemplate    = TileArea;
         this.TargetTemplate = TargetTemplate;
     }
     public void ClearTileAreas()
@@ -141,7 +141,7 @@ public class TileManager : MonoBehaviour
         // Bresenham's algorithm loop
         while (true)
         {
-            PointsOnLine.Add(new(x0, y0, 0));
+            PointsOnLine.Add(new(x0, y0));
             if ((x0 == x1) && (y0 == y1))
             {
                 break;

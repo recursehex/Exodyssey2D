@@ -68,7 +68,7 @@ public class LevelManager : MonoBehaviour
         {
             for (int y = -4; y < 5; y++)
             {
-                TilemapGround.SetTile(new Vector3Int(x, y, 0),
+                TilemapGround.SetTile(new Vector3Int(x, y),
                                       GroundTiles[Random.Range(0, GroundTiles.Length)]);
             }
         }

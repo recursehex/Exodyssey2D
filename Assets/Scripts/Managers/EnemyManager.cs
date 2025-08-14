@@ -17,9 +17,9 @@ public class EnemyManager : MonoBehaviour
     public System.Action OnEnemyKilled;
     public void Initialize(Tilemap Ground, Tilemap Walls, GameObject[] Templates)
     {
-        TilemapGround = Ground;
-        TilemapWalls = Walls;
-        EnemyTemplates = Templates;
+        TilemapGround   = Ground;
+        TilemapWalls    = Walls;
+        EnemyTemplates  = Templates;
     }
     public void GenerateEnemies()
     {

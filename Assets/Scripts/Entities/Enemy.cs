@@ -142,7 +142,7 @@ public class Enemy : MonoBehaviour
 			if (Path.Count > 1 && Info.CurrentEnergy > 0)
 			{
 				Vector3Int NextDestination = Path.Peek();
-				Vector3 NextShiftedDestination = new(NextDestination.x + 0.5f, NextDestination.y + 0.5f, 0);
+				Vector3 NextShiftedDestination = new(NextDestination.x + 0.5f, NextDestination.y + 0.5f);
 				// Check if next destination is still free before moving
 				if (!GameManager.Instance.HasEnemyAtPosition(NextShiftedDestination)
 					&& !GameManager.Instance.HasVehicleAtPosition(NextShiftedDestination))

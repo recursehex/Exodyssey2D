@@ -11,9 +11,9 @@ public class VehicleManager : MonoBehaviour
     private Tilemap TilemapWalls;
     public void Initialize(Tilemap Ground, Tilemap Walls, GameObject[] Templates)
     {
-        TilemapGround = Ground;
-        TilemapWalls = Walls;
-        VehicleTemplates = Templates;
+        TilemapGround       = Ground;
+        TilemapWalls        = Walls;
+        VehicleTemplates    = Templates;
     }
     public void GenerateVehicles()
     {
