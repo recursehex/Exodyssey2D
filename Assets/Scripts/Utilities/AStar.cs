@@ -120,8 +120,8 @@ public class AStar
 		{
 			for (int y = -1; y <= 1; y++)
 			{
-				Vector3Int Position = ParentPosition - new Vector3Int(x, y, 0);
-				Vector3 EntityPosition = ParentPosition - new Vector3(x - 0.5f, y - 0.5f, 0);
+				Vector3Int Position = ParentPosition - new Vector3Int(x, y);
+				Vector3 EntityPosition = ParentPosition - new Vector3(x - 0.5f, y - 0.5f);
 				bool IsEntityAtPosition = GameManager.Instance.HasEnemyAtPosition(EntityPosition)
 									   || GameManager.Instance.HasVehicleAtPosition(EntityPosition);
 				if ((y != 0 || x != 0)

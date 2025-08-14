@@ -11,7 +11,7 @@ public class GameManager : MonoBehaviour
 	[SerializeField] private Player Player;
 	[SerializeField] private bool doingSetup;
 	[SerializeField] private float levelStartDelay = 1.5f;
-	[SerializeField] private Vector3 PlayerStartPosition = new(-3.5f, 0.5f, 0f);
+	[SerializeField] private Vector3 PlayerStartPosition = new(-3.5f, 0.5f);
 	[SerializeField] private float FadeOutDuration = 2.0f;
 	[Header("Managers")]
 	[SerializeField] private EnemyManager EnemyManager;
@@ -305,10 +305,9 @@ public class GameManager : MonoBehaviour
 		if (Player.IsInVehicle && Player.Vehicle.Info.IsOn && !Player.Vehicle.HasCharge())
 		{
 			TileManager.TileDot.SetActive(false);
-			return;
 		}
 		// Move TileDot to hovered tile if Player is in movement range
-		if (TileManager.IsInMovementRange(TilePoint))
+		else if (TileManager.IsInMovementRange(TilePoint))
 		{
 			TileManager.TileDot.SetActive(true);
 			TileManager.TileDot.transform.position = ShiftedClickPoint;

@@ -83,7 +83,7 @@ public static class MapGeneration
                     {
                         if (template[y, x] > 0)
                         {
-                            Vector3Int Position = new(baseX + x, baseY - y, 0);
+                            Vector3Int Position = new(baseX + x, baseY - y);
                             TilemapWalls.SetTile(Position, WallTiles[Random.Range(0, WallTiles.Length)]);
                         }
                     }

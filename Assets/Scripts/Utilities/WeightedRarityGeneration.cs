@@ -15,7 +15,7 @@ public static class WeightedRarityGeneration
 			{
 				int x = Random.Range(-4, 5);
 				int y = Random.Range(-4, 5);
-				Vector3Int Position = new(x, y, 0);
+				Vector3Int Position = new(x, y);
 				// Fails if wall tile or Player is at selected position
 				if (GameManager.Instance.HasWallAtPosition(Position)
 				 || GameManager.Instance.HasExitTileAtPosition(Position)
