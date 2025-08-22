@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -9,14 +10,14 @@ using UnityEngine.Tilemaps;
 public class Player : MonoBehaviour
 {
 	#region DATA
-	private readonly int maxHealth 		= 3;
-	private static readonly int fixedMaxEnergy = 3; // Used to restore energy to original value
-	private int maxEnergy 				= fixedMaxEnergy;
-	private int currentHealth 			= 3;
+	private static readonly int fixedMaxEnergy = 3; // To restore energy to original value
+	[SerializeField] private int maxHealth 	   	= 3;
+	[SerializeField] private int maxEnergy	   	= fixedMaxEnergy;
+	[SerializeField] private int currentHealth	= 3;
 	public int currentEnergy 			= 3;
 	private readonly int walkSpeed 		= 2;
 	private readonly int inventorySize 	= 2;
-	public int DamagePoints { get; private set; } = 0;
+	public int DamagePoints => SelectedItemInfo?.DamagePoints ?? 0;
 	public Vehicle Vehicle;
 	public bool IsInVehicle => Vehicle != null;
 	private bool hasHelmet = false;
@@ -119,7 +120,7 @@ public class Player : MonoBehaviour
 		Path = null;
 		IsInMovement = false;
 		// Update targets if a ranged weapon is selected
-		if (SelectedItemInfo != null && SelectedItemInfo.Range > 0 && !IsInVehicle)
+		if (HasRange && !IsInVehicle)
 		{
 			GameManager.Instance.UpdateTargets();
 		}
@@ -240,6 +241,7 @@ public class Player : MonoBehaviour
 	}
 	#endregion
 	#region ENERGY METHODS
+	public bool HasEnergy => currentEnergy > 0;
 	/// <summary>
 	/// Decreases CurrentEnergy by 1 and updates energy display
 	/// </summary>
@@ -247,8 +249,8 @@ public class Player : MonoBehaviour
 	{
 		currentEnergy = Mathf.Clamp(--currentEnergy, 0, maxEnergy);
 		StatsDisplayManager.DecreaseEnergyDisplay(currentEnergy, maxEnergy);
-		// End turn and stop timer if CurrentEnergy reaches 0
-		if (currentEnergy == 0)
+		// End turn and stop timer if no more energy
+		if (!HasEnergy)
 		{
 			GameManager.Instance.StopTurnTimer();
 		}
@@ -269,10 +271,6 @@ public class Player : MonoBehaviour
 		currentEnergy = maxEnergy;
 		StatsDisplayManager.RestoreEnergyDisplay(currentHealth);
 	}
-	public bool HasEnergy()
-	{
-		return currentEnergy > 0;
-	}
 	#endregion
 	#region ATTACK METHODS
 	/// <summary>
@@ -286,7 +284,7 @@ public class Player : MonoBehaviour
 		DecrementItemDurability();
 	}
 	/// <summary>
-	/// Decreases item durability by 1, removes item if uses == 0
+	/// Decreases item durability by 1, removes item if uses run out
 	/// </summary>
 	private void DecrementItemDurability()
 	{
@@ -299,24 +297,25 @@ public class Player : MonoBehaviour
 	/// </summary>
 	private void TryRemoveSelectedItem()
 	{
-		if (SelectedItemInfo.CurrentUses > 0)
+		if (HasUses)
 		{
 			return;
 		}
 		InventoryUI.RemoveItem(InventoryUI.SelectedIndex);
-		InventoryUI.SetCurrentSelected(-1);
+		InventoryUI.SetNoneSelected();
 		SelectedItemInfo = null;
-		DamagePoints = 0;
 		GameManager.Instance.ClearTargets();
 	}
+	public bool HasUses => SelectedItemInfo?.CurrentUses > 0;
+	/// <summary>
+	/// Returns true if Player has a selected item in inventory
+	/// </summary>
+	public bool HasRange => SelectedItemInfo?.HasRange ?? false;
 	/// <summary>
 	/// Returns weapon range of selected item, 0 if no item is selected or item is not a weapon
 	/// </summary>
 	/// <returns></returns>
-	public int GetWeaponRange()
-	{
-		return SelectedItemInfo == null ? 0 : SelectedItemInfo.Range;
-	}
+	public int WeaponRange => SelectedItemInfo?.Range ?? 0;
 	#endregion
 	#region ITEM METHODS
 	/// <summary>
@@ -337,8 +336,8 @@ public class Player : MonoBehaviour
 	public void TryClickItem(int itemIndex)
 	{
 		// Ensures index is within bounds and inventory has an item
-		if (itemIndex >= Inventory.Count
-			|| Inventory.Count == 0)
+		if (Inventory.IsEmpty
+			|| itemIndex >= Inventory.Count)
 		{
 			return;
 		}
@@ -349,9 +348,8 @@ public class Player : MonoBehaviour
 			InventoryUI.SetCurrentSelected(itemIndex);
 			SelectedItemInfo = ClickedItem;
 			SoundManager.Instance.PlaySound(Select);
-			DamagePoints = ClickedItem.DamagePoints;
 			// Only update targets if ranged weapon is selected
-			if (ClickedItem.Range > 0 && !IsInVehicle)
+			if (ClickedItem.HasRange && !IsInVehicle)
 			{
 				GameManager.Instance.UpdateTargets();
 			}
@@ -364,9 +362,8 @@ public class Player : MonoBehaviour
 		// Item was deselected
 		else
 		{
-			InventoryUI.SetCurrentSelected(-1);
+			InventoryUI.SetNoneSelected();
 			SelectedItemInfo = null;
-			DamagePoints = 0;
 			GameManager.Instance.ClearTargets();
 		}
 	}
@@ -389,7 +386,7 @@ public class Player : MonoBehaviour
 	{
 		if (SelectedItemInfo.Tag is ItemInfo.Tags.MedKit
 			&& currentHealth < maxHealth
-			&& currentEnergy > 0)
+			&& HasEnergy)
 		{
 			RestoreHealth();
 			// Uses energy if profession is not medic
@@ -466,17 +463,16 @@ public class Player : MonoBehaviour
 	public void TryDropItem(int itemIndex)
 	{
 		// Returns if called when inventory is empty
-		if (Inventory.Count == 0)
+		if (Inventory.IsEmpty)
 		{
 			return;
 		}
-		// Resets damage points if weapon is dropped
+		// Clears targeting if weapon is dropped
 		if (SelectedItemInfo == Inventory[itemIndex].Info
 			&& Inventory[itemIndex].Info?.Type is ItemInfo.Types.Weapon)
 		{
-			DamagePoints = 0;
 			// Clears targeting if ranged weapon is dropped
-			if (GetWeaponRange() > 0)
+			if (HasRange)
 			{
 				GameManager.Instance.ClearTargets();
 			}

@@ -167,9 +167,6 @@ public class Vehicle : MonoBehaviour
 	/// Returns true if vehicle has charge remaining
 	/// </summary>
 	/// <returns></returns>
-	public bool HasCharge()
-	{
-		return Info.CurrentCharge > 0;
-	}
+	public bool HasCharge() => Info.CurrentCharge > 0;
 	#endregion
 }

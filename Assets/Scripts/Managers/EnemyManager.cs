@@ -21,6 +21,9 @@ public class EnemyManager : MonoBehaviour
         TilemapWalls    = Walls;
         EnemyTemplates  = Templates;
     }
+    /// <summary>
+    /// Generates random number of enemies based on the current level
+    /// </summary>
     public void GenerateEnemies()
     {
         spawnEnemyCount = Random.Range(1 + (int)(GameManager.Instance.Level * 0.5),
@@ -41,29 +44,49 @@ public class EnemyManager : MonoBehaviour
         Enemy.Initialize(TilemapGround, TilemapWalls, new EnemyInfo(index));
         Enemies.Add(Enemy);
     }
-    public bool HasEnemyAtPosition(Vector3 Position)
-    {
-        return Enemies.Find(Enemy => Enemy.transform.position == Position) != null;
-    }
+    /// <summary>
+    /// Returns true if an enemy is at the specified position
+    /// </summary>
+    /// <param name="Position"></param>
+    /// <returns></returns>
+    public bool HasEnemyAtPosition(Vector3 Position) => Enemies.Find(Enemy => Enemy.transform.position == Position) != null;
+    /// <summary>
+    /// Returns the index of the enemy at the specified position, or -1 if no enemy is found
+    /// </summary>
+    /// <param name="Position"></param>
+    /// <returns></returns>
     public int GetEnemyIndexAtPosition(Vector3Int Position)
     {
         Vector3 ShiftedPosition = Position + new Vector3(0.5f, 0.5f);
         return Enemies.FindIndex(Enemy => Enemy.transform.position == ShiftedPosition);
     }
+    /// <summary>
+    /// Destroys the specified enemy
+    /// </summary>
+    /// <param name="Enemy"></param>
     private void DestroyEnemy(Enemy Enemy)
     {
         Destroy(Enemy.StunIcon);
         Destroy(Enemy.gameObject);
     }
+    /// <summary>
+    /// Destroys all enemies and clears Enemies list
+    /// </summary>
     public void DestroyAllEnemies()
     {
         Enemies.ForEach(Enemy => DestroyEnemy(Enemy));
         Enemies.Clear();
     }
-    private void RestoreAllEnemyEnergy()
-    {
-        Enemies.ForEach(Enemy => Enemy.RestoreEnergy());
-    }
+    /// <summary>
+    /// Restores all enemies' energy
+    /// </summary>
+    private void RestoreAllEnemyEnergy() => Enemies.ForEach(Enemy => Enemy.RestoreEnergy());
+    /// <summary>
+    /// Handles damage to an enemy at the specified index
+    /// </summary>
+    /// <param name="index"></param>
+    /// <param name="damagePoints"></param>
+    /// <param name="isStunning"></param>
     public void HandleDamageToEnemy(int index, int damagePoints, bool isStunning)
     {
         Enemy DamagedEnemy = Enemies[index];
@@ -81,6 +104,10 @@ public class EnemyManager : MonoBehaviour
             DamagedEnemy.StunIcon.SetActive(true);
         }
     }
+    /// <summary>
+    /// Processes enemy movement for all enemies
+    /// </summary>
+    /// <param name="OnMovementComplete"></param>
     public void ProcessEnemyMovement(System.Action OnMovementComplete)
     {
         if (Enemies.Count == 0)
@@ -100,13 +127,14 @@ public class EnemyManager : MonoBehaviour
             EnemiesAreMoving = true;
             return;
         }
+        // Handle blocked enemies
         if (EnemiesAreMoving && !Enemies[indexOfMovingEnemy].IsInMovement)
         {
             // Check if current enemy was blocked
-            Enemy currentEnemy = IsRetryingBlockedEnemies ? BlockedEnemies[indexOfMovingEnemy] : Enemies[indexOfMovingEnemy];
-            if (!IsRetryingBlockedEnemies && currentEnemy.WasBlockedThisTurn)
+            Enemy CurrentEnemy = IsRetryingBlockedEnemies ? BlockedEnemies[indexOfMovingEnemy] : Enemies[indexOfMovingEnemy];
+            if (!IsRetryingBlockedEnemies && CurrentEnemy.WasBlockedThisTurn)
             {
-                BlockedEnemies.Add(currentEnemy);
+                BlockedEnemies.Add(CurrentEnemy);
             }
             // Continue with next enemy in current list
             int maxIndex = IsRetryingBlockedEnemies
@@ -136,6 +164,10 @@ public class EnemyManager : MonoBehaviour
             EndEnemyTurn(OnMovementComplete);
         }
     }
+    /// <summary>
+    /// Ends the enemy turn and restores energy
+    /// </summary>
+    /// <param name="OnMovementComplete"></param>
     private void EndEnemyTurn(System.Action OnMovementComplete)
     {
         EnemiesAreMoving = false;

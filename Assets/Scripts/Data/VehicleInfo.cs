@@ -63,22 +63,21 @@ public class VehicleInfo
 	private static List<Rarity> GenerateAllRarities()
 	{
 		LoadDatabase();
-		List<Rarity> rarities = new();
+		List<Rarity> Rarities = new();
 		// First, try to get rarities from JSON
 		if (VehicleDatabase != null
 		 && VehicleDatabase.Vehicles != null)
 		{
 			for (int i = 0; i < lastVehicleIndex; i++)
 			{
-				Tags tag = (Tags)i;
-				string tagName = tag.ToString();
-				VehicleData data = VehicleDatabase.Vehicles.Find(vehicle => vehicle.Tag == tagName);
-				if (data != null && !data.disabled)
+				Tags Tag = (Tags)i;
+				string tagName = Tag.ToString();
+				VehicleData Data = VehicleDatabase.Vehicles.Find(vehicle => vehicle.Tag == tagName);
+				if (Data != null && !Data.disabled)
 				{
-					Rarity parsedRarity = Rarity.Parse(data.Rarity);
-					rarities.Add(parsedRarity);
+					Rarities.Add(Rarity.Parse(Data.Rarity));
 				}
-				else if (data != null && data.disabled)
+				else if (Data != null && Data.disabled)
 				{
 					// Skip disabled items
 					continue;
@@ -86,7 +85,7 @@ public class VehicleInfo
 				else
 				{
 					// Fallback to creating VehicleInfo if not found in JSON
-					rarities.Add(new VehicleInfo(i).Rarity);
+					Rarities.Add(new VehicleInfo(i).Rarity);
 				}
 			}
 		}
@@ -94,7 +93,7 @@ public class VehicleInfo
 		{
 			Debug.LogWarning($"Database failed to load, returning empty list");
 		}
-		return rarities;
+		return Rarities;
 	}
 	public static int GetRandomIndexFrom(Rarity Rarity)
 	{
@@ -108,10 +107,7 @@ public class VehicleInfo
 	/// <summary>
 	/// Decreases vehicle's CurrentHealth by amount
 	/// </summary>
-	public void DecreaseHealthBy(int amount)
-	{
-		CurrentHealth -= amount;
-	}
+	public void DecreaseHealthBy(int amount) => CurrentHealth -= amount;
 	/// <summary>
 	/// Resets vehicle's CurrentHealth to maxHealth
 	/// </summary>
@@ -151,10 +147,7 @@ public class VehicleInfo
 		CurrentCharge -= amount;
 		return true;
 	}
-	public void SwitchIgnition()
-	{
-		IsOn = !IsOn;
-	}
+	public void SwitchIgnition() => IsOn = !IsOn;
 	/// <summary>
 	/// Returns info for a desired vehicle,
 	/// n must match Tag order and GameManager VehicleTemplates order
@@ -162,10 +155,8 @@ public class VehicleInfo
 	public VehicleInfo(int n)
 	{
 		LoadDatabase();
-		
 		Tags TagData = (Tags)n;
 		string TagName = TagData.ToString();
-		
 		// Try to load from JSON first
 		if (VehicleDatabase != null
 		 && VehicleDatabase.Vehicles != null)
@@ -183,10 +174,8 @@ public class VehicleInfo
 				Debug.LogWarning($"Vehicle {n} {TagName} is disabled in JSON");
 			}
 		}
-		
 		// Fallback to hardcoded values if JSON loading fails
 		Debug.LogWarning($"Vehicle {TagName} not found in JSON, using default values");
-		
 		// Set minimal defaults for unknown vehicles
 		Tag 				= TagData;
 		Rarity 				= Rarity.Common;
@@ -199,7 +188,10 @@ public class VehicleInfo
 		CurrentCharge 		= Data.maxCharge;
 		CurrentHealth 		= Data.maxHealth;
 	}
-	
+	/// <summary>
+	/// Loads vehicle data from source VehicleData object
+	/// </summary>
+	/// <param name="SourceData"></param>
 	private void LoadFromData(VehicleData SourceData)
 	{
 		// Copy the data
@@ -220,18 +212,9 @@ public class VehicleInfo
 			hasBattery 		= SourceData.hasBattery,
 			hasSpotlight 	= SourceData.hasSpotlight
 		};
-		
 		// Parse enums
-		if (Enum.TryParse(Data.Tag, out Tags ParsedTag))
-			Tag = ParsedTag;
-		else
-			Tag = Tags.Unknown;
-			
-		Rarity = Rarity.Parse(Data.Rarity);
-			
-		if (Enum.TryParse(Data.Type, out Types ParsedType))
-			Type = ParsedType;
-		else
-			Type = Types.Unknown;
+		Tag 	= Enum.TryParse(Data.Tag, out Tags ParsedTag) ? ParsedTag : Tags.Unknown;
+		Rarity 	= Rarity.Parse(Data.Rarity);
+		Type 	= Enum.TryParse(Data.Type, out Types ParsedType) ? ParsedType : Types.Unknown;	
 	}
 }

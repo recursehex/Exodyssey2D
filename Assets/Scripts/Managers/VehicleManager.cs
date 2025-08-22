@@ -28,26 +28,46 @@ public class VehicleManager : MonoBehaviour
             cap--;
         }
     }
+    /// <summary>
+    /// Spawns vehicle at specified position
+    /// </summary>
+    /// <param name="index"></param>
+    /// <param name="Position"></param>
     public void SpawnVehicle(int index, Vector3 Position)
     {
         Vehicle Vehicle = Instantiate(VehicleTemplates[index], Position, Quaternion.identity).GetComponent<Vehicle>();
         Vehicle.Initialize(TilemapGround, TilemapWalls, new VehicleInfo(index));
         Vehicles.Add(Vehicle);
     }
-    public bool HasVehicleAtPosition(Vector3 Position)
-    {
-        return Vehicles.Find(vehicle => vehicle.transform.position == Position) != null;
-    }
+    /// <summary>
+    /// Returns true if a vehicle is at specified position
+    /// </summary>
+    /// <param name="Position"></param>
+    /// <returns></returns>
+    public bool HasVehicleAtPosition(Vector3 Position) => Vehicles.Find(vehicle => vehicle.transform.position == Position) != null;
+    /// <summary>
+    /// Returns index of vehicle at specified position, or -1 if no vehicle is found
+    /// </summary>
+    /// <param name="Position"></param>
+    /// <returns></returns>
     public int GetVehicleIndexAtPosition(Vector3Int Position)
     {
         Vector3 ShiftedPosition = Position + new Vector3(0.5f, 0.5f);
         return Vehicles.FindIndex(Vehicle => Vehicle.transform.position == ShiftedPosition);
     }
+    /// <summary>
+    /// Destroys specified vehicle
+    /// </summary>
+    /// <param name="Vehicle"></param>
     public void DestroyVehicle(Vehicle Vehicle)
     {
         Destroy(Vehicle.gameObject);
         Vehicles.Remove(Vehicle);
     }
+    /// <summary>
+    /// Destroys all vehicles except Player's vehicle
+    /// </summary>
+    /// <param name="ExcludedVehicle"></param>
     public void DestroyAllVehicles(Vehicle ExcludedVehicle = null)
     {
         Vehicles.ForEach(Vehicle =>

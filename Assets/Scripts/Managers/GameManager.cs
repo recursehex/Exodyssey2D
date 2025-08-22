@@ -79,7 +79,7 @@ public class GameManager : MonoBehaviour
 		InputManager.OnPlayerClick 		+= HandlePlayerClick;
 		InputManager.OnPlayerHover 		+= HandlePlayerHover;
 		Player.OnMovementComplete 		+= OnPlayerMovementComplete;
-		EnemyManager.OnEnemyKilled 		+= OnEnemyKilled;
+		EnemyManager.OnEnemyKilled 		+= UpdateTileAreas;
 	}
 	private void Start()
 	{
@@ -168,7 +168,7 @@ public class GameManager : MonoBehaviour
 	}
 	// Public methods for spawning entities, called by WeightedRarityGeneration
 	public void SpawnItem(int index, Vector3 Position) 		=> ItemManager.SpawnItem(index, Position);
-	public void SpawnItem(ItemInfo existingInfo, Vector3 Position) => ItemManager.SpawnItem(existingInfo, Position);
+	public void SpawnItem(ItemInfo Info, Vector3 Position) 	=> ItemManager.SpawnItem(Info, Position);
 	public void SpawnEnemy(int index, Vector3 Position) 	=> EnemyManager.SpawnEnemy(index, Position);
 	public void SpawnVehicle(int index, Vector3 Position) 	=> VehicleManager.SpawnVehicle(index, Position);
 	// Public accessor methods
@@ -180,14 +180,11 @@ public class GameManager : MonoBehaviour
 	public bool HasWallAtPosition(Vector3Int Position) 		=> LevelManager.HasWallAtPosition(Position);
 	public void DestroyVehicle(Vehicle Vehicle) 			=> VehicleManager.DestroyVehicle(Vehicle);
 	public void ClearTileAreas() 							=> TileManager.ClearTileAreas();
-	public void ClearTargets() 					=> TileManager.ClearTargets();
+	public void ClearTargets() 								=> TileManager.ClearTargets();
 	public bool HasEnemies() 								=> EnemyManager.Enemies.Count > 0;
 	public bool HasExitTileAtPosition(Vector3Int Position) => LevelManager.HasExitTileAtPosition(Position);
 	public int Level => LevelManager.Level;
-    public void StopTurnTimer()
-	{
-		TurnManager.StopTurnTimer();
-	}
+    public void StopTurnTimer() => TurnManager.StopTurnTimer();
 	public void OnEndTurnPress()
 	{
 		if (Player.IsInMovement || doingSetup)
@@ -254,13 +251,6 @@ public class GameManager : MonoBehaviour
 		}
 	}
 	/// <summary>
-	/// Called when an enemy is killed
-	/// </summary>
-	private void OnEnemyKilled()
-	{
-		UpdateTileAreas();
-	}
-	/// <summary>
 	/// Checks if Player is on exit tile to reset for next level
 	/// </summary>
 	private void HandlePlayerExitTile()
@@ -285,7 +275,7 @@ public class GameManager : MonoBehaviour
 		{
 			if (PlayerIsInVehicle(WorldPoint, TilePoint, ShiftedClickPoint)) return;
 			if (TryAddItem(ShiftedClickPoint)) return;
-			if (!Player.HasEnergy()) return;
+			if (!Player.HasEnergy) return;
 			if (TryUseItemOnPlayer(ShiftedClickPoint)) return;
 			if (TryUseItemOnVehicle(TilePoint)) return;
 			if (TryEnterVehicle(TilePoint)) return;
@@ -302,7 +292,9 @@ public class GameManager : MonoBehaviour
 	private void HandlePlayerHover(Vector3 WorldPoint, Vector3Int TilePoint, Vector3 ShiftedClickPoint)
 	{
 		// Hide TileDot if player is in vehicle with no charge
-		if (Player.IsInVehicle && Player.Vehicle.Info.IsOn && !Player.Vehicle.HasCharge())
+		if (Player.IsInVehicle
+			&& Player.Vehicle.Info.IsOn
+			&& !Player.Vehicle.HasCharge())
 		{
 			TileManager.TileDot.SetActive(false);
 		}
@@ -336,12 +328,14 @@ public class GameManager : MonoBehaviour
 			UpdateTileAreas();
 		}
 		// If Player's vehicle is off and clicked tile is in movement range, try to exit vehicle
-		else if (!Player.Vehicle.Info.IsOn && TileManager.IsInMovementRange(TilePoint))
+		else if (!Player.Vehicle.Info.IsOn
+				&& TileManager.IsInMovementRange(TilePoint))
 		{
 			TryExitVehicle(WorldPoint, TilePoint, ShiftedClickPoint);
 		}
 		// If Player's vehicle is on, has fuel, and clicked tile is in movement range, try to move vehicle
-		else if (Player.Vehicle.Info.IsOn && Player.Vehicle.HasCharge())
+		else if (Player.Vehicle.Info.IsOn
+				&& Player.Vehicle.HasCharge())
 		{
 			TryVehicleMovement(WorldPoint, TilePoint, ShiftedClickPoint);
 		}
@@ -362,7 +356,7 @@ public class GameManager : MonoBehaviour
 		if (!isInMovementRange
 			|| enemyIndex != -1
 			|| ShiftedClickPoint == Player.transform.position
-			|| !Player.HasEnergy())
+			|| !Player.HasEnergy)
 		{
 			return;
 		}
@@ -520,7 +514,7 @@ public class GameManager : MonoBehaviour
 		// Check if player can attack an enemy at clicked tile
 		int enemyIndex = EnemyManager.GetEnemyIndexAtPosition(TilePoint);
 		bool isInMeleeRange = IsPlayerAdjacentTo(ShiftedClickPoint);
-		bool isInRangedWeaponRange = Player.GetWeaponRange() > 0 && TileManager.IsInRangedWeaponRange(ShiftedClickPoint);
+		bool isInRangedWeaponRange = Player.HasRange && TileManager.IsInRangedWeaponRange(ShiftedClickPoint);
 		// Return if no enemy found, not in melee or ranged weapon range, or selected item is not a weapon
 		if (enemyIndex == -1
 			|| !isInMeleeRange
@@ -547,10 +541,7 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	/// <param name="Position"></param>
 	/// <returns></returns>
-	private bool IsPlayerAdjacentTo(Vector3 Position)
-	{
-		return Vector3.Distance(Player.transform.position, Position) <= 1.0f;
-	}
+	private bool IsPlayerAdjacentTo(Vector3 Position) => Vector3.Distance(Player.transform.position, Position) <= 1.0f;
 	/// <summary>
 	/// Updates tile areas based on Player's movement and energy
 	/// </summary>
@@ -560,7 +551,7 @@ public class GameManager : MonoBehaviour
 		if (!Player.IsInMovement && TurnManager.IsPlayersTurn)
 		{
 			// Clear areas if player has no energy
-			if (!Player.HasEnergy())
+			if (!Player.HasEnergy)
 			{
 				TileManager.ClearTileAreas();
 				return;
@@ -585,7 +576,9 @@ public class GameManager : MonoBehaviour
 				TileManager.DrawTileAreas(AreasToDraw);
 			}
 			// Clear areas if in vehicle with no charge
-			else if (Player.IsInVehicle && Player.Vehicle.Info.IsOn && !Player.Vehicle.HasCharge())
+			else if (Player.IsInVehicle
+					&& Player.Vehicle.Info.IsOn
+					&& !Player.Vehicle.HasCharge())
 			{
 				TileManager.ClearTileAreas();
 			}
@@ -597,12 +590,11 @@ public class GameManager : MonoBehaviour
 	public void UpdateTargets()
 	{
 		// Only update targets if Player is not in movement, has a ranged weapon, it is Player's turn, and Player has energy
-		int weaponRange = Player.GetWeaponRange();
-		if (weaponRange > 0
+		if (Player.HasRange
 			&& TurnManager.IsPlayersTurn
-			&& Player.HasEnergy())
+			&& Player.HasEnergy)
 		{
-			TileManager.DrawTargets(EnemyManager.Enemies, Player.transform.position, weaponRange, Player.SelectedItemInfo.IsStunning, TilemapWalls);
+			TileManager.DrawTargets(EnemyManager.Enemies, Player.transform.position, Player.WeaponRange, Player.SelectedItemInfo.IsStunning, TilemapWalls);
 		}
 	}
 }

@@ -14,10 +14,10 @@ public class InventoryUI : MonoBehaviour
 	[SerializeField] private GameObject ItemName;
 	[SerializeField] private GameObject ItemDesc;
 	public int SelectedIndex { get; private set; } = -1;
-	private string cachedName;
-	private Color cachedColor;
-	private string cachedDesc;
-	private static Color defaultColor = new(115/255f, 119/255f, 160/255f);
+	private string CachedName;
+	private string CachedDesc;
+	private Color CachedColor;
+	private static Color DefaultColor = new(115/255f, 119/255f, 160/255f);
 	private readonly float sensitivityDistance = 0.5f;
 	/// <summary>
 	/// Removes item from inventory UI
@@ -31,7 +31,7 @@ public class InventoryUI : MonoBehaviour
 			InventoryPressed0.transform.localScale = Vector3.one;
 			InventoryPressed1.transform.localScale = Vector3.one;
 			ItemName.GetComponent<Text>().text 	= "";
-			ItemName.GetComponent<Text>().color = defaultColor;
+			ItemName.GetComponent<Text>().color = DefaultColor;
 			ItemDesc.GetComponent<Text>().text 	= "";
 		}
 		else if (index == 0 && SelectedIndex != -1)
@@ -51,7 +51,7 @@ public class InventoryUI : MonoBehaviour
 		SelectedIndex = -1;
 		GameObject.Find("InventoryPressed" + index).transform.localScale = Vector3.one;
 		ItemName.GetComponent<Text>().text 	= "";
-		ItemName.GetComponent<Text>().color = defaultColor;
+		ItemName.GetComponent<Text>().color = DefaultColor;
 		ItemDesc.GetComponent<Text>().text 	= "";
 	}
 	/// <summary>
@@ -69,7 +69,7 @@ public class InventoryUI : MonoBehaviour
 		else
 		{
 			ItemName.GetComponent<Text>().text = "";
-			ItemName.GetComponent<Text>().color = defaultColor;
+			ItemName.GetComponent<Text>().color = DefaultColor;
 			ItemDesc.GetComponent<Text>().text = "";
 		}
 	}
@@ -98,23 +98,32 @@ public class InventoryUI : MonoBehaviour
 	/// </summary>
 	public void SetCurrentSelected(int itemIndex)
 	{
+		if (itemIndex < 0 || itemIndex >= Inventory.Count)
+		{
+			Debug.LogError("Invalid item index: " + itemIndex);
+			return;
+		}
 		SelectedIndex = itemIndex;
-		if (SelectedIndex >= 0)
-		{
-			cachedName 	= Inventory[SelectedIndex].Info.Name;
-			cachedColor = Inventory[SelectedIndex].Info.Rarity.Color;
-			cachedDesc 	= Inventory[SelectedIndex].Info.Description
-						+ Inventory[SelectedIndex].Info.Stats;
-		}
-		else
-		{
-			cachedName 	= "";
-			cachedColor = defaultColor;
-			cachedDesc 	= "";
-		}
-		ItemName.GetComponent<Text>().text 	= cachedName;
-		ItemName.GetComponent<Text>().color = cachedColor;
-		ItemDesc.GetComponent<Text>().text 	= cachedDesc;
+		CachedName 	= Inventory[SelectedIndex].Info.Name;
+		CachedColor = Inventory[SelectedIndex].Info.Rarity.Color;
+		CachedDesc 	= Inventory[SelectedIndex].Info.Description
+					+ Inventory[SelectedIndex].Info.Stats;
+		ItemName.GetComponent<Text>().text 	= CachedName;
+		ItemName.GetComponent<Text>().color = CachedColor;
+		ItemDesc.GetComponent<Text>().text 	= CachedDesc;
+	}
+	/// <summary>
+	/// Sets selected index to -1
+	/// </summary>
+	public void SetNoneSelected()
+	{
+		SelectedIndex 	= -1;
+		CachedName 		= "";
+		CachedColor 	= DefaultColor;
+		CachedDesc 		= "";
+		ItemName.GetComponent<Text>().text 	= CachedName;
+		ItemName.GetComponent<Text>().color = CachedColor;
+		ItemDesc.GetComponent<Text>().text 	= CachedDesc;
 	}
 	/// <summary>
 	/// Called by ClickItem when item is selected or deselected
@@ -171,14 +180,14 @@ public class InventoryUI : MonoBehaviour
 		if (SelectedIndex == -1)
 		{
 			NameText.text 	= "";
-			NameText.color 	= Color.white;
+			NameText.color 	= DefaultColor;
 			DescText.text 	= "";
 		}
 		else
 		{
-			NameText.text 	= cachedName;
-			NameText.color 	= cachedColor;
-			DescText.text 	= cachedDesc;
+			NameText.text 	= CachedName;
+			NameText.color 	= CachedColor;
+			DescText.text 	= CachedDesc;
 		}
 	}
 }

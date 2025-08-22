@@ -14,10 +14,10 @@ public class TurnManager : MonoBehaviour
         this.TurnTimer      = TurnTimer;
         this.EndTurnButton  = EndTurnButton;
     }
-    public void StopTurnTimer()
-    {
-        TurnTimer.StopTimer();
-    }
+    public void StopTurnTimer() => TurnTimer.StopTimer();
+    /// <summary>
+    /// Resets timer and switches to enemy turn
+    /// </summary>
     public void OnEndTurnPress()
     {
         EndTurnButton.interactable = false;
@@ -35,10 +35,13 @@ public class TurnManager : MonoBehaviour
         }
         OnPlayerTurnEnded?.Invoke();
     }
-    public void OnTurnTimerEnd()
-    {
-        EndTurnButton.interactable = true;
-    }
+    /// <summary>
+    /// Sets EndTurnButton interactable
+    /// </summary>
+    public void OnTurnTimerEnd() => EndTurnButton.interactable = true;
+    /// <summary>
+    /// Switches to Player's turn
+    /// </summary>
     public void EndEnemyTurn()
     {
         TurnTimer.ResetTimer();
@@ -46,13 +49,5 @@ public class TurnManager : MonoBehaviour
         EndTurnButton.interactable = true;
         OnEnemyTurnEnded?.Invoke();
     }
-    public void StartPlayerTurn()
-    {
-        IsPlayersTurn = true;
-        EndTurnButton.interactable = true;
-    }
-    public void SetEndTurnButtonInteractable(bool interactable)
-    {
-        EndTurnButton.interactable = interactable;
-    }
+    public void SetEndTurnButtonInteractable(bool interactable) => EndTurnButton.interactable = interactable;
 }
