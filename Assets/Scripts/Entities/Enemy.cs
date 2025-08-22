@@ -63,7 +63,7 @@ public class Enemy : MonoBehaviour
         }
         // Handle movement for paths with more than 2 nodes OR random paths with exactly 2 nodes
         if (Path != null
-			&& Info.CurrentEnergy > 0
+			&& HasEnergy
 			&& (Path.Count > 2 || (Path.Count == 2 && isUsingRandomPath)))
 		{
 			Info.DecrementEnergy();
@@ -97,7 +97,7 @@ public class Enemy : MonoBehaviour
 				&& Path.Count == 2
 				&& !isUsingRandomPath)
 		{
-			while (Info.CurrentEnergy > 0)
+			while (HasEnergy)
 			{
 				AttackPlayer();
 			}
@@ -109,7 +109,7 @@ public class Enemy : MonoBehaviour
 			IsInMovement = false;
 			isUsingRandomPath = false;
 			// Mark as blocked if enemy has energy but couldn't move
-			if (Info.CurrentEnergy > 0 && Path == null)
+			if (HasEnergy && Path == null)
 			{
 				WasBlockedThisTurn = true;
 			}
@@ -139,7 +139,7 @@ public class Enemy : MonoBehaviour
 		while (Path != null && Path.Count > 0)
 		{
 			// Check for next tile in path
-			if (Path.Count > 1 && Info.CurrentEnergy > 0)
+			if (Path.Count > 1 && HasEnergy)
 			{
 				Vector3Int NextDestination = Path.Peek();
 				Vector3 NextShiftedDestination = new(NextDestination.x + 0.5f, NextDestination.y + 0.5f);
@@ -169,7 +169,7 @@ public class Enemy : MonoBehaviour
 			}
 			// Enemy attacks Player if enemy moves to an adjacent tile (but not when using random path)
 			else if (Path.Count == 1
-					&& Info.CurrentEnergy > 0
+					&& HasEnergy
 					&& !isUsingRandomPath)
 			{
 				AttackPlayer();
@@ -200,10 +200,8 @@ public class Enemy : MonoBehaviour
 	}
 	#endregion
 	#region ENERGY METHODS
-	public void RestoreEnergy()
-	{
-		Info.RestoreEnergy();
-	}
+	public void RestoreEnergy() => Info.RestoreEnergy();
+	public bool HasEnergy => Info.CurrentEnergy > 0;
 	#endregion
 	#region ATTACK METHODS
 	private void AttackPlayer()

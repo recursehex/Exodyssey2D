@@ -28,8 +28,9 @@ public class Inventory
 	/// <summary>
 	/// Removes item from inventory at specified index
 	/// </summary>
-	public void RemoveItem(int index)
-	{
-		InventoryList.RemoveAt(index);
-	}
+	public void RemoveItem(int index) => InventoryList.RemoveAt(index);
+	/// <summary>
+	/// Returns true if inventory is empty
+	/// </summary>
+	public bool IsEmpty => InventoryList.Count == 0;
 }

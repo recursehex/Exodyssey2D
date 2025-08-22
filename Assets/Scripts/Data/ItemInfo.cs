@@ -76,7 +76,8 @@ public class ItemInfo
 	public int CurrentUses 		{ get; private set; } = 1;				// Current durability of item
 	public int DamagePoints 	=> Data.damagePoints;					// Damage of item, -1 = not a weapon
 	public int ArmorDamage 		=> Data.armorDamage;					// Damage of item to armor, -1 = does same damage as DamagePoints
-	public int Range 			=> Data.range;							// Range of item, -1 = not a ranged weapon
+	public int Range 			=> Data.range;                          // Range of item, -1 = not a ranged weapon
+	public bool HasRange 		=> Range > 0;
 	public bool IsEquipable 	=> Data.isEquipable;					// If item can be equipped, enabling and removing from inventory
 	public bool IsAttachable 	=> Data.isAttachable;					// If item can be attached to vehicles, enabling and removing from inventory
 	public bool IsFlammable 	=> Data.isFlammable;					// If item is flammable, can be destroyed by fire and helps it spread
@@ -85,44 +86,48 @@ public class ItemInfo
 	private static readonly List<Rarity> ItemRarityList = GenerateAllRarities();
 	private static ItemDatabase ItemDatabase;
 	private static bool databaseLoaded = false;
-	
+	/// <summary>
+	/// Loads item definitions from JSON file in Resources folder
+	/// </summary>
 	private static void LoadDatabase()
 	{
 		if (databaseLoaded)
 		{
 			return;
 		}
-		TextAsset jsonFile = Resources.Load<TextAsset>("ItemDefinitions");
-		if (jsonFile != null)
+		TextAsset JsonFile = Resources.Load<TextAsset>("ItemDefinitions");
+		if (JsonFile != null)
 		{
-			ItemDatabase 	= JsonUtility.FromJson<ItemDatabase>(jsonFile.text);
-			databaseLoaded 	= true;
+			ItemDatabase = JsonUtility.FromJson<ItemDatabase>(JsonFile.text);
+			databaseLoaded = true;
 		}
 		else
 		{
 			Debug.LogError("ItemDefinitions.json not found in Resources folder!");
 		}
 	}
-	
+	/// <summary>
+	/// Generates list of all rarities based on ItemDatabase
+	/// </summary>
+	/// <returns></returns>
 	private static List<Rarity> GenerateAllRarities()
 	{
 		LoadDatabase();
-		List<Rarity> rarities = new();
+		List<Rarity> Rarities = new();
 		// First, try to get rarities from JSON
 		if (ItemDatabase != null
 		 && ItemDatabase.Items != null)
 		{
 			for (int i = 0; i < lastItemIndex; i++)
 			{
-				Tags tag 		= (Tags)i;
-				string tagName 	= tag.ToString();
-				ItemData data = ItemDatabase.Items.Find(item => item.Tag == tagName);
-				if (data != null && !data.disabled)
+				Tags Tag = (Tags)i;
+				string TagName = Tag.ToString();
+				ItemData Data = ItemDatabase.Items.Find(item => item.Tag == TagName);
+				if (Data != null && !Data.disabled)
 				{
-					Rarity parsedRarity = Rarity.Parse(data.Rarity);
-					rarities.Add(parsedRarity);
+					Rarities.Add(Rarity.Parse(Data.Rarity));
 				}
-				else if (data != null && data.disabled)
+				else if (Data != null && Data.disabled)
 				{
 					// Skip disabled items
 					continue;
@@ -130,7 +135,7 @@ public class ItemInfo
 				else
 				{
 					// Fallback to creating ItemInfo if not found in JSON
-					rarities.Add(new ItemInfo(i).Rarity);
+					Rarities.Add(new ItemInfo(i).Rarity);
 				}
 			}
 		}
@@ -138,16 +143,21 @@ public class ItemInfo
 		{
 			Debug.LogWarning($"Database failed to load, returning empty list");
 		}
-		return rarities;
+		return Rarities;
 	}
+	/// <summary>
+	/// Returns a random index of an item within the specified rarity
+	/// </summary>
+	/// <param name="Rarity"></param>
+	/// <returns></returns>
 	public static int GetRandomIndexFrom(Rarity Rarity)
 	{
-		List<int> indices = Enumerable.Range(0, ItemRarityList.Count)
+		List<int> Indices = Enumerable.Range(0, ItemRarityList.Count)
 									  .Where(i => ItemRarityList[i] == Rarity)
 									  .ToList();
-		if (indices.Count == 0)
+		if (Indices.Count == 0)
 			return -1;
-		return indices[UnityEngine.Random.Range(0, indices.Count)];
+		return Indices[UnityEngine.Random.Range(0, Indices.Count)];
 	}
 	/// <summary>
 	/// Decreases item durability by amount and updates description
@@ -163,7 +173,7 @@ public class ItemInfo
 			{
 				Stats += $"\nAD:{ArmorDamage}";
 			}
-			if (Range > 0)
+			if (HasRange)
 			{
 				Stats += $"\nRP:{Range}";
 			}
@@ -176,10 +186,8 @@ public class ItemInfo
 	public ItemInfo(int n)
 	{
 		LoadDatabase();
-		
 		Tags TagData	= (Tags)n;
 		string TagName 	= TagData.ToString();
-		
 		// Try to load from JSON first
 		if (ItemDatabase != null
 		 && ItemDatabase.Items != null)
@@ -196,10 +204,8 @@ public class ItemInfo
 				Debug.LogWarning($"Item {n} {TagName} is disabled in JSON");
 			}
 		}
-		
 		// Fallback to hardcoded values if JSON loading fails
 		Debug.LogWarning($"Item {n} {TagName} not found in JSON, using default values");
-		
 		// Set minimal defaults for unknown items
 		Tag 				= TagData;
 		Rarity 				= Rarity.Common;
@@ -211,7 +217,10 @@ public class ItemInfo
 		CurrentUses 		= Data.maxUses;
 		Stats 				= $"\nUP:{Data.maxUses}/{Data.maxUses}";
 	}
-	
+	/// <summary>
+	/// Loads item data from source ItemData object
+	/// </summary>
+	/// <param name="SourceData"></param>
 	private void LoadFromData(ItemData SourceData)
 	{
 		// Copy the data
@@ -231,20 +240,10 @@ public class ItemInfo
 			isFlammable 	= SourceData.isFlammable,
 			isStunning 		= SourceData.isStunning
 		};
-		
 		// Parse enums
-		if (Enum.TryParse(Data.Tag, out Tags ParsedTag))
-			Tag = ParsedTag;
-		else
-			Tag = Tags.Unknown;
-			
-		Rarity = Rarity.Parse(Data.Rarity);
-			
-		if (Enum.TryParse(Data.Type, out Types ParsedType))
-			Type = ParsedType;
-		else
-			Type = Types.Unknown;
-		
+		Tag 	= Enum.TryParse(Data.Tag, out Tags ParsedTag) ? ParsedTag : Tags.Unknown;
+		Rarity 	= Rarity.Parse(Data.Rarity);
+		Type 	= Enum.TryParse(Data.Type, out Types ParsedType) ? ParsedType : Types.Unknown;
 		// Generate stats string
 		Stats = $"\nUP:{Data.maxUses}/{Data.maxUses}";
 		if (Type == Types.Weapon)

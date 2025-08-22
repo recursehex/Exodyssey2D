@@ -40,12 +40,18 @@ public class LevelManager : MonoBehaviour
         OnLevelInitialized?.Invoke();
         Invoke(nameof(HideLevelLoadScreen), levelStartDelay);
     }
+    /// <summary>
+    /// Hides level load screen after delay ends
+    /// </summary>
     private void HideLevelLoadScreen()
     {
         LevelImage.SetActive(false);
         LevelText.gameObject.SetActive(false);
         DayText.gameObject.SetActive(false);
     }
+    /// <summary>
+    /// Increments level and clears tilemaps
+    /// </summary>
     public void PrepareNextLevel()
     {
         Level++;
@@ -57,11 +63,17 @@ public class LevelManager : MonoBehaviour
         }
         ClearTilemaps();
     }
+    /// <summary>
+    /// Clears all tiles from TilemapGround and TileMapWalls
+    /// </summary>
     private void ClearTilemaps()
     {
         TilemapGround.ClearAllTiles();
         TilemapWalls.ClearAllTiles();
     }
+    /// <summary>
+    /// Generates ground tiles
+    /// </summary>
     private void GenerateGround()
     {
         for (int x = -4; x < 5; x++)
@@ -73,18 +85,28 @@ public class LevelManager : MonoBehaviour
             }
         }
     }
-    private void GenerateWalls()
-    {
-        MapGeneration.GenerateMap(TilemapWalls, WallTiles);
-    }
-    public bool HasWallAtPosition(Vector3Int Position)
-    {
-        return TilemapWalls.HasTile(Position);
-    }
+    /// <summary>
+    /// Generates walls on top of the ground tiles
+    /// </summary>
+    private void GenerateWalls() => MapGeneration.GenerateMap(TilemapWalls, WallTiles);
+    /// <summary>
+    /// Returns true a wall is at the given position
+    /// </summary>
+    /// <param name="Position"></param>
+    /// <returns></returns>
+    public bool HasWallAtPosition(Vector3Int Position) => TilemapWalls.HasTile(Position);
+    /// <summary>
+    /// Returns true an exit tile is at the given position
+    /// </summary>
+    /// <param name="Position"></param>
+    /// <returns></returns>
     public bool HasExitTileAtPosition(Vector3Int Position)
     {
         return TilemapExits.HasTile(Position);
     }
+    /// <summary>
+    /// Displays game over screen with stats
+    /// </summary>
     public void ShowGameOver()
     {
         DayText.gameObject.SetActive(true);

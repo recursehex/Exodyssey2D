@@ -17,6 +17,9 @@ public class TileManager : MonoBehaviour
         TileAreaTemplate    = TileArea;
         this.TargetTemplate = TargetTemplate;
     }
+    /// <summary>
+    /// Clears all tile areas
+    /// </summary>
     public void ClearTileAreas()
     {
         if (TileAreas.Count == 0)
@@ -49,6 +52,9 @@ public class TileManager : MonoBehaviour
             TileAreas.Add(TileArea);
         }
     }
+    /// <summary>
+    /// Clears all targets
+    /// </summary>
     public void ClearTargets()
     {
         Targets.ForEach(Target => Destroy(Target));
@@ -160,12 +166,16 @@ public class TileManager : MonoBehaviour
         }
         return PointsOnLine;
     }
-    public bool IsInMovementRange(Vector3Int Position)
-    {
-        return TileAreasToDraw?.ContainsKey(Position) == true;
-    }
-    public bool IsInRangedWeaponRange(Vector3 Position)
-    {
-        return Targets.Exists(Target => Target.transform.position == Position);
-    }
+    /// <summary>
+    /// Returns true if position is in movement range
+    /// </summary>
+    /// <param name="Position"></param>
+    /// <returns></returns>
+    public bool IsInMovementRange(Vector3Int Position) => TileAreasToDraw?.ContainsKey(Position) == true;
+    /// <summary>
+    /// Returns true if position is in ranged weapon range
+    /// </summary>
+    /// <param name="Position"></param>
+    /// <returns></returns>
+    public bool IsInRangedWeaponRange(Vector3 Position) => Targets.Exists(Target => Target.transform.position == Position);
 }

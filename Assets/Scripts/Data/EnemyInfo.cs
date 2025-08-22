@@ -55,10 +55,10 @@ public class EnemyInfo
 		{
 			return;
 		}
-		TextAsset jsonFile = Resources.Load<TextAsset>("EnemyDefinitions");
-		if (jsonFile != null)
+		TextAsset JsonFile = Resources.Load<TextAsset>("EnemyDefinitions");
+		if (JsonFile != null)
 		{
-			EnemyDatabase = JsonUtility.FromJson<EnemyDatabase>(jsonFile.text);
+			EnemyDatabase = JsonUtility.FromJson<EnemyDatabase>(JsonFile.text);
 			databaseLoaded = true;
 		}
 		else
@@ -70,22 +70,21 @@ public class EnemyInfo
 	private static List<Rarity> GenerateAllRarities()
 	{
 		LoadDatabase();
-		List<Rarity> rarities = new();
+		List<Rarity> Rarities = new();
 		// First, try to get rarities from JSON
 		if (EnemyDatabase != null
 		 && EnemyDatabase.Enemies != null)
 		{
 			for (int i = 0; i < lastEnemyIndex; i++)
 			{
-				Tags tag = (Tags)i;
-				string tagName = tag.ToString();
-				EnemyData data = EnemyDatabase.Enemies.Find(enemy => enemy.Tag == tagName);
-				if (data != null && !data.disabled)
+				Tags Tag = (Tags)i;
+				string TagName = Tag.ToString();
+				EnemyData Data = EnemyDatabase.Enemies.Find(Enemy => Enemy.Tag == TagName);
+				if (Data != null && !Data.disabled)
 				{
-					Rarity parsedRarity = Rarity.Parse(data.Rarity);
-					rarities.Add(parsedRarity);
+					Rarities.Add(Rarity.Parse(Data.Rarity));
 				}
-				else if (data != null && data.disabled)
+				else if (Data != null && Data.disabled)
 				{
 					// Skip disabled items
 					continue;
@@ -93,7 +92,7 @@ public class EnemyInfo
 				else
 				{
 					// Fallback to creating EnemyInfo if not found in JSON
-					rarities.Add(new EnemyInfo(i).Rarity);
+					Rarities.Add(new EnemyInfo(i).Rarity);
 				}
 			}
 		}
@@ -101,49 +100,38 @@ public class EnemyInfo
 		{
 			Debug.LogWarning($"Database failed to load, returning empty list");
 		}
-		return rarities;
+		return Rarities;
 	}
 	public static int GetRandomIndexFrom(Rarity Rarity)
 	{
-		List<int> indices = Enumerable.Range(0, EnemyRarityList.Count)
+		List<int> Indices = Enumerable.Range(0, EnemyRarityList.Count)
 									  .Where(i => EnemyRarityList[i] == Rarity)
 									  .ToList();
-		if (indices.Count == 0)
+		if (Indices.Count == 0)
 			return -1;
-		return indices[UnityEngine.Random.Range(0, indices.Count)];
+		return Indices[UnityEngine.Random.Range(0, Indices.Count)];
 	}
 	/// <summary>
 	/// Decreases CurrentHealth by 1
 	/// </summary>
-	public void DecreaseHealthBy(int amount)
-	{
-		CurrentHealth -= amount;
-	}
+	public void DecreaseHealthBy(int amount) => CurrentHealth -= amount;
 	/// <summary>
 	/// Decreases CurrentEnergy by 1
 	/// </summary>
-	public void DecrementEnergy()
-	{
-		CurrentEnergy--;
-	}
+	public void DecrementEnergy() => CurrentEnergy--;
 	/// <summary>
 	/// Restores enemy's CurrentEnergy to maxEnergy
 	/// </summary>
-	public void RestoreEnergy()
-	{
-		CurrentEnergy = Data.maxEnergy;
-	}
+	public void RestoreEnergy() => CurrentEnergy = Data.maxEnergy;
 	/// <summary>
 	/// Returns info for a desired enemy,
-	/// n must match Tag order and GameManager EnemyTemplates order
+	/// index must match Tag order and GameManager EnemyTemplates order
 	/// </summary>
-	public EnemyInfo(int n)
+	public EnemyInfo(int index)
 	{
 		LoadDatabase();
-		
-		Tags TagData = (Tags)n;
+		Tags TagData = (Tags)index;
 		string TagName = TagData.ToString();
-		
 		// Try to load from JSON first
 		if (EnemyDatabase != null
 		 && EnemyDatabase.Enemies != null)
@@ -158,13 +146,11 @@ public class EnemyInfo
 			}
 			else if (Data != null && Data.disabled)
 			{
-				Debug.LogWarning($"Enemy {n} {TagName} is disabled in JSON");
+				Debug.LogWarning($"Enemy {index} {TagName} is disabled in JSON");
 			}
 		}
-		
 		// Fallback to hardcoded values if JSON loading fails
 		Debug.LogWarning($"Enemy {TagName} not found in JSON, using default values");
-		
 		// Set minimal defaults for unknown enemies
 		Tag 				= TagData;
 		Rarity 				= Rarity.Common;
@@ -178,7 +164,10 @@ public class EnemyInfo
 		CurrentHealth 		= Data.maxHealth;
 		CurrentEnergy 		= Data.maxEnergy;
 	}
-	
+	/// <summary>
+	/// Loads enemy data from source EnemyData object
+	/// </summary>
+	/// <param name="SourceData"></param>
 	private void LoadFromData(EnemyData SourceData)
 	{
 		// Copy the data
@@ -197,18 +186,9 @@ public class EnemyInfo
 			isHunting 		= SourceData.isHunting,
 			isArmored 		= SourceData.isArmored
 		};
-		
 		// Parse enums
-		if (Enum.TryParse(Data.Tag, out Tags ParsedTag))
-			Tag = ParsedTag;
-		else
-			Tag = Tags.Unknown;
-			
-		Rarity = Rarity.Parse(Data.Rarity);
-			
-		if (Enum.TryParse(Data.Type, out Types ParsedType))
-			Type = ParsedType;
-		else
-			Type = Types.Unknown;
+		Tag 	= Enum.TryParse(Data.Tag, out Tags ParsedTag) ? ParsedTag : Tags.Unknown;
+		Rarity 	= Rarity.Parse(Data.Rarity);
+		Type 	= Enum.TryParse(Data.Type, out Types ParsedType) ? ParsedType : Types.Unknown;
 	}
 }

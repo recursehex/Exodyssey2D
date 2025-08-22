@@ -9,10 +9,7 @@ public class TurnTimer : MonoBehaviour
 	public Text TimeText;
 	private static Color NormalColor = new(115/255f, 119/255f, 160/255f);
 	private static Color OutOfTimeColor = new(172/255f, 22/255f, 45/255f);
-	public void StartTimer()
-	{
-		timerIsRunning = true;
-	}
+	public void StartTimer() => timerIsRunning = true;
 	public void StopTimer()
 	{
 		timeRemaining = 0;
