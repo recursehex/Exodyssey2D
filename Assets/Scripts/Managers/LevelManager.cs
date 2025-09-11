@@ -88,7 +88,7 @@ public class LevelManager : MonoBehaviour
     /// <summary>
     /// Generates walls on top of the ground tiles
     /// </summary>
-    private void GenerateWalls() => MapGeneration.GenerateMap(TilemapWalls, WallTiles);
+    private void GenerateWalls() => MapGenerator.GenerateMap(TilemapWalls, WallTiles);
     /// <summary>
     /// Returns true a wall is at the given position
     /// </summary>
