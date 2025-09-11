@@ -128,10 +128,9 @@ public class Enemy : MonoBehaviour
 			// Move to the destination
 			while (Vector3.Distance(transform.position, ShiftedDistance) > 0f)
 			{
-				transform.position = Vector3.MoveTowards(
-					transform.position, 
-					ShiftedDistance, 
-					Info.Speed * Time.deltaTime);
+				transform.position = Vector3.MoveTowards(transform.position, 
+														 ShiftedDistance, 
+														 Info.Speed * Time.deltaTime);
 				yield return null;
 			}
 		}

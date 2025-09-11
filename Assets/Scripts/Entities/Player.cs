@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
+[RequireComponent(typeof(Animator))]
+
 /// <summary>
 /// Contains functionality specific to the Player
 /// </summary>
@@ -28,7 +30,7 @@ public class Player : MonoBehaviour
 	public Profession Job;
 	#endregion
 	#region EVENTS
-	public System.Action OnMovementComplete;
+	public Action OnMovementComplete;
 	#endregion
 	#region AUDIO
 	[SerializeField] private AudioClip Move;
@@ -100,10 +102,9 @@ public class Player : MonoBehaviour
 			// Move Player smoothly to next tile
 			while (Vector3.Distance(transform.position, ShiftedDistance) > 0f)
 			{
-				transform.position = Vector3.MoveTowards(
-					transform.position, 
-					ShiftedDistance, 
-					walkSpeed * Time.deltaTime);
+				transform.position = Vector3.MoveTowards(transform.position, 
+														 ShiftedDistance, 
+														 walkSpeed * Time.deltaTime);
 				yield return null;
 			}
 			// Pop next tile in path

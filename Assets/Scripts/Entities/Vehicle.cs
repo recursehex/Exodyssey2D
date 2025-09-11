@@ -69,10 +69,9 @@ public class Vehicle : MonoBehaviour
 			// Move vehicle smoothly to next tile
 			while (Vector3.Distance(transform.position, ShiftedDistance) > 0f)
 			{
-				transform.position = Vector3.MoveTowards(
-					transform.position, 
-					ShiftedDistance, 
-					Info.Speed * Time.deltaTime);
+				transform.position = Vector3.MoveTowards(transform.position, 
+														 ShiftedDistance, 
+														 Info.Speed * Time.deltaTime);
 				yield return null;
 			}
 			// Pop next tile in path
