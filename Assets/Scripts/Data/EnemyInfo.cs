@@ -66,7 +66,6 @@ public class EnemyInfo
 			Debug.LogError("EnemyDefinitions.json not found in Resources folder!");
 		}
 	}
-	
 	private static List<Rarity> GenerateAllRarities()
 	{
 		LoadDatabase();
@@ -101,6 +100,27 @@ public class EnemyInfo
 			Debug.LogWarning($"Database failed to load, returning empty list");
 		}
 		return Rarities;
+	}
+	/// <summary>
+	/// Gets list of allowed rarities based on current region's enemy pool
+	/// </summary>
+	public static List<Rarity> GetAllowedRarities()
+	{
+		RegionManager RegionManager = GameManager.Instance.GetRegionManager();
+		List<string> AllowedRarityNames = RegionManager.CurrentRegion?.EnemyPool;
+		// No region filtering, return all rarities
+		if (AllowedRarityNames == null || AllowedRarityNames.Count == 0)
+		{
+			return new List<Rarity>(Rarity.RarityList);
+		}
+		// Convert rarity names to Rarity objects
+		HashSet<Rarity> AllowedRarities = new();
+		foreach (string RarityName in AllowedRarityNames)
+		{
+			Rarity Rarity = Rarity.Parse(RarityName);
+			AllowedRarities.Add(Rarity);
+		}
+		return new List<Rarity>(AllowedRarities);
 	}
 	public static int GetRandomIndexFrom(Rarity Rarity)
 	{

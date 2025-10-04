@@ -40,8 +40,9 @@ public class EnemyManager : MonoBehaviour
     }
     public void SpawnEnemy(int index, Vector3 Position)
     {
+        EnemyInfo EnemyInfo = new(index);
         Enemy Enemy = Instantiate(EnemyTemplates[index], Position, Quaternion.identity).GetComponent<Enemy>();
-        Enemy.Initialize(TilemapGround, TilemapWalls, new EnemyInfo(index));
+        Enemy.Initialize(TilemapGround, TilemapWalls, EnemyInfo);
         Enemies.Add(Enemy);
     }
     /// <summary>

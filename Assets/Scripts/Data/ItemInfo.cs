@@ -146,6 +146,27 @@ public class ItemInfo
 		return Rarities;
 	}
 	/// <summary>
+	/// Gets list of allowed rarities based on current region's item pool
+	/// </summary>
+	public static List<Rarity> GetAllowedRarities()
+	{
+		RegionManager RegionManager = GameManager.Instance.GetRegionManager();
+		List<string> AllowedRarityNames = RegionManager.CurrentRegion?.ItemPool;
+		// No region filtering, return all rarities
+		if (AllowedRarityNames == null || AllowedRarityNames.Count == 0)
+		{
+			return new List<Rarity>(Rarity.RarityList);
+		}
+		// Convert rarity names to Rarity objects
+		HashSet<Rarity> AllowedRarities = new();
+		foreach (string RarityName in AllowedRarityNames)
+		{
+			Rarity Rarity = Rarity.Parse(RarityName);
+			AllowedRarities.Add(Rarity);
+		}
+		return new List<Rarity>(AllowedRarities);
+	}
+	/// <summary>
 	/// Returns a random index of an item within the specified rarity
 	/// </summary>
 	/// <param name="Rarity"></param>

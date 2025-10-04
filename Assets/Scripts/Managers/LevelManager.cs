@@ -4,6 +4,7 @@ using UnityEngine.UI;
 
 public class LevelManager : MonoBehaviour
 {
+    [SerializeField] private Text RegionText;
     [SerializeField] private Text DayText;
     [SerializeField] private Text LevelText;
     [SerializeField] private GameObject LevelImage;
@@ -16,18 +17,19 @@ public class LevelManager : MonoBehaviour
     private Tilemap TilemapExits;
     private Tile[] GroundTiles;
     private Tile[] WallTiles;
+    private RegionManager RegionManager;
     public delegate void LevelInitializedDelegate();
     public event LevelInitializedDelegate OnLevelInitialized;
-    public void Initialize(Tilemap Ground, Tilemap Walls, Tilemap Exits, Tile[] GroundTiles, Tile[] WallTiles, 
-                          Text DayText, Text LevelText, GameObject LevelImage)
+    public void Initialize(Tilemap Ground, Tilemap Walls, Tilemap Exits, RegionManager RegionManager,
+                           Text RegionText, Text DayText, Text LevelText, GameObject LevelImage)
     {
         TilemapGround       = Ground;
         TilemapWalls        = Walls;
         TilemapExits        = Exits;
-        this.GroundTiles    = GroundTiles;
-        this.WallTiles      = WallTiles;
+        this.RegionManager  = RegionManager;
+        this.RegionText     = RegionText;
         this.DayText        = DayText;
-        this.LevelText      = LevelText;
+        this.LevelText        = LevelText;
         this.LevelImage     = LevelImage;
     }
     public void InitializeLevel()
@@ -35,6 +37,8 @@ public class LevelManager : MonoBehaviour
         LevelImage.SetActive(true);
         LevelText.gameObject.SetActive(true);
         DayText.gameObject.SetActive(true);
+        RegionText.gameObject.SetActive(true);
+        RegionText.text = RegionManager.CurrentRegion.Name;
         GenerateGround();
         GenerateWalls();
         OnLevelInitialized?.Invoke();
@@ -48,6 +52,7 @@ public class LevelManager : MonoBehaviour
         LevelImage.SetActive(false);
         LevelText.gameObject.SetActive(false);
         DayText.gameObject.SetActive(false);
+        RegionText.gameObject.SetActive(false);
     }
     /// <summary>
     /// Increments level and clears tilemaps
@@ -55,12 +60,12 @@ public class LevelManager : MonoBehaviour
     public void PrepareNextLevel()
     {
         Level++;
-        LevelText.text = timeOfDayNames[Level % timeOfDayNames.Length];
-        if (Level % 5 == 0)
-        {
-            Day++;
-            DayText.text = $"DAY {Day}";
-        }
+        if (Level % timeOfDayNames.Length == 0) Day++;
+        DayText.text = $"DAY {Day}";
+        LevelText.text = $"{timeOfDayNames[Level % timeOfDayNames.Length]}";
+        // Track region progression
+        RegionManager.CompleteGrid();
+        RegionManager.TryAdvanceRegion();
         ClearTilemaps();
     }
     /// <summary>
@@ -76,19 +81,23 @@ public class LevelManager : MonoBehaviour
     /// </summary>
     private void GenerateGround()
     {
+        GroundTiles = RegionManager.GetCurrentGroundTiles();
         for (int x = -4; x < 5; x++)
         {
             for (int y = -4; y < 5; y++)
             {
-                TilemapGround.SetTile(new Vector3Int(x, y),
-                                      GroundTiles[Random.Range(0, GroundTiles.Length)]);
+                TilemapGround.SetTile(new(x, y), GroundTiles[Random.Range(0, GroundTiles.Length)]);
             }
         }
     }
     /// <summary>
     /// Generates walls on top of the ground tiles
     /// </summary>
-    private void GenerateWalls() => MapGenerator.GenerateMap(TilemapWalls, WallTiles);
+    private void GenerateWalls()
+    {
+        WallTiles = RegionManager.GetCurrentWallTiles();
+        MapGenerator.GenerateMap(TilemapWalls, WallTiles);
+    }
     /// <summary>
     /// Returns true a wall is at the given position
     /// </summary>
@@ -100,19 +109,16 @@ public class LevelManager : MonoBehaviour
     /// </summary>
     /// <param name="Position"></param>
     /// <returns></returns>
-    public bool HasExitTileAtPosition(Vector3Int Position)
-    {
-        return TilemapExits.HasTile(Position);
-    }
+    public bool HasExitTileAtPosition(Vector3Int Position) => TilemapExits.HasTile(Position);
     /// <summary>
     /// Displays game over screen with stats
     /// </summary>
     public void ShowGameOver()
     {
+        RegionText.gameObject.SetActive(true);
         DayText.gameObject.SetActive(true);
-        LevelText.gameObject.SetActive(true);
-        DayText.text = "YOU DIED";
-        LevelText.text = Day == 1 ? "AFTER 1 DAY" : $"AFTER {(Level / 5) + 1} DAYS";
+        RegionText.text = "YOU DIED";
+        DayText.text = Day == 1 ? "AFTER 1 DAY" : $"AFTER {(Level / timeOfDayNames.Length) + 1} DAYS";
         LevelImage.SetActive(true);
     }
 }

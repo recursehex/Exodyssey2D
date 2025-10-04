@@ -1,14 +1,29 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public static class WeightedRarityGeneration
 {
 	private static Rarity ChosenRarity;
 	private static Vector3 ChosenPosition;
-	private static bool GenerateRarityAndPosition()
+	private static bool GenerateRarityAndPosition<T>()
 	{
+		// Get allowed rarities based on entity type
+		List<Rarity> allowedRarities = typeof(T).Name switch
+		{
+			nameof(Item) => ItemInfo.GetAllowedRarities(),
+			nameof(Enemy) => EnemyInfo.GetAllowedRarities(),
+			nameof(Vehicle) => VehicleInfo.GetAllowedRarities(),
+			_ => Rarity.RarityList
+		};
+		// If no allowed rarities, fail
+		if (allowedRarities.Count == 0)
+		{
+			return false;
+		}
 		int roll = Random.Range(1, 101);
 		int cumulative = 0;
-		foreach (Rarity Rarity in Rarity.RarityList)
+		// Select rarity based on weighted drop rates
+		foreach (Rarity Rarity in allowedRarities)
 		{
 			cumulative += Rarity.GetDropRate();
 			if (roll <= cumulative)
@@ -43,7 +58,7 @@ public static class WeightedRarityGeneration
 	/// </summary>
 	public static bool Generate<T>()
     {
-        if (!GenerateRarityAndPosition())
+        if (!GenerateRarityAndPosition<T>())
 		{
             return false;
 		}

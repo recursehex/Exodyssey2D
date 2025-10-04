@@ -2,7 +2,7 @@
   "Vehicles": [
     {
       "Tag": "Rover",
-      "Rarity": "Scarce",
+      "Rarity": "Limited",
       "Type": "Car",
       "Name": "ROVER",
       "Description": "Standard ISA vehicle",

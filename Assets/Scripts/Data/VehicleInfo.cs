@@ -48,10 +48,10 @@ public class VehicleInfo
 		{
 			return;
 		}
-		TextAsset jsonFile = Resources.Load<TextAsset>("VehicleDefinitions");
-		if (jsonFile != null)
+		TextAsset JsonFile = Resources.Load<TextAsset>("VehicleDefinitions");
+		if (JsonFile != null)
 		{
-			VehicleDatabase = JsonUtility.FromJson<VehicleDatabase>(jsonFile.text);
+			VehicleDatabase = JsonUtility.FromJson<VehicleDatabase>(JsonFile.text);
 			databaseLoaded = true;
 		}
 		else
@@ -59,7 +59,6 @@ public class VehicleInfo
 			Debug.LogError("VehicleDefinitions.json not found in Resources folder!");
 		}
 	}
-	
 	private static List<Rarity> GenerateAllRarities()
 	{
 		LoadDatabase();
@@ -94,6 +93,27 @@ public class VehicleInfo
 			Debug.LogWarning($"Database failed to load, returning empty list");
 		}
 		return Rarities;
+	}
+	/// <summary>
+	/// Gets list of allowed rarities based on current region's vehicle pool
+	/// </summary>
+	public static List<Rarity> GetAllowedRarities()
+	{
+		RegionManager RegionManager = GameManager.Instance.GetRegionManager();
+		List<string> AllowedRarityNames = RegionManager.CurrentRegion?.VehiclePool;
+		// No region filtering, return all rarities
+		if (AllowedRarityNames == null || AllowedRarityNames.Count == 0)
+		{
+			return new List<Rarity>(Rarity.RarityList);
+		}
+		// Convert rarity names to Rarity objects
+		HashSet<Rarity> AllowedRarities = new();
+		foreach (string RarityName in AllowedRarityNames)
+		{
+			Rarity Rarity = Rarity.Parse(RarityName);
+			AllowedRarities.Add(Rarity);
+		}
+		return new List<Rarity>(AllowedRarities);
 	}
 	public static int GetRandomIndexFrom(Rarity Rarity)
 	{

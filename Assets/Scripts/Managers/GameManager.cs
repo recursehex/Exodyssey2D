@@ -14,13 +14,14 @@ public class GameManager : MonoBehaviour
 	[SerializeField] private Vector3 PlayerStartPosition = new(-3.5f, 0.5f);
 	[SerializeField] private float FadeOutDuration = 2.0f;
 	[Header("Managers")]
-	[SerializeField] private EnemyManager EnemyManager;
-	[SerializeField] private ItemManager ItemManager;
-	[SerializeField] private VehicleManager VehicleManager;
-	[SerializeField] private TileManager TileManager;
-	[SerializeField] private TurnManager TurnManager;
-	[SerializeField] private LevelManager LevelManager;
-	[SerializeField] private InputManager InputManager;
+	[SerializeField] private RegionManager RegionManager;
+	private EnemyManager EnemyManager;
+	private ItemManager ItemManager;
+	private VehicleManager VehicleManager;
+	private TileManager TileManager;
+	private TurnManager TurnManager;
+	private LevelManager LevelManager;
+	private InputManager InputManager;
 	[Header("Prefab Templates")]
 	[SerializeField] private GameObject[] EnemyTemplates;
 	[SerializeField] private GameObject[] ItemTemplates;
@@ -31,6 +32,7 @@ public class GameManager : MonoBehaviour
 	[SerializeField] private GameObject TargetTemplate;
 	[SerializeField] private TurnTimer TurnTimer;
 	[SerializeField] private Button EndTurnButton;
+	[SerializeField] private Text RegionText;
 	[SerializeField] private Text DayText;
 	[SerializeField] private Text LevelText;
 	[SerializeField] private GameObject LevelImage;
@@ -38,8 +40,6 @@ public class GameManager : MonoBehaviour
 	[SerializeField] private Tilemap TilemapGround;
 	[SerializeField] private Tilemap TilemapWalls;
 	[SerializeField] private Tilemap TilemapExit;
-	[SerializeField] private Tile[] GroundTiles;
-	[SerializeField] private Tile[] WallTiles;
 	void Awake()
 	{
 		if (Instance == null)
@@ -66,12 +66,13 @@ public class GameManager : MonoBehaviour
 		LevelManager 	= gameObject.AddComponent<LevelManager>();
 		InputManager 	= gameObject.AddComponent<InputManager>();
 		// Initialize managers
+		RegionManager	.Initialize();
 		EnemyManager	.Initialize(TilemapGround, TilemapWalls, EnemyTemplates);
 		ItemManager		.Initialize(ItemTemplates);
 		VehicleManager	.Initialize(TilemapGround, TilemapWalls, VehicleTemplates);
 		TileManager		.Initialize(TileDot, TileArea, TargetTemplate);
 		TurnManager		.Initialize(TurnTimer, EndTurnButton);
-		LevelManager	.Initialize(TilemapGround, TilemapWalls, TilemapExit, GroundTiles, WallTiles, DayText, LevelText, LevelImage);
+		LevelManager	.Initialize(TilemapGround, TilemapWalls, TilemapExit, RegionManager, RegionText, DayText, LevelText, LevelImage);
 		// Subscribe to events
 		TurnManager.OnPlayerTurnEnded 	+= OnPlayerTurnEnded;
 		TurnManager.OnEnemyTurnEnded 	+= OnEnemyTurnEnded;
@@ -184,6 +185,7 @@ public class GameManager : MonoBehaviour
 	public bool HasEnemies() 								=> EnemyManager.Enemies.Count > 0;
 	public bool HasExitTileAtPosition(Vector3Int Position) => LevelManager.HasExitTileAtPosition(Position);
 	public int Level => LevelManager.Level;
+	public RegionManager GetRegionManager() => RegionManager;
     public void StopTurnTimer() => TurnManager.StopTurnTimer();
 	public void OnEndTurnPress()
 	{
