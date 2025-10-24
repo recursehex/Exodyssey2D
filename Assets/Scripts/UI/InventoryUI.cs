@@ -1,6 +1,7 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using System;
 
 /// <summary>
 /// Organizes items in the player's inventory
@@ -19,6 +20,70 @@ public class InventoryUI : MonoBehaviour
 	private Color CachedColor;
 	private static Color DefaultColor = new(115/255f, 119/255f, 160/255f);
 	private readonly float sensitivityDistance = 0.5f;
+	private readonly Dictionary<int, Image> InventoryIconLookup = new();
+	private readonly Dictionary<int, Transform> InventoryPressedLookup = new();
+	private Text ItemNameText;
+	private Text ItemDescText;
+	private void Awake()
+	{
+		ItemNameText = ItemName != null ? ItemName.GetComponent<Text>() : null;
+		ItemDescText = ItemDesc != null ? ItemDesc.GetComponent<Text>() : null;
+		RegisterPressedObject(0, InventoryPressed0);
+		RegisterPressedObject(1, InventoryPressed1);
+	}
+	private void RegisterPressedObject(int index, GameObject PressedObject)
+	{
+		if (index < 0 || PressedObject == null)
+		{
+			return;
+		}
+		InventoryPressedLookup[index] = PressedObject.transform;
+	}
+	private Transform GetInventoryPressed(int index)
+	{
+		if (index < 0)
+		{
+			return null;
+		}
+		if (InventoryPressedLookup.TryGetValue(index, out Transform Transform))
+		{
+			return Transform;
+		}
+		GameObject PressedObject = GameObject.Find("InventoryPressed" + index);
+		if (PressedObject == null)
+		{
+			Debug.LogWarning($"InventoryPressed{index} not found in scene.");
+			return null;
+		}
+		Transform = PressedObject.transform;
+		InventoryPressedLookup[index] = Transform;
+		return Transform;
+	}
+	private Image GetInventoryIcon(int index)
+	{
+		if (index < 0)
+		{
+			return null;
+		}
+		if (InventoryIconLookup.TryGetValue(index, out Image Image))
+		{
+			return Image;
+		}
+		GameObject IconObject = GameObject.Find("InventoryIcon" + index);
+		if (IconObject == null)
+		{
+			Debug.LogWarning($"InventoryIcon{index} not found in scene.");
+			return null;
+		}
+		Image = IconObject.GetComponent<Image>();
+		if (Image == null)
+		{
+			Debug.LogWarning($"InventoryIcon{index} does not have an Image component.");
+			return null;
+		}
+		InventoryIconLookup[index] = Image;
+		return Image;
+	}
 	/// <summary>
 	/// Removes item from inventory UI
 	/// </summary>
@@ -30,9 +95,15 @@ public class InventoryUI : MonoBehaviour
 			SelectedIndex = -1;
 			InventoryPressed0.transform.localScale = Vector3.one;
 			InventoryPressed1.transform.localScale = Vector3.one;
-			ItemName.GetComponent<Text>().text 	= "";
-			ItemName.GetComponent<Text>().color = DefaultColor;
-			ItemDesc.GetComponent<Text>().text 	= "";
+			if (ItemNameText != null)
+			{
+				ItemNameText.text = "";
+				ItemNameText.color = DefaultColor;
+			}
+			if (ItemDescText != null)
+			{
+				ItemDescText.text = "";
+			}
 		}
 		else if (index == 0 && SelectedIndex != -1)
 		{
@@ -49,28 +120,50 @@ public class InventoryUI : MonoBehaviour
 	public void DeselectItem(int index)
 	{
 		SelectedIndex = -1;
-		GameObject.Find("InventoryPressed" + index).transform.localScale = Vector3.one;
-		ItemName.GetComponent<Text>().text 	= "";
-		ItemName.GetComponent<Text>().color = DefaultColor;
-		ItemDesc.GetComponent<Text>().text 	= "";
+		Transform PressedTransform = GetInventoryPressed(index);
+		if (PressedTransform != null)
+		{
+			PressedTransform.localScale = Vector3.one;
+		}
+		if (ItemNameText != null)
+		{
+			ItemNameText.text = "";
+			ItemNameText.color = DefaultColor;
+		}
+		if (ItemDescText != null)
+		{
+			ItemDescText.text = "";
+		}
 	}
 	/// <summary>
 	/// Refreshes inventory text, called by TryDropItem
 	/// </summary>
 	public void RefreshText()
 	{
-		if (SelectedIndex != -1)
+		if (SelectedIndex != -1 && SelectedIndex < Inventory.Count)
 		{
-			ItemName.GetComponent<Text>().text 	= Inventory[SelectedIndex].Info.Name;
-			ItemName.GetComponent<Text>().color = Inventory[SelectedIndex].Info.Rarity.Color;
-			ItemDesc.GetComponent<Text>().text 	= Inventory[SelectedIndex].Info.Description
-												+ Inventory[SelectedIndex].Info.Stats;
+			if (ItemNameText != null)
+			{
+				ItemNameText.text = Inventory[SelectedIndex].Info.Name;
+				ItemNameText.color = Inventory[SelectedIndex].Info.Rarity.Color;
+			}
+			if (ItemDescText != null)
+			{
+				ItemDescText.text = Inventory[SelectedIndex].Info.Description
+									+ Inventory[SelectedIndex].Info.Stats;
+			}
 		}
 		else
 		{
-			ItemName.GetComponent<Text>().text = "";
-			ItemName.GetComponent<Text>().color = DefaultColor;
-			ItemDesc.GetComponent<Text>().text = "";
+			if (ItemNameText != null)
+			{
+				ItemNameText.text = "";
+				ItemNameText.color = DefaultColor;
+			}
+			if (ItemDescText != null)
+			{
+				ItemDescText.text = "";
+			}
 		}
 	}
 	/// <summary>
@@ -80,7 +173,11 @@ public class InventoryUI : MonoBehaviour
 	{
 		for (int i = 0; i < Inventory.Size; i++)
 		{
-			Image Icon = GameObject.Find("InventoryIcon" + i).GetComponent<Image>();
+			Image Icon = GetInventoryIcon(i);
+			if (Icon == null)
+			{
+				continue;
+			}
 			if (i < Inventory.Count)
 			{
 				// Add item icon
@@ -108,9 +205,15 @@ public class InventoryUI : MonoBehaviour
 		CachedColor = Inventory[SelectedIndex].Info.Rarity.Color;
 		CachedDesc 	= Inventory[SelectedIndex].Info.Description
 					+ Inventory[SelectedIndex].Info.Stats;
-		ItemName.GetComponent<Text>().text 	= CachedName;
-		ItemName.GetComponent<Text>().color = CachedColor;
-		ItemDesc.GetComponent<Text>().text 	= CachedDesc;
+		if (ItemNameText != null)
+		{
+			ItemNameText.text = CachedName;
+			ItemNameText.color = CachedColor;
+		}
+		if (ItemDescText != null)
+		{
+			ItemDescText.text = CachedDesc;
+		}
 	}
 	/// <summary>
 	/// Sets selected index to -1
@@ -121,30 +224,48 @@ public class InventoryUI : MonoBehaviour
 		CachedName 		= "";
 		CachedColor 	= DefaultColor;
 		CachedDesc 		= "";
-		ItemName.GetComponent<Text>().text 	= CachedName;
-		ItemName.GetComponent<Text>().color = CachedColor;
-		ItemDesc.GetComponent<Text>().text 	= CachedDesc;
+		if (ItemNameText != null)
+		{
+			ItemNameText.text = CachedName;
+			ItemNameText.color = CachedColor;
+		}
+		if (ItemDescText != null)
+		{
+			ItemDescText.text = CachedDesc;
+		}
 	}
 	/// <summary>
 	/// Called by ClickItem when item is selected or deselected
 	/// </summary>
-	public static bool ProcessSelection(int oldSelectedIndex, int newSelectedIndex)
+	public bool ProcessSelection(int oldSelectedIndex, int newSelectedIndex)
 	{
 		// Deselect old item
 		if (oldSelectedIndex == newSelectedIndex
 			&& oldSelectedIndex != -1)
 		{
-			GameObject.Find("InventoryPressed" + oldSelectedIndex).transform.localScale = Vector3.one;
+			Transform PressedTransform = GetInventoryPressed(oldSelectedIndex);
+			if (PressedTransform != null)
+			{
+				PressedTransform.localScale = Vector3.one;
+			}
 			return false;
 		}
 		// Deselect old item & select new item
 		if (oldSelectedIndex != -1)
 		{
-			GameObject.Find("InventoryPressed" + oldSelectedIndex).transform.localScale = Vector3.one;
+			Transform OldPressed = GetInventoryPressed(oldSelectedIndex);
+			if (OldPressed != null)
+			{
+				OldPressed.localScale = Vector3.one;
+			}
 		}
 		if (newSelectedIndex != -1)
 		{
-			GameObject.Find("InventoryPressed" + newSelectedIndex).transform.localScale = Vector3.zero;
+			Transform NewPressed = GetInventoryPressed(newSelectedIndex);
+			if (NewPressed != null)
+			{
+				NewPressed.localScale = Vector3.zero;
+			}
 		}
 		return true;
 	}
@@ -154,21 +275,32 @@ public class InventoryUI : MonoBehaviour
 	public void ProcessHoverForInventory(Vector3 MousePosition)
 	{
 		bool mouseIsOverIcon = false;
-		Text NameText = ItemName.GetComponent<Text>();
-		Text DescText = ItemDesc.GetComponent<Text>();
+		Text NameText = ItemNameText;
+		Text DescText = ItemDescText;
 		int itemIndex = 0;
 		while (itemIndex < Inventory.Count)
 		{
 			Item Item = Inventory[itemIndex];
-			Image Icon = GameObject.Find("InventoryIcon" + itemIndex).GetComponent<Image>();
+			Image Icon = GetInventoryIcon(itemIndex);
+			if (Icon == null)
+			{
+				itemIndex++;
+				continue;
+			}
 			Vector3 IconPosition = Icon.transform.position;
 			if (Math.Abs(IconPosition.x - MousePosition.x) <= sensitivityDistance
 			 && Math.Abs(IconPosition.y - MousePosition.y) <= sensitivityDistance)
 			{
 				mouseIsOverIcon = true;
-				NameText.text 	= Item.Info.Name;
-				NameText.color 	= Item.Info.Rarity.Color;
-				DescText.text 	= Item.Info.Description + Item.Info.Stats;
+				if (NameText != null)
+				{
+					NameText.text 	= Item.Info.Name;
+					NameText.color 	= Item.Info.Rarity.Color;
+				}
+				if (DescText != null)
+				{
+					DescText.text = Item.Info.Description + Item.Info.Stats;
+				}
 				break;
 			}
 			itemIndex++;
@@ -179,15 +311,27 @@ public class InventoryUI : MonoBehaviour
 		}
 		if (SelectedIndex == -1)
 		{
-			NameText.text 	= "";
-			NameText.color 	= DefaultColor;
-			DescText.text 	= "";
+			if (NameText != null)
+			{
+				NameText.text 	= "";
+				NameText.color 	= DefaultColor;
+			}
+			if (DescText != null)
+			{
+				DescText.text 	= "";
+			}
 		}
 		else
 		{
-			NameText.text 	= CachedName;
-			NameText.color 	= CachedColor;
-			DescText.text 	= CachedDesc;
+			if (NameText != null)
+			{
+				NameText.text 	= CachedName;
+				NameText.color 	= CachedColor;
+			}
+			if (DescText != null)
+			{
+				DescText.text 	= CachedDesc;
+			}
 		}
 	}
 }

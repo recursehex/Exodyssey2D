@@ -11,20 +11,20 @@ public class Item : MonoBehaviour
 		{
 			return null;
 		}
-		if (SpriteCache.TryGetValue(Info.Tag, out Sprite cachedSprite))
+		if (SpriteCache.TryGetValue(Info.Tag, out Sprite CachedSprite))
 		{
-			return cachedSprite;
+			return CachedSprite;
 		}
-		string resourcePath = $"Sprites/{Info.Tag.ToString().ToLowerInvariant()}";
-		Sprite sprite = Resources.Load<Sprite>(resourcePath);
-		if (sprite != null)
+		string ResourcePath = $"Sprites/{Info.Tag.ToString().ToLowerInvariant()}";
+		Sprite Sprite = Resources.Load<Sprite>(ResourcePath);
+		if (Sprite != null)
 		{
-			SpriteCache[Info.Tag] = sprite;
+			SpriteCache[Info.Tag] = Sprite;
 		}
 		else
 		{
-			Debug.LogWarning($"Sprite not found at path {resourcePath} for Item Tag {Info.Tag}.");
+			Debug.LogWarning($"Sprite not found at path {ResourcePath} for Item Tag {Info.Tag}.");
 		}
-		return sprite;
+		return Sprite;
 	}
 }
