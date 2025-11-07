@@ -23,13 +23,11 @@ Exodyssey 2D is a sci-fi turn-based strategy roguelike by Axiomatic Systems.
 
 > [!WARNING]
 > Outdated releases are not maintained and may contain bugs. Install at your own risk!
-
-> [!NOTE]
-> Releases are only created for major updates (e.g `v1.1.0-alpha`) and the final patch of a minor version (e.g. `v1.0.6-alpha`).
  
 | Update| Tag | Status |
 | :---: | :---: | :---: |
-| Vehicles | [v1.3.0-alpha](https://github.com/recursehex/Exodyssey2D/releases/tag/v1.3.0-alpha) | Latest release |
+| Regions | [v1.4.0-alpha](https://github.com/recursehex/Exodyssey2D/releases/tag/v1.4.0-alpha) | Latest release |
+| Vehicles | [v1.3.0-alpha](https://github.com/recursehex/Exodyssey2D/releases/tag/v1.3.0-alpha) | Outdated |
 | Player | [v1.2.1-alpha](https://github.com/recursehex/Exodyssey2D/releases/tag/v1.2.1-alpha) | Outdated |
 | ^ | [v1.2.0-alpha](https://github.com/recursehex/Exodyssey2D/releases/tag/v1.2.0-alpha) | Outdated |
 | Enemies | [v1.1.5-alpha](https://github.com/recursehex/Exodyssey2D/releases/tag/v1.1.5-alpha) | Outdated |

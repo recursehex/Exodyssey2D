@@ -105,6 +105,35 @@ public class GameManager : MonoBehaviour
 			EnemyManager.ProcessEnemyMovement(() => TurnManager.EndEnemyTurn());
 		}
 	}
+	private void OnDestroy()
+	{
+		if (Instance != this)
+		{
+			return;
+		}
+		if (TurnManager != null)
+		{
+			TurnManager.OnPlayerTurnEnded -= OnPlayerTurnEnded;
+			TurnManager.OnEnemyTurnEnded -= OnEnemyTurnEnded;
+		}
+		if (LevelManager != null)
+		{
+			LevelManager.OnLevelInitialized -= OnLevelInitialized;
+		}
+		if (InputManager != null)
+		{
+			InputManager.OnPlayerClick -= HandlePlayerClick;
+			InputManager.OnPlayerHover -= HandlePlayerHover;
+		}
+		if (Player != null)
+		{
+			Player.OnMovementComplete -= OnPlayerMovementComplete;
+		}
+		if (EnemyManager != null)
+		{
+			EnemyManager.OnEnemyKilled -= UpdateTileAreas;
+		}
+	}
 	/// <summary>
 	/// Resets grid state after Player enters new level
 	/// </summary>
