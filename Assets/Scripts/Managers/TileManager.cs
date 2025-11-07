@@ -181,6 +181,15 @@ public class TileManager : MonoBehaviour
     /// <returns></returns>
     public bool IsInRangedWeaponRange(Vector3 Position) => Targets.Exists(Target => Target.transform.position == Position);
     /// <summary>
+    /// Destroys all active and pooled markers (tile areas & tracers)
+    /// </summary>
+    public void DestroyAllMarkers()
+    {
+        DestroyMarkerCollection(TileAreas, TileAreaPool);
+        DestroyMarkerCollection(Targets, TargetPool);
+        TileAreasToDraw = null;
+    }
+    /// <summary>
     /// Reuses existing marker instances when possible
     /// </summary>
     /// <param name="Pool"></param>
@@ -219,5 +228,31 @@ public class TileManager : MonoBehaviour
             Pool.Push(Marker);
         }
         ActiveMarkers.Clear();
+    }
+    /// <summary>
+    /// Destroys both active and pooled markers to fully reset the pools
+    /// </summary>
+    /// <param name="ActiveMarkers"></param>
+    /// <param name="Pool"></param>
+    private static void DestroyMarkerCollection(List<GameObject> ActiveMarkers, Stack<GameObject> Pool)
+    {
+        foreach (GameObject Marker in ActiveMarkers)
+        {
+            if (Marker == null)
+            {
+                continue;
+            }
+            Destroy(Marker);
+        }
+        ActiveMarkers.Clear();
+        while (Pool.Count > 0)
+        {
+            GameObject PooledMarker = Pool.Pop();
+            if (PooledMarker == null)
+            {
+                continue;
+            }
+            Destroy(PooledMarker);
+        }
     }
 }

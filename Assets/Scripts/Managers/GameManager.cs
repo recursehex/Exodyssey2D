@@ -188,13 +188,36 @@ public class GameManager : MonoBehaviour
 		UpdateTileAreas();
 	}
 	/// <summary>
-	/// Called when Player dies
+	/// Called when Player dies, cleans up scene and show Game Over screen
 	/// </summary>
 	public void GameOver()
 	{
+		CleanupWorldEntities();
 		StartCoroutine(SoundManager.Instance.FadeOutMusic(FadeOutDuration));
 		LevelManager.ShowGameOver();
 		enabled = false;
+	}
+	/// <summary>
+	/// Cleans up all spawned entities/markers except Player
+	/// </summary>
+	private void CleanupWorldEntities()
+	{
+		TurnManager.StopTurnTimer();
+		ItemManager.DestroyAllItems();
+		EnemyManager.DestroyAllEnemies();
+		if (Player != null && Player.IsInVehicle)
+		{
+			Player.ExitVehicle();
+		}
+		VehicleManager.DestroyAllVehicles();
+		if (TileManager != null)
+		{
+			TileManager.DestroyAllMarkers();
+			if (TileManager.TileDot != null)
+			{
+				TileManager.TileDot.SetActive(false);
+			}
+		}
 	}
 	// Public methods for spawning entities, called by WeightedRarityGeneration
 	public void SpawnItem(int index, Vector3 Position) 		=> ItemManager.SpawnItem(index, Position);
