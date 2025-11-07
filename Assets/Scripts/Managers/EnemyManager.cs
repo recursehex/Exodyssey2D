@@ -82,6 +82,11 @@ public class EnemyManager : MonoBehaviour
     {
         Enemies.ForEach(Enemy => DestroyEnemy(Enemy));
         Enemies.Clear();
+        NeedToStartEnemyMovement = false;
+        EnemiesAreMoving = false;
+        indexOfMovingEnemy = -1;
+        BlockedEnemies.Clear();
+        IsRetryingBlockedEnemies = false;
     }
     /// <summary>
     /// Restores all enemies' energy

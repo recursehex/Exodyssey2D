@@ -69,6 +69,22 @@ public class LevelManager : MonoBehaviour
         ClearTilemaps();
     }
     /// <summary>
+    /// Resets level/day counters and clears existing tiles for a fresh run
+    /// </summary>
+    public void ResetLevelProgress()
+    {
+        Level = 0;
+        Day = 1;
+        DayText.text = "DAY 1";
+        LevelText.text = timeOfDayNames[0];
+        RegionText.text = string.Empty;
+        LevelImage.SetActive(false);
+        LevelText.gameObject.SetActive(false);
+        DayText.gameObject.SetActive(false);
+        RegionText.gameObject.SetActive(false);
+        ClearTilemaps();
+    }
+    /// <summary>
     /// Clears all tiles from TilemapGround and TileMapWalls
     /// </summary>
     private void ClearTilemaps()

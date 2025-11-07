@@ -50,4 +50,14 @@ public class TurnManager : MonoBehaviour
         OnEnemyTurnEnded?.Invoke();
     }
     public void SetEndTurnButtonInteractable(bool interactable) => EndTurnButton.interactable = interactable;
+    /// <summary>
+    /// Resets turn flow to default state for a new run
+    /// </summary>
+    public void ResetTurnState()
+    {
+        IsPlayersTurn = true;
+        TurnTimer.timerIsRunning = false;
+        TurnTimer.ResetTimer();
+        EndTurnButton.interactable = true;
+    }
 }

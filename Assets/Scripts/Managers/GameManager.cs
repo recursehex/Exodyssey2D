@@ -32,6 +32,7 @@ public class GameManager : MonoBehaviour
 	[SerializeField] private GameObject TargetTemplate;
 	[SerializeField] private TurnTimer TurnTimer;
 	[SerializeField] private Button EndTurnButton;
+	[SerializeField] private Button NewGameButton;
 	[SerializeField] private Text RegionText;
 	[SerializeField] private Text DayText;
 	[SerializeField] private Text LevelText;
@@ -87,6 +88,7 @@ public class GameManager : MonoBehaviour
 		MainCamera = Camera.main;
 		InputManager.Initialize(MainCamera, TilemapGround, Player);
 		SoundManager.Instance.PlayMusic();
+		NewGameButton.gameObject.SetActive(false);
 	}
 	void Update()
 	{
@@ -195,7 +197,23 @@ public class GameManager : MonoBehaviour
 		CleanupWorldEntities();
 		StartCoroutine(SoundManager.Instance.FadeOutMusic(FadeOutDuration));
 		LevelManager.ShowGameOver();
+		NewGameButton.gameObject.SetActive(true);
+		TurnManager.SetEndTurnButtonInteractable(false);
 		enabled = false;
+	}
+	public void StartNewGame()
+	{
+		CleanupWorldEntities();
+		enabled = true;
+		StopAllCoroutines();
+		NewGameButton.gameObject.SetActive(false);
+		RegionManager.ResetRegionProgress();
+		LevelManager.ResetLevelProgress();
+		TurnManager.ResetTurnState();
+		Player.ResetForNewGame(PlayerStartPosition);
+		TileManager.TileDot.SetActive(false);
+		SoundManager.Instance.PlayMusic();
+		InitGame();
 	}
 	/// <summary>
 	/// Cleans up all spawned entities/markers except Player

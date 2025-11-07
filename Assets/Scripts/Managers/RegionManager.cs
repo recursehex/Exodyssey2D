@@ -37,6 +37,16 @@ public class RegionManager : MonoBehaviour
         LoadRegion(CurrentRegionIndex);
     }
     /// <summary>
+    /// Resets region progress back to the first region
+    /// </summary>
+    public void ResetRegionProgress()
+    {
+        CurrentRegionIndex = 0;
+        LoadRegion(CurrentRegionIndex);
+        CurrentRegion.ResetProgress();
+        OnRegionChanged?.Invoke(CurrentRegion);
+    }
+    /// <summary>
     /// Loads a region by index and assigns appropriate tiles
     /// </summary>
     /// <param name="regionIndex"></param>

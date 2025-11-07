@@ -83,6 +83,34 @@ public class Player : MonoBehaviour
 		StopCoroutine(MoveRoutine);
 		MoveRoutine = null;
 	}
+	public void ResetForNewGame(Vector3 StartPosition)
+	{
+		StopMoveRoutineIfRunning();
+		Path = null;
+		Destination = Vector3Int.zero;
+		IsInMovement = false;
+		transform.position = StartPosition;
+		SetPlayerVisibility(true);
+		if (Vehicle != null)
+			ExitVehicle();
+		hasHelmet = false;
+		helmetHealth = 0;
+		hasVest = false;
+		vestHealth = 0;
+		hasNightVision = false;
+		SelectedItemInfo = null;
+		Inventory = new(inventorySize);
+		InventoryUI.Inventory = Inventory;
+		InventoryUI.SetNoneSelected();
+		InventoryUI.RefreshInventoryIcons();
+		InventoryUI.RefreshText();
+		Job = Profession.GetRandomProfession();
+		maxEnergy = fixedMaxEnergy;
+		currentHealth = maxHealth;
+		currentEnergy = maxEnergy;
+		StatsDisplayManager.RestoreHealthDisplay();
+		StatsDisplayManager.RestoreEnergyDisplay(currentHealth);
+	}
 	#region MOVEMENT METHODS
 	/// <summary>
 	/// Calculates path for Player to travel to destination for point clicked on
