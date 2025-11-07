@@ -66,6 +66,23 @@ public class Player : MonoBehaviour
 		Job = Profession.GetRandomProfession();
 		FinishedInit = true;
 	}
+	private void OnDisable()
+	{
+		StopMoveRoutineIfRunning();
+	}
+	private void OnDestroy()
+	{
+		StopMoveRoutineIfRunning();
+	}
+	private void StopMoveRoutineIfRunning()
+	{
+		if (MoveRoutine == null)
+		{
+			return;
+		}
+		StopCoroutine(MoveRoutine);
+		MoveRoutine = null;
+	}
 	#region MOVEMENT METHODS
 	/// <summary>
 	/// Calculates path for Player to travel to destination for point clicked on

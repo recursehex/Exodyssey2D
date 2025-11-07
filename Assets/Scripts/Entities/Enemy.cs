@@ -33,6 +33,23 @@ public class Enemy : MonoBehaviour
 		Player = FindFirstObjectByType<Player>();
 		StunIcon = Instantiate(StunIcon, transform.position, Quaternion.identity);
 	}
+	private void OnDisable()
+	{
+		StopMoveRoutineIfRunning();
+	}
+	private void OnDestroy()
+	{
+		StopMoveRoutineIfRunning();
+	}
+	private void StopMoveRoutineIfRunning()
+	{
+		if (MoveRoutine == null)
+		{
+			return;
+		}
+		StopCoroutine(MoveRoutine);
+		MoveRoutine = null;
+	}
 	#region MOVEMENT
 	/// <summary>
 	/// Calculates path for Enemy to move to and handles first move of turn

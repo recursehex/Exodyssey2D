@@ -50,7 +50,11 @@ public class EnemyManager : MonoBehaviour
     /// </summary>
     /// <param name="Position"></param>
     /// <returns></returns>
-    public bool HasEnemyAtPosition(Vector3 Position) => Enemies.Find(Enemy => Enemy.transform.position == Position) != null;
+    public bool HasEnemyAtPosition(Vector3 Position)
+    {
+        CleanupDestroyedEnemies();
+        return Enemies.Find(Enemy => Enemy != null && Enemy.transform.position == Position) != null;
+    }
     /// <summary>
     /// Returns the index of the enemy at the specified position, or -1 if no enemy is found
     /// </summary>
@@ -58,6 +62,7 @@ public class EnemyManager : MonoBehaviour
     /// <returns></returns>
     public int GetEnemyIndexAtPosition(Vector3Int Position)
     {
+        CleanupDestroyedEnemies();
         Vector3 ShiftedPosition = Position + new Vector3(0.5f, 0.5f);
         return Enemies.FindIndex(Enemy => Enemy.transform.position == ShiftedPosition);
     }
@@ -111,6 +116,7 @@ public class EnemyManager : MonoBehaviour
     /// <param name="OnMovementComplete"></param>
     public void ProcessEnemyMovement(System.Action OnMovementComplete)
     {
+        CleanupDestroyedEnemies();
         if (Enemies.Count == 0)
         {
             OnMovementComplete?.Invoke();
@@ -174,5 +180,15 @@ public class EnemyManager : MonoBehaviour
         EnemiesAreMoving = false;
         RestoreAllEnemyEnergy();
         OnMovementComplete?.Invoke();
+    }
+    private void CleanupDestroyedEnemies()
+    {
+        for (int i = Enemies.Count - 1; i >= 0; i--)
+        {
+            if (Enemies[i] == null)
+            {
+                Enemies.RemoveAt(i);
+            }
+        }
     }
 }
