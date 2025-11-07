@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
@@ -10,6 +9,8 @@ public class TileManager : MonoBehaviour
     [SerializeField] private GameObject TargetTemplate;
     private readonly List<GameObject> TileAreas = new();
     private readonly List<GameObject> Targets = new();
+    private readonly Stack<GameObject> TileAreaPool = new();
+    private readonly Stack<GameObject> TargetPool = new();
     private Dictionary<Vector3Int, Node> TileAreasToDraw = null;
     public void Initialize(GameObject TileDot, GameObject TileArea, GameObject TargetTemplate)
     {
@@ -22,12 +23,10 @@ public class TileManager : MonoBehaviour
     /// </summary>
     public void ClearTileAreas()
     {
-        if (TileAreas.Count == 0)
+        if (TileAreas.Count > 0)
         {
-            return;
+            RecycleMarkers(TileAreas, TileAreaPool);
         }
-        TileAreas.ForEach(Area => Destroy(Area));
-        TileAreas.Clear();
         TileAreasToDraw = null;
     }
     /// <summary>
@@ -48,7 +47,7 @@ public class TileManager : MonoBehaviour
         foreach (KeyValuePair<Vector3Int, Node> TileAreaPosition in TileAreasToDraw)
         {
             Vector3 ShiftedDistance = TileAreaPosition.Value.Position + new Vector3(0.5f, 0.5f);
-            GameObject TileArea = Instantiate(TileAreaTemplate, ShiftedDistance, Quaternion.identity);
+            GameObject TileArea = SpawnMarker(TileAreaPool, TileAreaTemplate, ShiftedDistance);
             TileAreas.Add(TileArea);
         }
     }
@@ -57,8 +56,11 @@ public class TileManager : MonoBehaviour
     /// </summary>
     public void ClearTargets()
     {
-        Targets.ForEach(Target => Destroy(Target));
-        Targets.Clear();
+        if (Targets.Count == 0)
+        {
+            return;
+        }
+        RecycleMarkers(Targets, TargetPool);
     }
     /// <summary>
     /// Draws targets for enemies in range and line of sight
@@ -89,7 +91,7 @@ public class TileManager : MonoBehaviour
             // Draw targets if enemy is in line of sight and range
             if (IsInLineOfSight(PlayerPosition, EnemyPosition, weaponRange, Walls))
             {
-                GameObject Target = Instantiate(TargetTemplate, EnemyPosition, Quaternion.identity);
+                GameObject Target = SpawnMarker(TargetPool, TargetTemplate, EnemyPosition);
                 Targets.Add(Target);
             }
         }
@@ -178,4 +180,44 @@ public class TileManager : MonoBehaviour
     /// <param name="Position"></param>
     /// <returns></returns>
     public bool IsInRangedWeaponRange(Vector3 Position) => Targets.Exists(Target => Target.transform.position == Position);
+    /// <summary>
+    /// Reuses existing marker instances when possible
+    /// </summary>
+    /// <param name="Pool"></param>
+    /// <param name="Template"></param>
+    /// <param name="Position"></param>
+    /// <returns></returns>
+    private GameObject SpawnMarker(Stack<GameObject> Pool, GameObject Template, Vector3 Position)
+    {
+        GameObject Marker;
+        if (Pool.Count > 0)
+        {
+            Marker = Pool.Pop();
+            Marker.transform.SetPositionAndRotation(Position, Quaternion.identity);
+            Marker.SetActive(true);
+        }
+        else
+        {
+            Marker = Instantiate(Template, Position, Quaternion.identity);
+        }
+        return Marker;
+    }
+    /// <summary>
+    /// Returns active markers to the pool by disabling them
+    /// </summary>
+    /// <param name="ActiveMarkers"></param>
+    /// <param name="Pool"></param>
+    private static void RecycleMarkers(List<GameObject> ActiveMarkers, Stack<GameObject> Pool)
+    {
+        foreach (GameObject Marker in ActiveMarkers)
+        {
+            if (Marker == null)
+            {
+                continue;
+            }
+            Marker.SetActive(false);
+            Pool.Push(Marker);
+        }
+        ActiveMarkers.Clear();
+    }
 }
