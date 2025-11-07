@@ -52,9 +52,7 @@ public class EnemyInfo
 	private static void LoadDatabase()
 	{
 		if (databaseLoaded)
-		{
 			return;
-		}
 		TextAsset JsonFile = Resources.Load<TextAsset>("EnemyDefinitions");
 		if (JsonFile != null)
 		{
@@ -62,9 +60,7 @@ public class EnemyInfo
 			databaseLoaded = true;
 		}
 		else
-		{
 			Debug.LogError("EnemyDefinitions.json not found in Resources folder!");
-		}
 	}
 	private static List<Rarity> GenerateAllRarities()
 	{
@@ -80,19 +76,13 @@ public class EnemyInfo
 				string TagName = Tag.ToString();
 				EnemyData Data = EnemyDatabase.Enemies.Find(Enemy => Enemy.Tag == TagName);
 				if (Data != null && !Data.disabled)
-				{
 					Rarities.Add(Rarity.Parse(Data.Rarity));
-				}
+				// Skip disabled items
 				else if (Data != null && Data.disabled)
-				{
-					// Skip disabled items
 					continue;
-				}
+				// Fallback to creating EnemyInfo if not found in JSON
 				else
-				{
-					// Fallback to creating EnemyInfo if not found in JSON
 					Rarities.Add(new EnemyInfo(i).Rarity);
-				}
 			}
 		}
 		else
@@ -110,9 +100,7 @@ public class EnemyInfo
 		List<string> AllowedRarityNames = RegionManager.CurrentRegion?.EnemyPool;
 		// No region filtering, return all rarities
 		if (AllowedRarityNames == null || AllowedRarityNames.Count == 0)
-		{
 			return new List<Rarity>(Rarity.RarityList);
-		}
 		// Convert rarity names to Rarity objects
 		HashSet<Rarity> AllowedRarities = new();
 		foreach (string RarityName in AllowedRarityNames)
@@ -165,9 +153,7 @@ public class EnemyInfo
 				return;
 			}
 			else if (Data != null && Data.disabled)
-			{
 				Debug.LogWarning($"Enemy {index} {TagName} is disabled in JSON");
-			}
 		}
 		// Fallback to hardcoded values if JSON loading fails
 		Debug.LogWarning($"Enemy {TagName} not found in JSON, using default values");

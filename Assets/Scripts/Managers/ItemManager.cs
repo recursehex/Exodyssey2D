@@ -6,10 +6,7 @@ public class ItemManager : MonoBehaviour
     [SerializeField] private GameObject[] ItemTemplates;
     [SerializeField] private List<Item> Items = new();
     [SerializeField] private int spawnItemCount;
-    public void Initialize(GameObject[] Templates)
-    {
-        ItemTemplates = Templates;
-    }
+    public void Initialize(GameObject[] Templates) => ItemTemplates = Templates;
     /// <summary>
     /// Generates random number of items for the level
     /// </summary>
@@ -20,9 +17,7 @@ public class ItemManager : MonoBehaviour
         while (cap > 0 && spawnItemCount > 0)
         {
             if (WeightedRarityGeneration.Generate<Item>())
-            {
                 spawnItemCount--;
-            }
             cap--;
         }
     }

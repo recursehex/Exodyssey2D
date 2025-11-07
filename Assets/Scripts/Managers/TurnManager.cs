@@ -25,14 +25,10 @@ public class TurnManager : MonoBehaviour
         TurnTimer.ResetTimer();
         // Check if there are enemies before changing turns
         if (GameManager.Instance.HasEnemies())
-        {
             IsPlayersTurn = false;
-        }
+        // No enemies, stay on player's turn and re-enable button
         else
-        {
-            // No enemies, stay on player's turn and re-enable button
             EndTurnButton.interactable = true;
-        }
         OnPlayerTurnEnded?.Invoke();
     }
     /// <summary>

@@ -17,9 +17,7 @@ public static class WeightedRarityGeneration
 		};
 		// If no allowed rarities, fail
 		if (allowedRarities.Count == 0)
-		{
 			return false;
-		}
 		int roll = Random.Range(1, 101);
 		int cumulative = 0;
 		// Select rarity based on weighted drop rates
@@ -35,17 +33,13 @@ public static class WeightedRarityGeneration
 				if (GameManager.Instance.HasWallAtPosition(Position)
 				 || GameManager.Instance.HasExitTileAtPosition(Position)
 				 || (x <= -2 && y <= 1 && y >= -1))
-				{
 					return false;
-				}
 				Vector3 ShiftedPosition = Position + new Vector3(0.5f, 0.5f);
 				// Fails if item, enemy, or vehicle is at selected position
 				if (GameManager.Instance.HasItemAtPosition(ShiftedPosition)
 				 || GameManager.Instance.HasEnemyAtPosition(ShiftedPosition)
 				 || GameManager.Instance.HasVehicleAtPosition(ShiftedPosition))
-				{
 					return false;
-				}
 				ChosenRarity = Rarity;
 				ChosenPosition = ShiftedPosition;
 				return true;
@@ -59,9 +53,7 @@ public static class WeightedRarityGeneration
 	public static bool Generate<T>()
     {
         if (!GenerateRarityAndPosition<T>())
-		{
             return false;
-		}
         int index = -1;
         switch (typeof(T).Name)
         {

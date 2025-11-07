@@ -22,9 +22,7 @@ public class VehicleManager : MonoBehaviour
         while (cap > 0 && spawnVehicleCount > 0)
         {
             if (WeightedRarityGeneration.Generate<Vehicle>())
-            {
                 spawnVehicleCount--;
-            }
             cap--;
         }
     }
@@ -73,9 +71,7 @@ public class VehicleManager : MonoBehaviour
         Vehicles.ForEach(Vehicle =>
         {
             if (Vehicle != ExcludedVehicle)
-            {
                 Destroy(Vehicle.gameObject);
-            }
         });
         Vehicles.RemoveAll(Vehicle => Vehicle != ExcludedVehicle);
     }

@@ -76,13 +76,8 @@ public class Vehicle : MonoBehaviour
 			}
 			// Pop next tile in path
 			if (Path != null && Path.Count > 0)
-			{
 				Destination = Path.Pop();
-			}
-			else
-			{
-				break;
-			}
+			else break;
 		}
 		// When Vehicle stops moving
 		Path = null;
@@ -97,9 +92,7 @@ public class Vehicle : MonoBehaviour
 	public Dictionary<Vector3Int, Node> CalculateArea()
 	{
 		if (!Info.IsOn)
-		{
 			return new();
-		}
 		AStar.Initialize();
 		return AStar.GetReachableAreaByDistance(transform.position, Info.MovementRange);
 	}
@@ -107,7 +100,7 @@ public class Vehicle : MonoBehaviour
 	#region HEALTH METHODS
 	public bool Repair()
 	{
-		if (Info.RestoreHealth())
+		if (Info.TryRestoreHealth())
 		{
 			SoundManager.Instance.PlaySound(Select);
 			return true;
@@ -139,10 +132,8 @@ public class Vehicle : MonoBehaviour
 	{
 		int amount = Item.CurrentUses;
 		// Try to recharge vehicle
-		if (!Info.RechargeBy(ref amount))
-		{
+		if (!Info.TryRechargeBy(ref amount))
 			return false;
-		}
 		// Decrease item durability by amount used to recharge vehicle
 		Item.DecreaseDurability(amount);
 		SoundManager.Instance.PlaySound(Select);
@@ -153,7 +144,7 @@ public class Vehicle : MonoBehaviour
 	/// </summary>
 	/// <param name="amount"></param>
 	/// <returns></returns>
-	public bool DecreaseChargeBy(int amount) => Info.DecreaseChargeBy(amount);
+	public bool DecreaseChargeBy(int amount) => Info.TryDecreaseChargeBy(amount);
 	/// <summary>
 	/// Toggles vehicle ignition
 	/// </summary>

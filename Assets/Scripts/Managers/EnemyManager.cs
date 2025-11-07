@@ -32,9 +32,7 @@ public class EnemyManager : MonoBehaviour
         while (cap > 0 && spawnEnemyCount > 0)
         {
             if (WeightedRarityGeneration.Generate<Enemy>())
-            {
                 spawnEnemyCount--;
-            }
             cap--;
         }
     }
@@ -144,10 +142,9 @@ public class EnemyManager : MonoBehaviour
         {
             // Check if current enemy was blocked
             Enemy CurrentEnemy = IsRetryingBlockedEnemies ? BlockedEnemies[indexOfMovingEnemy] : Enemies[indexOfMovingEnemy];
+            // Add to blocked list if not already retrying blocked enemies
             if (!IsRetryingBlockedEnemies && CurrentEnemy.WasBlockedThisTurn)
-            {
                 BlockedEnemies.Add(CurrentEnemy);
-            }
             // Continue with next enemy in current list
             int maxIndex = IsRetryingBlockedEnemies
                             ? BlockedEnemies.Count - 1
@@ -156,13 +153,9 @@ public class EnemyManager : MonoBehaviour
             {
                 indexOfMovingEnemy++;
                 if (IsRetryingBlockedEnemies)
-                {
                     BlockedEnemies[indexOfMovingEnemy].ComputePathAndStartMovement();
-                }
                 else
-                {
                     Enemies[indexOfMovingEnemy].ComputePathAndStartMovement();
-                }
                 return;
             }
             // If finished first pass and have blocked enemies, retry them
@@ -191,9 +184,7 @@ public class EnemyManager : MonoBehaviour
         for (int i = Enemies.Count - 1; i >= 0; i--)
         {
             if (Enemies[i] == null)
-            {
                 Enemies.RemoveAt(i);
-            }
         }
     }
 }

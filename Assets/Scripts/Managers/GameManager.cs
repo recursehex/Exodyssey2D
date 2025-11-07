@@ -109,32 +109,13 @@ public class GameManager : MonoBehaviour
 	}
 	private void OnDestroy()
 	{
-		if (Instance != this)
-		{
-			return;
-		}
-		if (TurnManager != null)
-		{
-			TurnManager.OnPlayerTurnEnded -= OnPlayerTurnEnded;
-			TurnManager.OnEnemyTurnEnded -= OnEnemyTurnEnded;
-		}
-		if (LevelManager != null)
-		{
-			LevelManager.OnLevelInitialized -= OnLevelInitialized;
-		}
-		if (InputManager != null)
-		{
-			InputManager.OnPlayerClick -= HandlePlayerClick;
-			InputManager.OnPlayerHover -= HandlePlayerHover;
-		}
-		if (Player != null)
-		{
-			Player.OnMovementComplete -= OnPlayerMovementComplete;
-		}
-		if (EnemyManager != null)
-		{
-			EnemyManager.OnEnemyKilled -= UpdateTileAreas;
-		}
+		TurnManager.OnPlayerTurnEnded 	-= OnPlayerTurnEnded;
+		TurnManager.OnEnemyTurnEnded 	-= OnEnemyTurnEnded;
+		LevelManager.OnLevelInitialized -= OnLevelInitialized;
+		InputManager.OnPlayerClick 		-= HandlePlayerClick;
+		InputManager.OnPlayerHover 		-= HandlePlayerHover;
+		Player.OnMovementComplete 		-= OnPlayerMovementComplete;
+		EnemyManager.OnEnemyKilled 		-= UpdateTileAreas;
 	}
 	/// <summary>
 	/// Resets grid state after Player enters new level
@@ -183,9 +164,7 @@ public class GameManager : MonoBehaviour
 		doingSetup = false;
 		// Update targets if player has ranged weapon
 		if (!Player.IsInVehicle)
-		{
 			UpdateTargets();
-		}
 		// Draw tile areas at start of game
 		UpdateTileAreas();
 	}
@@ -201,6 +180,9 @@ public class GameManager : MonoBehaviour
 		TurnManager.SetEndTurnButtonInteractable(false);
 		enabled = false;
 	}
+	/// <summary>
+	/// Called by NewGameButton to start a new game after game over
+	/// </summary>
 	public void StartNewGame()
 	{
 		CleanupWorldEntities();
@@ -223,19 +205,11 @@ public class GameManager : MonoBehaviour
 		TurnManager.StopTurnTimer();
 		ItemManager.DestroyAllItems();
 		EnemyManager.DestroyAllEnemies();
-		if (Player != null && Player.IsInVehicle)
-		{
+		if (Player.IsInVehicle)
 			Player.ExitVehicle();
-		}
 		VehicleManager.DestroyAllVehicles();
-		if (TileManager != null)
-		{
-			TileManager.DestroyAllMarkers();
-			if (TileManager.TileDot != null)
-			{
-				TileManager.TileDot.SetActive(false);
-			}
-		}
+		TileManager.DestroyAllMarkers();
+		TileManager.TileDot.SetActive(false);
 	}
 	// Public methods for spawning entities, called by WeightedRarityGeneration
 	public void SpawnItem(int index, Vector3 Position) 		=> ItemManager.SpawnItem(index, Position);
@@ -618,48 +592,49 @@ public class GameManager : MonoBehaviour
 	/// Updates tile areas based on Player's movement and energy
 	/// </summary>
 	private void UpdateTileAreas()
-	{
-		// Only update areas if Player is not in movement and it is Player's turn
-		if (!Player.IsInMovement && TurnManager.IsPlayersTurn)
-		{
-			// Clear areas if player has no energy
-			if (!Player.HasEnergy)
-			{
-				TileManager.ClearTileAreas();
-				return;
-			}
-			Dictionary<Vector3Int, Node> AreasToDraw = null;
-			// If Player is in a vehicle that is on and has charge, calculate vehicle area
-			if (Player.IsInVehicle
-				&& Player.Vehicle.Info.IsOn
-				&& Player.Vehicle.HasCharge())
-			{
-				AreasToDraw = Player.Vehicle.CalculateArea();
-			}
-			// If Player is not in a vehicle, or is in a vehicle that is off, calculate player area
-			else if (!Player.IsInVehicle
-					|| (Player.IsInVehicle && !Player.Vehicle.Info.IsOn))
-			{
-				AreasToDraw = Player.CalculateArea();
-			}
-			// Draw areas if any needed
-			if (AreasToDraw != null)
-			{
-				TileManager.DrawTileAreas(AreasToDraw);
-			}
-			// Clear areas if in vehicle with no charge
-			else if (Player.IsInVehicle
-					&& Player.Vehicle.Info.IsOn
-					&& !Player.Vehicle.HasCharge())
-			{
-				TileManager.ClearTileAreas();
-			}
-		}
-	}
-	/// <summary>
-	/// Updates targets based on Player's weapon range and energy
-	/// </summary>
-	public void UpdateTargets()
+    {
+        // Only update areas if Player is not in movement and it is Player's turn
+        if (Player.IsInMovement || !TurnManager.IsPlayersTurn)
+        {
+            return;
+        }
+        // Clear areas if player has no energy
+        if (!Player.HasEnergy)
+        {
+            TileManager.ClearTileAreas();
+            return;
+        }
+        Dictionary<Vector3Int, Node> AreasToDraw = null;
+        // If Player is in a vehicle that is on and has charge, calculate vehicle area
+        if (Player.IsInVehicle
+            && Player.Vehicle.Info.IsOn
+            && Player.Vehicle.HasCharge())
+        {
+            AreasToDraw = Player.Vehicle.CalculateArea();
+        }
+        // If Player is not in a vehicle, or is in a vehicle that is off, calculate player area
+        else if (!Player.IsInVehicle
+                || (Player.IsInVehicle && !Player.Vehicle.Info.IsOn))
+        {
+            AreasToDraw = Player.CalculateArea();
+        }
+        // Draw areas if any needed
+        if (AreasToDraw != null)
+        {
+            TileManager.DrawTileAreas(AreasToDraw);
+        }
+        // Clear areas if in vehicle with no charge
+        else if (Player.IsInVehicle
+                && Player.Vehicle.Info.IsOn
+                && !Player.Vehicle.HasCharge())
+        {
+            TileManager.ClearTileAreas();
+        }
+    }
+    /// <summary>
+    /// Updates targets based on Player's weapon range and energy
+    /// </summary>
+    public void UpdateTargets()
 	{
 		// Only update targets if Player is not in movement, has a ranged weapon, it is Player's turn, and Player has energy
 		if (Player.HasRange

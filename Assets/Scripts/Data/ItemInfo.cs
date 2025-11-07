@@ -122,7 +122,7 @@ public class ItemInfo
 			{
 				Tags Tag = (Tags)i;
 				string TagName = Tag.ToString();
-				ItemData Data = ItemDatabase.Items.Find(item => item.Tag == TagName);
+				ItemData Data = ItemDatabase.Items.Find(Item => Item.Tag == TagName);
 				if (Data != null && !Data.disabled)
 				{
 					Rarities.Add(Rarity.Parse(Data.Rarity));

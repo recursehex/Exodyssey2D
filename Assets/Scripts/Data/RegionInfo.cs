@@ -33,9 +33,7 @@ public class RegionInfo
 	private static void LoadDatabase()
 	{
 		if (databaseLoaded)
-		{
 			return;
-		}
 		TextAsset JsonFile = Resources.Load<TextAsset>("RegionDefinitions");
 		if (JsonFile != null)
 		{
@@ -43,9 +41,7 @@ public class RegionInfo
 			databaseLoaded = true;
 		}
 		else
-		{
 			Debug.LogError("RegionDefinitions.json not found in Resources folder!");
-		}
 	}
     /// <summary>
     /// Returns info for a desired region,
@@ -66,9 +62,7 @@ public class RegionInfo
                 return;
             }
             else if (Data != null && Data.disabled)
-            {
                 Debug.LogWarning($"Region {index} {TagName} is disabled in JSON");
-            }
         }
         // Fallback to default values if JSON loading fails
         Debug.LogWarning($"Region {TagName} not found in JSON, using default values");

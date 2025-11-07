@@ -34,21 +34,15 @@ public class InventoryUI : MonoBehaviour
 	private void RegisterPressedObject(int index, GameObject PressedObject)
 	{
 		if (index < 0 || PressedObject == null)
-		{
 			return;
-		}
 		InventoryPressedLookup[index] = PressedObject.transform;
 	}
 	private Transform GetInventoryPressed(int index)
 	{
 		if (index < 0)
-		{
 			return null;
-		}
 		if (InventoryPressedLookup.TryGetValue(index, out Transform Transform))
-		{
 			return Transform;
-		}
 		GameObject PressedObject = GameObject.Find("InventoryPressed" + index);
 		if (PressedObject == null)
 		{
@@ -62,13 +56,9 @@ public class InventoryUI : MonoBehaviour
 	private Image GetInventoryIcon(int index)
 	{
 		if (index < 0)
-		{
 			return null;
-		}
 		if (InventoryIconLookup.TryGetValue(index, out Image Image))
-		{
 			return Image;
-		}
 		GameObject IconObject = GameObject.Find("InventoryIcon" + index);
 		if (IconObject == null)
 		{
@@ -131,9 +121,7 @@ public class InventoryUI : MonoBehaviour
 			ItemNameText.color = DefaultColor;
 		}
 		if (ItemDescText != null)
-		{
 			ItemDescText.text = "";
-		}
 	}
 	/// <summary>
 	/// Refreshes inventory text, called by TryDropItem
@@ -161,9 +149,7 @@ public class InventoryUI : MonoBehaviour
 				ItemNameText.color = DefaultColor;
 			}
 			if (ItemDescText != null)
-			{
 				ItemDescText.text = "";
-			}
 		}
 	}
 	/// <summary>
@@ -175,19 +161,13 @@ public class InventoryUI : MonoBehaviour
 		{
 			Image Icon = GetInventoryIcon(i);
 			if (Icon == null)
-			{
 				continue;
-			}
+			// Add item icon
 			if (i < Inventory.Count)
-			{
-				// Add item icon
 				Icon.sprite = Inventory[i].GetSprite();
-			}
+			// Cleanup icons
 			else
-			{
-				// Cleanup of icons
 				Icon.sprite = ItemBackground;
-			}
 		}
 	}
 	/// <summary>
@@ -211,9 +191,7 @@ public class InventoryUI : MonoBehaviour
 			ItemNameText.color = CachedColor;
 		}
 		if (ItemDescText != null)
-		{
 			ItemDescText.text = CachedDesc;
-		}
 	}
 	/// <summary>
 	/// Sets selected index to -1
@@ -230,9 +208,7 @@ public class InventoryUI : MonoBehaviour
 			ItemNameText.color = CachedColor;
 		}
 		if (ItemDescText != null)
-		{
 			ItemDescText.text = CachedDesc;
-		}
 	}
 	/// <summary>
 	/// Called by ClickItem when item is selected or deselected
@@ -245,9 +221,7 @@ public class InventoryUI : MonoBehaviour
 		{
 			Transform PressedTransform = GetInventoryPressed(oldSelectedIndex);
 			if (PressedTransform != null)
-			{
 				PressedTransform.localScale = Vector3.one;
-			}
 			return false;
 		}
 		// Deselect old item & select new item
@@ -255,17 +229,13 @@ public class InventoryUI : MonoBehaviour
 		{
 			Transform OldPressed = GetInventoryPressed(oldSelectedIndex);
 			if (OldPressed != null)
-			{
 				OldPressed.localScale = Vector3.one;
-			}
 		}
 		if (newSelectedIndex != -1)
 		{
 			Transform NewPressed = GetInventoryPressed(newSelectedIndex);
 			if (NewPressed != null)
-			{
 				NewPressed.localScale = Vector3.zero;
-			}
 		}
 		return true;
 	}
@@ -298,17 +268,13 @@ public class InventoryUI : MonoBehaviour
 					NameText.color 	= Item.Info.Rarity.Color;
 				}
 				if (DescText != null)
-				{
 					DescText.text = Item.Info.Description + Item.Info.Stats;
-				}
 				break;
 			}
 			itemIndex++;
 		}
 		if (mouseIsOverIcon)
-		{
 			return;
-		}
 		if (SelectedIndex == -1)
 		{
 			if (NameText != null)
@@ -317,9 +283,7 @@ public class InventoryUI : MonoBehaviour
 				NameText.color 	= DefaultColor;
 			}
 			if (DescText != null)
-			{
 				DescText.text 	= "";
-			}
 		}
 		else
 		{
@@ -329,9 +293,7 @@ public class InventoryUI : MonoBehaviour
 				NameText.color 	= CachedColor;
 			}
 			if (DescText != null)
-			{
 				DescText.text 	= CachedDesc;
-			}
 		}
 	}
 }

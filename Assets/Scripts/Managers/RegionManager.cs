@@ -115,9 +115,7 @@ public class RegionManager : MonoBehaviour
     public bool TryAdvanceRegion()
     {
         if (!CurrentRegion.IsComplete())
-        {
             return false;
-        }
         // Advance to next region
         CurrentRegionIndex++;
         // Check if all regions completed

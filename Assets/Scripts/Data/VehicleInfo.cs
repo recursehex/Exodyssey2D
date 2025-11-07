@@ -71,7 +71,7 @@ public class VehicleInfo
 			{
 				Tags Tag = (Tags)i;
 				string tagName = Tag.ToString();
-				VehicleData Data = VehicleDatabase.Vehicles.Find(vehicle => vehicle.Tag == tagName);
+				VehicleData Data = VehicleDatabase.Vehicles.Find(Vehicle => Vehicle.Tag == tagName);
 				if (Data != null && !Data.disabled)
 				{
 					Rarities.Add(Rarity.Parse(Data.Rarity));
@@ -129,9 +129,9 @@ public class VehicleInfo
 	/// </summary>
 	public void DecreaseHealthBy(int amount) => CurrentHealth -= amount;
 	/// <summary>
-	/// Resets vehicle's CurrentHealth to maxHealth
+	/// Resets vehicle's CurrentHealth to maxHealth, returns false if already at max
 	/// </summary>
-	public bool RestoreHealth()
+	public bool TryRestoreHealth()
 	{
 		if (CurrentHealth == Data.maxHealth)
 		{
@@ -141,9 +141,9 @@ public class VehicleInfo
 		return true;
 	}
 	/// <summary>
-	/// Recharges vehicle by amount, subtract from input
+	/// Recharges vehicle by amount, subtract from input, returns false if already fully charged
 	/// </summary>
-	public bool RechargeBy(ref int amount)
+	public bool TryRechargeBy(ref int amount)
 	{
 		// Return false if vehicle is already fully charged
 		if (CurrentCharge == Data.maxCharge)
@@ -158,7 +158,7 @@ public class VehicleInfo
 		amount = chargeToAdd;
 		return true;
 	}
-	public bool DecreaseChargeBy(int amount)
+	public bool TryDecreaseChargeBy(int amount)
 	{
 		if (CurrentCharge - amount < 0)
 		{

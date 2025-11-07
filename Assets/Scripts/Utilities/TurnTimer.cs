@@ -27,9 +27,7 @@ public class TurnTimer : MonoBehaviour
 	void Update()
 	{
 		if (!timerIsRunning)
-		{
 			return;
-		}
 		float dt = Time.deltaTime;
 		if (timeRemaining - dt > 1)
 		{
@@ -37,9 +35,7 @@ public class TurnTimer : MonoBehaviour
 			DisplayTime(timeRemaining);
 		}
 		else
-		{
 			StopTimer();
-		}
 	}
 	private void DisplayTime(float timeToDisplay)
 	{

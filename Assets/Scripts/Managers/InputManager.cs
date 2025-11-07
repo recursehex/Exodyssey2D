@@ -25,16 +25,10 @@ public class InputManager : MonoBehaviour
         Vector3Int TilePoint = TilemapGround.WorldToCell(WorldPoint);
         Vector3 ShiftedClickPoint = TilePoint + new Vector3(0.5f, 0.5f);
         if (Input.GetMouseButtonDown(0) && CellBounds.Contains(TilePoint))
-        {
             OnPlayerClick?.Invoke(WorldPoint, TilePoint, ShiftedClickPoint);
-        }
         else if (CellBounds.Contains(TilePoint))
-        {
             OnPlayerHover?.Invoke(WorldPoint, TilePoint, ShiftedClickPoint);
-        }
         else
-        {
             Player.InventoryUI.ProcessHoverForInventory(WorldPoint);
-        }
     }
 }

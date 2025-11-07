@@ -24,9 +24,7 @@ public class StatsDisplayManager : MonoBehaviour
 	public void DecreaseHealthDisplay(int currentHealth, int maxHealth)
 	{
 		for (int i = currentHealth + 1; i < maxHealth + 1; i++)
-		{
 			HealthIcons[i-1].sprite = HealthEmpty;
-		}
 	}
 	/// <summary>
 	/// Restores Player Energy icons to match MaxEnergy, requires current health
@@ -46,8 +44,6 @@ public class StatsDisplayManager : MonoBehaviour
 	public void DecreaseEnergyDisplay(int currentEnergy, int maxEnergy)
 	{
 		for (int i = currentEnergy + 1; i < maxEnergy + 1; i++)
-		{
 			EnergyIcons[i-1].sprite = EnergyEmpty;
-		}
 	}
 }

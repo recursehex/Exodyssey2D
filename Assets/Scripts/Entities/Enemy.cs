@@ -33,20 +33,12 @@ public class Enemy : MonoBehaviour
 		Player = FindFirstObjectByType<Player>();
 		StunIcon = Instantiate(StunIcon, transform.position, Quaternion.identity);
 	}
-	private void OnDisable()
-	{
-		StopMoveRoutineIfRunning();
-	}
-	private void OnDestroy()
-	{
-		StopMoveRoutineIfRunning();
-	}
+	private void OnDisable() =>	StopMoveRoutineIfRunning();
+	private void OnDestroy() => StopMoveRoutineIfRunning();
 	private void StopMoveRoutineIfRunning()
 	{
 		if (MoveRoutine == null)
-		{
 			return;
-		}
 		StopCoroutine(MoveRoutine);
 		MoveRoutine = null;
 	}
@@ -96,9 +88,7 @@ public class Enemy : MonoBehaviour
 				Destination = TryDistance;
 				// Stop movement if game ends
 				if (MoveRoutine != null)
-				{
                     StopCoroutine(MoveRoutine);
-				}
                 MoveRoutine = StartCoroutine(MoveAlongPath());
 			}
 			else
@@ -115,9 +105,7 @@ public class Enemy : MonoBehaviour
 				&& !isUsingRandomPath)
 		{
 			while (HasEnergy)
-			{
 				AttackPlayer();
-			}
 		}
 		// If no valid movement available
 		else
@@ -127,9 +115,7 @@ public class Enemy : MonoBehaviour
 			isUsingRandomPath = false;
 			// Mark as blocked if enemy has energy but couldn't move
 			if (HasEnergy && Path == null)
-			{
 				WasBlockedThisTurn = true;
-			}
 		}
 	}
 	/// <summary>
@@ -177,11 +163,8 @@ public class Enemy : MonoBehaviour
 						yield return null;
 					}
 				}
-				else
-				{
-					// Stop moving if next position is now occupied
-					break;
-				}
+				// Stop moving if next position is now occupied
+				else break;
 			}
 			// Enemy attacks Player if enemy moves to an adjacent tile (but not when using random path)
 			else if (Path.Count == 1
@@ -191,11 +174,8 @@ public class Enemy : MonoBehaviour
 				AttackPlayer();
 				break;
 			}
-			else
-			{
-				// No more moves available
-				break;
-			}
+			// No more moves available
+			else break;
 		}
 		// Clean up after movement ends
 		Path = null;
@@ -210,9 +190,7 @@ public class Enemy : MonoBehaviour
 	{
 		Info.DecreaseHealthBy(damage);
 		if (Info.CurrentHealth <= 0)
-		{
 			gameObject.SetActive(false);
-		}
 	}
 	#endregion
 	#region ENERGY METHODS
@@ -228,15 +206,11 @@ public class Enemy : MonoBehaviour
 		{
 			// If Vehicle is destroyed, Player is ejected
 			if (Player.Vehicle.DecreaseHealthBy(Info.DamagePoints))
-			{
 				Player.ExitVehicle();
-			}
 		}
+		// If Player is not in Vehicle, damage Player
 		else
-		{
-			// If Player is not in Vehicle, damage Player
 			Player.DecreaseHealthBy(Info.DamagePoints, Info.Range == 0);
-		}
 	}
 	#endregion
 }

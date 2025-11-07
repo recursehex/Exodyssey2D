@@ -162,9 +162,7 @@ public class AStar
 						Node Neighbor = GetNode(Position);
 						// Mark if this node has an entity for partial path logic
 						if (allowPartialPath && IsEntityAtPosition)
-						{
 							Neighbor.HasEntity = true;
-						}
 						Neighbors.Add(Neighbor);
 					}
 				}
@@ -186,18 +184,14 @@ public class AStar
 			if (OpenList.Contains(Neighbor))
 			{
 				if (Current.G + gScore < Neighbor.G)
-				{
 					CalculateNodeValues(Current, Neighbor, GoalPosition, gScore);
-				}
 			}
 			else if (!ClosedList.Contains(Neighbor))
 			{
 				CalculateNodeValues(Current, Neighbor, GoalPosition, gScore);
 				// An extra check for OpenList containing the neighbor
 				if (!OpenList.Contains(Neighbor))
-				{
 					OpenList.Add(Neighbor);
-				}
 			}
 		}
 	}
@@ -213,10 +207,7 @@ public class AStar
 		ClosedList.Add(Current);
 		// If the OpenList has nodes in it, then sort them by F value
 		if (OpenList.Count > 0)
-		{
-			// Orders the list by F value to make it easier to pick node with lowest F value
 			Current = OpenList.OrderBy(x => x.F).First();
-		}
 	}
 	/// <summary>
 	/// Generates path from current node to the goal position
@@ -249,9 +240,7 @@ public class AStar
 			while (TempNode != null)
 			{
 				if (TempNode.H < ClosestNode.H)
-				{
 					ClosestNode = TempNode;
-				}
 				TempNode = TempNode.Parent;
 			}
 			// Generate partial path to closest reachable point, checking for entities
@@ -265,9 +254,7 @@ public class AStar
 			}
 			// Only return partial path if it has meaningful progress
 			if (PartialPath.Count > 1)
-			{
 				return PartialPath;
-			}
 		}
 		return null;
 	}
@@ -297,9 +284,7 @@ public class AStar
 	private Node GetNode(Vector3Int Position)
 	{
 		if (AllNodes.ContainsKey(Position))
-		{
 			return AllNodes[Position];
-		}
 		else
 		{
 			Node Node = new(Position);

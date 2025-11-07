@@ -77,9 +77,7 @@ public class Player : MonoBehaviour
 	private void StopMoveRoutineIfRunning()
 	{
 		if (MoveRoutine == null)
-		{
 			return;
-		}
 		StopCoroutine(MoveRoutine);
 		MoveRoutine = null;
 	}
@@ -120,17 +118,13 @@ public class Player : MonoBehaviour
 		AStar.Initialize();
 		Path = AStar.ComputePath(transform.position, Goal);
 		if (Path == null)
-		{
 			return;
-		}
 		Path.Pop();
 		Destination = Path.Pop();
 		IsInMovement = true;
 		// Stop movement if game ends
 		if (MoveRoutine != null)
-		{
 			StopCoroutine(MoveRoutine);
-		}
 		MoveRoutine = StartCoroutine(MoveAlongPath());
 	}
 	/// <summary>
@@ -154,22 +148,15 @@ public class Player : MonoBehaviour
 			}
 			// Pop next tile in path
 			if (Path != null && Path.Count > 0)
-			{
 				Destination = Path.Pop();
-			}
-			else
-			{
-				break;
-			}
+			else break;
 		}
 		// When Player stops moving
 		Path = null;
 		IsInMovement = false;
 		// Update targets if a ranged weapon is selected
 		if (HasRange && !IsInVehicle)
-		{
 			GameManager.Instance.UpdateTargets();
-		}
 		// Notify that movement is complete
 		OnMovementComplete?.Invoke();
 	}
@@ -201,9 +188,7 @@ public class Player : MonoBehaviour
 	public void VehicleMovement(Vector3 WorldPoint)
 	{
 		if (Vehicle == null)
-		{
 			return;
-		}
 		// Subscribe to vehicle movement complete event
 		Vehicle.OnVehicleMovementComplete = () => {
 			IsInMovement = false;
@@ -221,14 +206,10 @@ public class Player : MonoBehaviour
 	private void SetPlayerVisibility(bool isVisible)
 	{
 		if (TryGetComponent(out SpriteRenderer SpriteRenderer))
-		{
 			SpriteRenderer.enabled = isVisible;
-		}
 		// Also hide or show the animator component
 		if (Animator != null)
-		{
 			Animator.enabled = isVisible;
-		}
 	}
 	#endregion
 	#region HEALTH METHODS
@@ -297,9 +278,7 @@ public class Player : MonoBehaviour
 		StatsDisplayManager.DecreaseEnergyDisplay(currentEnergy, maxEnergy);
 		// End turn and stop timer if no more energy
 		if (!HasEnergy)
-		{
 			GameManager.Instance.StopTurnTimer();
-		}
 	}
 	/// <summary>
 	/// Sets Player CurrentEnergy to 0
@@ -345,9 +324,7 @@ public class Player : MonoBehaviour
 	private void TryRemoveSelectedItem(bool forceRemove = false)
 	{
 		if (!forceRemove && HasUses)
-		{
 			return;
-		}
 		InventoryUI.RemoveItem(InventoryUI.SelectedIndex);
 		InventoryUI.SetNoneSelected();
 		SelectedItemInfo = null;
@@ -383,11 +360,8 @@ public class Player : MonoBehaviour
 	public void TryClickItem(int itemIndex)
 	{
 		// Ensures index is within bounds and inventory has an item
-		if (Inventory.IsEmpty
-			|| itemIndex >= Inventory.Count)
-		{
+		if (Inventory.IsEmpty || itemIndex >= Inventory.Count)
 			return;
-		}
 		ItemInfo ClickedItem = Inventory[itemIndex].Info;
 		// If item is selected, update selection, otherwise reset
 		if (InventoryUI.ProcessSelection(InventoryUI.SelectedIndex, itemIndex))
@@ -397,14 +371,10 @@ public class Player : MonoBehaviour
 			SoundManager.Instance.PlaySound(Select);
 			// Only update targets if ranged weapon is selected
 			if (ClickedItem.HasRange && !IsInVehicle)
-			{
 				GameManager.Instance.UpdateTargets();
-			}
 			// Clear targets for non-ranged weapons
 			else
-			{
 				GameManager.Instance.ClearTargets();
-			}
 		}
 		// Item was deselected
 		else
@@ -420,9 +390,7 @@ public class Player : MonoBehaviour
 	public bool ClickOnToUseItem()
 	{
 		if (SelectedItemInfo == null)
-		{
 			return false;
-		}
 		bool wasUsed = WasItemUsed();
 		return wasUsed;
 	}
@@ -438,14 +406,10 @@ public class Player : MonoBehaviour
 			RestoreHealth();
 			// Uses energy if profession is not medic
 			if (Profession.Tag is not Profession.Tags.Medic)
-			{
 				DecrementEnergy();
-			}
 			// Uses MedKit if profession is not master medic
 			if (!(Profession.IsMaster && Profession.Tag is Profession.Tags.Medic))
-			{
 				DecrementItemDurability();
-			}
 			return true;
 		}
 		else if (SelectedItemInfo.Tag is ItemInfo.Tags.Helmet
@@ -484,9 +448,7 @@ public class Player : MonoBehaviour
 	{
 		// Returns if no item is selected
 		if (SelectedItemInfo == null)
-		{
 			return false;
-		}
 		// Try to use ToolKit on vehicle
 		if (SelectedItemInfo.Tag is ItemInfo.Tags.ToolKit
 			&& Vehicle.Repair())
@@ -511,18 +473,14 @@ public class Player : MonoBehaviour
 	{
 		// Returns if called when inventory is empty
 		if (Inventory.IsEmpty)
-		{
 			return;
-		}
 		// Clears targeting if weapon is dropped
 		if (SelectedItemInfo == Inventory[itemIndex].Info
 			&& Inventory[itemIndex].Info?.Type is ItemInfo.Types.Weapon)
 		{
 			// Clears targeting if ranged weapon is dropped
 			if (HasRange)
-			{
 				GameManager.Instance.ClearTargets();
-			}
 		}
 		// Put dropped item in temp slot out of inventory
 		ItemInfo DroppedItemInfo = Inventory[itemIndex].Info;
@@ -543,9 +501,7 @@ public class Player : MonoBehaviour
 		}
 		// Remove dropped item from inventory
 		else
-		{
 			InventoryUI.RemoveItem(itemIndex);
-		}
 		InventoryUI.RefreshText();
 		// Drop item onto ground from temp slot with preserved state
 		GameManager.Instance.SpawnItem(DroppedItemInfo, transform.position);

@@ -19,9 +19,7 @@ public class Inventory
 	public bool TryAddItem(Item Item)
 	{
 		if (InventoryList.Count >= Size)
-		{
 			return false;
-		}
 		InventoryList.Add(Item);
 		return true;
 	}

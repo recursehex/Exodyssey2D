@@ -24,9 +24,7 @@ public class TileManager : MonoBehaviour
     public void ClearTileAreas()
     {
         if (TileAreas.Count > 0)
-        {
             RecycleMarkers(TileAreas, TileAreaPool);
-        }
         TileAreasToDraw = null;
     }
     /// <summary>
@@ -40,9 +38,7 @@ public class TileManager : MonoBehaviour
         TileAreasToDraw = AreasToDraw;
         // Return if no areas to draw
         if (TileAreasToDraw == null || TileAreasToDraw.Count <= 0)
-        {
             return;
-        }
         // Draw new areas
         foreach (KeyValuePair<Vector3Int, Node> TileAreaPosition in TileAreasToDraw)
         {
@@ -57,9 +53,7 @@ public class TileManager : MonoBehaviour
     public void ClearTargets()
     {
         if (Targets.Count == 0)
-        {
             return;
-        }
         RecycleMarkers(Targets, TargetPool);
     }
     /// <summary>
@@ -76,17 +70,13 @@ public class TileManager : MonoBehaviour
         ClearTargets();
         // Return if weapon has no range
         if (weaponRange <= 0)
-        {
             return;
-        }
         // Draw new targets
         foreach (Enemy Enemy in Enemies)
         {
             // Skip enemies that are stunned and if weapon is stunning
             if (Enemy.StunIcon.activeSelf && isStunning)
-            {
                 continue;
-            }
             Vector3 EnemyPosition = Enemy.transform.position;
             // Draw targets if enemy is in line of sight and range
             if (IsInLineOfSight(PlayerPosition, EnemyPosition, weaponRange, Walls))
@@ -109,18 +99,14 @@ public class TileManager : MonoBehaviour
         float distance = Vector3.Distance(PlayerPosition, EnemyPosition);
         // Return if enemy is out of range
         if (distance > weaponRange)
-        {
             return false;
-        }
         // Check if there are walls in the line of sight
         List<Vector3> Path = BresenhamsAlgorithm(PlayerPosition, EnemyPosition);
         foreach (Vector3 Position in Path)
         {
             Vector3Int PositionInt = Vector3Int.FloorToInt(Position);
             if (Walls.HasTile(PositionInt))
-            {
                 return false;
-            }
         }
         return true;
     }    
@@ -151,9 +137,7 @@ public class TileManager : MonoBehaviour
         {
             PointsOnLine.Add(new(x0, y0));
             if ((x0 == x1) && (y0 == y1))
-            {
                 break;
-            }
             int e2 = 2 * err;
             if (e2 > -dy)
             {
@@ -205,10 +189,7 @@ public class TileManager : MonoBehaviour
             Marker.transform.SetPositionAndRotation(Position, Quaternion.identity);
             Marker.SetActive(true);
         }
-        else
-        {
-            Marker = Instantiate(Template, Position, Quaternion.identity);
-        }
+        else Marker = Instantiate(Template, Position, Quaternion.identity);
         return Marker;
     }
     /// <summary>
@@ -221,9 +202,7 @@ public class TileManager : MonoBehaviour
         foreach (GameObject Marker in ActiveMarkers)
         {
             if (Marker == null)
-            {
                 continue;
-            }
             Marker.SetActive(false);
             Pool.Push(Marker);
         }
@@ -239,9 +218,7 @@ public class TileManager : MonoBehaviour
         foreach (GameObject Marker in ActiveMarkers)
         {
             if (Marker == null)
-            {
                 continue;
-            }
             Destroy(Marker);
         }
         ActiveMarkers.Clear();
@@ -249,9 +226,7 @@ public class TileManager : MonoBehaviour
         {
             GameObject PooledMarker = Pool.Pop();
             if (PooledMarker == null)
-            {
                 continue;
-            }
             Destroy(PooledMarker);
         }
     }
