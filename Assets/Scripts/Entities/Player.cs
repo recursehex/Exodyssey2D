@@ -27,7 +27,7 @@ public class Player : MonoBehaviour
 	private bool hasVest = false;
 	private int vestHealth;
 	private bool hasNightVision = false;
-	public Profession Job;
+	public Profession Profession;
 	#endregion
 	#region EVENTS
 	public Action OnMovementComplete;
@@ -63,7 +63,7 @@ public class Player : MonoBehaviour
 		Inventory = new(inventorySize);
 		InventoryUI.Inventory = Inventory;
 		Animator = GetComponent<Animator>();
-		Job = Profession.GetRandomProfession();
+		Profession = Profession.GetRandomProfession();
 		FinishedInit = true;
 	}
 	private void OnDisable()
@@ -104,7 +104,7 @@ public class Player : MonoBehaviour
 		InventoryUI.SetNoneSelected();
 		InventoryUI.RefreshInventoryIcons();
 		InventoryUI.RefreshText();
-		Job = Profession.GetRandomProfession();
+		Profession = Profession.GetRandomProfession();
 		maxEnergy = fixedMaxEnergy;
 		currentHealth = maxHealth;
 		currentEnergy = maxEnergy;
@@ -340,10 +340,11 @@ public class Player : MonoBehaviour
 	}
 	/// <summary>
 	/// Removes selected item from inventory and resets related variables
+	/// If forceRemove is true, item is removed regardless of durability
 	/// </summary>
-	private void TryRemoveSelectedItem()
+	private void TryRemoveSelectedItem(bool forceRemove = false)
 	{
-		if (HasUses)
+		if (!forceRemove && HasUses)
 		{
 			return;
 		}
@@ -436,40 +437,40 @@ public class Player : MonoBehaviour
 		{
 			RestoreHealth();
 			// Uses energy if profession is not medic
-			if (Job.Tag is not Profession.Tags.Medic)
+			if (Profession.Tag is not Profession.Tags.Medic)
 			{
 				DecrementEnergy();
 			}
 			// Uses MedKit if profession is not master medic
-			if (!(Job.IsMaster && Job.Tag is Profession.Tags.Medic))
+			if (!(Profession.IsMaster && Profession.Tag is Profession.Tags.Medic))
 			{
 				DecrementItemDurability();
 			}
 			return true;
 		}
-		// else if (SelectedItemInfo.Tag is ItemInfo.Tags.Helmet
-		// 	&& !hasHelmet)
-		// {
-		// 	hasHelmet = true;
-		// 	helmetHealth = SelectedItemInfo.CurrentUses;
-		// 	DecrementItemDurability();
-		// 	DecrementEnergy();
-		// 	return true;
-		// }
-		// else if (SelectedItemInfo.Tag is ItemInfo.Tags.Vest
-		// 	&& !hasVest)
-		// {
-		// 	hasVest = true;
-		// 	vestHealth = SelectedItemInfo.CurrentUses;
-		// 	DecrementItemDurability();
-		// 	DecrementEnergy();
-		// 	return true;
-		// }
+		else if (SelectedItemInfo.Tag is ItemInfo.Tags.Helmet
+			&& !hasHelmet)
+		{
+			hasHelmet = true;
+			helmetHealth = SelectedItemInfo.CurrentUses;
+			TryRemoveSelectedItem(true);
+			DecrementEnergy();
+			return true;
+		}
+		else if (SelectedItemInfo.Tag is ItemInfo.Tags.Vest
+			&& !hasVest)
+		{
+			hasVest = true;
+			vestHealth = SelectedItemInfo.CurrentUses;
+			TryRemoveSelectedItem(true);
+			DecrementEnergy();
+			return true;
+		}
 		else if (SelectedItemInfo.Tag is ItemInfo.Tags.NightVision
 			&& !hasNightVision)
 		{
 			hasNightVision = true;
-			DecrementItemDurability();
+			TryRemoveSelectedItem(true);
 			DecrementEnergy();
 			return true;
 		}

@@ -882,6 +882,8 @@ MonoBehaviour:
   - {fileID: 2145379877062402088, guid: ba8e62b527e3c4b2c8c15ddde698b587, type: 3}
   - {fileID: 2145379877062402088, guid: 33186f847f6305748921b5b654aa8c9d, type: 3}
   - {fileID: 2145379877062402088, guid: 1a6b4107ceb4a4d4db276eae951f74b4, type: 3}
+  - {fileID: 1336611518689343522, guid: 8dbc07541346f47ae9af415f363b2da5, type: 3}
+  - {fileID: 1336611518689343522, guid: 6f2398810c76e4b15b3830ba7833107d, type: 3}
   - {fileID: 1336611518689343522, guid: aeb86c0077d274d9b8a3e58629e201f1, type: 3}
   - {fileID: 1336611518689343522, guid: 9ec3ca548544e4c8ea2d94a4aefa9fac, type: 3}
   - {fileID: 1336611518689343522, guid: 2425e56511d084687aa3ddc01200d2a1, type: 3}
@@ -1653,7 +1655,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 1
     m_LineSpacing: 2
-  m_Text: "\tEXODYSSEY 2D Alpha 1.3.0\t\t\t\t\t\tUnity 6"
+  m_Text: "\tEXODYSSEY 2D Alpha 1.4.0\t\t\t\t\t\tUnity 6"
 --- !u!222 &768722518
 CanvasRenderer:
   m_ObjectHideFlags: 0

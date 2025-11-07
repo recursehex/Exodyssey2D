@@ -40,8 +40,8 @@ public class ItemInfo
 		//StickyGrenade,
 
 		// ARMOR
-		//Helmet,
-		//Vest,
+		Helmet,
+		Vest,
 		//GrapheneShield,
 
 		// UTILITY

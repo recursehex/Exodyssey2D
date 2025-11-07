@@ -30,7 +30,7 @@
       "WallTileSetName": "GD_Walls",
       "EnemyPool": ["Common", "Limited", "Scarce"],
       "ItemPool": ["Common", "Limited", "Scarce"],
-      "VehiclePool": ["Common, Limited", "Scarce"],
+      "VehiclePool": ["Common", "Limited", "Scarce"],
       "Description": "Vast, flat glaciers and cold winds that few creatures survive. Stronger aliens emerge."
     },
     {
