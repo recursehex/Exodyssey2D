@@ -17,7 +17,7 @@ public class VehicleManager : MonoBehaviour
     }
     public void GenerateVehicles()
     {
-        spawnVehicleCount = Random.Range(1, 3); // TEMP
+        spawnVehicleCount = Random.Range(0, 3);
         int cap = spawnVehicleCount * 2;
         while (cap > 0 && spawnVehicleCount > 0)
         {

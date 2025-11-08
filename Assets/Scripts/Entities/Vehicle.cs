@@ -43,17 +43,13 @@ public class Vehicle : MonoBehaviour
 		AStar.Initialize();
 		Path = AStar.ComputePath(transform.position, Goal);
 		if (Path == null)
-		{
 			return;
-		}
 		Path.Pop();
 		Destination = Path.Pop();
 		IsInMovement = true;
 		// Stop movement if game ends
 		if (MoveRoutine != null)
-		{
 			StopCoroutine(MoveRoutine);
-		}
 		MoveRoutine = StartCoroutine(MoveAlongPath());
 	}
 	/// <summary>

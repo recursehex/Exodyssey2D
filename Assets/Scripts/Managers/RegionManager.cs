@@ -32,10 +32,7 @@ public class RegionManager : MonoBehaviour
     /// <summary>
     /// Initializes the region system with the starting region
     /// </summary>
-    public void Initialize()
-    {
-        LoadRegion(CurrentRegionIndex);
-    }
+    public void Initialize() => LoadRegion(CurrentRegionIndex);
     /// <summary>
     /// Resets region progress back to the first region
     /// </summary>

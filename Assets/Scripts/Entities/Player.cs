@@ -66,14 +66,8 @@ public class Player : MonoBehaviour
 		Profession = Profession.GetRandomProfession();
 		FinishedInit = true;
 	}
-	private void OnDisable()
-	{
-		StopMoveRoutineIfRunning();
-	}
-	private void OnDestroy()
-	{
-		StopMoveRoutineIfRunning();
-	}
+	private void OnDisable() => StopMoveRoutineIfRunning();
+	private void OnDestroy() => StopMoveRoutineIfRunning();
 	private void StopMoveRoutineIfRunning()
 	{
 		if (MoveRoutine == null)

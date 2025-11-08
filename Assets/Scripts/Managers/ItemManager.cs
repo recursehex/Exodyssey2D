@@ -12,7 +12,7 @@ public class ItemManager : MonoBehaviour
     /// </summary>
     public void GenerateItems()
     {
-        spawnItemCount = Random.Range(5, 10);
+        spawnItemCount = Random.Range(5, 10);   // TEMP, reduce later
         int cap = spawnItemCount * 2;
         while (cap > 0 && spawnItemCount > 0)
         {
