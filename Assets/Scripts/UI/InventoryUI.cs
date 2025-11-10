@@ -198,6 +198,7 @@ public class InventoryUI : MonoBehaviour
 	/// </summary>
 	public void SetNoneSelected()
 	{
+		ResetPressedStates();
 		SelectedIndex 	= -1;
 		CachedName 		= "";
 		CachedColor 	= DefaultColor;
@@ -209,6 +210,17 @@ public class InventoryUI : MonoBehaviour
 		}
 		if (ItemDescText != null)
 			ItemDescText.text = CachedDesc;
+	}
+	/// <summary>
+	/// Restores all pressed indicators to their default scale
+	/// </summary>
+	private void ResetPressedStates()
+	{
+		foreach (Transform PressedTransform in InventoryPressedLookup.Values)
+		{
+			if (PressedTransform != null)
+				PressedTransform.localScale = Vector3.one;
+		}
 	}
 	/// <summary>
 	/// Called by ClickItem when item is selected or deselected
