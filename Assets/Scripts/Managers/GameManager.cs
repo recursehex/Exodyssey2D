@@ -350,6 +350,11 @@ public class GameManager : MonoBehaviour
 			TileManager.TileDot.SetActive(true);
 			TileManager.TileDot.transform.position = ShiftedClickPoint;
 		}
+		// Hide TileDot if hovered tile is out of movement range
+		else
+		{
+			TileManager.TileDot.SetActive(false);
+		}
 	}
 	/// <summary>
 	/// Checks if Player is in a vehicle at specified world point

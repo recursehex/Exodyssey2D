@@ -20,10 +20,10 @@ public class InputManager : MonoBehaviour
     /// </summary>
     public void ProcessInput()
     {
-        BoundsInt CellBounds = TilemapGround.cellBounds;
-        Vector3 WorldPoint = MainCamera.ScreenToWorldPoint(Input.mousePosition);
-        Vector3Int TilePoint = TilemapGround.WorldToCell(WorldPoint);
-        Vector3 ShiftedClickPoint = TilePoint + new Vector3(0.5f, 0.5f);
+        BoundsInt CellBounds        = TilemapGround.cellBounds;
+        Vector3 WorldPoint          = MainCamera.ScreenToWorldPoint(Input.mousePosition);
+        Vector3Int TilePoint        = TilemapGround.WorldToCell(WorldPoint);
+        Vector3 ShiftedClickPoint   = TilePoint + new Vector3(0.5f, 0.5f);
         if (Input.GetMouseButtonDown(0) && CellBounds.Contains(TilePoint))
             OnPlayerClick?.Invoke(WorldPoint, TilePoint, ShiftedClickPoint);
         else if (CellBounds.Contains(TilePoint))
