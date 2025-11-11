@@ -20,6 +20,7 @@ public class LevelManager : MonoBehaviour
     private RegionManager RegionManager;
     public delegate void LevelInitializedDelegate();
     public event LevelInitializedDelegate OnLevelInitialized;
+    public event System.Action<bool> OnLoadingScreenVisibilityChanged;
     public void Initialize(Tilemap Ground, Tilemap Walls, Tilemap Exits, RegionManager RegionManager,
                            Text RegionText, Text DayText, Text LevelText, GameObject LevelImage)
     {
@@ -35,6 +36,7 @@ public class LevelManager : MonoBehaviour
     public void InitializeLevel()
     {
         LevelImage.SetActive(true);
+        OnLoadingScreenVisibilityChanged?.Invoke(true);
         LevelText.gameObject.SetActive(true);
         DayText.gameObject.SetActive(true);
         RegionText.gameObject.SetActive(true);
@@ -50,6 +52,7 @@ public class LevelManager : MonoBehaviour
     private void HideLevelLoadScreen()
     {
         LevelImage.SetActive(false);
+        OnLoadingScreenVisibilityChanged?.Invoke(false);
         LevelText.gameObject.SetActive(false);
         DayText.gameObject.SetActive(false);
         RegionText.gameObject.SetActive(false);

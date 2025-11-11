@@ -15,97 +15,92 @@ public class CursorController : MonoBehaviour
     [SerializeField] private Tilemap Tilemap;
     [SerializeField] private Player Player;
     [SerializeField] private InventoryUI InventoryUI;
+    [SerializeField] private LevelManager LevelManager;
     private Camera MainCamera;
     private int PixelsPerUnit;
     private bool SelectCursorActive;
+    private bool LoadingScreenVisible;
     private PointerEventData PointerEventData;
     private readonly List<RaycastResult> RaycastResults = new();
     private void Awake()
     {
-        MainCamera = Camera.main;
-        PixelsPerUnit = PixelPerfectCamera.assetsPPU;
-        TileManager = TileManager != null ? TileManager : FindFirstObjectByType<TileManager>();
-        Player = Player != null ? Player : FindFirstObjectByType<Player>();
-        InventoryUI = InventoryUI != null
-            ? InventoryUI
-            : Player != null ? Player.InventoryUI : FindFirstObjectByType<InventoryUI>();
-        Tilemap = Tilemap != null
-            ? Tilemap
-            : Player != null ? Player.TilemapGround : FindFirstObjectByType<Tilemap>();
-        if (CursorSprite == null || MainCamera == null)
-        {
-            enabled = false;
-            return;
-        }
+        MainCamera      = Camera.main;
+        PixelsPerUnit   = PixelPerfectCamera.assetsPPU;
+        TileManager     = FindFirstObjectByType<TileManager>();
+        Player          = FindFirstObjectByType<Player>();
+        InventoryUI     = Player.InventoryUI;
+        Tilemap         = Player.TilemapGround;
+        LevelManager    = FindFirstObjectByType<LevelManager>();
+        LevelManager.OnLoadingScreenVisibilityChanged += HandleLoadingScreenVisibilityChanged;
         CursorSprite.gameObject.SetActive(true);
-        if (SelectSprite != null)
-            SelectSprite.gameObject.SetActive(false);
+        SelectSprite.gameObject.SetActive(false);
     }
     private void OnEnable()
     {
-        if (CursorSprite == null || MainCamera == null)
-            return;
         Cursor.visible = false;
         CursorSprite.gameObject.SetActive(!SelectCursorActive);
-        if (SelectSprite != null)
-            SelectSprite.gameObject.SetActive(SelectCursorActive);
+        SelectSprite.gameObject.SetActive(SelectCursorActive);
     }
     private void OnDisable()
     {
         Cursor.visible = true;
         if (CursorSprite != null)
-        {
             CursorSprite.gameObject.SetActive(false);
-        }
         if (SelectSprite != null)
-        {
             SelectSprite.gameObject.SetActive(false);
-        }
         SelectCursorActive = false;
+    }
+    private void OnDestroy()
+    {
+        if (LevelManager != null)
+            LevelManager.OnLoadingScreenVisibilityChanged -= HandleLoadingScreenVisibilityChanged;
     }
     private void Update()
     {
-        if (CursorSprite == null || MainCamera == null)
-            return;
         Vector3 MousePosition   = Input.mousePosition;
         Vector3 ScreenPosition  = MainCamera.WorldToScreenPoint(CursorSprite.position);
         Vector3 WorldPosition   = MainCamera.ScreenToWorldPoint(new Vector3(MousePosition.x, MousePosition.y, ScreenPosition.z));
-        WorldPosition.z = CursorSprite.position.z;
+        WorldPosition.z         = CursorSprite.position.z;
         EnsureTileManagerReference();
-        bool shouldUseSelectCursor = IsHoveringSelectable(WorldPosition);
-        Vector3 SnappedPosition = SnapToPixelGrid(WorldPosition);
-        CursorSprite.position = SnappedPosition;
-        if (SelectSprite != null)
-            SelectSprite.position = SnappedPosition;
+        bool shouldUseSelectCursor  = !LoadingScreenVisible && IsHoveringSelectable(WorldPosition);
+        Vector3 SnappedPosition     = SnapToPixelGrid(WorldPosition);
+        CursorSprite.position       = SnappedPosition;
+        SelectSprite.position       = SnappedPosition;
         UpdateActiveCursor(shouldUseSelectCursor);
     }
-    private Vector3 SnapToPixelGrid(Vector3 position)
+    private Vector3 SnapToPixelGrid(Vector3 Position)
     {
         if (PixelsPerUnit <= 0)
-            return position;
-        position.x = Mathf.Round(position.x * PixelsPerUnit) / PixelsPerUnit;
-        position.y = Mathf.Round(position.y * PixelsPerUnit) / PixelsPerUnit;
-        return position;
+            return Position;
+        Position.x = Mathf.Round(Position.x * PixelsPerUnit) / PixelsPerUnit;
+        Position.y = Mathf.Round(Position.y * PixelsPerUnit) / PixelsPerUnit;
+        return Position;
     }
     private void UpdateActiveCursor(bool useSelectCursor)
     {
-        if (SelectSprite == null || SelectCursorActive == useSelectCursor)
+        if (SelectCursorActive == useSelectCursor)
             return;
         SelectCursorActive = useSelectCursor;
         CursorSprite.gameObject.SetActive(!useSelectCursor);
         SelectSprite.gameObject.SetActive(useSelectCursor);
     }
-    private bool IsHoveringSelectable(Vector3 worldPosition)
+    private bool IsHoveringSelectable(Vector3 WorldPosition)
     {
+        if (LoadingScreenVisible)
+            return false;
         if (IsHoveringButton())
             return true;
-        if (TileManager == null)
-            return false;
-        Vector3Int tilePoint = ConvertWorldToTilePoint(worldPosition);
+        Vector3Int tilePoint = ConvertWorldToTilePoint(WorldPosition);
         if (TileManager.IsInMovementRange(tilePoint))
             return true;
         Vector3 tileCenter = GetTileCenterWorld(tilePoint);
         return TileManager.IsInRangedWeaponRange(tileCenter);
+    }
+    private void HandleLoadingScreenVisibilityChanged(bool isVisible)
+    {
+        LoadingScreenVisible = isVisible;
+        if (isVisible)
+            UpdateActiveCursor(false);
     }
     private bool IsHoveringButton()
     {
@@ -117,7 +112,8 @@ public class CursorController : MonoBehaviour
         EventSystem.current.RaycastAll(PointerEventData, RaycastResults);
         foreach (RaycastResult Result in RaycastResults)
         {
-            if (Result.gameObject.TryGetComponent<Button>(out _)
+            if (Result.gameObject.TryGetComponent(out Button Button)
+                && Button.interactable
                 && ButtonAllowsSelectCursor(Result.gameObject))
                 return true;
         }
@@ -128,33 +124,31 @@ public class CursorController : MonoBehaviour
         if (TileManager == null)
             TileManager = FindFirstObjectByType<TileManager>();
     }
-    private Vector3Int ConvertWorldToTilePoint(Vector3 worldPosition)
+    private Vector3Int ConvertWorldToTilePoint(Vector3 WorldPosition)
     {
         if (Tilemap != null)
-            return Tilemap.WorldToCell(worldPosition);
-        return Vector3Int.FloorToInt(worldPosition);
+            return Tilemap.WorldToCell(WorldPosition);
+        return Vector3Int.FloorToInt(WorldPosition);
     }
-    private Vector3 GetTileCenterWorld(Vector3Int tilePoint)
+    private Vector3 GetTileCenterWorld(Vector3Int TilePoint)
     {
         if (Tilemap != null)
         {
-            Vector3 center = Tilemap.GetCellCenterWorld(tilePoint);
-            center.z = 0f;
-            return center;
+            Vector3 Center = Tilemap.GetCellCenterWorld(TilePoint);
+            Center.z = 0f;
+            return Center;
         }
-        return new Vector3(tilePoint.x + 0.5f, tilePoint.y + 0.5f, 0f);
+        return TilePoint + new Vector3(0.5f, 0.5f);
     }
-    private bool ButtonAllowsSelectCursor(GameObject buttonObject)
+    private bool ButtonAllowsSelectCursor(GameObject ButtonObject)
     {
-        if (!IsInventoryIcon(buttonObject))
+        if (!IsInventoryIcon(ButtonObject))
             return true;
-        return HasItemForInventoryIcon(buttonObject.name);
+        return HasItemForInventoryIcon(ButtonObject.name);
     }
-    private static bool IsInventoryIcon(GameObject buttonObject)
+    private static bool IsInventoryIcon(GameObject ButtonObject)
     {
-        const string inventoryPrefix = "InventoryIcon";
-        return buttonObject != null
-               && buttonObject.name.StartsWith(inventoryPrefix, StringComparison.OrdinalIgnoreCase);
+        return ButtonObject.name.StartsWith("InventoryIcon", StringComparison.OrdinalIgnoreCase);
     }
     private bool HasItemForInventoryIcon(string iconName)
     {
@@ -174,7 +168,7 @@ public class CursorController : MonoBehaviour
         {
             return false;
         }
-        string suffix = iconName.Substring(inventoryPrefix.Length);
+        string suffix = iconName[inventoryPrefix.Length..];
         return int.TryParse(suffix, out index);
     }
     private Inventory ResolveInventory()

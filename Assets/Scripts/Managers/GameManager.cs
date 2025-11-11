@@ -78,6 +78,7 @@ public class GameManager : MonoBehaviour
 		TurnManager.OnPlayerTurnEnded 	+= OnPlayerTurnEnded;
 		TurnManager.OnEnemyTurnEnded 	+= OnEnemyTurnEnded;
 		LevelManager.OnLevelInitialized += OnLevelInitialized;
+		LevelManager.OnLoadingScreenVisibilityChanged += HandleLoadingScreenVisibilityChanged;
 		InputManager.OnPlayerClick 		+= HandlePlayerClick;
 		InputManager.OnPlayerHover 		+= HandlePlayerHover;
 		Player.OnMovementComplete 		+= OnPlayerMovementComplete;
@@ -112,6 +113,7 @@ public class GameManager : MonoBehaviour
 		TurnManager.OnPlayerTurnEnded 	-= OnPlayerTurnEnded;
 		TurnManager.OnEnemyTurnEnded 	-= OnEnemyTurnEnded;
 		LevelManager.OnLevelInitialized -= OnLevelInitialized;
+		LevelManager.OnLoadingScreenVisibilityChanged -= HandleLoadingScreenVisibilityChanged;
 		InputManager.OnPlayerClick 		-= HandlePlayerClick;
 		InputManager.OnPlayerHover 		-= HandlePlayerHover;
 		Player.OnMovementComplete 		-= OnPlayerMovementComplete;
@@ -160,13 +162,20 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	private void OnLevelLoadComplete()
 	{
-		TurnManager.SetEndTurnButtonInteractable(true);
 		doingSetup = false;
 		// Update targets if player has ranged weapon
 		if (!Player.IsInVehicle)
 			UpdateTargets();
 		// Draw tile areas at start of game
 		UpdateTileAreas();
+	}
+	/// <summary>
+	/// Handles changes to loading screen visibility
+	/// </summary>
+	private void HandleLoadingScreenVisibilityChanged(bool isVisible)
+	{
+		TurnManager.SetEndTurnButtonLock(isVisible);
+		TurnManager.SetEndTurnButtonInteractable(!isVisible);
 	}
 	/// <summary>
 	/// Called when Player dies, cleans up scene and show Game Over screen

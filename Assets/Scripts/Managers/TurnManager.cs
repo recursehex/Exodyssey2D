@@ -6,6 +6,8 @@ public class TurnManager : MonoBehaviour
     public bool IsPlayersTurn { get; private set; } = true;
     public TurnTimer TurnTimer;
     public Button EndTurnButton;    
+    private bool isEndTurnButtonLocked;
+    private bool desiredEndTurnButtonInteractable = true;
     public delegate void TurnEndedDelegate();
     public event TurnEndedDelegate OnPlayerTurnEnded;
     public event TurnEndedDelegate OnEnemyTurnEnded;
@@ -20,7 +22,7 @@ public class TurnManager : MonoBehaviour
     /// </summary>
     public void OnEndTurnPress()
     {
-        EndTurnButton.interactable = false;
+        SetEndTurnButtonInteractable(false);
         TurnTimer.timerIsRunning = false;
         TurnTimer.ResetTimer();
         // Check if there are enemies before changing turns
@@ -28,13 +30,13 @@ public class TurnManager : MonoBehaviour
             IsPlayersTurn = false;
         // No enemies, stay on player's turn and re-enable button
         else
-            EndTurnButton.interactable = true;
+            SetEndTurnButtonInteractable(true);
         OnPlayerTurnEnded?.Invoke();
     }
     /// <summary>
     /// Sets EndTurnButton interactable
     /// </summary>
-    public void OnTurnTimerEnd() => EndTurnButton.interactable = true;
+    public void OnTurnTimerEnd() => SetEndTurnButtonInteractable(true);
     /// <summary>
     /// Switches to Player's turn
     /// </summary>
@@ -42,10 +44,33 @@ public class TurnManager : MonoBehaviour
     {
         TurnTimer.ResetTimer();
         IsPlayersTurn = true;
-        EndTurnButton.interactable = true;
+        SetEndTurnButtonInteractable(true);
         OnEnemyTurnEnded?.Invoke();
     }
-    public void SetEndTurnButtonInteractable(bool interactable) => EndTurnButton.interactable = interactable;
+    /// <summary>
+    /// Sets desired interactable state for EndTurnButton
+    /// </summary>
+    public void SetEndTurnButtonInteractable(bool interactable)
+    {
+        desiredEndTurnButtonInteractable = interactable;
+        ApplyEndTurnButtonState();
+    }
+    /// <summary>
+    /// Locks or unlocks EndTurnButton
+    /// </summary>
+    /// <param name="locked"></param>
+    public void SetEndTurnButtonLock(bool locked)
+    {
+        isEndTurnButtonLocked = locked;
+        ApplyEndTurnButtonState();
+    }
+    /// <summary>
+    /// Applies current lock and desired interactable state to EndTurnButton
+    /// </summary>
+    private void ApplyEndTurnButtonState()
+    {
+        EndTurnButton.interactable = !isEndTurnButtonLocked && desiredEndTurnButtonInteractable;
+    }
     /// <summary>
     /// Resets turn flow to default state for a new run
     /// </summary>
@@ -54,6 +79,7 @@ public class TurnManager : MonoBehaviour
         IsPlayersTurn = true;
         TurnTimer.timerIsRunning = false;
         TurnTimer.ResetTimer();
-        EndTurnButton.interactable = true;
+        desiredEndTurnButtonInteractable = true;
+        ApplyEndTurnButtonState();
     }
 }
