@@ -77,10 +77,6 @@ crashlytics-build.properties
 **/.DS_Store
 **/._.DS_Store
 
-# .vscode
-.vscode/
-**/.vscode/
-
 # .vsconfig
 .vsconfig
 **/.vsconfig
