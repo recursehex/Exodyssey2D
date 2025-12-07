@@ -31,6 +31,7 @@ public static class WeightedRarityGeneration
 				Vector3Int Position = new(x, y);
 				// Fails if wall tile or Player is at selected position
 				if (GameManager.Instance.HasWallAtPosition(Position)
+				 || GameManager.Instance.HasFireAtPosition(Position)
 				 || GameManager.Instance.HasExitTileAtPosition(Position)
 				 || (x <= -2 && y <= 1 && y >= -1))
 					return false;

@@ -892,6 +892,7 @@ MonoBehaviour:
   - {fileID: 283541130281458624, guid: 70bcb0b5b6c344e258342aae4df51e07, type: 3}
   - {fileID: 283541130281458624, guid: 8beb83c16fa684962ab4ab7c7cd25520, type: 3}
   - {fileID: 283541130281458624, guid: 97ce03eb452e841339253bff72383839, type: 3}
+  FireTemplate: {fileID: 2145379877062402088, guid: 1851cf3b3f0a1438da6c19279c6ac238, type: 3}
   TileDot: {fileID: 823962495}
   TileArea: {fileID: 4013333899691673706, guid: df0561ba1ff27154e957b6aa734c0248, type: 3}
   TargetTemplate: {fileID: 3235571212307580798, guid: 0d83749970d77b24286906dba172abc5, type: 3}
@@ -1710,6 +1711,7 @@ MonoBehaviour:
   Tilemap: {fileID: 0}
   Player: {fileID: 569674968}
   InventoryUI: {fileID: 524301576}
+  LevelManager: {fileID: 0}
 --- !u!4 &988303361
 Transform:
   m_ObjectHideFlags: 0

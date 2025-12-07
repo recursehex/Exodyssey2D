@@ -23,9 +23,9 @@ public class Player : MonoBehaviour
 	public Vehicle Vehicle;
 	public bool IsInVehicle => Vehicle != null;
 	private bool hasHelmet = false;
-	private int helmetHealth;
+	private int helmetHealth = 0;
 	private bool hasVest = false;
-	private int vestHealth;
+	private int vestHealth = 0;
 	private bool hasNightVision = false;
 	public Profession Profession;
 	#endregion
@@ -290,6 +290,14 @@ public class Player : MonoBehaviour
 		currentEnergy = maxEnergy;
 		StatsDisplayManager.RestoreEnergyDisplay(currentHealth);
 	}
+	/// <summary>
+	/// Spends energy and durability when using a utility-style item (e.g. extinguisher).
+	/// </summary>
+	public void UseItem()
+	{
+		DecrementEnergy();
+		DecrementItemDurability();
+	}
 	#endregion
 	#region ATTACK METHODS
 	/// <summary>
@@ -299,8 +307,7 @@ public class Player : MonoBehaviour
 	{
 		SoundManager.Instance.PlaySound(Attack);
 		Animator.SetTrigger("playerAttack");
-		DecrementEnergy();
-		DecrementItemDurability();
+		UseItem();
 	}
 	/// <summary>
 	/// Decreases item durability by 1, removes item if uses run out
@@ -385,13 +392,13 @@ public class Player : MonoBehaviour
 	{
 		if (SelectedItemInfo == null)
 			return false;
-		bool wasUsed = WasItemUsed();
+		bool wasUsed = WasItemUsedOnPlayer();
 		return wasUsed;
 	}
 	/// <summary>
 	/// Returns true if item was used on Player
 	/// </summary>
-	private bool WasItemUsed()
+	private bool WasItemUsedOnPlayer()
 	{
 		if (SelectedItemInfo.Tag is ItemInfo.Tags.MedKit
 			&& currentHealth < maxHealth

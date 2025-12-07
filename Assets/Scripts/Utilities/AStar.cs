@@ -146,6 +146,7 @@ public class AStar
 				Vector3 EntityPosition = ParentPosition - new Vector3(x - 0.5f, y - 0.5f);
 				bool IsEntityAtPosition = GameManager.Instance.HasEnemyAtPosition(EntityPosition)
 									   || GameManager.Instance.HasVehicleAtPosition(EntityPosition);
+				bool HasFireAtPosition = GameManager.Instance.HasFireAtPosition(Position);
 				if ((y != 0 || x != 0)
 					&& (allowDiagonal || (!allowDiagonal && (y == 0 || x == 0))))
 				{
@@ -157,6 +158,7 @@ public class AStar
 						&& Position.y >= Size.min.y
 						&& Position.y < Size.max.y
 						&& !TilemapWalls.HasTile(Position)
+						&& !HasFireAtPosition
 						&& (!IsEntityAtPosition || allowPartialPath))
 					{
 						Node Neighbor = GetNode(Position);

@@ -50,9 +50,10 @@ public class ItemInfo
 		//Lightrod,
 		Extinguisher,
 		//Spotlight,
-		//Blowtorch,
 		//ThermalImager,
 		NightVision,
+		Flamethrower,
+		Blowtorch,
 		Unknown,
 	}
 	/// <summary>

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Tilemaps;
+using NUnit.Framework;
 
 public class GameManager : MonoBehaviour
 {
@@ -18,6 +19,7 @@ public class GameManager : MonoBehaviour
 	private EnemyManager EnemyManager;
 	private ItemManager ItemManager;
 	private VehicleManager VehicleManager;
+	private FireManager FireManager;
 	private TileManager TileManager;
 	private TurnManager TurnManager;
 	private LevelManager LevelManager;
@@ -26,6 +28,7 @@ public class GameManager : MonoBehaviour
 	[SerializeField] private GameObject[] EnemyTemplates;
 	[SerializeField] private GameObject[] ItemTemplates;
 	[SerializeField] private GameObject[] VehicleTemplates;
+	[SerializeField] private GameObject FireTemplate;
 	[Header("UI Elements")]
 	[SerializeField] private GameObject TileDot;
 	[SerializeField] private GameObject TileArea;
@@ -62,6 +65,7 @@ public class GameManager : MonoBehaviour
 		EnemyManager 	= gameObject.AddComponent<EnemyManager>();
 		ItemManager 	= gameObject.AddComponent<ItemManager>();
 		VehicleManager 	= gameObject.AddComponent<VehicleManager>();
+		FireManager 	= gameObject.AddComponent<FireManager>();
 		TileManager 	= gameObject.AddComponent<TileManager>();
 		TurnManager 	= gameObject.AddComponent<TurnManager>();
 		LevelManager 	= gameObject.AddComponent<LevelManager>();
@@ -71,6 +75,7 @@ public class GameManager : MonoBehaviour
 		EnemyManager	.Initialize(TilemapGround, TilemapWalls, EnemyTemplates);
 		ItemManager		.Initialize(ItemTemplates);
 		VehicleManager	.Initialize(TilemapGround, TilemapWalls, VehicleTemplates);
+		FireManager		.Initialize(TilemapGround, TilemapWalls, Player, EnemyManager, FireTemplate);
 		TileManager		.Initialize(TileDot, TileArea, TargetTemplate);
 		TurnManager		.Initialize(TurnTimer, EndTurnButton);
 		LevelManager	.Initialize(TilemapGround, TilemapWalls, TilemapExit, RegionManager, RegionText, DayText, LevelText, LevelImage);
@@ -127,6 +132,7 @@ public class GameManager : MonoBehaviour
 		LevelManager.PrepareNextLevel();
 		TurnManager.TurnTimer.timerIsRunning = false;
 		TurnManager.TurnTimer.ResetTimer();
+		FireManager.DestroyAllFires();
 		ItemManager.DestroyAllItems();
 		EnemyManager.DestroyAllEnemies();
 		VehicleManager.DestroyAllVehicles(Player.Vehicle);
@@ -152,6 +158,7 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	private void OnLevelInitialized()
 	{
+		FireManager.ResetForLevel();
 		EnemyManager.GenerateEnemies();
 		ItemManager.GenerateItems();
 		VehicleManager.GenerateVehicles();
@@ -204,6 +211,7 @@ public class GameManager : MonoBehaviour
 		Player.ResetForNewGame(PlayerStartPosition);
 		TileManager.TileDot.SetActive(false);
 		SoundManager.Instance.PlayMusic();
+		FireManager.DestroyAllFires();
 		InitGame();
 	}
 	/// <summary>
@@ -217,6 +225,7 @@ public class GameManager : MonoBehaviour
 		if (Player.IsInVehicle)
 			Player.ExitVehicle();
 		VehicleManager.DestroyAllVehicles();
+		FireManager.DestroyAllFires();
 		TileManager.DestroyAllMarkers();
 		TileManager.TileDot.SetActive(false);
 	}
@@ -231,12 +240,23 @@ public class GameManager : MonoBehaviour
 	public void RemoveItemAtPosition(Item Item) 			=> ItemManager.RemoveItemAtPosition(Item);
 	public bool HasEnemyAtPosition(Vector3 Position) 		=> EnemyManager.HasEnemyAtPosition(Position);
 	public bool HasVehicleAtPosition(Vector3 Position) 		=> VehicleManager.HasVehicleAtPosition(Position);
+	public Vehicle GetVehicleAtPosition(Vector3Int Position)
+	{
+		int index = VehicleManager.GetVehicleIndexAtPosition(Position);
+		return index >= 0 && index < VehicleManager.Vehicles.Count
+			? VehicleManager.Vehicles[index]
+			: null;
+	}
 	public bool HasWallAtPosition(Vector3Int Position) 		=> LevelManager.HasWallAtPosition(Position);
 	public void DestroyVehicle(Vehicle Vehicle) 			=> VehicleManager.DestroyVehicle(Vehicle);
 	public void ClearTileAreas() 							=> TileManager.ClearTileAreas();
 	public void ClearTargets() 								=> TileManager.ClearTargets();
 	public bool HasEnemies() 								=> EnemyManager.Enemies.Count > 0;
 	public bool HasExitTileAtPosition(Vector3Int Position) => LevelManager.HasExitTileAtPosition(Position);
+	public bool HasFireAtPosition(Vector3Int Position) 		=> FireManager.HasFireAtCell(Position) == true;
+	public bool HasFireAtWorld(Vector3 Position) 			=> FireManager.HasFireAtWorld(Position) == true;
+	public bool TrySpawnFire(Vector3Int Position, bool isWildfire = false) => FireManager.TrySpawnFire(Position, isWildfire) == true;
+	public bool TryExtinguishFire(Vector3Int Position) 		=> FireManager.ExtinguishFire(Position) == true;
 	public int Level => LevelManager.Level;
 	public RegionManager GetRegionManager() => RegionManager;
     public void StopTurnTimer() => TurnManager.StopTurnTimer();
@@ -253,6 +273,7 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	private void OnPlayerTurnEnded()
 	{
+		FireManager.HandleTurnStart(false);
 		Player.RestoreEnergy();
 		// Hide TileDot during enemy turn
 		TileManager.TileDot.SetActive(false);
@@ -281,6 +302,7 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	private void OnEnemyTurnEnded()
 	{
+		FireManager.HandleTurnStart(true);
 		TileManager.TileDot.SetActive(true);
 		if (!Player.IsInVehicle)
 			UpdateTargets();
@@ -331,6 +353,7 @@ public class GameManager : MonoBehaviour
 			if (PlayerIsInVehicle(WorldPoint, TilePoint, ShiftedClickPoint)) return;
 			if (TryAddItem(ShiftedClickPoint)) return;
 			if (!Player.HasEnergy) return;
+			if (TryUseItemOnTile(TilePoint, ShiftedClickPoint)) return;
 			if (TryUseItemOnPlayer(ShiftedClickPoint)) return;
 			if (TryUseItemOnVehicle(TilePoint)) return;
 			if (TryEnterVehicle(TilePoint)) return;
@@ -415,6 +438,7 @@ public class GameManager : MonoBehaviour
 		// Return if not in movement range, enemy present, clicked on current position, or Player has no energy
 		if (!isInMovementRange
 			|| enemyIndex != -1
+			|| HasFireAtPosition(TilePoint)
 			|| ShiftedClickPoint == Player.transform.position
 			|| !Player.HasEnergy)
 		{
@@ -443,6 +467,7 @@ public class GameManager : MonoBehaviour
 		// Return if not in movement range, enemy present, or clicked on current position
 		if (!isInMovementRange
 			|| enemyIndex != -1
+			|| HasFireAtPosition(TilePoint)
 			|| ShiftedClickPoint == Player.transform.position)
 		{
 			return;
@@ -474,6 +499,50 @@ public class GameManager : MonoBehaviour
 		}
 		ItemManager.DestroyItemAtPosition(ShiftedClickPoint);
 		return true;
+	}
+	/// <summary>
+	/// Tries to use a selected item directly on the clicked tile (e.g. fire tools).
+	/// </summary>
+	private bool TryUseItemOnTile(Vector3Int TilePoint, Vector3 ShiftedClickPoint)
+	{
+		ItemInfo Selected = Player.SelectedItemInfo;
+		if (Selected == null)
+		{
+			return false;
+		}
+		// Extinguisher puts out fire on the clicked tile
+		if (Selected.Tag is ItemInfo.Tags.Extinguisher)
+		{
+			if (!IsPlayerAdjacentTo(ShiftedClickPoint) || !HasFireAtPosition(TilePoint))
+				return false;
+			if (TryExtinguishFire(TilePoint))
+			{
+				Player.UseItem();
+				TurnManager.TurnTimer.StartTimer();
+				UpdateTileAreas();
+				return true;
+			}
+		}
+		// Firestarters place a fire tile
+		else if (Selected.Tag is ItemInfo.Tags.Blowtorch or ItemInfo.Tags.Flamethrower)
+		{
+			if (!IsPlayerAdjacentTo(ShiftedClickPoint) && !TileManager.IsInRangedWeaponRange(ShiftedClickPoint)
+				|| LevelManager.HasWallAtPosition(TilePoint)
+				|| HasFireAtPosition(TilePoint)
+				|| HasExitTileAtPosition(TilePoint))
+			{
+				return false;
+			}
+			if (TrySpawnFire(TilePoint))
+			{
+				Player.UseItem();
+				TurnManager.TurnTimer.StartTimer();
+				TileManager.ClearTileAreas();
+				UpdateTileAreas();
+				return true;
+			}
+		}
+		return false;
 	}
 	/// <summary>
 	/// Tries use an item on Player at specified shifted click point
@@ -526,8 +595,9 @@ public class GameManager : MonoBehaviour
 		{
 			return false;
 		}
-		// Return false if player is not adjacent to vehicle
-		if (!IsPlayerAdjacentTo(VehicleManager.Vehicles[vehicleIndex].transform.position))
+		// Return false if player is not adjacent to vehicle or if vehicle is on fire
+		if (!IsPlayerAdjacentTo(VehicleManager.Vehicles[vehicleIndex].transform.position)
+			|| HasFireAtPosition(TilePoint))
 		{
 			return false;
 		}
@@ -552,6 +622,7 @@ public class GameManager : MonoBehaviour
 		// Return false if not in movement range, enemy present, or clicked on current position
 		if (!isInMovementRange
 			|| enemyIndex != -1
+			|| HasFireAtPosition(TilePoint)
 			|| ShiftedClickPoint == Player.transform.position)
 		{
 			return false;
