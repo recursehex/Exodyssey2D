@@ -58,7 +58,7 @@ public class Enemy : MonoBehaviour
 		StunIcon.SetActive(false);
 		AStar.Initialize();
 		AStar.SetAllowDiagonal(false);
-		// Track if we're using a random path (not targeting the player)
+		// Track if using a random path (not targeting the player)
 		isUsingRandomPath = false;
 		// First try to find a complete path to the player
 		Path = AStar.ComputePath(transform.position, Player.transform.position);

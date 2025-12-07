@@ -22,6 +22,10 @@ public class CursorController : MonoBehaviour
     private bool LoadingScreenVisible;
     private PointerEventData PointerEventData;
     private readonly List<RaycastResult> RaycastResults = new();
+    private static Texture2D InvisibleCursorTexture;
+    private static readonly Vector2 InvisibleCursorHotspot = Vector2.zero;
+    // Tracks if invisible cursor is applied this frame to avoid redundant calls
+    private bool CursorAppliedThisFrame;
     private void Awake()
     {
         MainCamera      = Camera.main;
@@ -34,21 +38,31 @@ public class CursorController : MonoBehaviour
         LevelManager.OnLoadingScreenVisibilityChanged += HandleLoadingScreenVisibilityChanged;
         CursorSprite.gameObject.SetActive(true);
         SelectSprite.gameObject.SetActive(false);
+        EnsureInvisibleCursorTexture();
     }
     private void OnEnable()
     {
-        Cursor.visible = false;
-        CursorSprite.gameObject.SetActive(!SelectCursorActive);
-        SelectSprite.gameObject.SetActive(SelectCursorActive);
+        ApplyInvisibleSystemCursor();
+        SetCustomCursorSpritesActive(true);
     }
     private void OnDisable()
     {
-        Cursor.visible = true;
-        if (CursorSprite != null)
-            CursorSprite.gameObject.SetActive(false);
-        if (SelectSprite != null)
-            SelectSprite.gameObject.SetActive(false);
+        ResetSystemCursor();
+        SetCustomCursorSpritesActive(false);
         SelectCursorActive = false;
+    }
+    private void OnApplicationFocus(bool hasFocus)
+    {
+        if (hasFocus)
+        {
+            ApplyInvisibleSystemCursor();
+            SetCustomCursorSpritesActive(true);
+        }
+        else
+        {
+            ResetSystemCursor();
+            SetCustomCursorSpritesActive(false);
+        }
     }
     private void OnDestroy()
     {
@@ -57,6 +71,10 @@ public class CursorController : MonoBehaviour
     }
     private void Update()
     {
+        CursorAppliedThisFrame = false;
+        if (!Application.isFocused)
+            return;
+        ApplyInvisibleSystemCursorOnce();
         Vector3 MousePosition   = Input.mousePosition;
         Vector3 ScreenPosition  = MainCamera.WorldToScreenPoint(CursorSprite.position);
         Vector3 WorldPosition   = MainCamera.ScreenToWorldPoint(new Vector3(MousePosition.x, MousePosition.y, ScreenPosition.z));
@@ -67,6 +85,13 @@ public class CursorController : MonoBehaviour
         CursorSprite.position       = SnappedPosition;
         SelectSprite.position       = SnappedPosition;
         UpdateActiveCursor(shouldUseSelectCursor);
+    }
+    private void LateUpdate()
+    {
+        if (!Application.isFocused)
+            return;
+        // Re-apply cursor in LateUpdate to catch Unity editor context switches that may reset cursor state between Update and rendering
+        ApplyInvisibleSystemCursorOnce();
     }
     private Vector3 SnapToPixelGrid(Vector3 Position)
     {
@@ -84,6 +109,9 @@ public class CursorController : MonoBehaviour
         CursorSprite.gameObject.SetActive(!useSelectCursor);
         SelectSprite.gameObject.SetActive(useSelectCursor);
     }
+    /// <summary>
+    /// Checks if the cursor is hovering over a selectable tile or UI element
+    /// </summary>
     private bool IsHoveringSelectable(Vector3 WorldPosition)
     {
         if (LoadingScreenVisible)
@@ -102,6 +130,9 @@ public class CursorController : MonoBehaviour
         if (isVisible)
             UpdateActiveCursor(false);
     }
+    /// <summary>
+    /// Checks if the cursor is hovering over an interactable UI button that allows the select cursor to be shown
+    /// </summary>
     private bool IsHoveringButton()
     {
         if (EventSystem.current == null)
@@ -123,6 +154,46 @@ public class CursorController : MonoBehaviour
     {
         if (TileManager == null)
             TileManager = FindFirstObjectByType<TileManager>();
+    }
+    private void SetCustomCursorSpritesActive(bool active)
+    {
+        if (CursorSprite != null)
+            CursorSprite.gameObject.SetActive(active && !SelectCursorActive);
+        if (SelectSprite != null)
+            SelectSprite.gameObject.SetActive(active && SelectCursorActive);
+    }
+    private void ApplyInvisibleSystemCursorOnce()
+    {
+        if (CursorAppliedThisFrame)
+            return;
+        CursorAppliedThisFrame = true;
+        ApplyInvisibleSystemCursor();
+    }
+    private static void EnsureInvisibleCursorTexture()
+    {
+        if (InvisibleCursorTexture != null)
+            return;
+        InvisibleCursorTexture = new Texture2D(1, 1, TextureFormat.RGBA32, false);
+        InvisibleCursorTexture.SetPixel(0, 0, new Color(0f, 0f, 0f, 0f));
+        InvisibleCursorTexture.Apply();
+    }
+    /// <summary>
+    /// Applies an invisible system cursor to hide the default OS cursor
+    /// </summary>
+    private static void ApplyInvisibleSystemCursor()
+    {
+        EnsureInvisibleCursorTexture();
+        Cursor.SetCursor(InvisibleCursorTexture, InvisibleCursorHotspot, CursorMode.Auto);
+        Cursor.lockState = CursorLockMode.Confined;
+    }
+    /// <summary>
+    /// Resets the system cursor to default visibility and behavior
+    /// </summary>
+    private static void ResetSystemCursor()
+    {
+        Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
     }
     private Vector3Int ConvertWorldToTilePoint(Vector3 WorldPosition)
     {
@@ -146,10 +217,10 @@ public class CursorController : MonoBehaviour
             return true;
         return HasItemForInventoryIcon(ButtonObject.name);
     }
-    private static bool IsInventoryIcon(GameObject ButtonObject)
-    {
-        return ButtonObject.name.StartsWith("InventoryIcon", StringComparison.OrdinalIgnoreCase);
-    }
+    private static bool IsInventoryIcon(GameObject ButtonObject) => ButtonObject.name.StartsWith("InventoryIcon", StringComparison.OrdinalIgnoreCase);
+    /// <summary>
+    /// Checks if the inventory has an item for the given inventory icon name
+    /// </summary>
     private bool HasItemForInventoryIcon(string iconName)
     {
         if (!TryGetInventoryIndex(iconName, out int index))
@@ -159,6 +230,9 @@ public class CursorController : MonoBehaviour
             return false;
         return index < inventory.Count;
     }
+    /// <summary>
+    /// Tries to extract the inventory index from the inventory icon name
+    /// </summary>
     private static bool TryGetInventoryIndex(string iconName, out int index)
     {
         const string inventoryPrefix = "InventoryIcon";
@@ -171,6 +245,9 @@ public class CursorController : MonoBehaviour
         string suffix = iconName[inventoryPrefix.Length..];
         return int.TryParse(suffix, out index);
     }
+    /// <summary>
+    /// Resolves the current inventory reference from available components
+    /// </summary>
     private Inventory ResolveInventory()
     {
         if (InventoryUI != null)
