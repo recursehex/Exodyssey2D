@@ -8,12 +8,12 @@ public static class WeightedRarityGeneration
 	private static bool GenerateRarityAndPosition<T>()
 	{
 		// Get allowed rarities based on entity type
-		List<Rarity> allowedRarities = typeof(T).Name switch
-		{
-			nameof(Item) => ItemInfo.GetAllowedRarities(),
-			nameof(Enemy) => EnemyInfo.GetAllowedRarities(),
-			nameof(Vehicle) => VehicleInfo.GetAllowedRarities(),
-			_ => Rarity.RarityList
+			List<Rarity> allowedRarities = typeof(T).Name switch
+			{
+				nameof(Item) => ItemInfo.GetAllowedRarities(),
+				nameof(Enemy) => EnemyInfo.GetAllowedRarities(),
+				nameof(Vehicle) => VehicleInfo.GetAllowedRarities(),
+				_ => Rarity.RarityList
 		};
 		// If no allowed rarities, fail
 		if (allowedRarities.Count == 0)
@@ -26,14 +26,16 @@ public static class WeightedRarityGeneration
 			cumulative += Rarity.GetDropRate();
 			if (roll <= cumulative)
 			{
-				int x = Random.Range(-4, 5);
-				int y = Random.Range(-4, 5);
+				int x = Random.Range(GameConfig.Grid.MinX, GameConfig.Grid.MaxX + 1);
+				int y = Random.Range(GameConfig.Grid.MinY, GameConfig.Grid.MaxY + 1);
 				Vector3Int Position = new(x, y);
 				// Fails if wall tile or Player is at selected position
 				if (GameManager.Instance.HasWallAtPosition(Position)
-				 || GameManager.Instance.HasFireAtPosition(Position)
-				 || GameManager.Instance.HasExitTileAtPosition(Position)
-				 || (x <= -2 && y <= 1 && y >= -1))
+					|| GameManager.Instance.HasFireAtPosition(Position)
+					|| GameManager.Instance.HasExitTileAtPosition(Position)
+					|| (x <= GameConfig.Grid.SafeZoneMaxX
+						&& y <= GameConfig.Grid.SafeZoneMaxY
+						&& y >= GameConfig.Grid.SafeZoneMinY))
 					return false;
 				Vector3 ShiftedPosition = Position + new Vector3(0.5f, 0.5f);
 				// Fails if item, enemy, or vehicle is at selected position

@@ -23,6 +23,8 @@ public class Enemy : MonoBehaviour
 	private AStar AStar;
 	private Coroutine MoveRoutine;
 	private bool isUsingRandomPath = false;
+	private const int AdjacentNodeCount = 2;
+	private const int RandomPathSearchRadius = 5;
 	#endregion
 	public void Initialize(Tilemap Ground, Tilemap Walls, EnemyInfo EnemyInfo)
 	{
@@ -64,16 +66,16 @@ public class Enemy : MonoBehaviour
 		Path = AStar.ComputePath(transform.position, Player.transform.position);
 		// If no complete path is available (other enemy is in the way), try partial pathfinding
 		Path ??= AStar.ComputePath(transform.position, Player.transform.position, true);
-        // If still no path (enemy is completely blocked from player), try to find a random position within 5 tiles to move to
+        // If still no path (enemy is completely blocked from player), try to find a random position within a limited range to move to
         if (Path == null)
         {
-            Path = AStar.ComputeRandomPath(transform.position, 5);
+            Path = AStar.ComputeRandomPath(transform.position, RandomPathSearchRadius);
             isUsingRandomPath = true;
         }
         // Handle movement for paths with more than 2 nodes OR random paths with exactly 2 nodes
         if (Path != null
 			&& HasEnergy
-			&& (Path.Count > 2 || (Path.Count == 2 && isUsingRandomPath)))
+			&& (Path.Count > AdjacentNodeCount || (Path.Count == AdjacentNodeCount && isUsingRandomPath)))
 		{
 			Info.DecrementEnergy();
 			IsInMovement = true;
@@ -101,7 +103,7 @@ public class Enemy : MonoBehaviour
 		}
 		// If enemy is adjacent to Player, attack (but only if not using a random path)
 		else if (Path != null
-				&& Path.Count == 2
+				&& Path.Count == AdjacentNodeCount
 				&& !isUsingRandomPath)
 		{
 			while (HasEnergy)

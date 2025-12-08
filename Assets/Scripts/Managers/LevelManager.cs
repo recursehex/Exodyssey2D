@@ -101,9 +101,9 @@ public class LevelManager : MonoBehaviour
     private void GenerateGround()
     {
         GroundTiles = RegionManager.GetCurrentGroundTiles();
-        for (int x = -4; x < 5; x++)
+        for (int x = GameConfig.Grid.MinX; x <= GameConfig.Grid.MaxX; x++)
         {
-            for (int y = -4; y < 5; y++)
+            for (int y = GameConfig.Grid.MinY; y <= GameConfig.Grid.MaxY; y++)
             {
                 TilemapGround.SetTile(new(x, y), GroundTiles[Random.Range(0, GroundTiles.Length)]);
             }

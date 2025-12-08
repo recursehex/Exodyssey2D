@@ -6,14 +6,18 @@ public class ItemManager : MonoBehaviour
     [SerializeField] private GameObject[] ItemTemplates;
     [SerializeField] private List<Item> Items = new();
     [SerializeField] private int spawnItemCount;
+    [Header("Spawning")]
+    [SerializeField] private int minSpawnCount = 3;
+    [SerializeField] private int maxSpawnCountExclusive = 7;
+    [SerializeField] private int spawnRetryMultiplier = 2;
     public void Initialize(GameObject[] Templates) => ItemTemplates = Templates;
     /// <summary>
     /// Generates random number of items for the level
     /// </summary>
     public void GenerateItems()
     {
-        spawnItemCount = Random.Range(5, 10);   // TEMP, reduce later
-        int cap = spawnItemCount * 2;
+        spawnItemCount = Random.Range(minSpawnCount, maxSpawnCountExclusive);
+        int cap = spawnItemCount * spawnRetryMultiplier;
         while (cap > 0 && spawnItemCount > 0)
         {
             if (WeightedRarityGeneration.Generate<Item>())

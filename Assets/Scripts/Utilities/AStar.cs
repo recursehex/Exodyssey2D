@@ -19,6 +19,7 @@ public class AStar
 	private Vector3Int StartPosition;
 	private Vector3Int GoalPosition;
 	private bool allowDiagonal = true;
+	private const int MoveCostPerTile = 10;
 	public AStar(Tilemap Ground, Tilemap Walls) 
 	{
 		TilemapGround = Ground;
@@ -182,7 +183,7 @@ public class AStar
 		for (int i = 0; i < Neighbors.Count; i++)
 		{
 			Node Neighbor = Neighbors[i];
-			int gScore = 10;
+			int gScore = MoveCostPerTile;
 			if (OpenList.Contains(Neighbor))
 			{
 				if (Current.G + gScore < Neighbor.G)
@@ -274,7 +275,7 @@ public class AStar
 		// Calculates this node's G cost, the parent's G cost + what it costs to move to this node
 		Neighbor.G = Parent.G + cost;
 		// H is calculated, it is the distance from this node to the goal * 10
-		Neighbor.H = (Math.Abs(Neighbor.Position.x - GoalPos.x) + Math.Abs(Neighbor.Position.y - GoalPos.y)) * 10;
+		Neighbor.H = (Math.Abs(Neighbor.Position.x - GoalPos.x) + Math.Abs(Neighbor.Position.y - GoalPos.y)) * MoveCostPerTile;
 		// F is calculated, it is G + H
 		Neighbor.F = Neighbor.G + Neighbor.H;
 	}

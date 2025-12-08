@@ -7,6 +7,11 @@ public class EnemyManager : MonoBehaviour
     [SerializeField] private GameObject[] EnemyTemplates;
     public List<Enemy> Enemies { get; private set; } = new();
     [SerializeField] private int spawnEnemyCount;
+    [Header("Spawning")]
+    [SerializeField] private int baseMinSpawn = 1;
+    [SerializeField] private int baseMaxSpawn = 3;
+    [SerializeField] private float spawnScalePerLevel = 0.5f;
+    [SerializeField] private int spawnRetryMultiplier = 2;
     public bool NeedToStartEnemyMovement { get; set; } = false;
     [SerializeField] private bool EnemiesAreMoving = false;
     [SerializeField] private int indexOfMovingEnemy = -1;
@@ -26,9 +31,10 @@ public class EnemyManager : MonoBehaviour
     /// </summary>
     public void GenerateEnemies()
     {
-        spawnEnemyCount = Random.Range(1 + (int)(GameManager.Instance.Level * 0.5),
-                                       3 + (int)(GameManager.Instance.Level * 0.5));
-        int cap = spawnEnemyCount * 2;
+        int levelBonus = (int)(GameManager.Instance.Level * spawnScalePerLevel);
+        spawnEnemyCount = Random.Range(baseMinSpawn + levelBonus,
+                                       baseMaxSpawn + levelBonus);
+        int cap = spawnEnemyCount * spawnRetryMultiplier;
         while (cap > 0 && spawnEnemyCount > 0)
         {
             if (WeightedRarityGeneration.Generate<Enemy>())

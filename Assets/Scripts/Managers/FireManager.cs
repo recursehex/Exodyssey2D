@@ -17,7 +17,10 @@ public class FireManager : MonoBehaviour
     [SerializeField] private int fireDamage = 1;
     [SerializeField] private int naturalWildfireSeeds = 2;
     [SerializeField, Range(0f, 1f)] private float naturalWildfireChance = 0.15f;
-    private int maxAllowedFiresToSpawn = 2;
+    [SerializeField] private int wildfireSpawnBudget = 2;
+    [SerializeField] private int wildfireAttemptsPerSeed = 8;
+    [SerializeField] private int wildfireEdgeInset = 2;
+    [SerializeField] private int maxNeighborSpread = 3;
     private readonly List<Fire> ActiveFires = new();
     private readonly HashSet<Vector3Int> FireCells = new();
     private readonly HashSet<Vector3Int> PendingSpawnCells = new();
@@ -43,7 +46,6 @@ public class FireManager : MonoBehaviour
     public void ResetForLevel(bool allowNaturalWildfire = true)
     {
         DestroyAllFires();
-        maxAllowedFiresToSpawn = 2;
         if (allowNaturalWildfire)
             TrySpawnNaturalWildfire();
     }
@@ -60,7 +62,6 @@ public class FireManager : MonoBehaviour
         ActiveFires.Clear();
         FireCells.Clear();
         PendingSpawnCells.Clear();
-        maxAllowedFiresToSpawn = 2;
     }
     /// <summary>
     /// Checks if there is fire at a specific cell
@@ -121,10 +122,7 @@ public class FireManager : MonoBehaviour
         ApplyStandingDamage(isPlayerTurn);
         // Only progress spread/burn on the player's turn to keep a single tick per round.
         if (isPlayerTurn)
-        {
-            maxAllowedFiresToSpawn++;
             SpreadAndBurnDown();
-        }
     }
     /// <summary>
     /// Attempts to start a natural wildfire for the current grid.
@@ -137,7 +135,7 @@ public class FireManager : MonoBehaviour
         Debug.Log("Spawning natural wildfire");
         Vector3Int PlayerCell = TilemapGround.WorldToCell(Player.transform.position);
         int seeds = Mathf.Max(1, naturalWildfireSeeds);
-        int attempts = seeds * 8;
+        int attempts = seeds * wildfireAttemptsPerSeed;
         while (seeds > 0 && attempts-- > 0)
         {
             Vector3Int Cell = GetBiasedWildfireCell();
@@ -178,7 +176,7 @@ public class FireManager : MonoBehaviour
         bool pickTop = Random.value < 0.5f;
         int edgeBase = pickTop ? Bounds.yMax - 1 : Bounds.yMin;
         // Allow up to 2 tiles inward from the chosen edge
-        int offset = Random.Range(0, 3); // 0, 1, or 2 tiles offset
+        int offset = Random.Range(0, wildfireEdgeInset + 1); // 0 to inset tiles offset
         int y = pickTop ? edgeBase - offset : edgeBase + offset;
         // Safety clamp to bounds in case the map is very small
         y = Mathf.Clamp(y, Bounds.yMin, Bounds.yMax - 1);
@@ -214,7 +212,7 @@ public class FireManager : MonoBehaviour
         PendingSpawnCells.Clear();
         List<(Vector3Int Cell, bool isWildfire)> NewFires = new();
         List<Fire> ExpiredFires = new();
-        int spawnBudget = maxAllowedFiresToSpawn;
+        int spawnBudget = wildfireSpawnBudget;
         foreach (Fire Fire in ActiveFires)
         {
             if (Fire == null)
@@ -247,7 +245,7 @@ public class FireManager : MonoBehaviour
             int swapIndex = Random.Range(i, Candidates.Count);
             (Candidates[i], Candidates[swapIndex]) = (Candidates[swapIndex], Candidates[i]);
         }
-        int spreadCount = Random.Range(0, 4); // inclusive 0-3
+        int spreadCount = Random.Range(0, maxNeighborSpread + 1); // inclusive 0-maxNeighborSpread
         spreadCount = Mathf.Min(spreadCount, Candidates.Count);
         spreadCount = Mathf.Min(spreadCount, spawnBudget);
         int spawned = 0;

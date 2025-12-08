@@ -11,6 +11,7 @@ using UnityEngine.Tilemaps;
 /// </summary>
 public class Player : MonoBehaviour
 {
+	[Header("Player Stats")]
 	#region DATA
 	private static readonly int fixedMaxEnergy = 3; // To restore energy to original value
 	[SerializeField] private int maxHealth 	   	= 3;
@@ -20,8 +21,10 @@ public class Player : MonoBehaviour
 	private readonly int walkSpeed 		= 2;
 	private readonly int inventorySize 	= 2;
 	public int DamagePoints => SelectedItemInfo?.DamagePoints ?? 0;
+	[Header("Vehicle")]
 	public Vehicle Vehicle;
 	public bool IsInVehicle => Vehicle != null;
+	[Header("Armor & Equipment")]
 	private bool hasHelmet = false;
 	private int helmetHealth = 0;
 	private bool hasVest = false;

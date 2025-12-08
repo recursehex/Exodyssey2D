@@ -7,6 +7,9 @@ public class SoundManager : MonoBehaviour
 	public AudioSource MusicSource;
 	public static SoundManager Instance = null;
 	private readonly float defaultMusicVolume = 1.0f;
+	[Header("Audio Tuning")]
+	[SerializeField] private float pitchJitterMin = 0.95f;
+	[SerializeField] private float pitchJitterMax = 1.05f;
 	void Awake()
 	{
 		if (Instance == null)
@@ -31,7 +34,7 @@ public class SoundManager : MonoBehaviour
 	/// <param name="Clip"></param>
 	public void PlaySound(AudioClip Clip)
 	{
-		EfxSource.pitch = Random.Range(0.95f, 1.05f);
+		EfxSource.pitch = Random.Range(pitchJitterMin, pitchJitterMax);
 		EfxSource.PlayOneShot(Clip);
 	}
 	/// <summary>

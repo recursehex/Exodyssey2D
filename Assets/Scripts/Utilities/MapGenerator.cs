@@ -36,15 +36,6 @@ public static class MapGenerator
         template3,
         template4
     };
-    private static readonly int[,] quadrants = new int[6, 2]
-    {
-        {-4, 4},
-        {-1, 4},
-        { 2, 4},
-        {-4, -2},
-        {-1, -2},
-        { 2, -2}
-    };
     private static int[,] Rotate3by3(int[,] t)
     {
         int[,] res = new int[3, 3];
@@ -62,15 +53,15 @@ public static class MapGenerator
     {
         int totalTemplates = Templates.Count;
         int numberGenerated = 0;
-        int numberOfQuadrants = 6;
+        int numberOfQuadrants = GameConfig.Grid.WallQuadrantAnchors.Length;
         for (int i = 0; i < numberOfQuadrants; i++)
         {
             if (Random.value > minimumChance)
             {
                 numberGenerated++;
                 int templateIndex = Random.Range(0, totalTemplates);
-                int baseX = quadrants[i, 0];
-                int baseY = quadrants[i, 1];
+                int baseX = GameConfig.Grid.WallQuadrantAnchors[i].x;
+                int baseY = GameConfig.Grid.WallQuadrantAnchors[i].y;
                 int[,] template = Templates[templateIndex];
                 int nRotations = Random.Range(0, 4);
                 for (int r = 0; r < nRotations; r++)

@@ -7,6 +7,10 @@ public class VehicleManager : MonoBehaviour
     [SerializeField] private GameObject[] VehicleTemplates;
     public List<Vehicle> Vehicles { get; private set; } = new();
     [SerializeField] private int spawnVehicleCount;
+    [Header("Spawning")]
+    [SerializeField] private int minSpawnCount = 0;
+    [SerializeField] private int maxSpawnCountExclusive = 3;
+    [SerializeField] private int spawnRetryMultiplier = 2;
     private Tilemap TilemapGround;
     private Tilemap TilemapWalls;
     public void Initialize(Tilemap Ground, Tilemap Walls, GameObject[] Templates)
@@ -17,8 +21,8 @@ public class VehicleManager : MonoBehaviour
     }
     public void GenerateVehicles()
     {
-        spawnVehicleCount = Random.Range(0, 3);
-        int cap = spawnVehicleCount * 2;
+        spawnVehicleCount = Random.Range(minSpawnCount, maxSpawnCountExclusive);
+        int cap = spawnVehicleCount * spawnRetryMultiplier;
         while (cap > 0 && spawnVehicleCount > 0)
         {
             if (WeightedRarityGeneration.Generate<Vehicle>())
