@@ -48,6 +48,6 @@
         "temp/": true,
         "Temp/": true
     },
-    "dotnet.defaultSolution": "Exodyssey2D.sln",
+    "dotnet.defaultSolution": "Exodyssey2D.slnx",
     "dotnet.preferCSharpExtension": true
 }
