@@ -108,6 +108,7 @@ public class FireManager : MonoBehaviour
         Fire.Initialize(Cell, isWildfire, lifetime, WorldPosition);
         ActiveFires.Add(Fire);
         FireCells.Add(Cell);
+        GameManager.Instance.RegisterObjectForTileReveal(WorldPosition, Fire.transform);
         HandleEnvironmentContact(Cell);
         return true;
     }

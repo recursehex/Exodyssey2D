@@ -13,6 +13,7 @@ public class TilemapRevealAnimator : MonoBehaviour
     [SerializeField] private float IntraRingStagger = 0.025f;
     private readonly List<TileTarget> Targets = new();
     private readonly List<Coroutine> ActiveAnimations = new();
+    private readonly Dictionary<Vector3Int, List<RevealObject>> RevealObjects = new();
     private bool hasPreparedTiles;
     private bool isRevealing;
     private readonly struct TileTarget
@@ -28,12 +29,39 @@ public class TilemapRevealAnimator : MonoBehaviour
             Radius = Mathf.RoundToInt(distance);
         }
     }
+    private struct RevealObject
+    {
+        public Transform Transform;
+        public Vector3 OriginalScale;
+    }
     public bool HasPreparedTiles => hasPreparedTiles;
     public bool IsRevealing => isRevealing;
     public void Initialize(Tilemap Ground, Tilemap Walls)
     {
         TilemapGround = Ground;
         TilemapWalls = Walls;
+    }
+    /// <summary>
+    /// Registers a world-space object to pop in when its cell is revealed.
+    /// </summary>
+    public void RegisterObjectAtCell(Vector3Int Cell, Transform ObjectTransform)
+    {
+        if (ObjectTransform == null || !hasPreparedTiles)
+            return;
+        if (!RevealObjects.TryGetValue(Cell, out List<RevealObject> Objects))
+        {
+            Objects = new List<RevealObject>();
+            RevealObjects[Cell] = Objects;
+        }
+        if (Objects.Exists(Object => Object.Transform == ObjectTransform))
+            return;
+        RevealObject Entry = new()
+        {
+            Transform = ObjectTransform,
+            OriginalScale = ObjectTransform.localScale
+        };
+        ObjectTransform.localScale = Entry.OriginalScale * InitialScale;
+        Objects.Add(Entry);
     }
     /// <summary>
     /// Clears any ongoing animation and restores transforms to identity.
@@ -43,8 +71,17 @@ public class TilemapRevealAnimator : MonoBehaviour
         StopAllCoroutines();
         foreach (TileTarget Target in Targets)
             Target.Tilemap.SetTransformMatrix(Target.Position, Matrix4x4.identity);
+        foreach (var Pair in RevealObjects)
+        {
+            foreach (RevealObject Object in Pair.Value)
+            {
+                if (Object.Transform != null)
+                    Object.Transform.localScale = Object.OriginalScale;
+            }
+        }
         ActiveAnimations.Clear();
         Targets.Clear();
+        RevealObjects.Clear();
         hasPreparedTiles = false;
         isRevealing = false;
     }
@@ -85,6 +122,7 @@ public class TilemapRevealAnimator : MonoBehaviour
         if (finalWait > 0f)
             yield return new WaitForSeconds(finalWait);
         ActiveAnimations.Clear();
+        RevealObjects.Clear();
         hasPreparedTiles = false;
         isRevealing = false;
     }
@@ -92,16 +130,33 @@ public class TilemapRevealAnimator : MonoBehaviour
     {
         if (delay > 0f)
             yield return new WaitForSeconds(delay);
+        RevealObjects.TryGetValue(Target.Position, out List<RevealObject> Objects);
         float elapsed = 0f;
         while (elapsed < TilePopDuration)
         {
             float t = elapsed / TilePopDuration;
             float scale = Mathf.Lerp(InitialScale, 1f, t);
             Target.Tilemap.SetTransformMatrix(Target.Position, GetScaleMatrix(scale));
+            if (Objects != null)
+            {
+                foreach (RevealObject Object in Objects)
+                {
+                    if (Object.Transform != null)
+                        Object.Transform.localScale = Object.OriginalScale * scale;
+                }
+            }
             elapsed += Time.deltaTime;
             yield return null;
         }
         Target.Tilemap.SetTransformMatrix(Target.Position, Matrix4x4.identity);
+        if (Objects != null)
+        {
+            foreach (var Object in Objects)
+            {
+                if (Object.Transform != null)
+                    Object.Transform.localScale = Object.OriginalScale;
+            }
+        }
     }
     private void AddTargets(IReadOnlyCollection<Vector3Int> Tiles, Tilemap Tilemap, Vector3Int SpawnTile)
     {

@@ -30,21 +30,23 @@ public class ItemManager : MonoBehaviour
     /// </summary>
     /// <param name="index"></param>
     /// <param name="Position"></param>
-    public void SpawnItem(int index, Vector3 Position)
+    public Item SpawnItem(int index, Vector3 Position)
     {
         Item Item = Instantiate(ItemTemplates[index], Position, Quaternion.identity).GetComponent<Item>();
         Item.Info = new(index);
         Items.Add(Item);
+        return Item;
     }
     /// <summary>
     /// Spawns an item at a given position from an existing ItemInfo (e.g. Player drops an item)
     /// summary>
-    public void SpawnItem(ItemInfo Info, Vector3 Position)
+    public Item SpawnItem(ItemInfo Info, Vector3 Position)
     {
         int index = (int)Info.Tag;
         Item Item = Instantiate(ItemTemplates[index], Position, Quaternion.identity).GetComponent<Item>();
         Item.Info = Info;
         Items.Add(Item);
+        return Item;
     }
     /// <summary>
     /// Returns true if an item is at the given position

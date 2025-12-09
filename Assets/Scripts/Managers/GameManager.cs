@@ -256,10 +256,30 @@ public class GameManager : MonoBehaviour
 		TileManager.TileDot.SetActive(false);
 	}
 	// Public methods for spawning entities, called by WeightedRarityGeneration
-	public void SpawnItem(int index, Vector3 Position) 		=> ItemManager.SpawnItem(index, Position);
-	public void SpawnItem(ItemInfo Info, Vector3 Position) 	=> ItemManager.SpawnItem(Info, Position);
-	public void SpawnEnemy(int index, Vector3 Position) 	=> EnemyManager.SpawnEnemy(index, Position);
-	public void SpawnVehicle(int index, Vector3 Position) 	=> VehicleManager.SpawnVehicle(index, Position);
+	public Item SpawnItem(int index, Vector3 Position)
+	{
+		Item Item = ItemManager.SpawnItem(index, Position);
+		RegisterObjectForTileReveal(Position, Item.transform);
+		return Item;
+	}
+	public Item SpawnItem(ItemInfo Info, Vector3 Position)
+	{
+		Item Item = ItemManager.SpawnItem(Info, Position);
+		RegisterObjectForTileReveal(Position, Item.transform);
+		return Item;
+	}
+	public Enemy SpawnEnemy(int index, Vector3 Position)
+	{
+		Enemy Enemy = EnemyManager.SpawnEnemy(index, Position);
+		RegisterObjectForTileReveal(Position, Enemy.transform);
+		return Enemy;
+	}
+	public Vehicle SpawnVehicle(int index, Vector3 Position)
+	{
+		Vehicle Vehicle = VehicleManager.SpawnVehicle(index, Position);
+		RegisterObjectForTileReveal(Position, Vehicle.transform);
+		return Vehicle;
+	}
 	// Public accessor methods
 	public bool HasItemAtPosition(Vector3 Position) 		=> ItemManager.HasItemAtPosition(Position);
 	public Item GetItemAtPosition(Vector3 Position) 		=> ItemManager.GetItemAtPosition(Position);
@@ -286,6 +306,13 @@ public class GameManager : MonoBehaviour
 	public int Level => LevelManager.Level;
 	public RegionManager GetRegionManager() => RegionManager;
     public void StopTurnTimer() => TurnManager.StopTurnTimer();
+	public void RegisterObjectForTileReveal(Vector3 WorldPosition, Transform ObjectTransform)
+	{
+		if (TilemapRevealAnimator == null || !TilemapRevealAnimator.HasPreparedTiles || ObjectTransform == null)
+			return;
+		Vector3Int Cell = TilemapGround.WorldToCell(WorldPosition);
+		TilemapRevealAnimator.RegisterObjectAtCell(Cell, ObjectTransform);
+	}
 	public void OnEndTurnPress()
 	{
 		if (Player.IsInMovement || doingSetup)

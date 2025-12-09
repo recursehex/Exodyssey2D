@@ -42,12 +42,13 @@ public class EnemyManager : MonoBehaviour
             cap--;
         }
     }
-    public void SpawnEnemy(int index, Vector3 Position)
+    public Enemy SpawnEnemy(int index, Vector3 Position)
     {
         EnemyInfo EnemyInfo = new(index);
         Enemy Enemy = Instantiate(EnemyTemplates[index], Position, Quaternion.identity).GetComponent<Enemy>();
         Enemy.Initialize(TilemapGround, TilemapWalls, EnemyInfo);
         Enemies.Add(Enemy);
+        return Enemy;
     }
     /// <summary>
     /// Returns true if an enemy is at the specified position
