@@ -3,7 +3,7 @@
     {
       "Tag": "RuinedOutpost",
       "Name": "RUINED OUTPOST",
-      "GridsRequired": 1,
+      "GridsRequired": 3,
       "GroundTileSetName": "RO_Ground",
       "WallTileSetName": "RO_Walls",
       "EnemyPool": ["Common", "Limited"],
@@ -14,7 +14,7 @@
     {
       "Tag": "FragmentedCoast",
       "Name": "FRAGMENTED COAST",
-      "GridsRequired": 3,
+      "GridsRequired": 5,
       "GroundTileSetName": "FC_Ground",
       "WallTileSetName": "FC_Walls",
       "EnemyPool": ["Common", "Limited"],
@@ -25,7 +25,7 @@
     {
       "Tag": "GlacialDesert",
       "Name": "GLACIAL DESERT",
-      "GridsRequired": 4,
+      "GridsRequired": 5,
       "GroundTileSetName": "GD_Ground",
       "WallTileSetName": "GD_Walls",
       "EnemyPool": ["Common", "Limited", "Scarce"],
@@ -47,7 +47,7 @@
     {
       "Tag": "RainforestRavines",
       "Name": "RAINFOREST RAVINES",
-      "GridsRequired": 6,
+      "GridsRequired": 7,
       "GroundTileSetName": "RR_Ground",
       "WallTileSetName": "RR_Walls",
       "EnemyPool": ["Limited", "Scarce", "Anomalous"],
@@ -69,7 +69,7 @@
     {
       "Tag": "LuminousSwamp",
       "Name": "LUMINOUS SWAMP",
-      "GridsRequired": 8,
+      "GridsRequired": 9,
       "GroundTileSetName": "LS_Ground",
       "WallTileSetName": "LS_Walls",
       "EnemyPool": ["Common", "Anomalous"],

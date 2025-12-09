@@ -28,7 +28,7 @@ public class VehicleInfo
 	public Types Type 			{ get; private set; } = Types.Unknown;	// Type of vehicle
 	public string Name 			=> Data.Name;							// Ingame name of vehicle
 	public string Description 	=> Data.Description;					// Ingame description of vehicle
-	public int Efficiency 		=> Data.efficiency;						// Charge used per 100 km, lower is better
+	public int Efficiency 		=> Data.efficiency;						// Charge used to travel to a grid, lower is better
 	public float Speed 			=> Data.speed;							// Movement speed for pathfinding
 	public int MovementRange 	=> Data.movementRange;					// How many tiles vehicle can move per turn
 	public int Storage 			=> Data.storage;						// Number of inventory slots
