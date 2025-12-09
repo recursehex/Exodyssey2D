@@ -29,17 +29,13 @@ public class RegionInfo
     public List<string> ItemPool    => Data.ItemPool;                       // Allowed item tags for this region
     public List<string> VehiclePool => Data.VehiclePool;                    // Allowed vehicle tags for this region
     private static RegionDatabase RegionDatabase;
-    private static bool databaseLoaded = false;
 	private static void LoadDatabase()
 	{
-		if (databaseLoaded)
+		if (RegionDatabase != null)
 			return;
-		TextAsset JsonFile = Resources.Load<TextAsset>("RegionDefinitions");
+		TextAsset JsonFile = Resources.Load<TextAsset>("Definitions/RegionDefinitions");
 		if (JsonFile != null)
-		{
 			RegionDatabase = JsonUtility.FromJson<RegionDatabase>(JsonFile.text);
-			databaseLoaded = true;
-		}
 		else
 			Debug.LogError("RegionDefinitions.json not found in Resources folder!");
 	}

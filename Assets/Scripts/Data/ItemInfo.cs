@@ -86,26 +86,18 @@ public class ItemInfo
 	private static readonly int lastItemIndex = (int)Tags.Unknown;
 	private static readonly List<Rarity> ItemRarityList = GenerateAllRarities();
 	private static ItemDatabase ItemDatabase;
-	private static bool databaseLoaded = false;
 	/// <summary>
 	/// Loads item definitions from JSON file in Resources folder
 	/// </summary>
 	private static void LoadDatabase()
 	{
-		if (databaseLoaded)
-		{
+		if (ItemDatabase != null)
 			return;
-		}
-		TextAsset JsonFile = Resources.Load<TextAsset>("ItemDefinitions");
+		TextAsset JsonFile = Resources.Load<TextAsset>("Definitions/ItemDefinitions");
 		if (JsonFile != null)
-		{
 			ItemDatabase = JsonUtility.FromJson<ItemDatabase>(JsonFile.text);
-			databaseLoaded = true;
-		}
 		else
-		{
 			Debug.LogError("ItemDefinitions.json not found in Resources folder!");
-		}
 	}
 	/// <summary>
 	/// Generates list of all rarities based on ItemDatabase

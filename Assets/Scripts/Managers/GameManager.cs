@@ -1,8 +1,8 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Tilemaps;
-using NUnit.Framework;
 
 public class GameManager : MonoBehaviour
 {
@@ -11,9 +11,9 @@ public class GameManager : MonoBehaviour
 	[SerializeField] private Camera MainCamera;
 	[SerializeField] private Player Player;
 	[SerializeField] private bool doingSetup;
-	[SerializeField] private float levelStartDelay = 1.5f;
-	[SerializeField] private Vector3 PlayerStartPosition = new(-3.5f, 0.5f);
+	public Vector3 PlayerStartPosition { get; } = new(-3.5f, 0.5f);
 	[SerializeField] private float FadeOutDuration = 2.0f;
+	private Coroutine TileRevealRoutine;
 	[Header("Managers")]
 	[SerializeField] private RegionManager RegionManager;
 	private EnemyManager EnemyManager;
@@ -24,6 +24,7 @@ public class GameManager : MonoBehaviour
 	private TurnManager TurnManager;
 	private LevelManager LevelManager;
 	private InputManager InputManager;
+	private TilemapRevealAnimator TilemapRevealAnimator;
 	[Header("Prefab Templates")]
 	[SerializeField] private GameObject[] EnemyTemplates;
 	[SerializeField] private GameObject[] ItemTemplates;
@@ -70,6 +71,7 @@ public class GameManager : MonoBehaviour
 		TurnManager 	= gameObject.AddComponent<TurnManager>();
 		LevelManager 	= gameObject.AddComponent<LevelManager>();
 		InputManager 	= gameObject.AddComponent<InputManager>();
+		TilemapRevealAnimator = gameObject.AddComponent<TilemapRevealAnimator>();
 		// Initialize managers
 		RegionManager	.Initialize();
 		EnemyManager	.Initialize(TilemapGround, TilemapWalls, EnemyTemplates);
@@ -78,7 +80,8 @@ public class GameManager : MonoBehaviour
 		FireManager		.Initialize(TilemapGround, TilemapWalls, Player, EnemyManager, FireTemplate);
 		TileManager		.Initialize(TileDot, TileArea, TargetTemplate);
 		TurnManager		.Initialize(TurnTimer, EndTurnButton);
-		LevelManager	.Initialize(TilemapGround, TilemapWalls, TilemapExit, RegionManager, RegionText, DayText, LevelText, LevelImage);
+		TilemapRevealAnimator.Initialize(TilemapGround, TilemapWalls);
+		LevelManager	.Initialize(TilemapGround, TilemapWalls, TilemapExit, RegionManager, RegionText, DayText, LevelText, LevelImage, TilemapRevealAnimator);
 		// Subscribe to events
 		TurnManager.OnPlayerTurnEnded 	+= OnPlayerTurnEnded;
 		TurnManager.OnEnemyTurnEnded 	+= OnEnemyTurnEnded;
@@ -102,7 +105,7 @@ public class GameManager : MonoBehaviour
 		if (doingSetup
 			|| !Player.FinishedInit
 			|| Player.IsInMovement
-			|| Player.Vehicle != null && Player.Vehicle.IsInMovement)
+			|| Player.IsInVehicle && Player.Vehicle.IsInMovement)
 		{
 			return;
 		}
@@ -138,10 +141,7 @@ public class GameManager : MonoBehaviour
 		VehicleManager.DestroyAllVehicles(Player.Vehicle);
 		Player.transform.position = PlayerStartPosition;
 		if (Player.IsInVehicle)
-		{
 			Player.Vehicle.transform.position = Player.transform.position;
-			Player.Vehicle.DecreaseChargeBy(1);
-		}
 		Player.RestoreEnergy();
 		InitGame();
 	}
@@ -162,7 +162,20 @@ public class GameManager : MonoBehaviour
 		EnemyManager.GenerateEnemies();
 		ItemManager.GenerateItems();
 		VehicleManager.GenerateVehicles();
-		Invoke(nameof(OnLevelLoadComplete), levelStartDelay);
+		TileManager.TileDot.SetActive(false);
+		TileManager.ClearTileAreas();
+		TileManager.ClearTargets();
+	}
+	private IEnumerator RunTileRevealAndFinalize()
+	{
+		TurnManager.SetEndTurnButtonInteractable(false);
+		TileManager.TileDot.SetActive(false);
+		TileManager.ClearTileAreas();
+		TileManager.ClearTargets();
+		if (TilemapRevealAnimator != null && TilemapRevealAnimator.HasPreparedTiles)
+			yield return TilemapRevealAnimator.PlayReveal();
+		OnLevelLoadComplete();
+		TileRevealRoutine = null;
 	}
 	/// <summary>
 	/// Sets EndTurnButton interactable and updates targets after level load is complete
@@ -170,6 +183,7 @@ public class GameManager : MonoBehaviour
 	private void OnLevelLoadComplete()
 	{
 		doingSetup = false;
+		TurnManager.SetEndTurnButtonInteractable(true);
 		// Update targets if player has ranged weapon
 		if (!Player.IsInVehicle)
 			UpdateTargets();
@@ -182,7 +196,19 @@ public class GameManager : MonoBehaviour
 	private void HandleLoadingScreenVisibilityChanged(bool isVisible)
 	{
 		TurnManager.SetEndTurnButtonLock(isVisible);
-		TurnManager.SetEndTurnButtonInteractable(!isVisible);
+		if (isVisible)
+		{
+			TurnManager.SetEndTurnButtonInteractable(false);
+			if (TileRevealRoutine != null)
+			{
+				StopCoroutine(TileRevealRoutine);
+				TileRevealRoutine = null;
+			}
+			return;
+		}
+		if (TileRevealRoutine != null)
+			StopCoroutine(TileRevealRoutine);
+		TileRevealRoutine = StartCoroutine(RunTileRevealAndFinalize());
 	}
 	/// <summary>
 	/// Called when Player dies, cleans up scene and show Game Over screen
@@ -335,6 +361,9 @@ public class GameManager : MonoBehaviour
 		if (LevelManager.HasExitTileAtPosition(Vector3Int.FloorToInt(Player.transform.position)))
 		{
 			TileManager.TileDot.SetActive(false);
+			// Return if Player's vehicle has insufficient charge to move to next grid
+			if (Player.IsInVehicle && !Player.Vehicle.DecreaseChargeBy(Player.Vehicle.Info.Efficiency))
+				return;
 			ResetForNextLevel();
 		}
 	}

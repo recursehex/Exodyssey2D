@@ -49,7 +49,7 @@ public static class MapGenerator
         return res;
     }
     private const float minimumChance = 0.15f;
-    public static void GenerateMap(Tilemap TilemapWalls, Tile[] WallTiles)
+    public static void GenerateMap(Tilemap TilemapWalls, Tile[] WallTiles, ICollection<Vector3Int> PlacedPositions = null)
     {
         int totalTemplates = Templates.Count;
         int numberGenerated = 0;
@@ -76,6 +76,7 @@ public static class MapGenerator
                         {
                             Vector3Int Position = new(baseX + x, baseY - y);
                             TilemapWalls.SetTile(Position, WallTiles[Random.Range(0, WallTiles.Length)]);
+                            PlacedPositions?.Add(Position);
                         }
                     }
                 }

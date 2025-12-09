@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using UnityEngine.UI;
@@ -15,14 +16,19 @@ public class LevelManager : MonoBehaviour
     private Tilemap TilemapGround;
     private Tilemap TilemapWalls;
     private Tilemap TilemapExits;
+    private TilemapRevealAnimator TilemapRevealAnimator;
     private Tile[] GroundTiles;
     private Tile[] WallTiles;
+    private Vector3Int SpawnTile;
+    private readonly List<Vector3Int> GroundTilePositions = new();
+    private readonly List<Vector3Int> WallTilePositions = new();
     private RegionManager RegionManager;
     public delegate void LevelInitializedDelegate();
     public event LevelInitializedDelegate OnLevelInitialized;
     public event System.Action<bool> OnLoadingScreenVisibilityChanged;
     public void Initialize(Tilemap Ground, Tilemap Walls, Tilemap Exits, RegionManager RegionManager,
-                           Text RegionText, Text DayText, Text LevelText, GameObject LevelImage)
+                           Text RegionText, Text DayText, Text LevelText, GameObject LevelImage,
+                           TilemapRevealAnimator TilemapRevealAnimator)
     {
         TilemapGround       = Ground;
         TilemapWalls        = Walls;
@@ -30,8 +36,9 @@ public class LevelManager : MonoBehaviour
         this.RegionManager  = RegionManager;
         this.RegionText     = RegionText;
         this.DayText        = DayText;
-        this.LevelText        = LevelText;
+        this.LevelText      = LevelText;
         this.LevelImage     = LevelImage;
+        this.TilemapRevealAnimator = TilemapRevealAnimator;
     }
     public void InitializeLevel()
     {
@@ -41,8 +48,10 @@ public class LevelManager : MonoBehaviour
         DayText.gameObject.SetActive(true);
         RegionText.gameObject.SetActive(true);
         RegionText.text = RegionManager.CurrentRegion.Name;
+        SpawnTile = TilemapGround.WorldToCell(GameManager.Instance.PlayerStartPosition);
         GenerateGround();
         GenerateWalls();
+        TilemapRevealAnimator.PrepareTilesForReveal(SpawnTile, GroundTilePositions, WallTilePositions);
         OnLevelInitialized?.Invoke();
         Invoke(nameof(HideLevelLoadScreen), levelStartDelay);
     }
@@ -92,8 +101,11 @@ public class LevelManager : MonoBehaviour
     /// </summary>
     private void ClearTilemaps()
     {
+        TilemapRevealAnimator.ResetTileTransforms();
         TilemapGround.ClearAllTiles();
         TilemapWalls.ClearAllTiles();
+        GroundTilePositions.Clear();
+        WallTilePositions.Clear();
     }
     /// <summary>
     /// Generates ground tiles
@@ -101,11 +113,14 @@ public class LevelManager : MonoBehaviour
     private void GenerateGround()
     {
         GroundTiles = RegionManager.GetCurrentGroundTiles();
+        GroundTilePositions.Clear();
         for (int x = GameConfig.Grid.MinX; x <= GameConfig.Grid.MaxX; x++)
         {
             for (int y = GameConfig.Grid.MinY; y <= GameConfig.Grid.MaxY; y++)
             {
-                TilemapGround.SetTile(new(x, y), GroundTiles[Random.Range(0, GroundTiles.Length)]);
+                Vector3Int Position = new(x, y);
+                TilemapGround.SetTile(Position, GroundTiles[Random.Range(0, GroundTiles.Length)]);
+                GroundTilePositions.Add(Position);
             }
         }
     }
@@ -115,7 +130,8 @@ public class LevelManager : MonoBehaviour
     private void GenerateWalls()
     {
         WallTiles = RegionManager.GetCurrentWallTiles();
-        MapGenerator.GenerateMap(TilemapWalls, WallTiles);
+        WallTilePositions.Clear();
+        MapGenerator.GenerateMap(TilemapWalls, WallTiles, WallTilePositions);
     }
     /// <summary>
     /// Returns true a wall is at the given position

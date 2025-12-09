@@ -41,23 +41,15 @@ public class VehicleInfo
 	private static readonly int lastVehicleIndex = (int)Tags.Unknown;
 	private static readonly List<Rarity> VehicleRarityList = GenerateAllRarities();
 	private static VehicleDatabase VehicleDatabase;
-	private static bool databaseLoaded = false;
 	private static void LoadDatabase()
 	{
-		if (databaseLoaded)
-		{
+		if (VehicleDatabase != null)
 			return;
-		}
-		TextAsset JsonFile = Resources.Load<TextAsset>("VehicleDefinitions");
+		TextAsset JsonFile = Resources.Load<TextAsset>("Definitions/VehicleDefinitions");
 		if (JsonFile != null)
-		{
 			VehicleDatabase = JsonUtility.FromJson<VehicleDatabase>(JsonFile.text);
-			databaseLoaded = true;
-		}
 		else
-		{
 			Debug.LogError("VehicleDefinitions.json not found in Resources folder!");
-		}
 	}
 	private static List<Rarity> GenerateAllRarities()
 	{

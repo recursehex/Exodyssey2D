@@ -48,17 +48,13 @@ public class EnemyInfo
 	private static readonly int lastEnemyIndex = (int)Tags.Unknown;
 	private static readonly List<Rarity> EnemyRarityList = GenerateAllRarities();
 	private static EnemyDatabase EnemyDatabase;
-	private static bool databaseLoaded = false;
 	private static void LoadDatabase()
 	{
-		if (databaseLoaded)
+		if (EnemyDatabase != null)
 			return;
-		TextAsset JsonFile = Resources.Load<TextAsset>("EnemyDefinitions");
+		TextAsset JsonFile = Resources.Load<TextAsset>("Definitions/EnemyDefinitions");
 		if (JsonFile != null)
-		{
 			EnemyDatabase = JsonUtility.FromJson<EnemyDatabase>(JsonFile.text);
-			databaseLoaded = true;
-		}
 		else
 			Debug.LogError("EnemyDefinitions.json not found in Resources folder!");
 	}
