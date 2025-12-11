@@ -29,7 +29,7 @@ public class ItemInfo
 		// RANGED
 		Tranquilizer,
 		Carbine,
-		//Flamethrower,
+		Flamethrower,
 		HuntingRifle,
 		PlasmaRailgun,
 
@@ -52,7 +52,6 @@ public class ItemInfo
 		//Spotlight,
 		//ThermalImager,
 		NightVision,
-		Flamethrower,
 		Blowtorch,
 		Unknown,
 	}

@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 2742986994626467021}
   - component: {fileID: 2576940189252508582}
   m_Layer: 0
-  m_Name: Fire
+  m_Name: Flamethrower
   m_TagString: Item
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -82,7 +82,7 @@ SpriteRenderer:
   m_SortingLayer: 3
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 21300000, guid: 85a6fca49215b4779abfd9d9a34280d3, type: 3}
+  m_Sprite: {fileID: 21300000, guid: c8fcd8b9abffc447aadff4f03522f90a, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
