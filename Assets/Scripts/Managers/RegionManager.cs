@@ -3,7 +3,7 @@ using UnityEngine.Tilemaps;
 
 public class RegionManager : MonoBehaviour
 {
-    public RegionInfo CurrentRegion { get; private set; }
+    public static RegionInfo CurrentRegion { get; private set; }
     public int CurrentRegionIndex { get; private set; } = 0;
     // Tile arrays for each region
     [Header("Fragmented Coast Tiles")]

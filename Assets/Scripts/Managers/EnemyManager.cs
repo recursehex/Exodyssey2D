@@ -10,7 +10,7 @@ public class EnemyManager : MonoBehaviour
     [Header("Spawning")]
     [SerializeField] private int baseMinSpawn = 1;
     [SerializeField] private int baseMaxSpawn = 3;
-    [SerializeField] private float spawnScalePerLevel = 0.5f;
+    [SerializeField] private int spawnScalePerLevel = 2;
     [SerializeField] private int spawnRetryMultiplier = 2;
     public bool NeedToStartEnemyMovement { get; set; } = false;
     [SerializeField] private bool EnemiesAreMoving = false;
@@ -31,7 +31,7 @@ public class EnemyManager : MonoBehaviour
     /// </summary>
     public void GenerateEnemies()
     {
-        int levelBonus = (int)(GameManager.Instance.Level * spawnScalePerLevel);
+        int levelBonus = (int)RegionManager.CurrentRegion.Tag / spawnScalePerLevel;
         spawnEnemyCount = Random.Range(baseMinSpawn + levelBonus,
                                        baseMaxSpawn + levelBonus);
         int cap = spawnEnemyCount * spawnRetryMultiplier;
