@@ -478,18 +478,13 @@ public class Player : MonoBehaviour
 		// Returns if called when inventory is empty
 		if (Inventory.IsEmpty)
 			return;
-		// Clears targeting if weapon is dropped
-		if (SelectedItemInfo == Inventory[itemIndex].Info
-			&& Inventory[itemIndex].Info?.Type is ItemInfo.Types.Weapon)
-		{
-			// Clears targeting if ranged weapon is dropped
-			if (HasRange)
-				GameManager.Instance.ClearTargets();
-		}
 		// Put dropped item in temp slot out of inventory
 		ItemInfo DroppedItemInfo = Inventory[itemIndex].Info;
 		if (DroppedItemInfo == SelectedItemInfo)
 		{
+			// Clears targeting if ranged weapon is dropped
+			if (HasRange)
+				GameManager.Instance.ClearTargets();
 			SelectedItemInfo = null;
 			InventoryUI.DeselectItem(itemIndex);
 		}
