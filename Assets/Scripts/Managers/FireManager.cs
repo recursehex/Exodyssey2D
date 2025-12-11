@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.Tilemaps;
 
 /// <summary>
-/// Manages all active fire tiles, handling spread, damage ticks, and lifecycle.
+/// Manages all active fire tiles, handling spread, damage ticks, and lifecycle
 /// </summary>
 public class FireManager : MonoBehaviour
 {
@@ -13,16 +13,17 @@ public class FireManager : MonoBehaviour
     [SerializeField] private EnemyManager EnemyManager;
     [SerializeField] private GameObject FireTemplate;
     [Header("Behavior")]
-    [SerializeField] private int lifetime = 4;
+    [SerializeField] private int lifetime = 3;
     [SerializeField] private int fireDamage = 1;
     [SerializeField] private int naturalWildfireSeeds = 2;
     [SerializeField, Range(0f, 1f)] private float naturalWildfireChance = 0.15f;
     [SerializeField] private int wildfireSpawnBudget = 2;
     [SerializeField] private int wildfireAttemptsPerSeed = 8;
     [SerializeField] private int wildfireEdgeInset = 2;
-    [SerializeField] private int maxNeighborSpread = 3;
+    [SerializeField] private int maxNeighborSpread = 1;
     private readonly List<Fire> ActiveFires = new();
     private readonly HashSet<Vector3Int> FireCells = new();
+    private readonly HashSet<Vector3Int> BurnedCells = new();
     private readonly HashSet<Vector3Int> PendingSpawnCells = new();
     private static readonly Vector3Int[] NeighborOffsets = new Vector3Int[]
     {
@@ -61,6 +62,7 @@ public class FireManager : MonoBehaviour
         }
         ActiveFires.Clear();
         FireCells.Clear();
+        BurnedCells.Clear();
         PendingSpawnCells.Clear();
     }
     /// <summary>
@@ -91,9 +93,10 @@ public class FireManager : MonoBehaviour
     /// <summary>
     /// Spawns a new fire tile at the specified cell if valid
     /// </summary>
-    public bool TrySpawnFire(Vector3Int Cell, bool isWildfire = false)
+    public bool TrySpawnFire(Vector3Int Cell, bool isWildfire = false, bool guaranteeFirstSpread = false)
     {
         if (FireCells.Contains(Cell)
+            || BurnedCells.Contains(Cell)
             || !TilemapGround.cellBounds.Contains(Cell)
             || TilemapWalls.HasTile(Cell))
         {
@@ -103,12 +106,13 @@ public class FireManager : MonoBehaviour
         GameObject Instance = FireTemplate != null
             ? Instantiate(FireTemplate, WorldPosition, Quaternion.identity)
             : new GameObject("Fire");
-        if (!Instance.TryGetComponent<Fire>(out Fire Fire))
+        if (!Instance.TryGetComponent(out Fire Fire))
             Fire = Instance.AddComponent<Fire>();
-        Fire.Initialize(Cell, isWildfire, lifetime, WorldPosition);
+        Fire.Initialize(Cell, isWildfire, lifetime, WorldPosition, guaranteeFirstSpread);
         ActiveFires.Add(Fire);
         FireCells.Add(Cell);
-        GameManager.Instance.RegisterObjectForTileReveal(WorldPosition, Fire.transform);
+        if (isWildfire)
+            GameManager.Instance.RegisterObjectForTileReveal(WorldPosition, Fire.transform);
         HandleEnvironmentContact(Cell);
         return true;
     }
@@ -133,7 +137,6 @@ public class FireManager : MonoBehaviour
     {
         if (naturalWildfireChance <= 0f || Random.value > naturalWildfireChance)
             return;
-        Debug.Log("Spawning natural wildfire");
         Vector3Int PlayerCell = TilemapGround.WorldToCell(Player.transform.position);
         int seeds = Mathf.Max(1, naturalWildfireSeeds);
         int attempts = seeds * wildfireAttemptsPerSeed;
@@ -150,7 +153,7 @@ public class FireManager : MonoBehaviour
         }
     }
     /// <summary>
-    /// Handles destruction of flammable items and vehicles when fire occupies a cell.
+    /// Handles destruction of flammable items and vehicles when fire occupies a cell
     /// </summary>
     private void HandleEnvironmentContact(Vector3Int Cell)
     {
@@ -213,31 +216,35 @@ public class FireManager : MonoBehaviour
         PendingSpawnCells.Clear();
         List<(Vector3Int Cell, bool isWildfire)> NewFires = new();
         List<Fire> ExpiredFires = new();
-        int spawnBudget = wildfireSpawnBudget;
+        int wildfireBudget = wildfireSpawnBudget;
         foreach (Fire Fire in ActiveFires)
         {
             if (Fire == null)
                 continue;
-            if (spawnBudget > 0)
-                spawnBudget -= TrySpreadFrom(Fire, NewFires, spawnBudget);
             if (Fire.ShouldExtinguishAfterTurn())
+            {
                 ExpiredFires.Add(Fire);
-            if (spawnBudget <= 0)
-                break;
+                continue;
+            }
+            int spawnAllowance = Fire.IsWildfire ? wildfireBudget : maxNeighborSpread;
+            bool guaranteeInitialSpread = Fire.ConsumeGuaranteedSpread();
+            int spawned = TrySpreadFrom(Fire, NewFires, spawnAllowance, guaranteeInitialSpread);
+            if (Fire.IsWildfire)
+                wildfireBudget = Mathf.Max(0, wildfireBudget - spawned);
         }
-        foreach ((Vector3Int Cell, bool isWildfire) in NewFires)
-            TrySpawnFire(Cell, isWildfire);
-        foreach (Fire Fire in ExpiredFires)
-            RemoveFire(Fire);
+        NewFires.ForEach(Fire => TrySpawnFire(Fire.Cell, Fire.isWildfire));
+        ExpiredFires.ForEach(Fire => RemoveFire(Fire, true));
     }
     /// <summary>
     /// Attempts to spread fire from a given fire tile to neighboring cells
     /// </summary>
-    private int TrySpreadFrom(Fire Fire, List<(Vector3Int cell, bool isWildfire)> newFires, int spawnBudget)
+    private int TrySpreadFrom(Fire Fire, List<(Vector3Int Cell, bool isWildfire)> NewFires, int spawnBudget, bool guaranteeAtLeastOne)
     {
-        // Each fire chooses a random number of tiles (0-3) to ignite if available
+        if (spawnBudget <= 0)
+            return 0;
+        // Each fire chooses a random number of tiles (0-maxNeighborSpread) to ignite if available; some may guarantee a minimum on first spread
         List<Vector3Int> Candidates = GetNeighbors(Fire.CellPosition);
-        Candidates.RemoveAll(Neighbor => TilemapWalls.HasTile(Neighbor) || FireCells.Contains(Neighbor));
+        Candidates.RemoveAll(Neighbor => TilemapWalls.HasTile(Neighbor) || FireCells.Contains(Neighbor) || BurnedCells.Contains(Neighbor));
         if (Candidates.Count == 0)
             return 0;
         // Shuffle candidates to avoid directional bias
@@ -246,7 +253,8 @@ public class FireManager : MonoBehaviour
             int swapIndex = Random.Range(i, Candidates.Count);
             (Candidates[i], Candidates[swapIndex]) = (Candidates[swapIndex], Candidates[i]);
         }
-        int spreadCount = Random.Range(0, maxNeighborSpread + 1); // inclusive 0-maxNeighborSpread
+        int minSpread = guaranteeAtLeastOne ? 1 : 0;
+        int spreadCount = Random.Range(minSpread, maxNeighborSpread + 1); // inclusive minSpread-maxNeighborSpread
         spreadCount = Mathf.Min(spreadCount, Candidates.Count);
         spreadCount = Mathf.Min(spreadCount, spawnBudget);
         int spawned = 0;
@@ -255,7 +263,7 @@ public class FireManager : MonoBehaviour
             Vector3Int Target = Candidates[i];
             if (PendingSpawnCells.Add(Target))
             {
-                newFires.Add((Target, Fire.IsWildfire));
+                NewFires.Add((Target, Fire.IsWildfire));
                 spawned++;
             }
         }
@@ -278,10 +286,12 @@ public class FireManager : MonoBehaviour
     /// <summary>
     /// Removes a specific fire tile
     /// </summary>
-    private void RemoveFire(Fire Fire)
+    private void RemoveFire(Fire Fire, bool markBurned = false)
     {
         if (Fire == null)
             return;
+        if (markBurned)
+            BurnedCells.Add(Fire.CellPosition);
         FireCells.Remove(Fire.CellPosition);
         ActiveFires.Remove(Fire);
         Destroy(Fire.gameObject);
