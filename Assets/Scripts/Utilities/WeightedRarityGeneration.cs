@@ -8,7 +8,7 @@ public static class WeightedRarityGeneration
 	private static bool GenerateRarityAndPosition<T>()
 	{
 		// Get allowed rarities based on entity type
-			List<Rarity> allowedRarities = typeof(T).Name switch
+			List<Rarity> AllowedRarities = typeof(T).Name switch
 			{
 				nameof(Item) => ItemInfo.GetAllowedRarities(),
 				nameof(Enemy) => EnemyInfo.GetAllowedRarities(),
@@ -16,12 +16,17 @@ public static class WeightedRarityGeneration
 				_ => Rarity.RarityList
 		};
 		// If no allowed rarities, fail
-		if (allowedRarities.Count == 0)
+		if (AllowedRarities.Count == 0)
 			return false;
-		int roll = Random.Range(1, 101);
+		int totalWeight = 0;
+		foreach (Rarity Rarity in AllowedRarities)
+			totalWeight += Rarity.GetDropRate();
+		if (totalWeight <= 0)
+			return false;
+		int roll = Random.Range(1, totalWeight + 1);
 		int cumulative = 0;
 		// Select rarity based on weighted drop rates
-		foreach (Rarity Rarity in allowedRarities)
+		foreach (Rarity Rarity in AllowedRarities)
 		{
 			cumulative += Rarity.GetDropRate();
 			if (roll <= cumulative)
