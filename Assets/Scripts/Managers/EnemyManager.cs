@@ -61,15 +61,12 @@ public class EnemyManager : MonoBehaviour
         return Enemies.Find(Enemy => Enemy != null && Enemy.transform.position == Position) != null;
     }
     /// <summary>
-    /// Returns the index of the enemy at the specified position, or -1 if no enemy is found
+    /// Returns enemy at the specified position, or null if no enemy is found
     /// </summary>
-    /// <param name="Position"></param>
-    /// <returns></returns>
-    public int GetEnemyIndexAtPosition(Vector3Int Position)
+    public Enemy GetEnemyAtPosition(Vector3 Position)
     {
         CleanupDestroyedEnemies();
-        Vector3 ShiftedPosition = Position + new Vector3(0.5f, 0.5f);
-        return Enemies.FindIndex(Enemy => Enemy.transform.position == ShiftedPosition);
+        return Enemies.Find(Enemy => Enemy.transform.position == Position);
     }
     /// <summary>
     /// Destroys the specified enemy
@@ -98,26 +95,22 @@ public class EnemyManager : MonoBehaviour
     /// </summary>
     private void RestoreAllEnemyEnergy() => Enemies.ForEach(Enemy => Enemy.RestoreEnergy());
     /// <summary>
-    /// Handles damage to an enemy at the specified index
+    /// Handles damage to an enemy
     /// </summary>
-    /// <param name="index"></param>
-    /// <param name="damagePoints"></param>
-    /// <param name="isStunning"></param>
-    public void HandleDamageToEnemy(int index, int damagePoints, bool isStunning)
+    public void HandleDamageToEnemy(Enemy Enemy, int damagePoints, bool isStunning)
     {
-        Enemy DamagedEnemy = Enemies[index];
-        DamagedEnemy.DecreaseHealthBy(damagePoints);
-        if (DamagedEnemy.Info.CurrentHealth <= 0)
+        Enemy.DecreaseHealthBy(damagePoints);
+        if (Enemy.Info.CurrentHealth <= 0)
         {
-            Enemies.RemoveAt(index);
-            DestroyEnemy(DamagedEnemy);
+            Enemies.Remove(Enemy);
+            DestroyEnemy(Enemy);
             OnEnemyKilled?.Invoke();
             return;
         }
         if (isStunning)
         {
-            DamagedEnemy.Info.IsStunned = true;
-            DamagedEnemy.StunIcon.SetActive(true);
+            Enemy.Info.IsStunned = true;
+            Enemy.StunIcon.SetActive(true);
         }
     }
     /// <summary>

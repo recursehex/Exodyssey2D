@@ -285,14 +285,9 @@ public class GameManager : MonoBehaviour
 	public Item GetItemAtPosition(Vector3 Position) 		=> ItemManager.GetItemAtPosition(Position);
 	public void RemoveItemAtPosition(Item Item) 			=> ItemManager.RemoveItemAtPosition(Item);
 	public bool HasEnemyAtPosition(Vector3 Position) 		=> EnemyManager.HasEnemyAtPosition(Position);
-	public bool HasVehicleAtPosition(Vector3 Position) 		=> VehicleManager.HasVehicleAtPosition(Position);
-	public Vehicle GetVehicleAtPosition(Vector3Int Position)
-	{
-		int index = VehicleManager.GetVehicleIndexAtPosition(Position);
-		return index >= 0 && index < VehicleManager.Vehicles.Count
-			? VehicleManager.Vehicles[index]
-			: null;
-	}
+	public Enemy GetEnemyAtPosition(Vector3 Position) 		=> EnemyManager.GetEnemyAtPosition(Position);
+	public bool HasVehicleAtPosition(Vector3 Position) => VehicleManager.HasVehicleAtPosition(Position);
+	public Vehicle GetVehicleAtPosition(Vector3Int Position) => VehicleManager.GetVehicleAtPosition(Position);
 	public bool HasWallAtPosition(Vector3Int Position) 		=> LevelManager.HasWallAtPosition(Position);
 	public void DestroyVehicle(Vehicle Vehicle) 			=> VehicleManager.DestroyVehicle(Vehicle);
 	public void ClearTileAreas() 							=> TileManager.ClearTileAreas();
@@ -492,10 +487,9 @@ public class GameManager : MonoBehaviour
 	{
 		// Check if Player's vehicle can exit to clicked tile
 		bool isInMovementRange = TileManager.IsInMovementRange(TilePoint);
-		int enemyIndex = EnemyManager.GetEnemyIndexAtPosition(TilePoint);
 		// Return if not in movement range, enemy present, clicked on current position, or Player has no energy
 		if (!isInMovementRange
-			|| enemyIndex != -1
+			|| HasEnemyAtPosition(ShiftedClickPoint)
 			|| HasFireAtPosition(TilePoint)
 			|| ShiftedClickPoint == Player.transform.position
 			|| !Player.HasEnergy)
@@ -521,10 +515,9 @@ public class GameManager : MonoBehaviour
 	{
 		// Check if Player's vehicle can move to clicked tile
 		bool isInMovementRange = TileManager.IsInMovementRange(TilePoint);
-		int enemyIndex = EnemyManager.GetEnemyIndexAtPosition(TilePoint);
 		// Return if not in movement range, enemy present, or clicked on current position
 		if (!isInMovementRange
-			|| enemyIndex != -1
+			|| HasEnemyAtPosition(ShiftedClickPoint)
 			|| HasFireAtPosition(TilePoint)
 			|| ShiftedClickPoint == Player.transform.position)
 		{
@@ -628,13 +621,10 @@ public class GameManager : MonoBehaviour
 	private bool TryUseItemOnVehicle(Vector3Int TilePoint)
 	{
 		// Get vehicle index at position
-		int vehicleIndex = VehicleManager.GetVehicleIndexAtPosition(TilePoint);
+		Vehicle Vehicle = GetVehicleAtPosition(TilePoint);
 		// Return false if no vehicle found or Player has no selected item
-		if (vehicleIndex == -1)
-		{
+		if (Vehicle == null)
 			return false;
-		}
-		Vehicle Vehicle = VehicleManager.Vehicles[vehicleIndex];
 		// Return false if player is not adjacent to vehicle or if click fails
 		if (!IsPlayerAdjacentTo(Vehicle.transform.position)
 			|| !Player.ClickOnVehicleToUseItem(Vehicle))
@@ -648,19 +638,16 @@ public class GameManager : MonoBehaviour
 	private bool TryEnterVehicle(Vector3Int TilePoint)
     {
 		// Get vehicle index at position
-		int vehicleIndex = VehicleManager.GetVehicleIndexAtPosition(TilePoint);
+		Vehicle Vehicle = GetVehicleAtPosition(TilePoint);
 		// Return false if no vehicle found
-		if (vehicleIndex == -1)
-		{
+		if (Vehicle == null)
 			return false;
-		}
 		// Return false if player is not adjacent to vehicle or if vehicle is on fire
-		if (!IsPlayerAdjacentTo(VehicleManager.Vehicles[vehicleIndex].transform.position)
+		if (!IsPlayerAdjacentTo(Vehicle.transform.position)
 			|| HasFireAtPosition(TilePoint))
 		{
 			return false;
-		}
-		Player.EnterVehicle(VehicleManager.Vehicles[vehicleIndex]);
+		Player.EnterVehicle(Vehicle);
         TurnManager.TurnTimer.StartTimer();
 		TileManager.ClearTargets();
 		UpdateTileAreas();
@@ -677,10 +664,9 @@ public class GameManager : MonoBehaviour
 	{
 		// Check if player can move to clicked tile
 		bool isInMovementRange = TileManager.IsInMovementRange(TilePoint);
-		int enemyIndex = EnemyManager.GetEnemyIndexAtPosition(TilePoint);
 		// Return false if not in movement range, enemy present, or clicked on current position
 		if (!isInMovementRange
-			|| enemyIndex != -1
+			|| HasEnemyAtPosition(ShiftedClickPoint)
 			|| HasFireAtPosition(TilePoint)
 			|| ShiftedClickPoint == Player.transform.position)
 		{
@@ -702,11 +688,10 @@ public class GameManager : MonoBehaviour
     private void TryPlayerAttack(Vector3Int TilePoint, Vector3 ShiftedClickPoint)
 	{
 		// Check if player can attack an enemy at clicked tile
-		int enemyIndex = EnemyManager.GetEnemyIndexAtPosition(TilePoint);
 		bool isInMeleeRange = IsPlayerAdjacentTo(ShiftedClickPoint);
 		bool isInRangedWeaponRange = Player.HasRange && TileManager.IsInRangedWeaponRange(ShiftedClickPoint);
 		// Return if no enemy found, not in melee or ranged weapon range, or selected item is not a weapon
-		if (enemyIndex == -1
+		if (!HasEnemyAtPosition(ShiftedClickPoint)
 			|| !isInMeleeRange
 			&& !isInRangedWeaponRange
 			|| Player.SelectedItemInfo?.Type is not ItemInfo.Types.Weapon)
@@ -719,7 +704,8 @@ public class GameManager : MonoBehaviour
 			SpawnItem((int)Player.SelectedItemInfo.Tag, ShiftedClickPoint);
 		}
 		// Handle damage to enemy
-		EnemyManager.HandleDamageToEnemy(enemyIndex, Player.DamagePoints, Player.SelectedItemInfo.IsStunning);
+		Enemy Enemy = GetEnemyAtPosition(ShiftedClickPoint);
+		EnemyManager.HandleDamageToEnemy(Enemy, Player.DamagePoints, Player.SelectedItemInfo.IsStunning);
 		Player.AttackEnemy();
 		TurnManager.TurnTimer.StartTimer();
 		TileManager.TileDot.SetActive(false);
