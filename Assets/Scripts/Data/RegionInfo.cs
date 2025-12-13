@@ -74,7 +74,6 @@ public class RegionInfo
     /// <summary>
     /// Loads region data from source RegionData object
     /// </summary>
-    /// <param name="SourceData"></param>
     private void LoadFromData(RegionData SourceData)
     {
         // Copy the data

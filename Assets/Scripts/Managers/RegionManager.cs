@@ -46,7 +46,6 @@ public class RegionManager : MonoBehaviour
     /// <summary>
     /// Loads a region by index and assigns appropriate tiles
     /// </summary>
-    /// <param name="regionIndex"></param>
     private void LoadRegion(int regionIndex)
     {
         CurrentRegion = new(regionIndex);
@@ -106,9 +105,8 @@ public class RegionManager : MonoBehaviour
         Debug.Log($"Grid completed in {CurrentRegion.Name}: {CurrentRegion.GridsCompleted}/{CurrentRegion.GridsRequired}");
     }
     /// <summary>
-    /// Checks if current region is complete and advances to next region if so
+    /// Checks if current region is complete and advances to next region if so, returning true
     /// </summary>
-    /// <returns>True if advanced to next region</returns>
     public bool TryAdvanceRegion()
     {
         if (!CurrentRegion.IsComplete())

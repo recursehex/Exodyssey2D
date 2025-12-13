@@ -21,7 +21,6 @@ public class SoundManager : MonoBehaviour
 	/// <summary>
 	/// Plays background music
 	/// </summary>
-	/// <param name="loop"></param>
 	public void PlayMusic(bool loop = true)
 	{
 		MusicSource.loop = loop;
@@ -31,7 +30,6 @@ public class SoundManager : MonoBehaviour
 	/// <summary>
 	/// Plays sound effect with pitch variation
 	/// </summary>
-	/// <param name="Clip"></param>
 	public void PlaySound(AudioClip Clip)
 	{
 		EfxSource.pitch = Random.Range(pitchJitterMin, pitchJitterMax);
@@ -40,8 +38,6 @@ public class SoundManager : MonoBehaviour
 	/// <summary>
 	/// Fades out music over specified duration
 	/// </summary>
-	/// <param name="duration"></param>
-	/// <returns></returns>
 	public IEnumerator FadeOutMusic(float duration)
 	{
 		float startVolume = MusicSource.volume;

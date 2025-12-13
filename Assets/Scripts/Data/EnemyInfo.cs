@@ -169,7 +169,6 @@ public class EnemyInfo
 	/// <summary>
 	/// Loads enemy data from source EnemyData object
 	/// </summary>
-	/// <param name="SourceData"></param>
 	private void LoadFromData(EnemyData SourceData)
 	{
 		// Copy the data

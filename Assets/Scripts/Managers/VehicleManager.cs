@@ -33,8 +33,6 @@ public class VehicleManager : MonoBehaviour
     /// <summary>
     /// Spawns vehicle at specified position
     /// </summary>
-    /// <param name="index"></param>
-    /// <param name="Position"></param>
     public Vehicle SpawnVehicle(int index, Vector3 Position)
     {
         Vehicle Vehicle = Instantiate(VehicleTemplates[index], Position, Quaternion.identity).GetComponent<Vehicle>();
@@ -57,7 +55,6 @@ public class VehicleManager : MonoBehaviour
     /// <summary>
     /// Destroys specified vehicle
     /// </summary>
-    /// <param name="Vehicle"></param>
     public void DestroyVehicle(Vehicle Vehicle)
     {
         Destroy(Vehicle.gameObject);
@@ -66,7 +63,6 @@ public class VehicleManager : MonoBehaviour
     /// <summary>
     /// Destroys all vehicles except Player's vehicle
     /// </summary>
-    /// <param name="ExcludedVehicle"></param>
     public void DestroyAllVehicles(Vehicle ExcludedVehicle = null)
     {
         Vehicles.ForEach(Vehicle =>

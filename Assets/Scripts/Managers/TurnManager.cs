@@ -58,7 +58,6 @@ public class TurnManager : MonoBehaviour
     /// <summary>
     /// Locks or unlocks EndTurnButton
     /// </summary>
-    /// <param name="locked"></param>
     public void SetEndTurnButtonLock(bool locked)
     {
         isEndTurnButtonLocked = locked;

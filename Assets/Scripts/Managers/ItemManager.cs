@@ -28,8 +28,6 @@ public class ItemManager : MonoBehaviour
     /// <summary>
     /// Spawns an item at a given position from an index in ItemTemplates (e.g. item generation)
     /// </summary>
-    /// <param name="index"></param>
-    /// <param name="Position"></param>
     public Item SpawnItem(int index, Vector3 Position)
     {
         Item Item = Instantiate(ItemTemplates[index], Position, Quaternion.identity).GetComponent<Item>();
@@ -51,24 +49,18 @@ public class ItemManager : MonoBehaviour
     /// <summary>
     /// Returns true if an item is at the given position
     /// </summary>
-    /// <param name="Position"></param>
-    /// <returns></returns>
     public bool HasItemAtPosition(Vector3 Position) => GetItemAtPosition(Position) != null;
     /// <summary>
     /// Returns the item at the given position, or null if no item exists
     /// summary>
-    /// param name="Position"></param>
-    /// <returns></returns>
     public Item GetItemAtPosition(Vector3 Position) => Items.Find(Item => Item.transform.position == Position);
     /// <summary>
     /// Removes an item at the given position from Items list
     /// </summary>
-    /// <param name="ItemAtPosition"></param>
     public void RemoveItemAtPosition(Item ItemAtPosition) => Items.Remove(ItemAtPosition);
     /// <summary>
     /// Destroys an item at the given position
     /// </summary>
-    /// <param name="Position"></param>
     public void DestroyItemAtPosition(Vector3 Position)
     {
         Item Item = Items.Find(Item => Item.transform.position == Position);

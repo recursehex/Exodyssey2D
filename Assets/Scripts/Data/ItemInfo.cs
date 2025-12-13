@@ -101,7 +101,6 @@ public class ItemInfo
 	/// <summary>
 	/// Generates list of all rarities based on ItemDatabase
 	/// </summary>
-	/// <returns></returns>
 	private static List<Rarity> GenerateAllRarities()
 	{
 		LoadDatabase();
@@ -161,8 +160,6 @@ public class ItemInfo
 	/// <summary>
 	/// Returns a random index of an item within the specified rarity
 	/// </summary>
-	/// <param name="Rarity"></param>
-	/// <returns></returns>
 	public static int GetRandomIndexFrom(Rarity Rarity)
 	{
 		List<int> Indices = Enumerable.Range(0, ItemRarityList.Count)
@@ -233,7 +230,6 @@ public class ItemInfo
 	/// <summary>
 	/// Loads item data from source ItemData object
 	/// </summary>
-	/// <param name="SourceData"></param>
 	private void LoadFromData(ItemData SourceData)
 	{
 		// Copy the data

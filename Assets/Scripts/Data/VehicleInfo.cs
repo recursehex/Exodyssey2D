@@ -203,7 +203,6 @@ public class VehicleInfo
 	/// <summary>
 	/// Loads vehicle data from source VehicleData object
 	/// </summary>
-	/// <param name="SourceData"></param>
 	private void LoadFromData(VehicleData SourceData)
 	{
 		// Copy the data

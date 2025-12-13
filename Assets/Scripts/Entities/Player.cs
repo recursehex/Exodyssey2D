@@ -342,7 +342,6 @@ public class Player : MonoBehaviour
 	/// <summary>
 	/// Returns weapon range of selected item, 0 if no item is selected or item is not a weapon
 	/// </summary>
-	/// <returns></returns>
 	public int WeaponRange => SelectedItemInfo?.Range ?? 0;
 	#endregion
 	#region ITEM METHODS
@@ -447,7 +446,6 @@ public class Player : MonoBehaviour
 	/// <summary>
 	/// Uses an item from inventory on vehicle, returns false if item cannot be used on vehicle
 	/// </summary>
-	/// <returns></returns>
 	public bool ClickOnVehicleToUseItem(Vehicle Vehicle)
 	{
 		// Returns if no item is selected

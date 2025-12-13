@@ -136,14 +136,10 @@ public class LevelManager : MonoBehaviour
     /// <summary>
     /// Returns true a wall is at the given position
     /// </summary>
-    /// <param name="Position"></param>
-    /// <returns></returns>
     public bool HasWallAtPosition(Vector3Int Position) => TilemapWalls.HasTile(Position);
     /// <summary>
     /// Returns true an exit tile is at the given position
     /// </summary>
-    /// <param name="Position"></param>
-    /// <returns></returns>
     public bool HasExitTileAtPosition(Vector3Int Position) => TilemapExits.HasTile(Position);
     /// <summary>
     /// Displays game over screen with stats

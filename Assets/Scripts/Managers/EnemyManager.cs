@@ -42,6 +42,9 @@ public class EnemyManager : MonoBehaviour
             cap--;
         }
     }
+    /// <summary>
+    /// Spawns an enemy of the specified type at the specified position
+    /// </summary>
     public Enemy SpawnEnemy(int index, Vector3 Position)
     {
         EnemyInfo EnemyInfo = new(index);
@@ -53,8 +56,6 @@ public class EnemyManager : MonoBehaviour
     /// <summary>
     /// Returns true if an enemy is at the specified position
     /// </summary>
-    /// <param name="Position"></param>
-    /// <returns></returns>
     public bool HasEnemyAtPosition(Vector3 Position)
     {
         CleanupDestroyedEnemies();
@@ -71,7 +72,6 @@ public class EnemyManager : MonoBehaviour
     /// <summary>
     /// Destroys the specified enemy
     /// </summary>
-    /// <param name="Enemy"></param>
     private void DestroyEnemy(Enemy Enemy)
     {
         Destroy(Enemy.StunIcon);
@@ -116,7 +116,6 @@ public class EnemyManager : MonoBehaviour
     /// <summary>
     /// Processes enemy movement for all enemies
     /// </summary>
-    /// <param name="OnMovementComplete"></param>
     public void ProcessEnemyMovement(System.Action OnMovementComplete)
     {
         CleanupDestroyedEnemies();
@@ -172,13 +171,15 @@ public class EnemyManager : MonoBehaviour
     /// <summary>
     /// Ends the enemy turn and restores energy
     /// </summary>
-    /// <param name="OnMovementComplete"></param>
     private void EndEnemyTurn(System.Action OnMovementComplete)
     {
         EnemiesAreMoving = false;
         RestoreAllEnemyEnergy();
         OnMovementComplete?.Invoke();
     }
+    /// <summary>
+    /// Cleans up destroyed enemies from the Enemies list
+    /// </summary>
     private void CleanupDestroyedEnemies()
     {
         for (int i = Enemies.Count - 1; i >= 0; i--)

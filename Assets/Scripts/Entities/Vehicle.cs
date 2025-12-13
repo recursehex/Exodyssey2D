@@ -122,8 +122,6 @@ public class Vehicle : MonoBehaviour
 	/// <summary>
 	/// Uses a Power Cell from inventory to recharge vehicle, returns false if Vehicle is already fully charged
 	/// </summary>
-	/// <param name="Item"></param>
-	/// <returns></returns>
 	public bool ClickOnToRecharge(ItemInfo Item)
 	{
 		int amount = Item.CurrentUses;
@@ -138,8 +136,6 @@ public class Vehicle : MonoBehaviour
 	/// <summary>
 	/// Decreases vehicle's CurrentCharge by amount, returns false if vehicle would have negative charge after decrease
 	/// </summary>
-	/// <param name="amount"></param>
-	/// <returns></returns>
 	public bool DecreaseChargeBy(int amount) => Info.TryDecreaseChargeBy(amount);
 	/// <summary>
 	/// Toggles vehicle ignition
@@ -152,7 +148,6 @@ public class Vehicle : MonoBehaviour
 	/// <summary>
 	/// Returns true if vehicle has charge remaining
 	/// </summary>
-	/// <returns></returns>
 	public bool HasCharge() => Info.CurrentCharge > 0;
 	#endregion
 }

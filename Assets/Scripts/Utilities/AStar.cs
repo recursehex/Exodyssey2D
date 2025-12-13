@@ -32,14 +32,10 @@ public class AStar
 	/// <summary>
 	/// Sets whether diagonal movement is allowed
 	/// </summary>
-	/// <param name="flag"></param>
 	public void SetAllowDiagonal(bool flag) => allowDiagonal = flag;
 	/// <summary>
 	/// Gets all reachable positions within specified distance from start position
 	/// </summary>
-	/// <param name="Start"></param>
-	/// <param name="distance"></param>
-	/// <returns></returns>
 	public Dictionary<Vector3Int, Node> GetReachableAreaByDistance(Vector3 Start, int distance)
 	{
 		Vector3Int StartInt = TilemapGround.WorldToCell(Start);
@@ -93,12 +89,14 @@ public class AStar
 		return Path?.Count > 1 ? Path : null;
 	}
 	/// <summary>
-	/// Computes path from Start to Goal position
+	/// Computes path from Start to Goal position.
+	/// Contains nain loop for A* algorithm.
+	/// Continues until OpenList is empty or valid Path is found.
+	/// 1. FindNeighbors: 		Retrieves neighboring nodes of current node
+	/// 2. ExamineNeighbors: 	Evaluates and updates neighbors based on algorithm's criteria
+	/// 3. UpdateCurrentTile: 	Updates current node to next node with lowest cost in OpenList
+	/// 4. GeneratePath: 		Attempts to construct final path if destination is reached or partial path is allowed
 	/// </summary>
-	/// <param name="Start"></param>
-	/// <param name="Goal"></param>
-	/// <param name="allowPartialPath"></param>
-	/// <returns></returns>
     public Stack<Vector3Int> ComputePath(Vector3 Start, Vector3 Goal, bool allowPartialPath = false)
 	{
 		// Convert world positions to tilemap cell positions
@@ -114,12 +112,6 @@ public class AStar
 		// Adds the current node to OpenList (has been examined)
 		OpenList.Add(Current);
 		Path = null;
-		// Main loop for A* algorithm
-		// Continues until OpenList is empty or valid Path is found
-		// 1. FindNeighbors: 		Retrieves neighboring nodes of current node
-		// 2. ExamineNeighbors: 	Evaluates and updates neighbors based on algorithm's criteria
-		// 3. UpdateCurrentTile: 	Updates current node to next node with lowest cost in OpenList
-		// 4. GeneratePath: 		Attempts to construct final path if destination is reached or partial path is allowed
 		while (OpenList.Count > 0 && Path == null)
 		{
 			List<Node> Neighbors = FindNeighbors(Current.Position, allowPartialPath);
@@ -132,9 +124,6 @@ public class AStar
 	/// <summary>
 	/// Finds all neighbors of current node
 	/// </summary>
-	/// <param name="ParentPosition"></param>
-	/// <param name="allowPartialPath"></param>
-	/// <returns></returns>
 	private List<Node> FindNeighbors(Vector3Int ParentPosition, bool allowPartialPath = false)
 	{
 		List<Node> Neighbors = new();
@@ -176,8 +165,6 @@ public class AStar
 	/// <summary>
 	/// Examines neighbors of current node and updates their values
 	/// </summary>
-	/// <param name="Neighbors"></param>
-	/// <param name="Current"></param>
 	private void ExamineNeighbors(List<Node> Neighbors, Node Current)
 	{
 		for (int i = 0; i < Neighbors.Count; i++)
@@ -201,7 +188,6 @@ public class AStar
 	/// <summary>
 	/// Updates the current tile to next tile with lowest F value
 	/// </summary>
-	/// <param name="Current"></param>
 	private void UpdateCurrentTile(ref Node Current)
 	{
 		// The current node is removed from OpenList
@@ -215,9 +201,6 @@ public class AStar
 	/// <summary>
 	/// Generates path from current node to the goal position
 	/// </summary>
-	/// <param name="Current"></param>
-	/// <param name="allowPartialPath"></param>
-	/// <returns></returns>
 	private Stack<Vector3Int> GeneratePath(Node Current, bool allowPartialPath = false)
 	{
 		// If the current node is goal, then path is found
@@ -264,10 +247,6 @@ public class AStar
 	/// <summary>
 	/// Calculates G, H, and F values for neighbor node
 	/// </summary>
-	/// <param name="Parent"></param>
-	/// <param name="Neighbor"></param>
-	/// <param name="GoalPos"></param>
-	/// <param name="cost"></param>
 	private void CalculateNodeValues(Node Parent, Node Neighbor, Vector3Int GoalPos, int cost)
 	{
 		// Sets the parent node
@@ -282,8 +261,6 @@ public class AStar
 	/// <summary>
 	/// Gets or creates node at specified position
 	/// </summary>
-	/// <param name="Position"></param>
-	/// <returns></returns>
 	private Node GetNode(Vector3Int Position)
 	{
 		if (AllNodes.ContainsKey(Position))

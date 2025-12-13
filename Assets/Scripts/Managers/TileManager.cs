@@ -30,7 +30,6 @@ public class TileManager : MonoBehaviour
     /// <summary>
     /// Draws tile areas based on areas to draw
     /// </summary>
-    /// <param name="AreasToDraw"></param>
     public void DrawTileAreas(Dictionary<Vector3Int, Node> AreasToDraw)
     {
         // Need to clear previous areas
@@ -59,11 +58,6 @@ public class TileManager : MonoBehaviour
     /// <summary>
     /// Draws targets for enemies in range and line of sight
     /// </summary>
-    /// <param name="Enemies"></param>
-    /// <param name="PlayerPosition"></param>
-    /// <param name="weaponRange"></param>
-    /// <param name="isStunning"></param>
-    /// <param name="Walls"></param>
     public void DrawTargets(List<Enemy> Enemies, Vector3 PlayerPosition, int weaponRange, bool isStunning, Tilemap Walls)
     {
         // Need to clear previous targets
@@ -89,11 +83,6 @@ public class TileManager : MonoBehaviour
     /// <summary>
     /// Checks if enemy is in line of sight and range
     /// </summary>
-    /// <param name="PlayerPosition"></param>
-    /// <param name="EnemyPosition"></param>
-    /// <param name="weaponRange"></param>
-    /// <param name="Walls"></param>
-    /// <returns></returns>
     private bool IsInLineOfSight(Vector3 PlayerPosition, Vector3 EnemyPosition, int weaponRange, Tilemap Walls)
     {
         float distance = Vector3.Distance(PlayerPosition, EnemyPosition);
@@ -113,9 +102,6 @@ public class TileManager : MonoBehaviour
     /// <summary>
     /// Bresenham's Line Algorithm to get points between two positions
     /// </summary>
-    /// <param name="Start"></param>
-    /// <param name="End"></param>
-    /// <returns></returns>
     private static List<Vector3> BresenhamsAlgorithm(Vector3 Start, Vector3 End)
     {
         // Ensure Start and End are Vector3Int
@@ -155,14 +141,10 @@ public class TileManager : MonoBehaviour
     /// <summary>
     /// Returns true if position is in movement range
     /// </summary>
-    /// <param name="Position"></param>
-    /// <returns></returns>
     public bool IsInMovementRange(Vector3Int Position) => TileAreasToDraw?.ContainsKey(Position) == true;
     /// <summary>
     /// Returns true if position is in ranged weapon range
     /// </summary>
-    /// <param name="Position"></param>
-    /// <returns></returns>
     public bool IsInRangedWeaponRange(Vector3 Position) => Targets.Exists(Target => Target.transform.position == Position);
     /// <summary>
     /// Destroys all active and pooled markers (tile areas & tracers)
@@ -176,10 +158,6 @@ public class TileManager : MonoBehaviour
     /// <summary>
     /// Reuses existing marker instances when possible
     /// </summary>
-    /// <param name="Pool"></param>
-    /// <param name="Template"></param>
-    /// <param name="Position"></param>
-    /// <returns></returns>
     private GameObject SpawnMarker(Stack<GameObject> Pool, GameObject Template, Vector3 Position)
     {
         GameObject Marker;
@@ -195,8 +173,6 @@ public class TileManager : MonoBehaviour
     /// <summary>
     /// Returns active markers to the pool by disabling them
     /// </summary>
-    /// <param name="ActiveMarkers"></param>
-    /// <param name="Pool"></param>
     private static void RecycleMarkers(List<GameObject> ActiveMarkers, Stack<GameObject> Pool)
     {
         foreach (GameObject Marker in ActiveMarkers)
@@ -211,8 +187,6 @@ public class TileManager : MonoBehaviour
     /// <summary>
     /// Destroys both active and pooled markers to fully reset the pools
     /// </summary>
-    /// <param name="ActiveMarkers"></param>
-    /// <param name="Pool"></param>
     private static void DestroyMarkerCollection(List<GameObject> ActiveMarkers, Stack<GameObject> Pool)
     {
         foreach (GameObject Marker in ActiveMarkers)

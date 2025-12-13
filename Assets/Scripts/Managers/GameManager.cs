@@ -48,9 +48,7 @@ public class GameManager : MonoBehaviour
 	void Awake()
 	{
 		if (Instance == null)
-		{
 			Instance = this;
-		}
 		else if (Instance != this)
 		{
 			Destroy(gameObject);
@@ -106,15 +104,11 @@ public class GameManager : MonoBehaviour
 			|| !Player.FinishedInit
 			|| Player.IsInMovement
 			|| Player.IsInVehicle && Player.Vehicle.IsInMovement)
-		{
 			return;
-		}
 		InputManager.ProcessInput();
 		// Process enemy movement if it is not Player's turn
 		if (!TurnManager.IsPlayersTurn)
-		{
 			EnemyManager.ProcessEnemyMovement(() => TurnManager.EndEnemyTurn());
-		}
 	}
 	private void OnDestroy()
 	{
@@ -313,9 +307,7 @@ public class GameManager : MonoBehaviour
 	public void OnEndTurnPress()
 	{
 		if (Player.IsInMovement || doingSetup)
-		{
 			return;
-		}
 		TurnManager.OnEndTurnPress();
 	}
 	/// <summary>
@@ -330,10 +322,7 @@ public class GameManager : MonoBehaviour
 		EnemyManager.NeedToStartEnemyMovement = EnemyManager.Enemies.Count > 0;
 		// If no enemies left, immediately start next player turn
 		if (EnemyManager.Enemies.Count == 0)
-		{
-			// Trigger enemy turn ended to start player turn
 			TurnManager.EndEnemyTurn();
-		}
 	}
 	/// <summary>
 	/// Clears tile areas, targets, after turn timer ends
@@ -366,9 +355,7 @@ public class GameManager : MonoBehaviour
 	{
 		// Move Player to vehicle position if in vehicle
 		if (Player.IsInVehicle && Player.Vehicle != null)
-		{
 			Player.transform.position = Player.Vehicle.transform.position;
-		}
 		// Check if player is on exit tile
 		HandlePlayerExitTile();
 		if (TurnManager.IsPlayersTurn)
@@ -394,9 +381,6 @@ public class GameManager : MonoBehaviour
 	/// <summary>
 	/// Handles Player click on a tile
 	/// </summary>
-	/// <param name="WorldPoint"></param>
-	/// <param name="TilePoint"></param>
-	/// <param name="ShiftedClickPoint"></param>
 	private void HandlePlayerClick(Vector3 WorldPoint, Vector3Int TilePoint, Vector3 ShiftedClickPoint)
 	{
 		if (!Player.IsInMovement
@@ -411,24 +395,19 @@ public class GameManager : MonoBehaviour
 			if (TryUseItemOnVehicle(TilePoint)) return;
 			if (TryEnterVehicle(TilePoint)) return;
 			if (TryPlayerMovement(WorldPoint, TilePoint, ShiftedClickPoint)) return;
-			TryPlayerAttack(TilePoint, ShiftedClickPoint);
+			TryPlayerAttack(ShiftedClickPoint);
 		}
 	}
 	/// <summary>
 	/// Handles TileDot hover over a tile
 	/// </summary>
-	/// <param name="WorldPoint"></param>
-	/// <param name="TilePoint"></param>
-	/// <param name="ShiftedClickPoint"></param>
 	private void HandlePlayerHover(Vector3 WorldPoint, Vector3Int TilePoint, Vector3 ShiftedClickPoint)
 	{
 		// Hide TileDot if player is in vehicle with no charge
 		if (Player.IsInVehicle
 			&& Player.Vehicle.Info.IsOn
 			&& !Player.Vehicle.HasCharge())
-		{
 			TileManager.TileDot.SetActive(false);
-		}
 		// Move TileDot to hovered tile if Player is in movement range
 		else if (TileManager.IsInMovementRange(TilePoint))
 		{
@@ -437,24 +416,16 @@ public class GameManager : MonoBehaviour
 		}
 		// Hide TileDot if hovered tile is out of movement range
 		else
-		{
 			TileManager.TileDot.SetActive(false);
-		}
 	}
 	/// <summary>
 	/// Checks if Player is in a vehicle at specified world point
 	/// </summary>
-	/// <param name="WorldPoint"></param>
-	/// <param name="TilePoint"></param>
-	/// <param name="ShiftedClickPoint"></param>
-	/// <returns></returns>
 	private bool PlayerIsInVehicle(Vector3 WorldPoint, Vector3Int TilePoint, Vector3 ShiftedClickPoint)
 	{
 		// Return false if Player is not in a vehicle
 		if (!Player.IsInVehicle)
-		{
 			return false;
-		}
 		// If Player's vehicle is at clicked position, switch ignition
 		if (Player.Vehicle.transform.position == ShiftedClickPoint)
 		{
@@ -466,23 +437,16 @@ public class GameManager : MonoBehaviour
 		// If Player's vehicle is off and clicked tile is in movement range, try to exit vehicle
 		else if (!Player.Vehicle.Info.IsOn
 				&& TileManager.IsInMovementRange(TilePoint))
-		{
 			TryExitVehicle(WorldPoint, TilePoint, ShiftedClickPoint);
-		}
 		// If Player's vehicle is on, has fuel, and clicked tile is in movement range, try to move vehicle
 		else if (Player.Vehicle.Info.IsOn
 				&& Player.Vehicle.HasCharge())
-		{
 			TryVehicleMovement(WorldPoint, TilePoint, ShiftedClickPoint);
-		}
 		return true;
 	}
 	/// <summary>
 	/// Tries to exit Player's vehicle at specified world point
 	/// </summary>
-	/// <param name="WorldPoint"></param>
-	/// <param name="TilePoint"></param>
-	/// <param name="ShiftedClickPoint"></param>
 	private void TryExitVehicle(Vector3 WorldPoint, Vector3Int TilePoint, Vector3 ShiftedClickPoint)
 	{
 		// Check if Player's vehicle can exit to clicked tile
@@ -493,9 +457,7 @@ public class GameManager : MonoBehaviour
 			|| HasFireAtPosition(TilePoint)
 			|| ShiftedClickPoint == Player.transform.position
 			|| !Player.HasEnergy)
-		{
 			return;
-		}
 		// Player exits vehicle
 		TurnManager.SetEndTurnButtonInteractable(false);
 		Player.IsInMovement = true;
@@ -508,9 +470,6 @@ public class GameManager : MonoBehaviour
 	/// <summary>
 	/// Tries to move Player's vehicle to specified world point
 	/// </summary>
-	/// <param name="WorldPoint"></param>
-	/// <param name="TilePoint"></param>
-	/// <param name="ShiftedClickPoint"></param>
 	private void TryVehicleMovement(Vector3 WorldPoint, Vector3Int TilePoint, Vector3 ShiftedClickPoint)
 	{
 		// Check if Player's vehicle can move to clicked tile
@@ -520,9 +479,7 @@ public class GameManager : MonoBehaviour
 			|| HasEnemyAtPosition(ShiftedClickPoint)
 			|| HasFireAtPosition(TilePoint)
 			|| ShiftedClickPoint == Player.transform.position)
-		{
 			return;
-		}
 		// Start Player's vehicle movement
 		TurnManager.SetEndTurnButtonInteractable(false);
 		Player.IsInMovement = true;
@@ -533,34 +490,26 @@ public class GameManager : MonoBehaviour
 	/// <summary>
 	/// Tries to add an item to Player's inventory at specified shifted click point
 	/// </summary>
-	/// <param name="ShiftedClickPoint"></param>
-	/// <returns></returns>
 	private bool TryAddItem(Vector3 ShiftedClickPoint)
 	{
 		// Return false if Player is not adjacent to clicked position or if click fails
 		if (ShiftedClickPoint != Player.transform.position
 			|| GetItemAtPosition(ShiftedClickPoint) is not Item Item)
-		{
 			return false;
-		}
 		// Return false if Player's inventory is full
 		if (!Player.TryAddItem(Item))
-		{
 			return false;
-		}
 		ItemManager.DestroyItemAtPosition(ShiftedClickPoint);
 		return true;
 	}
 	/// <summary>
-	/// Tries to use a selected item directly on the clicked tile (e.g. fire tools).
+	/// Tries to use a selected item directly on the clicked tile
 	/// </summary>
 	private bool TryUseItemOnTile(Vector3Int TilePoint, Vector3 ShiftedClickPoint)
 	{
 		ItemInfo Selected = Player.SelectedItemInfo;
 		if (Selected == null)
-		{
 			return false;
-		}
 		// Extinguisher puts out fire on the clicked tile
 		if (Selected.Tag is ItemInfo.Tags.Extinguisher)
 		{
@@ -582,9 +531,7 @@ public class GameManager : MonoBehaviour
 				|| HasFireAtPosition(TilePoint)
 				|| HasExitTileAtPosition(TilePoint)
 				|| HasVehicleAtPosition(ShiftedClickPoint))
-			{
 				return false;
-			}
 			if (TrySpawnFire(TilePoint, false, true))
 			{
 				Player.UseItem();
@@ -599,16 +546,12 @@ public class GameManager : MonoBehaviour
 	/// <summary>
 	/// Tries use an item on Player at specified shifted click point
 	/// </summary>
-	/// <param name="ShiftedClickPoint"></param>
-	/// <returns></returns>
     private bool TryUseItemOnPlayer(Vector3 ShiftedClickPoint)
 	{
 		// Return false if Player is not adjacent to clicked position or if click fails
 		if (ShiftedClickPoint != Player.transform.position
 			|| !Player.ClickOnToUseItem())
-		{
 			return false;
-		}
 		TurnManager.TurnTimer.StartTimer();
 		UpdateTileAreas();
 		return true;
@@ -616,8 +559,6 @@ public class GameManager : MonoBehaviour
 	/// <summary>
 	/// Tries use an item on a vehicle at specified tile point
 	/// </summary>
-	/// <param name="TilePoint"></param>
-	/// <returns></returns>
 	private bool TryUseItemOnVehicle(Vector3Int TilePoint)
 	{
 		// Get vehicle index at position
@@ -628,9 +569,7 @@ public class GameManager : MonoBehaviour
 		// Return false if player is not adjacent to vehicle or if click fails
 		if (!IsPlayerAdjacentTo(Vehicle.transform.position)
 			|| !Player.ClickOnVehicleToUseItem(Vehicle))
-		{
 			return false;
-		}
 		TurnManager.TurnTimer.StartTimer();
 		UpdateTileAreas();
 		return true;
@@ -645,7 +584,6 @@ public class GameManager : MonoBehaviour
 		// Return false if player is not adjacent to vehicle or if vehicle is on fire
 		if (!IsPlayerAdjacentTo(Vehicle.transform.position)
 			|| HasFireAtPosition(TilePoint))
-		{
 			return false;
 		Player.EnterVehicle(Vehicle);
         TurnManager.TurnTimer.StartTimer();
@@ -656,10 +594,6 @@ public class GameManager : MonoBehaviour
 	/// <summary>
 	/// Tries to move Player to clicked tile point
 	/// </summary>
-	/// <param name="WorldPoint"></param>
-	/// <param name="TilePoint"></param>
-	/// <param name="ShiftedClickPoint"></param>
-	/// <returns></returns>
 	private bool TryPlayerMovement(Vector3 WorldPoint, Vector3Int TilePoint, Vector3 ShiftedClickPoint)
 	{
 		// Check if player can move to clicked tile
@@ -683,9 +617,7 @@ public class GameManager : MonoBehaviour
 	/// <summary>
 	/// Tries to attack an enemy at specified tile point
 	/// </summary>
-	/// <param name="TilePoint"></param>
-	/// <param name="ShiftedClickPoint"></param>
-    private void TryPlayerAttack(Vector3Int TilePoint, Vector3 ShiftedClickPoint)
+    private void TryPlayerAttack(Vector3 ShiftedClickPoint)
 	{
 		// Check if player can attack an enemy at clicked tile
 		bool isInMeleeRange = IsPlayerAdjacentTo(ShiftedClickPoint);
@@ -695,14 +627,10 @@ public class GameManager : MonoBehaviour
 			|| !isInMeleeRange
 			&& !isInRangedWeaponRange
 			|| Player.SelectedItemInfo?.Type is not ItemInfo.Types.Weapon)
-		{
 			return;
-		}
 		// Drop a rock after it is thrown
 		if (Player.SelectedItemInfo.Tag == ItemInfo.Tags.Rock)
-		{
 			SpawnItem((int)Player.SelectedItemInfo.Tag, ShiftedClickPoint);
-		}
 		// Handle damage to enemy
 		Enemy Enemy = GetEnemyAtPosition(ShiftedClickPoint);
 		EnemyManager.HandleDamageToEnemy(Enemy, Player.DamagePoints, Player.SelectedItemInfo.IsStunning);
@@ -715,8 +643,6 @@ public class GameManager : MonoBehaviour
 	/// <summary>
 	/// Checks if Player is adjacent to a specified position
 	/// </summary>
-	/// <param name="Position"></param>
-	/// <returns></returns>
 	private bool IsPlayerAdjacentTo(Vector3 Position) => Vector3.Distance(Player.transform.position, Position) <= 1.0f;
 	/// <summary>
 	/// Updates tile areas based on Player's movement and energy
@@ -725,9 +651,7 @@ public class GameManager : MonoBehaviour
     {
         // Only update areas if Player is not in movement and it is Player's turn
         if (Player.IsInMovement || !TurnManager.IsPlayersTurn)
-        {
             return;
-        }
         // Clear areas if player has no energy
         if (!Player.HasEnergy)
         {
@@ -739,27 +663,19 @@ public class GameManager : MonoBehaviour
         if (Player.IsInVehicle
             && Player.Vehicle.Info.IsOn
             && Player.Vehicle.HasCharge())
-        {
             AreasToDraw = Player.Vehicle.CalculateArea();
-        }
         // If Player is not in a vehicle, or is in a vehicle that is off, calculate player area
         else if (!Player.IsInVehicle
                 || (Player.IsInVehicle && !Player.Vehicle.Info.IsOn))
-        {
             AreasToDraw = Player.CalculateArea();
-        }
         // Draw areas if any needed
         if (AreasToDraw != null)
-        {
             TileManager.DrawTileAreas(AreasToDraw);
-        }
         // Clear areas if in vehicle with no charge
         else if (Player.IsInVehicle
                 && Player.Vehicle.Info.IsOn
                 && !Player.Vehicle.HasCharge())
-        {
             TileManager.ClearTileAreas();
-        }
     }
     /// <summary>
     /// Updates targets based on Player's weapon range and energy
@@ -770,8 +686,6 @@ public class GameManager : MonoBehaviour
 		if (Player.HasRange
 			&& TurnManager.IsPlayersTurn
 			&& Player.HasEnergy)
-		{
 			TileManager.DrawTargets(EnemyManager.Enemies, Player.transform.position, Player.WeaponRange, Player.SelectedItemInfo.IsStunning, TilemapWalls);
-		}
 	}
 }
