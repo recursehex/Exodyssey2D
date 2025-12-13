@@ -289,10 +289,10 @@ public class GameManager : MonoBehaviour
 	public void ClearTargets() 								=> TileManager.ClearTargets();
 	public bool HasEnemies() 								=> EnemyManager.Enemies.Count > 0;
 	public bool HasExitTileAtPosition(Vector3Int Position) => LevelManager.HasExitTileAtPosition(Position);
-	public bool HasFireAtPosition(Vector3Int Position) 		=> FireManager.HasFireAtCell(Position) == true;
-	public bool HasFireAtWorld(Vector3 Position) 			=> FireManager.HasFireAtWorld(Position) == true;
-	public bool TrySpawnFire(Vector3Int Position, bool isWildfire = false, bool guaranteeFirstSpread = false) => FireManager.TrySpawnFire(Position, isWildfire, guaranteeFirstSpread) == true;
-	public bool TryExtinguishFire(Vector3Int Position) 		=> FireManager.ExtinguishFire(Position) == true;
+	public bool HasFireAtPosition(Vector3Int Position) 		=> FireManager.HasFireAtCell(Position);
+	public bool HasFireAtWorld(Vector3 Position) 			=> FireManager.HasFireAtWorld(Position);
+	public bool TrySpawnFire(Vector3Int Position, bool isWildfire = false) => FireManager.TrySpawnFire(Position, isWildfire);
+	public bool TryExtinguishFire(Vector3Int Position) 		=> FireManager.ExtinguishFire(Position);
 	public int Level => LevelManager.Level;
 	public RegionManager GetRegionManager() => RegionManager;
     public void StopTurnTimer() => TurnManager.StopTurnTimer();
@@ -534,7 +534,7 @@ public class GameManager : MonoBehaviour
 				|| HasVehicleAtPosition(ShiftedClickPoint)
 				|| ShiftedClickPoint == Player.transform.position)
 				return false;
-			if (TrySpawnFire(TilePoint, false, true))
+			if (TrySpawnFire(TilePoint, false))
 			{
 				Player.UseItem();
 				TurnManager.TurnTimer.StartTimer();

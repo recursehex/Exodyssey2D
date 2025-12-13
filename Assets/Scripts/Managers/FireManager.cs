@@ -95,7 +95,7 @@ public class FireManager : MonoBehaviour
     /// <summary>
     /// Spawns a new fire tile at the specified cell if valid
     /// </summary>
-    public bool TrySpawnFire(Vector3Int Cell, bool isWildfire = false, bool guaranteeFirstSpread = false)
+    public bool TrySpawnFire(Vector3Int Cell, bool isWildfire = false)
     {
         if (FireCells.Contains(Cell)
             || BurnedCells.Contains(Cell)
@@ -110,7 +110,7 @@ public class FireManager : MonoBehaviour
             : new GameObject("Fire");
         if (!Instance.TryGetComponent(out Fire Fire))
             Fire = Instance.AddComponent<Fire>();
-        Fire.Initialize(Cell, isWildfire, lifetime, WorldPosition, guaranteeFirstSpread);
+        Fire.Initialize(Cell, isWildfire, lifetime, WorldPosition);
         ActiveFires.Add(Fire);
         FireCells.Add(Cell);
         if (isWildfire)
@@ -235,11 +235,11 @@ public class FireManager : MonoBehaviour
                 continue;
             }
             int spawnAllowance = Fire.IsWildfire ? wildfireBudget : maxNeighborSpread;
-            bool guaranteeInitialSpread = Fire.ConsumeGuaranteedSpread();
-            int spawned = TrySpreadFrom(Fire, NewFires, spawnAllowance, guaranteeInitialSpread);
-            if (Fire.IsWildfire)
-                wildfireBudget = Mathf.Max(0, wildfireBudget - spawned);
-        }
+        bool guaranteeInitialSpread = Fire.ConsumeGuaranteedSpread();
+        int spawned = TrySpreadFrom(Fire, NewFires, spawnAllowance, guaranteeInitialSpread);
+        if (Fire.IsWildfire)
+            wildfireBudget = Mathf.Max(0, wildfireBudget - spawned);
+    }
         NewFires.ForEach(Fire => TrySpawnFire(Fire.Cell, Fire.isWildfire));
         ExpiredFires.ForEach(Fire => RemoveFire(Fire, true));
     }

@@ -10,12 +10,12 @@ public class Fire : MonoBehaviour
     [SerializeField] private bool hasGuaranteedFirstSpread;
     public Vector3Int CellPosition { get; private set; }
     public bool IsWildfire { get; private set; }
-    public void Initialize(Vector3Int Cell, bool isWildfire, int lifetime, Vector3 WorldPosition, bool guaranteeFirstSpread)
+    public void Initialize(Vector3Int Cell, bool isWildfire, int lifetime, Vector3 WorldPosition)
     {
         CellPosition = Cell;
         IsWildfire = isWildfire;
         remainingLifetime = lifetime;
-        hasGuaranteedFirstSpread = guaranteeFirstSpread && !isWildfire;
+        hasGuaranteedFirstSpread = !isWildfire;
         transform.position = WorldPosition;
         // Restart animation so newly spawned fires always play from the start.
         if (Animator != null)
