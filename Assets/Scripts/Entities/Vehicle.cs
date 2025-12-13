@@ -110,12 +110,7 @@ public class Vehicle : MonoBehaviour
 	{
 		SoundManager.Instance.PlaySound(Hurt);
 		Info.DecreaseHealthBy(damage);
-		if (Info.CurrentHealth <= 0)
-		{
-			GameManager.Instance.DestroyVehicle(this);
-			return true;
-		}
-		return false;
+		return Info.CurrentHealth <= 0;
 	}
 	#endregion
 	#region CHARGE METHODS

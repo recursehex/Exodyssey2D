@@ -74,8 +74,8 @@ public class GameManager : MonoBehaviour
 		RegionManager	.Initialize();
 		EnemyManager	.Initialize(TilemapGround, TilemapWalls, EnemyTemplates);
 		ItemManager		.Initialize(ItemTemplates);
-		VehicleManager	.Initialize(TilemapGround, TilemapWalls, VehicleTemplates);
-		FireManager		.Initialize(TilemapGround, TilemapWalls, Player, EnemyManager, FireTemplate);
+		VehicleManager	.Initialize(TilemapGround, TilemapWalls, VehicleTemplates, Player);
+		FireManager		.Initialize(TilemapGround, TilemapWalls, Player, EnemyManager, VehicleManager, FireTemplate);
 		TileManager		.Initialize(TileDot, TileArea, TargetTemplate);
 		TurnManager		.Initialize(TurnTimer, EndTurnButton);
 		TilemapRevealAnimator.Initialize(TilemapGround, TilemapWalls);
@@ -283,6 +283,7 @@ public class GameManager : MonoBehaviour
 	public bool HasVehicleAtPosition(Vector3 Position) => VehicleManager.HasVehicleAtPosition(Position);
 	public Vehicle GetVehicleAtPosition(Vector3Int Position) => VehicleManager.GetVehicleAtPosition(Position);
 	public bool HasWallAtPosition(Vector3Int Position) 		=> LevelManager.HasWallAtPosition(Position);
+	public bool ApplyDamageToVehicle(Vehicle Vehicle, int damage) => VehicleManager.ApplyDamageToVehicle(Vehicle, damage);
 	public void DestroyVehicle(Vehicle Vehicle) 			=> VehicleManager.DestroyVehicle(Vehicle);
 	public void ClearTileAreas() 							=> TileManager.ClearTileAreas();
 	public void ClearTargets() 								=> TileManager.ClearTargets();
@@ -523,14 +524,15 @@ public class GameManager : MonoBehaviour
 				return true;
 			}
 		}
-		// Firestarters place a fire tile
+		// Firestarters place a fire tile, but only if no fire is already present, no wall, no exit tile, no vehicle or player at position
 		else if (Selected.Tag is ItemInfo.Tags.Blowtorch or ItemInfo.Tags.Flamethrower)
 		{
 			if (!IsPlayerAdjacentTo(ShiftedClickPoint) && !TileManager.IsInRangedWeaponRange(ShiftedClickPoint)
 				|| LevelManager.HasWallAtPosition(TilePoint)
 				|| HasFireAtPosition(TilePoint)
 				|| HasExitTileAtPosition(TilePoint)
-				|| HasVehicleAtPosition(ShiftedClickPoint))
+				|| HasVehicleAtPosition(ShiftedClickPoint)
+				|| ShiftedClickPoint == Player.transform.position)
 				return false;
 			if (TrySpawnFire(TilePoint, false, true))
 			{

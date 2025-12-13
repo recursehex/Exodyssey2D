@@ -11,6 +11,7 @@ public class FireManager : MonoBehaviour
     [SerializeField] private Tilemap TilemapWalls;
     [SerializeField] private Player Player;
     [SerializeField] private EnemyManager EnemyManager;
+    [SerializeField] private VehicleManager VehicleManager;
     [SerializeField] private GameObject FireTemplate;
     [Header("Behavior")]
     [SerializeField] private int lifetime = 3;
@@ -33,12 +34,13 @@ public class FireManager : MonoBehaviour
         new(0, -1, 0),
     };
     public void Initialize(Tilemap Ground, Tilemap Walls, Player Player,
-                           EnemyManager EnemyManager, GameObject FireTemplate)
+                           EnemyManager EnemyManager, VehicleManager VehicleManager, GameObject FireTemplate)
     {
         TilemapGround = Ground;
         TilemapWalls = Walls;
         this.Player = Player;
         this.EnemyManager = EnemyManager;
+        this.VehicleManager = VehicleManager;
         this.FireTemplate = FireTemplate;
     }
     /// <summary>
@@ -117,17 +119,19 @@ public class FireManager : MonoBehaviour
         return true;
     }
     /// <summary>
-    /// Advances fire state at the start of each faction's turn.
-    /// Applies damage to the active faction and progresses spread/burnout once per round
+    /// Advances fire state at the start of enemy turn.
+    /// Applies damage to entities on fire and progresses spread/burnout once per round
     /// </summary>
     public void HandleTurnStart(bool isPlayerTurn)
     {
         if (ActiveFires.Count == 0)
             return;
-        ApplyStandingDamage(isPlayerTurn);
-        // Only progress spread/burn on the player's turn to keep a single tick per round.
-        if (isPlayerTurn)
+        // Only progress spread/burn on enemy turn to keep a single tick per round.
+        if (!isPlayerTurn)
+        {
+            ApplyStandingDamage();
             SpreadAndBurnDown();
+        }
     }
     /// <summary>
     /// Attempts to start a natural wildfire for the current grid.
@@ -153,7 +157,7 @@ public class FireManager : MonoBehaviour
         }
     }
     /// <summary>
-    /// Handles destruction of flammable items and vehicles when fire occupies a cell
+    /// Handles destruction of flammable items when fire occupies a cell
     /// </summary>
     private void HandleEnvironmentContact(Vector3Int Cell)
     {
@@ -166,9 +170,6 @@ public class FireManager : MonoBehaviour
             GameManager.Instance.RemoveItemAtPosition(ItemAtCell);
             Destroy(ItemAtCell.gameObject);
         }
-        Vehicle VehicleAtCell = GameManager.Instance.GetVehicleAtPosition(Cell);
-        if (VehicleAtCell != null)
-            GameManager.Instance.DestroyVehicle(VehicleAtCell);
     }
     /// <summary>
     /// Picks a cell guaranteed to be near the top and bottom edges
@@ -187,17 +188,11 @@ public class FireManager : MonoBehaviour
         return new Vector3Int(x, y, 0);
     }
     /// <summary>
-    /// Applies damage to the active faction for standing in fire at turn start
+    /// Applies damage to entities on fire at enemy turn start
     /// </summary>
-    private void ApplyStandingDamage(bool applyToPlayer)
+    private void ApplyStandingDamage()
     {
-        if (applyToPlayer)
-        {
-            if (HasFireAtWorld(Player.transform.position))
-                Player.DecreaseHealthBy(fireDamage, false);
-            return;
-        }
-        // Damage enemies that start their turn standing in fire.
+        // Damage enemies on fire
         for (int i = EnemyManager.Enemies.Count - 1; i >= 0; i--)
         {
             Enemy Enemy = EnemyManager.Enemies[i];
@@ -205,8 +200,21 @@ public class FireManager : MonoBehaviour
                 continue;
             Vector3Int Cell = TilemapGround.WorldToCell(Enemy.transform.position);
             if (HasFireAtCell(Cell))
-                EnemyManager.HandleDamageToEnemy(i, fireDamage, false);
+                EnemyManager.HandleDamageToEnemy(Enemy, fireDamage, false);
         }
+        // Damage vehicles on fire
+        for (int i = VehicleManager.Vehicles.Count - 1; i >= 0; i--)
+        {
+            Vehicle Vehicle = VehicleManager.Vehicles[i];
+            if (Vehicle == null)
+                continue;
+            Vector3Int Cell = TilemapGround.WorldToCell(Vehicle.transform.position);
+            if (HasFireAtCell(Cell))
+                VehicleManager.ApplyDamageToVehicle(Vehicle, fireDamage);
+        }
+        // Damage player on fire if not in vehicle
+        if (!Player.IsInVehicle && HasFireAtWorld(Player.transform.position))
+            Player.DecreaseHealthBy(fireDamage, false);
     }
     /// <summary>
     /// Handles fire spread and burnout for all active fires

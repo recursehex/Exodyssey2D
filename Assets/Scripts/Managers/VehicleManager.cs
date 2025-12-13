@@ -13,11 +13,13 @@ public class VehicleManager : MonoBehaviour
     [SerializeField] private int spawnRetryMultiplier = 2;
     private Tilemap TilemapGround;
     private Tilemap TilemapWalls;
-    public void Initialize(Tilemap Ground, Tilemap Walls, GameObject[] Templates)
+    private Player Player;
+    public void Initialize(Tilemap Ground, Tilemap Walls, GameObject[] Templates, Player Player)
     {
         TilemapGround       = Ground;
         TilemapWalls        = Walls;
         VehicleTemplates    = Templates;
+        this.Player         = Player;
     }
     public void GenerateVehicles()
     {
@@ -59,6 +61,23 @@ public class VehicleManager : MonoBehaviour
     {
         Destroy(Vehicle.gameObject);
         Vehicles.Remove(Vehicle);
+    }
+    /// <summary>
+    /// Applies damage to a vehicle, handling destruction and ejecting the player if needed
+    /// </summary>
+    public bool ApplyDamageToVehicle(Vehicle Vehicle, int damage)
+    {
+        if (Vehicle == null)
+            return false;
+        bool isDestroyed = Vehicle.DecreaseHealthBy(damage);
+        if (isDestroyed)
+        {
+            if (Player.IsInVehicle
+                && Player.Vehicle == Vehicle)
+                Player.ExitVehicle();
+            DestroyVehicle(Vehicle);
+        }
+        return isDestroyed;
     }
     /// <summary>
     /// Destroys all vehicles except Player's vehicle
