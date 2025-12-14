@@ -238,22 +238,21 @@ public class FireManager : MonoBehaviour
                 continue;
             }
             int spawnAllowance = Fire.IsWildfire ? wildfireBudget : maxNeighborSpread;
-        bool guaranteeInitialSpread = Fire.ConsumeGuaranteedSpread();
-        int spawned = TrySpreadFrom(Fire, NewFires, spawnAllowance, guaranteeInitialSpread);
-        if (Fire.IsWildfire)
-            wildfireBudget = Mathf.Max(0, wildfireBudget - spawned);
-    }
+            int spawned = TrySpreadFrom(Fire, NewFires, spawnAllowance);
+            if (Fire.IsWildfire)
+                wildfireBudget = Mathf.Max(0, wildfireBudget - spawned);
+        }
         NewFires.ForEach(Fire => TrySpawnFire(Fire.Cell, Fire.isWildfire));
         ExpiredFires.ForEach(Fire => RemoveFire(Fire, true));
     }
     /// <summary>
     /// Attempts to spread fire from a given fire tile to neighboring cells
     /// </summary>
-    private int TrySpreadFrom(Fire Fire, List<(Vector3Int Cell, bool isWildfire)> NewFires, int spawnBudget, bool guaranteeAtLeastOne)
+    private int TrySpreadFrom(Fire Fire, List<(Vector3Int Cell, bool isWildfire)> NewFires, int spawnBudget)
     {
         if (spawnBudget <= 0)
             return 0;
-        // Each fire chooses a random number of tiles (0-maxNeighborSpread) to ignite if available; some may guarantee a minimum on first spread
+        // Each fire chooses a random number of tiles (0-maxNeighborSpread) to ignite if available
         List<Vector3Int> Candidates = GetNeighbors(Fire.CellPosition);
         Candidates.RemoveAll(Neighbor =>
             TilemapWalls.HasTile(Neighbor)
@@ -267,8 +266,7 @@ public class FireManager : MonoBehaviour
             int swapIndex = Random.Range(i, Candidates.Count);
             (Candidates[i], Candidates[swapIndex]) = (Candidates[swapIndex], Candidates[i]);
         }
-        int minSpread = guaranteeAtLeastOne ? 1 : 0;
-        int spreadCount = Random.Range(minSpread, maxNeighborSpread + 1); // inclusive minSpread-maxNeighborSpread
+        int spreadCount = Random.Range(0, maxNeighborSpread + 1); // inclusive 0-maxNeighborSpread
         spreadCount = Mathf.Min(spreadCount, Candidates.Count);
         spreadCount = Mathf.Min(spreadCount, spawnBudget);
         int spawned = 0;
