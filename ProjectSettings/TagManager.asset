@@ -8,6 +8,7 @@ TagManager:
   - Exit
   - Item
   - Vehicle
+  - Fire
   layers:
   - Default
   - TransparentFX
@@ -56,6 +57,9 @@ TagManager:
     locked: 0
   - name: Units
     uniqueID: 3975846713
+    locked: 0
+  - name: Fire
+    uniqueID: 1427339299
     locked: 0
   - name: Targets
     uniqueID: 1731597615
