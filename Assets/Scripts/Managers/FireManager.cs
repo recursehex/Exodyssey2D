@@ -98,7 +98,7 @@ public class FireManager : MonoBehaviour
     public bool TrySpawnFire(Vector3Int Cell, bool isWildfire = false)
     {
         if (FireCells.Contains(Cell)
-            || BurnedCells.Contains(Cell)
+            || (!isWildfire && BurnedCells.Contains(Cell))
             || !TilemapGround.cellBounds.Contains(Cell)
             || TilemapWalls.HasTile(Cell))
         {
@@ -115,6 +115,9 @@ public class FireManager : MonoBehaviour
         FireCells.Add(Cell);
         if (isWildfire)
             GameManager.Instance.RegisterObjectForTileReveal(WorldPosition, Fire.transform);
+        // Wildfire reclaiming a burned cell should clear the burned marker to allow full takeover
+        if (isWildfire)
+            BurnedCells.Remove(Cell);
         HandleEnvironmentContact(Cell);
         return true;
     }
@@ -252,7 +255,10 @@ public class FireManager : MonoBehaviour
             return 0;
         // Each fire chooses a random number of tiles (0-maxNeighborSpread) to ignite if available; some may guarantee a minimum on first spread
         List<Vector3Int> Candidates = GetNeighbors(Fire.CellPosition);
-        Candidates.RemoveAll(Neighbor => TilemapWalls.HasTile(Neighbor) || FireCells.Contains(Neighbor) || BurnedCells.Contains(Neighbor));
+        Candidates.RemoveAll(Neighbor =>
+            TilemapWalls.HasTile(Neighbor)
+            || FireCells.Contains(Neighbor)
+            || (!Fire.IsWildfire && BurnedCells.Contains(Neighbor)));
         if (Candidates.Count == 0)
             return 0;
         // Shuffle candidates to avoid directional bias
