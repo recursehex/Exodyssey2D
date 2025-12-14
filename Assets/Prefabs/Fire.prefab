@@ -10,10 +10,11 @@ GameObject:
   m_Component:
   - component: {fileID: 5493163340848916704}
   - component: {fileID: 2742986994626467021}
-  - component: {fileID: 2576940189252508582}
-  m_Layer: 0
+  - component: {fileID: -7832756772793357261}
+  - component: {fileID: -5075465301174850546}
+  m_Layer: 6
   m_Name: Fire
-  m_TagString: Item
+  m_TagString: Fire
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -78,11 +79,11 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
-  m_SortingLayerID: -988357577
-  m_SortingLayer: 3
+  m_SortingLayerID: 1427339299
+  m_SortingLayer: 5
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 21300000, guid: 85a6fca49215b4779abfd9d9a34280d3, type: 3}
+  m_Sprite: {fileID: -5610476261656198070, guid: 9bc50865f16784d6e801e3380a752c29, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -92,7 +93,7 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
---- !u!114 &2576940189252508582
+--- !u!114 &-7832756772793357261
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -101,6 +102,31 @@ MonoBehaviour:
   m_GameObject: {fileID: 2145379877062402088}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f77b79a927169a84eab89c7182254cdf, type: 3}
+  m_Script: {fileID: 11500000, guid: 77ffbdde6704a437e90cbee35132785a, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier: Assembly-CSharp::Fire
+  Animator: {fileID: 0}
+  remainingLifetime: 0
+  hasGuaranteedFirstSpread: 0
+--- !u!95 &-5075465301174850546
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2145379877062402088}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 704b4305091e84279887aefd64524f5d, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0

@@ -17,9 +17,10 @@ public class Fire : MonoBehaviour
         remainingLifetime = lifetime;
         hasGuaranteedFirstSpread = !isWildfire;
         transform.position = WorldPosition;
-        // Restart animation so newly spawned fires always play from the start.
-        if (Animator != null)
-            Animator.Play(0, 0, 0f);
+        if (Animator == null)
+            return;
+        Animator.Play(0, 0, 0f);
+        Animator.Update(0f);
     }
     /// <summary>
     /// Returns true if this fire should expire after this tick.
