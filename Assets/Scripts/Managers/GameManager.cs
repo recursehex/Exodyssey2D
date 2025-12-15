@@ -13,9 +13,8 @@ public class GameManager : MonoBehaviour
 	[SerializeField] private bool doingSetup;
 	public Vector3 PlayerStartPosition { get; } = new(-3.5f, 0.5f);
 	[SerializeField] private float FadeOutDuration = 2.0f;
-	[SerializeField] private float turnPhaseDelay = 0.5f;
+	[SerializeField] private float turnPhaseDelay = 0.25f;
 	private Coroutine TileRevealRoutine;
-	private Coroutine EnemyTurnDelayRoutine;
 	private Coroutine FireTurnRoutine;
 	private Coroutine PlayerTurnDelayRoutine;
 	[Header("Managers")]
@@ -323,15 +322,16 @@ public class GameManager : MonoBehaviour
 		Player.RestoreEnergy();
 		// Hide TileDot during enemy turn
 		TileManager.TileDot.SetActive(false);
+		TurnManager.SetEndTurnButtonInteractable(false);
 		if (FireTurnRoutine != null)
 		{
 			StopCoroutine(FireTurnRoutine);
 			FireTurnRoutine = null;
 		}
-		if (EnemyTurnDelayRoutine != null)
+		if (EnemyManager.Enemies.Count == 0 && Player.HasEnergy)
 		{
-			StopCoroutine(EnemyTurnDelayRoutine);
-			EnemyTurnDelayRoutine = null;
+			TileManager.ClearTileAreas();
+			TileManager.TileDot.SetActive(false);
 		}
 		EnemyManager.NeedToStartEnemyMovement = false;
 		FireTurnRoutine = StartCoroutine(RunEnemyTurnSequence());
@@ -353,6 +353,7 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	private void OnEnemyTurnEnded()
 	{
+		TurnManager.SetEndTurnButtonInteractable(false);
 		if (PlayerTurnDelayRoutine != null)
 		{
 			StopCoroutine(PlayerTurnDelayRoutine);
@@ -364,7 +365,7 @@ public class GameManager : MonoBehaviour
 	{
 		bool hadFires = FireManager.HasActiveFires();
 		if (turnPhaseDelay > 0f)
-			yield return new WaitForSeconds(turnPhaseDelay);
+			yield return new WaitForSecondsRealtime(turnPhaseDelay);
 		bool fireSpread = FireManager.HandleTurnStart(false);
 		if (EnemyManager.Enemies.Count == 0)
 		{
@@ -372,36 +373,27 @@ public class GameManager : MonoBehaviour
 			FireTurnRoutine = null;
 			yield break;
 		}
-		bool shouldDelayEnemies = hadFires && fireSpread && turnPhaseDelay > 0f;
-		if (!shouldDelayEnemies)
-		{
-			EnemyManager.NeedToStartEnemyMovement = true;
-			FireTurnRoutine = null;
-			yield break;
-		}
-		EnemyTurnDelayRoutine = StartCoroutine(StartEnemyTurnAfterDelay());
-		FireTurnRoutine = null;
-	}
-	private IEnumerator StartEnemyTurnAfterDelay()
-	{
-		if (turnPhaseDelay > 0f)
-			yield return new WaitForSeconds(turnPhaseDelay);
+		// Ensure a visible gap between fire resolution and enemy movement whenever fires were present
+		bool shouldDelayEnemies = hadFires && turnPhaseDelay > 0f;
+		if (shouldDelayEnemies)
+			yield return new WaitForSecondsRealtime(turnPhaseDelay);
 		if (EnemyManager.Enemies.Count == 0)
 			TurnManager.EndEnemyTurn();
 		else
 			EnemyManager.NeedToStartEnemyMovement = true;
-		EnemyTurnDelayRoutine = null;
+		FireTurnRoutine = null;
 	}
 	private IEnumerator StartPlayerTurnAfterDelay()
 	{
 		if (turnPhaseDelay > 0f)
-			yield return new WaitForSeconds(turnPhaseDelay);
+			yield return new WaitForSecondsRealtime(turnPhaseDelay);
 		FireManager.HandleTurnStart(true);
 		TileManager.TileDot.SetActive(true);
 		if (!Player.IsInVehicle)
 			UpdateTargets();
 		// Draw tile areas at start of player's turn
 		UpdateTileAreas();
+		TurnManager.SetEndTurnButtonInteractable(true);
 		PlayerTurnDelayRoutine = null;
 	}
 	/// <summary>

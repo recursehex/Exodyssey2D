@@ -863,6 +863,7 @@ MonoBehaviour:
   Player: {fileID: 569674968}
   doingSetup: 0
   FadeOutDuration: 2
+  turnPhaseDelay: 0.25
   RegionManager: {fileID: 429070325}
   EnemyTemplates:
   - {fileID: 8301553589233551289, guid: 3a66190a890058e44bc0653995faf798, type: 3}
@@ -2405,7 +2406,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 1261138627
-  m_SortingLayer: 6
+  m_SortingLayer: 7
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Sprite: {fileID: 21300000, guid: 9e869bf2679014b36864eb549f59c515, type: 3}
@@ -2856,7 +2857,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 1261138627
-  m_SortingLayer: 6
+  m_SortingLayer: 7
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Sprite: {fileID: 21300000, guid: 56a6433b7b39f477ead9d0009fa27d58, type: 3}
