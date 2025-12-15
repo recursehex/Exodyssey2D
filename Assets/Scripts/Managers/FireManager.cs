@@ -33,6 +33,15 @@ public class FireManager : MonoBehaviour
         new(0, 1, 0),
         new(0, -1, 0),
     };
+    public bool HasActiveFires()
+    {
+        for (int i = ActiveFires.Count - 1; i >= 0; i--)
+        {
+            if (ActiveFires[i] == null)
+                ActiveFires.RemoveAt(i);
+        }
+        return ActiveFires.Count > 0;
+    }
     public void Initialize(Tilemap Ground, Tilemap Walls, Player Player,
                            EnemyManager EnemyManager, VehicleManager VehicleManager, GameObject FireTemplate)
     {
@@ -122,19 +131,20 @@ public class FireManager : MonoBehaviour
         return true;
     }
     /// <summary>
-    /// Advances fire state at the start of enemy turn.
-    /// Applies damage to entities on fire and progresses spread/burnout once per round
+    /// Advances fire state at the start of a turn.
+    /// Returns true when fire successfully spreads this tick
     /// </summary>
-    public void HandleTurnStart(bool isPlayerTurn)
+    public bool HandleTurnStart(bool isPlayerTurn)
     {
         if (ActiveFires.Count == 0)
-            return;
+            return false;
         // Only progress spread/burn on enemy turn to keep a single tick per round.
         if (!isPlayerTurn)
         {
             ApplyStandingDamage();
-            SpreadAndBurnDown();
+            return SpreadAndBurnDown();
         }
+        return false;
     }
     /// <summary>
     /// Attempts to start a natural wildfire for the current grid.
@@ -222,7 +232,7 @@ public class FireManager : MonoBehaviour
     /// <summary>
     /// Handles fire spread and burnout for all active fires
     /// </summary>
-    private void SpreadAndBurnDown()
+    private bool SpreadAndBurnDown()
     {
         PendingSpawnCells.Clear();
         List<(Vector3Int Cell, bool isWildfire)> NewFires = new();
@@ -244,6 +254,7 @@ public class FireManager : MonoBehaviour
         }
         NewFires.ForEach(Fire => TrySpawnFire(Fire.Cell, Fire.isWildfire));
         ExpiredFires.ForEach(Fire => RemoveFire(Fire, true));
+        return NewFires.Count > 0;
     }
     /// <summary>
     /// Attempts to spread fire from a given fire tile to neighboring cells
