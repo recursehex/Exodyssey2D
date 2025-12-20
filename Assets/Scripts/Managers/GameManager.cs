@@ -571,13 +571,13 @@ public class GameManager : MonoBehaviour
 				return true;
 			}
 		}
-		// Firestarters place a fire tile, but only if no fire is already present, no wall, no exit tile, no vehicle or player at position
+		// Firestarters place a fire tile, but only if no fire, wall, enemy, vehicle, or player at position
 		else if (Selected.Tag is ItemInfo.Tags.Blowtorch or ItemInfo.Tags.Flamethrower)
 		{
 			if (!IsPlayerAdjacentTo(ShiftedClickPoint) && !TileManager.IsInRangedWeaponRange(ShiftedClickPoint)
 				|| LevelManager.HasWallAtPosition(TilePoint)
+				|| HasEnemyAtPosition(ShiftedClickPoint)
 				|| HasFireAtPosition(TilePoint)
-				|| HasExitTileAtPosition(TilePoint)
 				|| HasVehicleAtPosition(ShiftedClickPoint)
 				|| ShiftedClickPoint == Player.transform.position)
 				return false;
@@ -677,6 +677,25 @@ public class GameManager : MonoBehaviour
 			&& !isInRangedWeaponRange
 			|| Player.SelectedItemInfo?.Type is not ItemInfo.Types.Weapon)
 			return;
+		// Flamethrower spawns a fire, but only if no fire, wall, vehicle, or player at position
+		if (Player.SelectedItemInfo.Tag is ItemInfo.Tags.Blowtorch or ItemInfo.Tags.Flamethrower)
+		{
+			Vector3Int TilePoint = TilemapGround.WorldToCell(ShiftedClickPoint);
+			if (LevelManager.HasWallAtPosition(TilePoint)
+				|| HasFireAtPosition(TilePoint)
+				|| HasVehicleAtPosition(ShiftedClickPoint)
+				|| ShiftedClickPoint == Player.transform.position)
+				return;
+			if (TrySpawnFire(TilePoint, false))
+			{
+				Player.AttackEnemy();
+				TurnManager.TurnTimer.StartTimer();
+				TileManager.TileDot.SetActive(false);
+				UpdateTargets();
+				UpdateTileAreas();
+			}
+			return;
+		}
 		// Drop a rock after it is thrown
 		if (Player.SelectedItemInfo.Tag == ItemInfo.Tags.Rock)
 			SpawnItem((int)Player.SelectedItemInfo.Tag, ShiftedClickPoint);
