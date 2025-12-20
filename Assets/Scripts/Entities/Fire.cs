@@ -18,7 +18,6 @@ public class Fire : MonoBehaviour
         if (Animator == null)
             return;
         Animator.Play(0, 0, 0f);
-        Animator.Update(0f);
     }
     /// <summary>
     /// Returns true if this fire should expire after this tick.
