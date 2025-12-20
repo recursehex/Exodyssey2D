@@ -7,7 +7,7 @@
       "GroundTileSetName": "RO_Ground",
       "WallTileSetName": "RO_Walls",
       "EnemyPool": ["Weak"],
-      "ItemPool": ["Rare"],
+      "ItemPool": ["Common", "Limited"],
       "VehiclePool": ["Common", "Limited"],
       "Description": "The remains of a human base. Fires rage as an Explorator has crashed on a shelter."
     },
