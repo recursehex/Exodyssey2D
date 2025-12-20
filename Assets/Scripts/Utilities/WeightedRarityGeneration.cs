@@ -8,12 +8,12 @@ public static class WeightedRarityGeneration
 	private static bool GenerateRarityAndPosition<T>()
 	{
 		// Get allowed rarities based on entity type
-			List<Rarity> AllowedRarities = typeof(T).Name switch
-			{
-				nameof(Item) => ItemInfo.GetAllowedRarities(),
-				nameof(Enemy) => EnemyInfo.GetAllowedRarities(),
-				nameof(Vehicle) => VehicleInfo.GetAllowedRarities(),
-				_ => Rarity.RarityList
+		List<Rarity> AllowedRarities = typeof(T).Name switch
+		{
+			nameof(Item) => ItemInfo.GetAllowedRarities(),
+			nameof(Enemy) => EnemyInfo.GetAllowedRarities(),
+			nameof(Vehicle) => VehicleInfo.GetAllowedRarities(),
+			_ => Rarity.RarityList
 		};
 		// If no allowed rarities, fail
 		if (AllowedRarities.Count == 0)
@@ -56,7 +56,7 @@ public static class WeightedRarityGeneration
 		return false;
 	}
 	/// <summary>
-	/// Generates an item, enemy, or vehicle of a random rarity and position
+	/// Generates an item, enemy, or vehicle of a random rarity/type and position
 	/// </summary>
 	public static bool Generate<T>()
     {

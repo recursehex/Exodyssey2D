@@ -6,8 +6,8 @@
       "GridsRequired": 3,
       "GroundTileSetName": "RO_Ground",
       "WallTileSetName": "RO_Walls",
-      "EnemyPool": ["Common", "Limited"],
-      "ItemPool": ["Common", "Limited"],
+      "EnemyPool": ["Weak"],
+      "ItemPool": ["Rare"],
       "VehiclePool": ["Common", "Limited"],
       "Description": "The remains of a human base. Fires rage as an Explorator has crashed on a shelter."
     },
@@ -17,7 +17,7 @@
       "GridsRequired": 5,
       "GroundTileSetName": "FC_Ground",
       "WallTileSetName": "FC_Walls",
-      "EnemyPool": ["Common", "Limited"],
+      "EnemyPool": ["Weak"],
       "ItemPool": ["Common", "Limited", "Scarce"],
       "VehiclePool": ["Common", "Limited"],
       "Description": "Rolling hills with floating rocks and stone pillars. Only weak aliens roam the area."
@@ -28,7 +28,7 @@
       "GridsRequired": 5,
       "GroundTileSetName": "GD_Ground",
       "WallTileSetName": "GD_Walls",
-      "EnemyPool": ["Common", "Limited", "Scarce"],
+      "EnemyPool": ["Weak", "Mediocre"],
       "ItemPool": ["Common", "Limited", "Scarce"],
       "VehiclePool": ["Common", "Limited", "Scarce"],
       "Description": "Vast, flat glaciers and cold winds that few creatures survive. Stronger aliens emerge."
@@ -39,7 +39,7 @@
       "GridsRequired": 5,
       "GroundTileSetName": "SP_Ground",
       "WallTileSetName": "SP_Walls",
-      "EnemyPool": ["Common", "Limited", "Scarce"],
+      "EnemyPool": ["Weak", "Mediocre"],
       "ItemPool": ["Common", "Limited", "Scarce", "Rare"],
       "VehiclePool": ["Common", "Limited", "Scarce"],
       "Description": "Enormous mesa with rough terrain and a warm climate. More aliens appear."
@@ -50,7 +50,7 @@
       "GridsRequired": 7,
       "GroundTileSetName": "RR_Ground",
       "WallTileSetName": "RR_Walls",
-      "EnemyPool": ["Limited", "Scarce", "Anomalous"],
+      "EnemyPool": ["Weak", "Mediocre", "Exotic"],
       "ItemPool": ["Common", "Limited", "Scarce", "Rare", "Anomalous"],
       "VehiclePool": ["Common", "Limited", "Scarce", "Anomalous"],
       "Description": "Caverns filled with large trees that block sunlight. Exotic aliens start appearing."
@@ -61,7 +61,7 @@
       "GridsRequired": 7,
       "GroundTileSetName": "VV_Ground",
       "WallTileSetName": "VV_Walls",
-      "EnemyPool": ["Common", "Limited", "Scarce", "Rare"],
+      "EnemyPool": ["Weak", "Mediocre", "Strong"],
       "ItemPool": ["Common", "Limited", "Scarce", "Rare", "Anomalous"],
       "VehiclePool": ["Common", "Limited", "Scarce", "Rare"],
       "Description": "Dead landscape of volcanoes and lava flows. Very strong aliens appear, exotic ones disappear."
@@ -72,7 +72,7 @@
       "GridsRequired": 9,
       "GroundTileSetName": "LS_Ground",
       "WallTileSetName": "LS_Walls",
-      "EnemyPool": ["Common", "Anomalous"],
+      "EnemyPool": ["Weak", "Exotic"],
       "ItemPool": ["Common", "Limited", "Scarce", "Rare", "Anomalous"],
       "VehiclePool": ["Common", "Limited", "Scarce", "Rare", "Anomalous"],
       "Description": "Swampy landscape full of bioluminescent life. Only exotic and weak aliens are present."
@@ -83,7 +83,7 @@
       "GridsRequired": 9,
       "GroundTileSetName": "RC_Ground",
       "WallTileSetName": "RC_Walls",
-      "EnemyPool": ["Rare", "Anomalous"],
+      "EnemyPool": ["Strong", "Exotic"],
       "ItemPool": ["Common", "Limited", "Scarce", "Rare", "Anomalous"],
       "VehiclePool": ["Common", "Limited", "Scarce", "Rare", "Anomalous"],
       "Description": "Mountainous and snowy, strangely always night. Strong and exotic aliens rule the land."

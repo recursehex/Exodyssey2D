@@ -25,7 +25,7 @@ public class RegionInfo
     public string Description       => Data.Description;                    // Lore description
     public Tile[] GroundTiles       { get; set; }                           // Ground tiles for this region
     public Tile[] WallTiles         { get; set; }                           // Wall tiles for this region
-    public List<string> EnemyPool   => Data.EnemyPool;                      // Allowed enemy tags for this region
+    public List<string> EnemyPool   => Data.EnemyPool;                      // Allowed enemy types for this region
     public List<string> ItemPool    => Data.ItemPool;                       // Allowed item tags for this region
     public List<string> VehiclePool => Data.VehiclePool;                    // Allowed vehicle tags for this region
     private static RegionDatabase RegionDatabase;
@@ -94,9 +94,9 @@ public class RegionInfo
         Tag = Enum.TryParse(Data.Tag, out Tags ParsedTag) ? ParsedTag : Tags.Unknown;
     }
     /// <summary>
-    /// Checks if an enemy tag is allowed in this region's spawn pool
+    /// Checks if an enemy type is allowed in this region's spawn pool
     /// </summary>
-    public bool IsEnemyAllowed(string enemyTag) => EnemyPool.Contains(enemyTag);
+    public bool IsEnemyAllowed(string enemyType) => EnemyPool.Contains(enemyType);
     /// <summary>
     /// Checks if an item tag is allowed in this region's spawn pool
     /// </summary>

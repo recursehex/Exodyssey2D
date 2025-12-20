@@ -47,7 +47,9 @@ public class EnemyInfo
 	public bool IsStunned 		{ get; set; } = false;					// true = currently stunned, false = not
 	private static readonly int lastEnemyIndex = (int)Tags.Unknown;
 	private static readonly List<Rarity> EnemyRarityList = GenerateAllRarities();
+	private static readonly List<Types> EnemyTypeList = GenerateAllTypes();
 	private static EnemyDatabase EnemyDatabase;
+	private static string LastMissingTypeLogKey;
 	private static void LoadDatabase()
 	{
 		if (EnemyDatabase != null)
@@ -87,29 +89,104 @@ public class EnemyInfo
 		}
 		return Rarities;
 	}
+	private static List<Types> GenerateAllTypes()
+	{
+		LoadDatabase();
+		List<Types> TypeList = new();
+		// First, try to get types from JSON
+		if (EnemyDatabase != null
+		 && EnemyDatabase.Enemies != null)
+		{
+			for (int i = 0; i < lastEnemyIndex; i++)
+			{
+				Tags Tag = (Tags)i;
+				string TagName = Tag.ToString();
+				EnemyData Data = EnemyDatabase.Enemies.Find(Enemy => Enemy.Tag == TagName);
+				if (Data != null && !Data.disabled)
+				{
+					if (Enum.TryParse(Data.Type, out Types ParsedType))
+						TypeList.Add(ParsedType);
+					else
+						TypeList.Add(Types.Unknown);
+				}
+				// Skip disabled items
+				else if (Data != null && Data.disabled)
+					continue;
+				// Fallback to creating EnemyInfo if not found in JSON
+				else
+					TypeList.Add(new EnemyInfo(i).Type);
+			}
+		}
+		else
+		{
+			Debug.LogWarning($"Database failed to load, returning empty list");
+		}
+		return TypeList;
+	}
 	/// <summary>
-	/// Gets list of allowed rarities based on current region's enemy pool
+	/// Gets list of allowed types based on current region's enemy pool
+	/// </summary>
+	public static List<Types> GetAllowedTypes()
+	{
+        List<string> AllowedTypeNames = RegionManager.CurrentRegion.EnemyPool;
+		// No region filtering, return all types
+		if (AllowedTypeNames == null || AllowedTypeNames.Count == 0)
+			return new List<Types> { Types.Weak, Types.Mediocre, Types.Strong, Types.Exotic };
+		// Convert type names to Types
+		HashSet<Types> AllowedTypes = new();
+		foreach (string TypeName in AllowedTypeNames)
+		{
+			if (Enum.TryParse(TypeName, out Types ParsedType))
+				AllowedTypes.Add(ParsedType);
+			else
+				Debug.LogWarning($"Unknown enemy type: {TypeName}");
+		}
+		return new List<Types>(AllowedTypes);
+	}
+	/// <summary>
+	/// Gets list of allowed rarities based on allowed enemy types
 	/// </summary>
 	public static List<Rarity> GetAllowedRarities()
 	{
-		RegionManager RegionManager = GameManager.Instance.GetRegionManager();
-		List<string> AllowedRarityNames = RegionManager.CurrentRegion?.EnemyPool;
-		// No region filtering, return all rarities
-		if (AllowedRarityNames == null || AllowedRarityNames.Count == 0)
+		RegionInfo.Tags RegionTag = RegionManager.CurrentRegion.Tag;
+		List<Types> AllowedTypes = GetAllowedTypes();
+		if (AllowedTypes == null || AllowedTypes.Count == 0)
 			return new List<Rarity>(Rarity.RarityList);
-		// Convert rarity names to Rarity objects
+		HashSet<Types> AllowedTypeSet = new(AllowedTypes);
 		HashSet<Rarity> AllowedRarities = new();
-		foreach (string RarityName in AllowedRarityNames)
+		int Count = Mathf.Min(EnemyRarityList.Count, EnemyTypeList.Count);
+		int eligibleEnemyCount = 0;
+		for (int i = 0; i < Count; i++)
 		{
-			Rarity Rarity = Rarity.Parse(RarityName);
-			AllowedRarities.Add(Rarity);
+			if (AllowedTypeSet.Contains(EnemyTypeList[i]))
+			{
+				AllowedRarities.Add(EnemyRarityList[i]);
+				eligibleEnemyCount++;
+			}
+		}
+		List<Types> OrderedTypes = new(AllowedTypes);
+		OrderedTypes.Sort();
+		string allowedTypesString = string.Join(", ", OrderedTypes);
+		string logKey = $"{RegionTag}:{allowedTypesString}";
+		// Log if no eligible enemies found for the region
+		if (eligibleEnemyCount == 0 && logKey != LastMissingTypeLogKey)
+		{
+			Debug.Log($"No enemy definitions match region {RegionTag} allowed types [{allowedTypesString}].");
+			LastMissingTypeLogKey = logKey;
 		}
 		return new List<Rarity>(AllowedRarities);
 	}
 	public static int GetRandomIndexFrom(Rarity Rarity)
 	{
-		List<int> Indices = Enumerable.Range(0, EnemyRarityList.Count)
-									  .Where(i => EnemyRarityList[i] == Rarity)
+		List<Types> AllowedTypes = GetAllowedTypes();
+		HashSet<Types> AllowedTypeSet = AllowedTypes == null || AllowedTypes.Count == 0
+			? null
+			: new(AllowedTypes);
+		int Count = Mathf.Min(EnemyRarityList.Count, EnemyTypeList.Count);
+		List<int> Indices = Enumerable.Range(0, Count)
+									  .Where(i => EnemyRarityList[i] == Rarity
+											&& (AllowedTypeSet == null
+											|| AllowedTypeSet.Contains(EnemyTypeList[i])))
 									  .ToList();
 		if (Indices.Count == 0)
 			return -1;

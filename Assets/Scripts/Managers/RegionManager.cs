@@ -134,9 +134,9 @@ public class RegionManager : MonoBehaviour
     /// </summary>
     public Tile[] GetCurrentWallTiles() => CurrentRegion?.WallTiles;
     /// <summary>
-    /// Checks if an enemy is allowed in the current region
+    /// Checks if an enemy type is allowed in the current region
     /// </summary>
-    public bool IsEnemyAllowedInRegion(string enemyTag) => CurrentRegion?.IsEnemyAllowed(enemyTag) ?? false;
+    public bool IsEnemyAllowedInRegion(string EnemyType) => CurrentRegion?.IsEnemyAllowed(EnemyType) ?? false;
     /// <summary>
     /// Checks if an item is allowed in the current region
     /// </summary>
