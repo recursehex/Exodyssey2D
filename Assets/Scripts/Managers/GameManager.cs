@@ -754,6 +754,25 @@ public class GameManager : MonoBehaviour
 		if (Player.HasRange
 			&& TurnManager.IsPlayersTurn
 			&& Player.HasEnergy)
-			TileManager.DrawTargets(EnemyManager.Enemies, Player.transform.position, Player.WeaponRange, Player.SelectedItemInfo.IsStunning, TilemapWalls);
+		{
+			// When flamethrower is equipped, don't draw targets on enemies on fire
+			if (Player.SelectedItemInfo.Tag is ItemInfo.Tags.Flamethrower)
+			{
+				List<Enemy> TargetableEnemies = new();
+				foreach (Enemy Enemy in EnemyManager.Enemies)
+				{
+					if (Enemy == null)
+						continue;
+					if (HasFireAtWorld(Enemy.transform.position))
+						continue;
+					TargetableEnemies.Add(Enemy);
+				}
+				TileManager.DrawTargets(TargetableEnemies, Player.transform.position, Player.WeaponRange, Player.SelectedItemInfo.IsStunning, TilemapWalls);
+			}
+			else
+			{
+				TileManager.DrawTargets(EnemyManager.Enemies, Player.transform.position, Player.WeaponRange, Player.SelectedItemInfo.IsStunning, TilemapWalls);
+			}
+		}
 	}
 }
