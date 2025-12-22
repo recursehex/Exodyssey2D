@@ -104,10 +104,10 @@ public class FireManager : MonoBehaviour
     /// <summary>
     /// Spawns a new fire tile at the specified cell if valid
     /// </summary>
-    public bool TrySpawnFire(Vector3Int Cell, bool isWildfire = false)
+    public bool TrySpawnFire(Vector3Int Cell, bool isWildfire = false, bool allowBurnedCell = false)
     {
         if (FireCells.Contains(Cell)
-            || (!isWildfire && BurnedCells.Contains(Cell))
+            || (!isWildfire && !allowBurnedCell && BurnedCells.Contains(Cell))
             || !TilemapGround.cellBounds.Contains(Cell)
             || TilemapWalls.HasTile(Cell))
         {
@@ -125,7 +125,7 @@ public class FireManager : MonoBehaviour
         if (isWildfire)
             GameManager.Instance.RegisterObjectForTileReveal(WorldPosition, Fire.transform);
         // Wildfire reclaiming a burned cell should clear the burned marker to allow full takeover
-        if (isWildfire)
+        if (isWildfire || allowBurnedCell)
             BurnedCells.Remove(Cell);
         HandleEnvironmentContact(Cell);
         return true;

@@ -294,7 +294,7 @@ public class GameManager : MonoBehaviour
 	public bool HasExitTileAtPosition(Vector3Int Position) => LevelManager.HasExitTileAtPosition(Position);
 	public bool HasFireAtPosition(Vector3Int Position) 		=> FireManager.HasFireAtCell(Position);
 	public bool HasFireAtWorld(Vector3 Position) 			=> FireManager.HasFireAtWorld(Position);
-	public bool TrySpawnFire(Vector3Int Position, bool isWildfire = false) => FireManager.TrySpawnFire(Position, isWildfire);
+	public bool TrySpawnFire(Vector3Int Position, bool isWildfire = false, bool allowBurnedCell = false) => FireManager.TrySpawnFire(Position, isWildfire, allowBurnedCell);
 	public bool TryExtinguishFire(Vector3Int Position) 		=> FireManager.ExtinguishFire(Position);
 	public int Level => LevelManager.Level;
 	public RegionManager GetRegionManager() => RegionManager;
@@ -581,7 +581,7 @@ public class GameManager : MonoBehaviour
 				|| HasVehicleAtPosition(ShiftedClickPoint)
 				|| ShiftedClickPoint == Player.transform.position)
 				return false;
-			if (TrySpawnFire(TilePoint, false))
+			if (TrySpawnFire(TilePoint, false, true))
 			{
 				Player.UseItem();
 				TurnManager.TurnTimer.StartTimer();
@@ -677,7 +677,7 @@ public class GameManager : MonoBehaviour
 			&& !isInRangedWeaponRange
 			|| Player.SelectedItemInfo?.Type is not ItemInfo.Types.Weapon)
 			return;
-		// Flamethrower spawns a fire, but only if no fire, wall, vehicle, or player at position
+		// Flamethrower sprays a fire streak; blowtorch spawns a single fire tile
 		if (Player.SelectedItemInfo.Tag is ItemInfo.Tags.Blowtorch or ItemInfo.Tags.Flamethrower)
 		{
 			Vector3Int TilePoint = TilemapGround.WorldToCell(ShiftedClickPoint);
@@ -686,7 +686,10 @@ public class GameManager : MonoBehaviour
 				|| HasVehicleAtPosition(ShiftedClickPoint)
 				|| ShiftedClickPoint == Player.transform.position)
 				return;
-			if (TrySpawnFire(TilePoint, false))
+			bool spawnedFire = Player.SelectedItemInfo.Tag is ItemInfo.Tags.Flamethrower
+				? TrySpawnFlamethrowerLine(ShiftedClickPoint)
+				: TrySpawnFire(TilePoint, false, true);
+			if (spawnedFire)
 			{
 				Player.AttackEnemy();
 				TurnManager.TurnTimer.StartTimer();
@@ -707,6 +710,24 @@ public class GameManager : MonoBehaviour
 		TileManager.TileDot.SetActive(false);
 		UpdateTargets();
 		UpdateTileAreas();
+	}
+	/// <summary>
+	/// Spawns a flamethrower fire streak between Player and target
+	/// </summary>
+	private bool TrySpawnFlamethrowerLine(Vector3 TargetWorldPosition)
+	{
+		Vector3Int TargetCell = TilemapGround.WorldToCell(TargetWorldPosition);
+		if (!TrySpawnFire(TargetCell, false, true))
+			return false;
+		List<Vector3Int> LineCells = TileManager.BresenhamsAlgorithm(Player.transform.position, TargetWorldPosition);
+		Vector3Int PlayerCell = TilemapGround.WorldToCell(Player.transform.position);
+		foreach (Vector3Int Cell in LineCells)
+		{
+			if (Cell == PlayerCell || Cell == TargetCell)
+				continue;
+			TrySpawnFire(Cell, false, true);
+		}
+		return true;
 	}
 	/// <summary>
 	/// Checks if Player is adjacent to a specified position

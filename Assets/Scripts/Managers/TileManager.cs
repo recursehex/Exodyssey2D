@@ -90,19 +90,18 @@ public class TileManager : MonoBehaviour
         if (distance > weaponRange)
             return false;
         // Check if there are walls in the line of sight
-        List<Vector3> Path = BresenhamsAlgorithm(PlayerPosition, EnemyPosition);
-        foreach (Vector3 Position in Path)
+        List<Vector3Int> Path = BresenhamsAlgorithm(PlayerPosition, EnemyPosition);
+        foreach (Vector3Int Position in Path)
         {
-            Vector3Int PositionInt = Vector3Int.FloorToInt(Position);
-            if (Walls.HasTile(PositionInt))
+            if (Walls.HasTile(Position))
                 return false;
         }
         return true;
     }    
     /// <summary>
-    /// Bresenham's Line Algorithm to get points between two positions
+    /// Bresenham's Line Algorithm to get cells between two positions
     /// </summary>
-    private static List<Vector3> BresenhamsAlgorithm(Vector3 Start, Vector3 End)
+    public static List<Vector3Int> BresenhamsAlgorithm(Vector3 Start, Vector3 End)
     {
         // Ensure Start and End are Vector3Int
         Vector3Int StartInt = Vector3Int.FloorToInt(Start);
@@ -112,7 +111,7 @@ public class TileManager : MonoBehaviour
         int x1 = EndInt.x;
         int y1 = EndInt.y;
         // Initialize list to hold points on the line
-        List<Vector3> PointsOnLine = new();
+        List<Vector3Int> PointsOnLine = new();
         int dx = Mathf.Abs(x1 - x0);
         int dy = Mathf.Abs(y1 - y0);
         int sx = (x0 < x1) ? 1 : -1;
@@ -121,7 +120,7 @@ public class TileManager : MonoBehaviour
         // Bresenham's algorithm loop
         while (true)
         {
-            PointsOnLine.Add(new(x0, y0));
+            PointsOnLine.Add(new(x0, y0, 0));
             if ((x0 == x1) && (y0 == y1))
                 break;
             int e2 = 2 * err;
