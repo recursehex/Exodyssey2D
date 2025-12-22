@@ -196,7 +196,12 @@ public class AStar
 		ClosedList.Add(Current);
 		// If the OpenList has nodes in it, then sort them by F value
 		if (OpenList.Count > 0)
-			Current = OpenList.OrderBy(x => x.F).First();
+			Current = OpenList
+				.OrderBy(Node => Node.F)
+				.ThenBy(Node => Node.Turns)
+				.ThenBy(Node => Node.AlignmentCost)
+				.ThenBy(Node => Node.H)
+				.First();
 	}
 	/// <summary>
 	/// Generates path from current node to the goal position
@@ -247,16 +252,56 @@ public class AStar
 	/// <summary>
 	/// Calculates G, H, and F values for neighbor node
 	/// </summary>
-	private void CalculateNodeValues(Node Parent, Node Neighbor, Vector3Int GoalPos, int cost)
+	private void CalculateNodeValues(Node Parent, Node Neighbor, Vector3Int GoalPosition, int cost)
 	{
 		// Sets the parent node
 		Neighbor.Parent = Parent;
 		// Calculates this node's G cost, the parent's G cost + what it costs to move to this node
 		Neighbor.G = Parent.G + cost;
 		// H is calculated, it is the distance from this node to the goal * 10
-		Neighbor.H = (Math.Abs(Neighbor.Position.x - GoalPos.x) + Math.Abs(Neighbor.Position.y - GoalPos.y)) * MoveCostPerTile;
+		Neighbor.H = GetHeuristicCost(Neighbor.Position, GoalPosition);
 		// F is calculated, it is G + H
 		Neighbor.F = Neighbor.G + Neighbor.H;
+		// Track turn count to prefer straighter paths when costs are tied
+		Neighbor.Turns = GetTurnCount(Parent, Neighbor);
+		// Prefer steps that align with the goal direction when costs are tied
+		Neighbor.AlignmentCost = GetAlignmentCost(Parent, Neighbor, GoalPosition);
+	}
+	/// <summary>
+	/// Gets heuristic cost for the current movement rules
+	/// </summary>
+	private int GetHeuristicCost(Vector3Int position, Vector3Int GoalPosition)
+	{
+		int dx = Math.Abs(position.x - GoalPosition.x);
+		int dy = Math.Abs(position.y - GoalPosition.y);
+		int distance = allowDiagonal ? Math.Max(dx, dy) : dx + dy;
+		return distance * MoveCostPerTile;
+	}
+	/// <summary>
+	/// Counts turns along the current path to prefer straighter routes
+	/// </summary>
+	private int GetTurnCount(Node Parent, Node Neighbor)
+	{
+		if (Parent == null || Parent.Parent == null)
+			return 0;
+		Vector3Int PreviousDirection = Parent.Position - Parent.Parent.Position;
+		Vector3Int CurrentDirection = Neighbor.Position - Parent.Position;
+		int turn = PreviousDirection == CurrentDirection ? 0 : 1;
+		return Parent.Turns + turn;
+	}
+	/// <summary>
+	/// Gets a lower score for steps that align with the goal direction
+	/// </summary>
+	private int GetAlignmentCost(Node Parent, Node Neighbor, Vector3Int GoalPosition)
+	{
+		if (Parent == null)
+			return 0;
+		Vector3Int GoalVector = GoalPosition - Parent.Position;
+		if (GoalVector == Vector3Int.zero)
+			return 0;
+		Vector3Int stepVector = Neighbor.Position - Parent.Position;
+		int cross = Math.Abs(stepVector.x * GoalVector.y - stepVector.y * GoalVector.x);
+		return cross;
 	}
 	/// <summary>
 	/// Gets or creates node at specified position
@@ -278,6 +323,8 @@ public class Node
 	public int G { get; set; }
 	public int H { get; set; }
 	public int F { get; set; }
+	public int Turns { get; set; }
+	public int AlignmentCost { get; set; }
 	public Node Parent { get; set; }
 	public Vector3Int Position { get; set; }
 	public bool HasEntity { get; set; } = false;
