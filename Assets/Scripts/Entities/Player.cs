@@ -238,7 +238,6 @@ public class Player : MonoBehaviour
 		// Game over if Player is killed
 		if (currentHealth <= 0)
 		{
-			SoundManager.Instance.PlaySound(GameOver);
 			GameManager.Instance.GameOver();
 			return;
 		}

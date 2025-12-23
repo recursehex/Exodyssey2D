@@ -12,7 +12,6 @@ public class GameManager : MonoBehaviour
 	[SerializeField] private Player Player;
 	[SerializeField] private bool doingSetup;
 	public Vector3 PlayerStartPosition { get; } = new(-3.5f, 0.5f);
-	[SerializeField] private float FadeOutDuration = 2.0f;
 	[SerializeField] private float turnPhaseDelay = 0.25f;
 	private Coroutine TileRevealRoutine;
 	private Coroutine FireTurnRoutine;
@@ -48,6 +47,8 @@ public class GameManager : MonoBehaviour
 	[SerializeField] private Tilemap TilemapGround;
 	[SerializeField] private Tilemap TilemapWalls;
 	[SerializeField] private Tilemap TilemapExit;
+	[Header("Audio")]
+	[SerializeField] private AudioClip GameOverClip;
 	void Awake()
 	{
 		if (Instance == null)
@@ -213,7 +214,7 @@ public class GameManager : MonoBehaviour
 	public void GameOver()
 	{
 		CleanupWorldEntities();
-		StartCoroutine(SoundManager.Instance.FadeOutMusic(FadeOutDuration));
+		SoundManager.Instance.PlayGameOver(GameOverClip);
 		LevelManager.ShowGameOver();
 		NewGameButton.gameObject.SetActive(true);
 		TurnManager.SetEndTurnButtonInteractable(false);

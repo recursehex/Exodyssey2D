@@ -908,6 +908,7 @@ MonoBehaviour:
   TilemapGround: {fileID: 2052983298}
   TilemapWalls: {fileID: 1335406084}
   TilemapExit: {fileID: 2025662172}
+  GameOverClip: {fileID: 8300000, guid: e2beefeb2273f4efe992adf5b8d67c29, type: 3}
 --- !u!4 &423806397
 Transform:
   m_ObjectHideFlags: 0
