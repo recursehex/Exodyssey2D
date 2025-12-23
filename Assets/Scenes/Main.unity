@@ -379,6 +379,8 @@ MonoBehaviour:
   MusicSource: {fileID: 215762112}
   pitchJitterMin: 0.95
   pitchJitterMax: 1.05
+  clipVolume: 1
+  fadeDuration: 0.5
 --- !u!82 &215762112
 AudioSource:
   m_ObjectHideFlags: 0
@@ -862,7 +864,6 @@ MonoBehaviour:
   MainCamera: {fileID: 519420031}
   Player: {fileID: 569674968}
   doingSetup: 0
-  FadeOutDuration: 2
   turnPhaseDelay: 0.25
   RegionManager: {fileID: 429070325}
   EnemyTemplates:
@@ -908,7 +909,7 @@ MonoBehaviour:
   TilemapGround: {fileID: 2052983298}
   TilemapWalls: {fileID: 1335406084}
   TilemapExit: {fileID: 2025662172}
-  GameOverClip: {fileID: 8300000, guid: e2beefeb2273f4efe992adf5b8d67c29, type: 3}
+  GameOverClip: {fileID: 8300000, guid: 57ff8525194ae4d56b664dd97112b627, type: 3}
 --- !u!4 &423806397
 Transform:
   m_ObjectHideFlags: 0
