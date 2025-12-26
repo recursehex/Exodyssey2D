@@ -171,9 +171,11 @@ public class AStar
 		{
 			Node Neighbor = Neighbors[i];
 			int gScore = MoveCostPerTile;
+			int candidateG = Current.G + gScore;
 			if (OpenList.Contains(Neighbor))
 			{
-				if (Current.G + gScore < Neighbor.G)
+				// Prefer straighter/tighter paths when the total move cost is the same
+				if (IsBetterPath(Current, Neighbor, candidateG))
 					CalculateNodeValues(Current, Neighbor, GoalPosition, gScore);
 			}
 			else if (!ClosedList.Contains(Neighbor))
@@ -184,6 +186,27 @@ public class AStar
 					OpenList.Add(Neighbor);
 			}
 		}
+	}
+	/// <summary>
+	/// Determines whether the new path to a node is better than its existing one
+	/// </summary>
+	private bool IsBetterPath(Node Parent, Node Neighbor, int candidateG)
+	{
+		if (candidateG < Neighbor.G)
+			return true;
+		if (candidateG > Neighbor.G)
+			return false;
+		int candidateAlignmentCost = Parent.AlignmentCost + GetAlignmentCost(Neighbor.Position, StartPosition, GoalPosition);
+		if (candidateAlignmentCost < Neighbor.AlignmentCost)
+			return true;
+		if (candidateAlignmentCost > Neighbor.AlignmentCost)
+			return false;
+		int candidateTurns = GetTurnCount(Parent, Neighbor);
+		if (candidateTurns < Neighbor.Turns)
+			return true;
+		if (candidateTurns > Neighbor.Turns)
+			return false;
+		return false;
 	}
 	/// <summary>
 	/// Updates the current tile to next tile with lowest F value
@@ -198,8 +221,8 @@ public class AStar
 		if (OpenList.Count > 0)
 			Current = OpenList
 				.OrderBy(Node => Node.F)
-				.ThenBy(Node => Node.Turns)
 				.ThenBy(Node => Node.AlignmentCost)
+				.ThenBy(Node => Node.Turns)
 				.ThenBy(Node => Node.H)
 				.First();
 	}
@@ -264,8 +287,8 @@ public class AStar
 		Neighbor.F = Neighbor.G + Neighbor.H;
 		// Track turn count to prefer straighter paths when costs are tied
 		Neighbor.Turns = GetTurnCount(Parent, Neighbor);
-		// Prefer steps that align with the goal direction when costs are tied
-		Neighbor.AlignmentCost = GetAlignmentCost(Parent, Neighbor, GoalPosition);
+		// Prefer paths that stay closer to the ideal line from start to goal when costs are tied
+		Neighbor.AlignmentCost = Parent.AlignmentCost + GetAlignmentCost(Neighbor.Position, StartPosition, GoalPosition);
 	}
 	/// <summary>
 	/// Gets heuristic cost for the current movement rules
@@ -290,17 +313,15 @@ public class AStar
 		return Parent.Turns + turn;
 	}
 	/// <summary>
-	/// Gets a lower score for steps that align with the goal direction
+	/// Gets a lower score for positions closer to the start-goal line
 	/// </summary>
-	private int GetAlignmentCost(Node Parent, Node Neighbor, Vector3Int GoalPosition)
+	private int GetAlignmentCost(Vector3Int position, Vector3Int StartPosition, Vector3Int GoalPosition)
 	{
-		if (Parent == null)
+		Vector3Int LineVector = GoalPosition - StartPosition;
+		if (LineVector == Vector3Int.zero)
 			return 0;
-		Vector3Int GoalVector = GoalPosition - Parent.Position;
-		if (GoalVector == Vector3Int.zero)
-			return 0;
-		Vector3Int stepVector = Neighbor.Position - Parent.Position;
-		int cross = Math.Abs(stepVector.x * GoalVector.y - stepVector.y * GoalVector.x);
+		Vector3Int PositionVector = position - StartPosition;
+		int cross = Math.Abs(PositionVector.x * LineVector.y - PositionVector.y * LineVector.x);
 		return cross;
 	}
 	/// <summary>
