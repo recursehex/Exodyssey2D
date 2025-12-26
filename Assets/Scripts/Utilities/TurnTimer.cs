@@ -9,6 +9,7 @@ public class TurnTimer : MonoBehaviour
 	public Text TimeText;
 	private static Color NormalColor = new(115/255f, 119/255f, 160/255f);
 	private static Color OutOfTimeColor = new(172/255f, 22/255f, 45/255f);
+	private int lastDisplayedSeconds = -1;
 	public void StartTimer() => timerIsRunning = true;
 	public void StopTimer()
 	{
@@ -22,6 +23,7 @@ public class TurnTimer : MonoBehaviour
 	{
 		timeRemaining = timerLimit;
 		TimeText.color = NormalColor;
+		lastDisplayedSeconds = -1;
 		DisplayTime(timeRemaining);
 	}
 	void Update()
@@ -39,7 +41,10 @@ public class TurnTimer : MonoBehaviour
 	}
 	private void DisplayTime(float timeToDisplay)
 	{
-		float seconds = Mathf.FloorToInt(timeToDisplay % 60);
+		int seconds = Mathf.FloorToInt(timeToDisplay % 60);
+		if (seconds == lastDisplayedSeconds)
+			return;
+		lastDisplayedSeconds = seconds;
 		TimeText.text = string.Format(":{0:00}", seconds);
 	}
 }

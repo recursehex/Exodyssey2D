@@ -109,9 +109,10 @@ public class GameManager : MonoBehaviour
 			|| Player.IsInMovement
 			|| Player.IsInVehicle && Player.Vehicle.IsInMovement)
 			return;
-		InputManager.ProcessInput();
+		if (TurnManager.IsPlayersTurn)
+			InputManager.ProcessInput();
 		// Process enemy movement if it is not Player's turn
-		if (!TurnManager.IsPlayersTurn)
+		if (!TurnManager.IsPlayersTurn && EnemyManager.IsProcessingEnemyMovement)
 			EnemyManager.ProcessEnemyMovement(() => TurnManager.EndEnemyTurn());
 	}
 	private void OnDestroy()
@@ -233,9 +234,7 @@ public class GameManager : MonoBehaviour
 		LevelManager.ResetLevelProgress();
 		TurnManager.ResetTurnState();
 		Player.ResetForNewGame(PlayerStartPosition);
-		TileManager.TileDot.SetActive(false);
 		SoundManager.Instance.PlayMusic();
-		FireManager.DestroyAllFires();
 		InitGame();
 	}
 	/// <summary>
@@ -346,7 +345,6 @@ public class GameManager : MonoBehaviour
 		Player.SetEnergyToZero();
 		TileManager.ClearTileAreas();
 		TileManager.ClearTargets();
-		TileDot.SetActive(false);
 		TurnManager.OnTurnTimerEnd();
 	}
 	/// <summary>

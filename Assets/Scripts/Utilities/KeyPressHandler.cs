@@ -11,7 +11,9 @@ public class KeyPressHandler : MonoBehaviour
 
     void Update()
     {
-        if ((Input.GetKeyDown(PrimaryKey) || Input.GetKeyDown(SecondaryKey)) && Button.interactable)
+        if (!Button.interactable)
+            return;
+        if (Input.GetKeyDown(PrimaryKey) || Input.GetKeyDown(SecondaryKey))
             Button.onClick.Invoke();
     }
 }

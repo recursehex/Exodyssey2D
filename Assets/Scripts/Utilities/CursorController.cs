@@ -26,6 +26,9 @@ public class CursorController : MonoBehaviour
     private static readonly Vector2 InvisibleCursorHotspot = Vector2.zero;
     // Tracks if invisible cursor is applied this frame to avoid redundant calls
     private bool CursorAppliedThisFrame;
+    private bool NeedsHoverRefresh = true;
+    private Vector3 LastMousePosition = new(float.NaN, float.NaN, float.NaN);
+    private bool TileManagerEventsBound;
     private void Awake()
     {
         MainCamera      = Camera.main;
@@ -39,11 +42,14 @@ public class CursorController : MonoBehaviour
         CursorSprite.gameObject.SetActive(true);
         SelectSprite.gameObject.SetActive(false);
         EnsureInvisibleCursorTexture();
+        BindTileManagerEvents();
     }
     private void OnEnable()
     {
         ApplyInvisibleSystemCursor();
         SetCustomCursorSpritesActive(true);
+        NeedsHoverRefresh = true;
+        LastMousePosition = new Vector3(float.NaN, float.NaN, float.NaN);
     }
     private void OnDisable()
     {
@@ -57,6 +63,8 @@ public class CursorController : MonoBehaviour
         {
             ApplyInvisibleSystemCursor();
             SetCustomCursorSpritesActive(true);
+            NeedsHoverRefresh = true;
+            LastMousePosition = new Vector3(float.NaN, float.NaN, float.NaN);
         }
         else
         {
@@ -66,6 +74,7 @@ public class CursorController : MonoBehaviour
     }
     private void OnDestroy()
     {
+        UnbindTileManagerEvents();
         if (LevelManager != null)
             LevelManager.OnLoadingScreenVisibilityChanged -= HandleLoadingScreenVisibilityChanged;
     }
@@ -76,11 +85,17 @@ public class CursorController : MonoBehaviour
             return;
         ApplyInvisibleSystemCursorOnce();
         Vector3 MousePosition   = Input.mousePosition;
+        EnsureTileManagerReference();
+        BindTileManagerEvents();
+        bool mouseMoved = MousePosition != LastMousePosition;
+        if (!mouseMoved && !NeedsHoverRefresh)
+            return;
+        LastMousePosition = MousePosition;
+        NeedsHoverRefresh = false;
         Vector3 ScreenPosition  = MainCamera.WorldToScreenPoint(CursorSprite.position);
         Vector3 WorldPosition   = MainCamera.ScreenToWorldPoint(new Vector3(MousePosition.x, MousePosition.y, ScreenPosition.z));
         WorldPosition.z         = CursorSprite.position.z;
-        EnsureTileManagerReference();
-        bool shouldUseSelectCursor  = !LoadingScreenVisible && IsHoveringSelectable(WorldPosition);
+        bool shouldUseSelectCursor  = IsHoveringSelectable(WorldPosition);
         Vector3 SnappedPosition     = SnapToPixelGrid(WorldPosition);
         CursorSprite.position       = SnappedPosition;
         SelectSprite.position       = SnappedPosition;
@@ -127,6 +142,7 @@ public class CursorController : MonoBehaviour
     private void HandleLoadingScreenVisibilityChanged(bool isVisible)
     {
         LoadingScreenVisible = isVisible;
+        NeedsHoverRefresh = true;
         if (isVisible)
             UpdateActiveCursor(false);
     }
@@ -155,6 +171,21 @@ public class CursorController : MonoBehaviour
         if (TileManager == null)
             TileManager = FindFirstObjectByType<TileManager>();
     }
+    private void BindTileManagerEvents()
+    {
+        if (TileManager == null || TileManagerEventsBound)
+            return;
+        TileManager.OnMarkersChanged += HandleTileMarkersChanged;
+        TileManagerEventsBound = true;
+    }
+    private void UnbindTileManagerEvents()
+    {
+        if (!TileManagerEventsBound || TileManager == null)
+            return;
+        TileManager.OnMarkersChanged -= HandleTileMarkersChanged;
+        TileManagerEventsBound = false;
+    }
+    private void HandleTileMarkersChanged() => NeedsHoverRefresh = true;
     private void SetCustomCursorSpritesActive(bool active)
     {
         if (CursorSprite != null)

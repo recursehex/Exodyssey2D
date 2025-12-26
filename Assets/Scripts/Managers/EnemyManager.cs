@@ -20,6 +20,7 @@ public class EnemyManager : MonoBehaviour
     private Tilemap TilemapGround;
     private Tilemap TilemapWalls;
     public System.Action OnEnemyKilled;
+    public bool IsProcessingEnemyMovement => NeedToStartEnemyMovement || EnemiesAreMoving;
     public void Initialize(Tilemap Ground, Tilemap Walls, GameObject[] Templates)
     {
         TilemapGround   = Ground;

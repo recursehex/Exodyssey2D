@@ -12,6 +12,7 @@ public class TileManager : MonoBehaviour
     private readonly Stack<GameObject> TileAreaPool = new();
     private readonly Stack<GameObject> TargetPool = new();
     private Dictionary<Vector3Int, Node> TileAreasToDraw = null;
+    public System.Action OnMarkersChanged;
     public void Initialize(GameObject TileDot, GameObject TileArea, GameObject TargetTemplate)
     {
         this.TileDot        = TileDot;
@@ -23,9 +24,9 @@ public class TileManager : MonoBehaviour
     /// </summary>
     public void ClearTileAreas()
     {
-        if (TileAreas.Count > 0)
-            RecycleMarkers(TileAreas, TileAreaPool);
-        TileAreasToDraw = null;
+        if (!ClearTileAreasInternal())
+            return;
+        NotifyMarkersChanged();
     }
     /// <summary>
     /// Draws tile areas based on areas to draw
@@ -33,11 +34,15 @@ public class TileManager : MonoBehaviour
     public void DrawTileAreas(Dictionary<Vector3Int, Node> AreasToDraw)
     {
         // Need to clear previous areas
-        ClearTileAreas();
+        bool hadAreas = ClearTileAreasInternal();
         TileAreasToDraw = AreasToDraw;
         // Return if no areas to draw
         if (TileAreasToDraw == null || TileAreasToDraw.Count <= 0)
+        {
+            if (hadAreas)
+                NotifyMarkersChanged();
             return;
+        }
         // Draw new areas
         foreach (KeyValuePair<Vector3Int, Node> TileAreaPosition in TileAreasToDraw)
         {
@@ -45,15 +50,16 @@ public class TileManager : MonoBehaviour
             GameObject TileArea = SpawnMarker(TileAreaPool, TileAreaTemplate, ShiftedDistance);
             TileAreas.Add(TileArea);
         }
+        NotifyMarkersChanged();
     }
     /// <summary>
     /// Clears all targets
     /// </summary>
     public void ClearTargets()
     {
-        if (Targets.Count == 0)
+        if (!ClearTargetsInternal())
             return;
-        RecycleMarkers(Targets, TargetPool);
+        NotifyMarkersChanged();
     }
     /// <summary>
     /// Draws targets for enemies in range and line of sight
@@ -61,10 +67,14 @@ public class TileManager : MonoBehaviour
     public void DrawTargets(List<Enemy> Enemies, Vector3 PlayerPosition, int weaponRange, bool isStunning, Tilemap Walls)
     {
         // Need to clear previous targets
-        ClearTargets();
+        bool hadTargets = ClearTargetsInternal();
         // Return if weapon has no range
         if (weaponRange <= 0)
+        {
+            if (hadTargets)
+                NotifyMarkersChanged();
             return;
+        }
         // Draw new targets
         foreach (Enemy Enemy in Enemies)
         {
@@ -79,6 +89,8 @@ public class TileManager : MonoBehaviour
                 Targets.Add(Target);
             }
         }
+        if (Targets.Count > 0 || hadTargets)
+            NotifyMarkersChanged();
     }
     /// <summary>
     /// Checks if enemy is in line of sight and range
@@ -150,9 +162,28 @@ public class TileManager : MonoBehaviour
     /// </summary>
     public void DestroyAllMarkers()
     {
+        bool hadMarkers = TileAreas.Count > 0 || Targets.Count > 0 || TileAreasToDraw != null;
         DestroyMarkerCollection(TileAreas, TileAreaPool);
         DestroyMarkerCollection(Targets, TargetPool);
         TileAreasToDraw = null;
+        if (hadMarkers)
+            NotifyMarkersChanged();
+    }
+    private void NotifyMarkersChanged() => OnMarkersChanged?.Invoke();
+    private bool ClearTileAreasInternal()
+    {
+        bool hadAreas = TileAreas.Count > 0;
+        if (hadAreas)
+            RecycleMarkers(TileAreas, TileAreaPool);
+        TileAreasToDraw = null;
+        return hadAreas;
+    }
+    private bool ClearTargetsInternal()
+    {
+        if (Targets.Count == 0)
+            return false;
+        RecycleMarkers(Targets, TargetPool);
+        return true;
     }
     /// <summary>
     /// Reuses existing marker instances when possible
