@@ -13,6 +13,12 @@ public class FireManager : MonoBehaviour
     [SerializeField] private EnemyManager EnemyManager;
     [SerializeField] private VehicleManager VehicleManager;
     [SerializeField] private GameObject FireTemplate;
+    private const string BushSpriteResourcePath = "Sprites/bush";
+    private const string BushSpriteName = "bush";
+    private const string BurnedSpriteResourcePath = "Sprites/burned";
+    private Sprite BushSprite;
+    private Sprite BurnedSprite;
+    private Tile BurnedTile;
     [Header("Behavior")]
     [SerializeField] private int lifetime = 3;
     [SerializeField] private int fireDamage = 1;
@@ -25,6 +31,7 @@ public class FireManager : MonoBehaviour
     private readonly List<Fire> ActiveFires = new();
     private readonly HashSet<Vector3Int> FireCells = new();
     private readonly HashSet<Vector3Int> BurnedCells = new();
+    private readonly HashSet<Vector3Int> PendingBurnCells = new();
     private readonly HashSet<Vector3Int> PendingSpawnCells = new();
     private static readonly Vector3Int[] NeighborOffsets = new Vector3Int[]
     {
@@ -51,6 +58,18 @@ public class FireManager : MonoBehaviour
         this.EnemyManager = EnemyManager;
         this.VehicleManager = VehicleManager;
         this.FireTemplate = FireTemplate;
+        BushSprite = Resources.Load<Sprite>(BushSpriteResourcePath);
+        if (BurnedTile == null)
+        {
+            if (BurnedSprite == null)
+                BurnedSprite = Resources.Load<Sprite>(BurnedSpriteResourcePath);
+            if (BurnedSprite != null)
+            {
+                BurnedTile = ScriptableObject.CreateInstance<Tile>();
+                BurnedTile.sprite = BurnedSprite;
+                BurnedTile.colliderType = Tile.ColliderType.None;
+            }
+        }
     }
     /// <summary>
     /// Clears existing fires and optionally seeds a natural wildfire when a level starts
@@ -74,6 +93,7 @@ public class FireManager : MonoBehaviour
         ActiveFires.Clear();
         FireCells.Clear();
         BurnedCells.Clear();
+        PendingBurnCells.Clear();
         PendingSpawnCells.Clear();
     }
     /// <summary>
@@ -109,7 +129,7 @@ public class FireManager : MonoBehaviour
         if (FireCells.Contains(Cell)
             || (!isWildfire && !allowBurnedCell && BurnedCells.Contains(Cell))
             || !TilemapGround.cellBounds.Contains(Cell)
-            || TilemapWalls.HasTile(Cell))
+            || IsBlockingWall(Cell))
         {
             return false;
         }
@@ -127,8 +147,29 @@ public class FireManager : MonoBehaviour
         // Wildfire reclaiming a burned cell should clear the burned marker to allow full takeover
         if (isWildfire || allowBurnedCell)
             BurnedCells.Remove(Cell);
-        HandleEnvironmentContact(Cell);
+        QueueEnvironmentBurn(Cell);
         return true;
+    }
+    /// <summary>
+    /// Returns true if the cell contains a wall tile that should block fire.
+    /// </summary>
+    private bool IsBlockingWall(Vector3Int Cell)
+    {
+        if (!TilemapWalls.HasTile(Cell))
+            return false;
+        return !IsBushWallTile(Cell);
+    }
+    /// <summary>
+    /// Returns true if the wall tile at the cell uses the bush sprite.
+    /// </summary>
+    private bool IsBushWallTile(Vector3Int Cell)
+    {
+        Sprite WallSprite = TilemapWalls.GetSprite(Cell);
+        if (WallSprite == null)
+            return false;
+        if (BushSprite != null)
+            return WallSprite == BushSprite;
+        return WallSprite.name == BushSpriteName;
     }
     /// <summary>
     /// Advances fire state at the start of a turn.
@@ -141,6 +182,7 @@ public class FireManager : MonoBehaviour
         // Only progress spread/burn on enemy turn to keep a single tick per round.
         if (!isPlayerTurn)
         {
+            ResolvePendingBurns();
             ApplyStandingDamage();
             return SpreadAndBurnDown();
         }
@@ -160,7 +202,7 @@ public class FireManager : MonoBehaviour
         while (seeds > 0 && attempts-- > 0)
         {
             Vector3Int Cell = GetBiasedWildfireCell();
-            if (TilemapWalls.HasTile(Cell)
+            if (IsBlockingWall(Cell)
                 || FireCells.Contains(Cell)
                 || Cell == PlayerCell
                 || GameManager.Instance.HasExitTileAtPosition(Cell))
@@ -170,9 +212,31 @@ public class FireManager : MonoBehaviour
         }
     }
     /// <summary>
-    /// Handles destruction of flammable items when fire occupies a cell
+    /// Queue delayed burning for items, bushes, and ground after a full turn on fire
     /// </summary>
-    private void HandleEnvironmentContact(Vector3Int Cell)
+    private void QueueEnvironmentBurn(Vector3Int Cell)
+    {
+        PendingBurnCells.Add(Cell);
+    }
+    /// <summary>
+    /// Handles delayed burning for flammable items, bush walls, and ground tiles
+    /// </summary>
+    private void ResolvePendingBurns()
+    {
+        if (PendingBurnCells.Count == 0)
+            return;
+        List<Vector3Int> CellsToProcess = new(PendingBurnCells);
+        PendingBurnCells.Clear();
+        foreach (Vector3Int Cell in CellsToProcess)
+        {
+            if (!HasFireAtCell(Cell))
+                continue;
+            BurnFlammableItemAt(Cell);
+            BurnBushWallAt(Cell);
+            MarkBurnedGroundAt(Cell);
+        }
+    }
+    private void BurnFlammableItemAt(Vector3Int Cell)
     {
         Vector3 World = TilemapGround.GetCellCenterWorld(Cell);
         Item ItemAtCell = GameManager.Instance.GetItemAtPosition(World);
@@ -183,6 +247,19 @@ public class FireManager : MonoBehaviour
             GameManager.Instance.RemoveItemAtPosition(ItemAtCell);
             Destroy(ItemAtCell.gameObject);
         }
+    }
+    private void BurnBushWallAt(Vector3Int Cell)
+    {
+        if (!IsBushWallTile(Cell))
+            return;
+        TilemapWalls.SetTile(Cell, null);
+    }
+    private void MarkBurnedGroundAt(Vector3Int Cell)
+    {
+        BurnedCells.Add(Cell);
+        if (BurnedTile == null)
+            return;
+        TilemapGround.SetTile(Cell, BurnedTile);
     }
     /// <summary>
     /// Picks a cell guaranteed to be near the top and bottom edges
@@ -266,7 +343,7 @@ public class FireManager : MonoBehaviour
         // Each fire chooses a random number of tiles (0-maxNeighborSpread) to ignite if available
         List<Vector3Int> Candidates = GetNeighbors(Fire.CellPosition);
         Candidates.RemoveAll(Neighbor =>
-            TilemapWalls.HasTile(Neighbor)
+            IsBlockingWall(Neighbor)
             || FireCells.Contains(Neighbor)
             || (!Fire.IsWildfire && BurnedCells.Contains(Neighbor)));
         if (Candidates.Count == 0)
