@@ -33,6 +33,7 @@ public class FireManager : MonoBehaviour
     private readonly HashSet<Vector3Int> BurnedCells = new();
     private readonly HashSet<Vector3Int> PendingBurnCells = new();
     private readonly HashSet<Vector3Int> PendingSpawnCells = new();
+    public IReadOnlyList<Fire> Fires => ActiveFires;
     private static readonly Vector3Int[] NeighborOffsets = new Vector3Int[]
     {
         new(1, 0, 0),

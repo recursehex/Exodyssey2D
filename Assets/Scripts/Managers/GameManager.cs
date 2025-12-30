@@ -16,6 +16,7 @@ public class GameManager : MonoBehaviour
 	private Coroutine TileRevealRoutine;
 	private Coroutine FireTurnRoutine;
 	private Coroutine PlayerTurnDelayRoutine;
+	private Coroutine ExitTransitionRoutine;
 	[Header("Managers")]
 	[SerializeField] private RegionManager RegionManager;
 	private EnemyManager EnemyManager;
@@ -176,6 +177,25 @@ public class GameManager : MonoBehaviour
 		OnLevelLoadComplete();
 		TileRevealRoutine = null;
 	}
+	private IEnumerator RunExitTransition()
+	{
+		doingSetup = true;
+		TurnManager.StopTurnTimer();
+		TurnManager.SetEndTurnButtonInteractable(false);
+		TileManager.TileDot.SetActive(false);
+		TileManager.ClearTileAreas();
+		TileManager.ClearTargets();
+		if (TilemapRevealAnimator != null)
+		{
+			Vector3Int PlayerCell = TilemapGround.WorldToCell(Player.transform.position);
+			TilemapRevealAnimator.PrepareTilesForCollapse(PlayerCell, TilemapExit);
+			RegisterObjectsForTileCollapse();
+			if (TilemapRevealAnimator.HasPreparedTiles)
+				yield return TilemapRevealAnimator.PlayCollapse();
+		}
+		ResetForNextLevel();
+		ExitTransitionRoutine = null;
+	}
 	/// <summary>
 	/// Sets EndTurnButton interactable and updates targets after level load is complete
 	/// </summary>
@@ -308,6 +328,40 @@ public class GameManager : MonoBehaviour
 		Vector3Int Cell = TilemapGround.WorldToCell(WorldPosition);
 		TilemapRevealAnimator.RegisterObjectAtCell(Cell, ObjectTransform);
 	}
+	private void RegisterObjectForTileCollapse(Transform ObjectTransform)
+	{
+		if (TilemapRevealAnimator == null
+			|| !TilemapRevealAnimator.HasPreparedTiles
+			|| ObjectTransform == null)
+			return;
+		Vector3Int Cell = TilemapGround.WorldToCell(ObjectTransform.position);
+		TilemapRevealAnimator.RegisterObjectAtCellForCollapse(Cell, ObjectTransform);
+	}
+	private void RegisterObjectsForTileCollapse()
+	{
+		foreach (Enemy Enemy in EnemyManager.Enemies)
+		{
+			if (Enemy != null)
+				RegisterObjectForTileCollapse(Enemy.transform);
+		}
+		foreach (Item Item in ItemManager.ActiveItems)
+		{
+			if (Item != null)
+				RegisterObjectForTileCollapse(Item.transform);
+		}
+		foreach (Vehicle Vehicle in VehicleManager.Vehicles)
+		{
+			if (Vehicle != null)
+				RegisterObjectForTileCollapse(Vehicle.transform);
+		}
+		foreach (Fire Fire in FireManager.Fires)
+		{
+			if (Fire != null)
+				RegisterObjectForTileCollapse(Fire.transform);
+		}
+		if (Player != null)
+			RegisterObjectForTileCollapse(Player.transform);
+	}
 	public void OnEndTurnPress()
 	{
 		if (Player.IsInMovement || doingSetup)
@@ -419,10 +473,12 @@ public class GameManager : MonoBehaviour
 		if (LevelManager.HasExitTileAtPosition(Vector3Int.FloorToInt(Player.transform.position)))
 		{
 			TileManager.TileDot.SetActive(false);
+			if (ExitTransitionRoutine != null)
+				return;
 			// Return if Player's vehicle has insufficient charge to move to next grid
 			if (Player.IsInVehicle && !Player.Vehicle.DecreaseChargeBy(Player.Vehicle.Info.Efficiency))
 				return;
-			ResetForNextLevel();
+			ExitTransitionRoutine = StartCoroutine(RunExitTransition());
 		}
 	}
 	/// <summary>

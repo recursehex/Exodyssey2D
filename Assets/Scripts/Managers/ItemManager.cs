@@ -5,6 +5,7 @@ public class ItemManager : MonoBehaviour
 {
     [SerializeField] private GameObject[] ItemTemplates;
     [SerializeField] private List<Item> Items = new();
+    public IReadOnlyList<Item> ActiveItems => Items;
     [SerializeField] private int spawnItemCount;
     [Header("Spawning")]
     [SerializeField] private int minSpawnCount = 3;
