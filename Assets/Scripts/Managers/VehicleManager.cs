@@ -42,6 +42,14 @@ public class VehicleManager : MonoBehaviour
         Vehicles.Add(Vehicle);
         return Vehicle;
     }
+    public Vehicle SpawnVehicle(int index, Vector3 Position, int startingFuel)
+    {
+        Vehicle Vehicle = Instantiate(VehicleTemplates[index], Position, Quaternion.identity).GetComponent<Vehicle>();
+        VehicleInfo VehicleInfo = VehicleInfo.CreateWithFuel(index, startingFuel);
+        Vehicle.Initialize(TilemapGround, TilemapWalls, VehicleInfo);
+        Vehicles.Add(Vehicle);
+        return Vehicle;
+    }
     /// <summary>
     /// Returns true if a vehicle is at specified position
     /// </summary>

@@ -159,9 +159,13 @@ public class GameManager : MonoBehaviour
 	private void OnLevelInitialized()
 	{
 		FireManager.ResetForLevel();
+		// Guarantee vehicle spawn on first level
+		if (LevelManager.Level == 0)
+			SpawnFirstLevelVehicle();
+		else
+			VehicleManager.GenerateVehicles();
 		EnemyManager.GenerateEnemies();
 		ItemManager.GenerateItems();
-		VehicleManager.GenerateVehicles();
 		TileManager.TileDot.SetActive(false);
 		TileManager.ClearTileAreas();
 		TileManager.ClearTargets();
@@ -296,6 +300,56 @@ public class GameManager : MonoBehaviour
 		Vehicle Vehicle = VehicleManager.SpawnVehicle(index, Position);
 		RegisterObjectForTileReveal(Position, Vehicle.transform);
 		return Vehicle;
+	}
+	public Vehicle SpawnVehicle(int index, Vector3 Position, int startingFuel)
+	{
+		Vehicle Vehicle = VehicleManager.SpawnVehicle(index, Position, startingFuel);
+		RegisterObjectForTileReveal(Position, Vehicle.transform);
+		return Vehicle;
+	}
+	private void SpawnFirstLevelVehicle()
+	{
+		int startingFuel = 4;
+		if (!TryGetRandomVehicleSpawnPosition(out Vector3 Position))
+		{
+			Debug.LogWarning("Failed to find spawn position for first level rover.");
+			return;
+		}
+		SpawnVehicle((int)VehicleInfo.Tags.Rover, Position, startingFuel);
+	}
+	private bool TryGetRandomVehicleSpawnPosition(out Vector3 Position)
+	{
+		List<Vector3Int> CandidateCells = new();
+		int middleRowMinY = GameConfig.Grid.MinY + GameConfig.Grid.QuadrantSize;
+		int middleRowMaxY = GameConfig.Grid.MaxY - GameConfig.Grid.QuadrantSize;
+		for (int x = GameConfig.Grid.MinX; x <= GameConfig.Grid.MaxX; x++)
+		{
+			for (int y = middleRowMinY; y <= middleRowMaxY; y++)
+			{
+				Vector3Int Cell = new(x, y);
+				if (HasWallAtPosition(Cell)
+					|| HasFireAtPosition(Cell)
+					|| HasExitTileAtPosition(Cell)
+					|| (x <= GameConfig.Grid.SafeZoneMaxX
+						&& y <= GameConfig.Grid.SafeZoneMaxY
+						&& y >= GameConfig.Grid.SafeZoneMinY))
+					continue;
+				Vector3 ShiftedPosition = Cell + new Vector3(0.5f, 0.5f);
+				if (HasItemAtPosition(ShiftedPosition)
+					|| HasEnemyAtPosition(ShiftedPosition)
+					|| HasVehicleAtPosition(ShiftedPosition))
+					continue;
+				CandidateCells.Add(Cell);
+			}
+		}
+		if (CandidateCells.Count == 0)
+		{
+			Position = default;
+			return false;
+		}
+		Vector3Int SelectedCell = CandidateCells[Random.Range(0, CandidateCells.Count)];
+		Position = SelectedCell + new Vector3(0.5f, 0.5f);
+		return true;
 	}
 	// Public accessor methods
 	public bool HasItemAtPosition(Vector3 Position) 		=> ItemManager.HasItemAtPosition(Position);

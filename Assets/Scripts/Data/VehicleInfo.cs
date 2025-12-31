@@ -159,7 +159,14 @@ public class VehicleInfo
 		CurrentCharge -= amount;
 		return true;
 	}
+	public void SetCharge(int amount) => CurrentCharge = Mathf.Clamp(amount, 0, Data.maxCharge);
 	public void SwitchIgnition() => IsOn = !IsOn;
+	public static VehicleInfo CreateWithFuel(int index, int fuel)
+	{
+		VehicleInfo VehicleInfo = new(index);
+		VehicleInfo.SetCharge(fuel);
+		return VehicleInfo;
+	}
 	/// <summary>
 	/// Returns info for a desired vehicle,
 	/// n must match Tag order and GameManager VehicleTemplates order
