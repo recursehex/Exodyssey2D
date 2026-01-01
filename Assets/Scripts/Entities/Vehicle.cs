@@ -9,6 +9,14 @@ public class Vehicle : MonoBehaviour
 	public VehicleInfo Info;
 	public Inventory Inventory;
 	#endregion
+	[Header("Debug")]
+	[SerializeField] private VehicleInfo.Tags VehicleTag = VehicleInfo.Tags.Unknown;
+	[SerializeField] private VehicleInfo.Types VehicleType = VehicleInfo.Types.Unknown;
+	[SerializeField] private string VehicleName = string.Empty;
+	[SerializeField] private int currentHealth = 0;
+	[SerializeField] private int currentCharge = 0;
+	[SerializeField] private bool isOn = false;
+	[SerializeField] private int movementRange = 0;
 	#region EVENTS
 	public System.Action OnVehicleMovementComplete;
 	#endregion
@@ -34,6 +42,33 @@ public class Vehicle : MonoBehaviour
 		Inventory = new(Info.Storage);
 		AStar = new(TilemapGround, TilemapWalls);
 	}
+#if UNITY_EDITOR
+	private void LateUpdate()
+	{
+		SyncDebugFields();
+	}
+	private void SyncDebugFields()
+	{
+		if (Info == null)
+		{
+			VehicleTag = VehicleInfo.Tags.Unknown;
+			VehicleType = VehicleInfo.Types.Unknown;
+			VehicleName = string.Empty;
+			currentHealth = 0;
+			currentCharge = 0;
+			isOn = false;
+			movementRange = 0;
+			return;
+		}
+		VehicleTag = Info.Tag;
+		VehicleType = Info.Type;
+		VehicleName = Info.Name;
+		currentHealth = Info.CurrentHealth;
+		currentCharge = Info.CurrentCharge;
+		isOn = Info.IsOn;
+		movementRange = Info.MovementRange;
+	}
+#endif
 	#region MOVEMENT METHODS
 	/// <summary>
 	/// Vehicle can only move on roads unless canOffroad is true

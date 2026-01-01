@@ -17,7 +17,8 @@ public class Player : MonoBehaviour
 	[SerializeField] private int maxHealth 	   	= 3;
 	[SerializeField] private int maxEnergy	   	= fixedMaxEnergy;
 	[SerializeField] private int currentHealth	= 3;
-	public int currentEnergy 			= 3;
+	[SerializeField] private int currentEnergy 	= 3;
+	public int CurrentEnergy => currentEnergy;
 	private readonly int walkSpeed 		= 2;
 	private readonly int inventorySize 	= 2;
 	public int DamagePoints => SelectedItemInfo?.DamagePoints ?? 0;
@@ -50,6 +51,15 @@ public class Player : MonoBehaviour
 	public ItemInfo SelectedItemInfo = null;
 	public StatsDisplayManager StatsDisplayManager;
 	#endregion
+	#region DEBUG
+	[Header("Debug")]
+	[SerializeField] private ItemInfo.Tags SelectedItemTag = ItemInfo.Tags.Unknown;
+	[SerializeField] private int selectedItemUses = 0;
+	[SerializeField] private bool isInVehicle = false;
+	[SerializeField] private List<ItemInfo.Tags> InventoryItemTags = new();
+	[SerializeField] private List<string> InventoryItemNames = new();
+	[SerializeField] private List<int> InventoryItemUses = new();
+	#endregion
 	#region PATHFINDING
 	public bool IsInMovement { get; set; } = false;
 	public Tilemap TilemapGround;
@@ -69,6 +79,57 @@ public class Player : MonoBehaviour
 		Profession = Profession.GetRandomProfession();
 		FinishedInit = true;
 	}
+#if UNITY_EDITOR
+	private void LateUpdate()
+	{
+		SyncDebugFields();
+	}
+	private void SyncDebugFields()
+	{
+		if (SelectedItemInfo != null)
+		{
+			SelectedItemTag = SelectedItemInfo.Tag;
+			selectedItemUses = SelectedItemInfo.CurrentUses;
+		}
+		else
+		{
+			SelectedItemTag = ItemInfo.Tags.Unknown;
+			selectedItemUses = 0;
+		}
+		isInVehicle = IsInVehicle;
+		SyncInventoryDebugFields();
+	}
+	private void SyncInventoryDebugFields()
+	{
+		InventoryItemTags.Clear();
+		InventoryItemNames.Clear();
+		InventoryItemUses.Clear();
+		if (Inventory == null)
+			return;
+		for (int i = 0; i < Inventory.Count; i++)
+		{
+			Item InventoryItem = Inventory[i];
+			if (ReferenceEquals(InventoryItem, null))
+			{
+				InventoryItemTags.Add(ItemInfo.Tags.Unknown);
+				InventoryItemNames.Add(string.Empty);
+				InventoryItemUses.Add(0);
+				continue;
+			}
+			ItemInfo InventoryItemInfo = InventoryItem.Info;
+			if (InventoryItemInfo == null)
+			{
+				InventoryItemTags.Add(ItemInfo.Tags.Unknown);
+				InventoryItemNames.Add(string.Empty);
+				InventoryItemUses.Add(0);
+				continue;
+			}
+			InventoryItemTags.Add(InventoryItemInfo.Tag);
+			InventoryItemNames.Add(InventoryItemInfo.Name);
+			InventoryItemUses.Add(InventoryItemInfo.CurrentUses);
+		}
+	}
+#endif
 	private void OnDisable() => StopMoveRoutineIfRunning();
 	private void OnDestroy() => StopMoveRoutineIfRunning();
 	private void StopMoveRoutineIfRunning()

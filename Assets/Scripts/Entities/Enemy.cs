@@ -9,6 +9,15 @@ public class Enemy : MonoBehaviour
 	public EnemyInfo Info;
 	public GameObject StunIcon;
 	#endregion
+	[Header("Debug")]
+	[SerializeField] private EnemyInfo.Tags EnemyTag = EnemyInfo.Tags.Unknown;
+	[SerializeField] private EnemyInfo.Types EnemyType = EnemyInfo.Types.Unknown;
+	[SerializeField] private string EnemyName = string.Empty;
+	[SerializeField] private int currentHealth = 0;
+	[SerializeField] private int currentEnergy = 0;
+	[SerializeField] private bool isStunned = false;
+	[SerializeField] private int damagePoints = 0;
+	[SerializeField] private int range = 0;
 	#region AUDIO
 	public AudioClip Move;
 	#endregion
@@ -35,6 +44,35 @@ public class Enemy : MonoBehaviour
 		Player = FindFirstObjectByType<Player>();
 		StunIcon = Instantiate(StunIcon, transform.position, Quaternion.identity);
 	}
+#if UNITY_EDITOR
+	private void LateUpdate()
+	{
+		SyncDebugFields();
+	}
+	private void SyncDebugFields()
+	{
+		if (Info == null)
+		{
+			EnemyTag = EnemyInfo.Tags.Unknown;
+			EnemyType = EnemyInfo.Types.Unknown;
+			EnemyName = string.Empty;
+			currentHealth = 0;
+			currentEnergy = 0;
+			isStunned = false;
+			damagePoints = 0;
+			range = 0;
+			return;
+		}
+		EnemyTag = Info.Tag;
+		EnemyType = Info.Type;
+		EnemyName = Info.Name;
+		currentHealth = Info.CurrentHealth;
+		currentEnergy = Info.CurrentEnergy;
+		isStunned = Info.IsStunned;
+		damagePoints = Info.DamagePoints;
+		range = Info.Range;
+	}
+#endif
 	private void OnDisable() =>	StopMoveRoutineIfRunning();
 	private void OnDestroy() => StopMoveRoutineIfRunning();
 	private void StopMoveRoutineIfRunning()
