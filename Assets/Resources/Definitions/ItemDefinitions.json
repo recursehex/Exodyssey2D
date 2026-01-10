@@ -128,7 +128,7 @@
       "Description": "Fires armor piercing rounds",
       "maxUses": 3,
       "damagePoints": 5,
-      "range": 10
+      "range": 8
     },
     {
       "Tag": "PlasmaRailgun",
