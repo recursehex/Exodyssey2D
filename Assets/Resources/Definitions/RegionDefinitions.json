@@ -9,7 +9,7 @@
       "EnemyPool": ["Weak"],
       "ItemPool": ["Common", "Limited"],
       "VehiclePool": ["Common", "Limited"],
-      "Description": "The remains of a human base. Fires rage as an Explorator has crashed on a shelter."
+      "Description": "A scorched cradle of a failed mission, still echoing with alarms."
     },
     {
       "Tag": "FragmentedCoast",
@@ -31,7 +31,7 @@
       "EnemyPool": ["Weak", "Mediocre"],
       "ItemPool": ["Common", "Limited", "Scarce"],
       "VehiclePool": ["Common", "Limited", "Scarce"],
-      "Description": "Vast, flat glaciers and cold winds that few creatures survive. Stronger aliens emerge."
+      "Description": "An icy expanse where breath freezes and footsteps ring."
     },
     {
       "Tag": "ScorchedPlateau",
@@ -42,7 +42,7 @@
       "EnemyPool": ["Weak", "Mediocre"],
       "ItemPool": ["Common", "Limited", "Scarce", "Rare"],
       "VehiclePool": ["Common", "Limited", "Scarce"],
-      "Description": "Enormous mesa with rough terrain and a warm climate. More aliens appear."
+      "Description": "Heat and stone sharpened into a long, open road."
     },
     {
       "Tag": "RainforestRavines",
@@ -53,7 +53,7 @@
       "EnemyPool": ["Weak", "Mediocre", "Exotic"],
       "ItemPool": ["Common", "Limited", "Scarce", "Rare", "Anomalous"],
       "VehiclePool": ["Common", "Limited", "Scarce", "Anomalous"],
-      "Description": "Caverns filled with large trees that block sunlight. Exotic aliens start appearing."
+      "Description": "A canopy with no sky, where roots and ravines trade places."
     },
     {
       "Tag": "VolatileVolcanoes",
@@ -64,7 +64,7 @@
       "EnemyPool": ["Weak", "Mediocre", "Strong"],
       "ItemPool": ["Common", "Limited", "Scarce", "Rare", "Anomalous"],
       "VehiclePool": ["Common", "Limited", "Scarce", "Rare"],
-      "Description": "Dead landscape of volcanoes and lava flows. Very strong aliens appear, exotic ones disappear."
+      "Description": "A molten valley, where flowing lava dissuades trespassers."
     },
     {
       "Tag": "LuminousSwamp",
@@ -75,7 +75,7 @@
       "EnemyPool": ["Weak", "Exotic"],
       "ItemPool": ["Common", "Limited", "Scarce", "Rare", "Anomalous"],
       "VehiclePool": ["Common", "Limited", "Scarce", "Rare", "Anomalous"],
-      "Description": "Swampy landscape full of bioluminescent life. Only exotic and weak aliens are present."
+      "Description": "Glow and rot braided together, a mire of false light."
     },
     {
       "Tag": "RadiantCascades",
@@ -86,7 +86,7 @@
       "EnemyPool": ["Strong", "Exotic"],
       "ItemPool": ["Common", "Limited", "Scarce", "Rare", "Anomalous"],
       "VehiclePool": ["Common", "Limited", "Scarce", "Rare", "Anomalous"],
-      "Description": "Mountainous and snowy, strangely always night. Strong and exotic aliens rule the land."
+      "Description": "Endless night on frozen peaks, the gate to escape.."
     }
   ]
 }
