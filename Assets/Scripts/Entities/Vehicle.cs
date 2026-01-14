@@ -125,7 +125,10 @@ public class Vehicle : MonoBehaviour
 		if (!Info.IsOn)
 			return new();
 		AStar.Initialize();
-		return AStar.GetReachableAreaByDistance(transform.position, Info.MovementRange);
+		Dictionary<Vector3Int, Node> ReachableArea = AStar.GetReachableAreaByDistance(transform.position, Info.MovementRange);
+		Vector3Int StartCell = TilemapGround.WorldToCell(transform.position);
+		ReachableArea.Remove(StartCell);
+		return ReachableArea;
 	}
 	#endregion
 	#region HEALTH METHODS

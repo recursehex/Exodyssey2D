@@ -224,7 +224,10 @@ public class Player : MonoBehaviour
 	public Dictionary<Vector3Int, Node> CalculateArea()
 	{
 		AStar.Initialize();
-		return AStar.GetReachableAreaByDistance(transform.position, currentEnergy);
+		Dictionary<Vector3Int, Node> ReachableArea = AStar.GetReachableAreaByDistance(transform.position, currentEnergy);
+		Vector3Int StartCell = TilemapGround.WorldToCell(transform.position);
+		ReachableArea.Remove(StartCell);
+		return ReachableArea;
 	}
 	#endregion
 	#region VEHICLE METHODS
@@ -393,6 +396,7 @@ public class Player : MonoBehaviour
 		InventoryUI.SetNoneSelected();
 		SelectedItemInfo = null;
 		GameManager.Instance.ClearTargets();
+		GameManager.Instance.UpdateTileAreas();
 	}
 	public bool HasUses => SelectedItemInfo?.CurrentUses > 0;
 	/// <summary>
@@ -438,6 +442,7 @@ public class Player : MonoBehaviour
 			// Clear targets for non-ranged weapons
 			else
 				GameManager.Instance.ClearTargets();
+			GameManager.Instance.UpdateTileAreas();
 		}
 		// Item was deselected
 		else
@@ -445,6 +450,7 @@ public class Player : MonoBehaviour
 			InventoryUI.SetNoneSelected();
 			SelectedItemInfo = null;
 			GameManager.Instance.ClearTargets();
+			GameManager.Instance.UpdateTileAreas();
 		}
 	}
 	/// <summary>
@@ -545,6 +551,7 @@ public class Player : MonoBehaviour
 				GameManager.Instance.ClearTargets();
 			SelectedItemInfo = null;
 			InventoryUI.DeselectItem(itemIndex);
+			GameManager.Instance.UpdateTileAreas();
 		}
 		Item ItemAtPosition = GameManager.Instance.GetItemAtPosition(transform.position);
 		// If there is item at Player's position
