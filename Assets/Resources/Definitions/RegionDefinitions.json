@@ -86,7 +86,7 @@
       "EnemyPool": ["Strong", "Exotic"],
       "ItemPool": ["Common", "Limited", "Scarce", "Rare", "Anomalous"],
       "VehiclePool": ["Common", "Limited", "Scarce", "Rare", "Anomalous"],
-      "Description": "Endless night on frozen peaks, the gate to escape.."
+      "Description": "Endless night on frozen peaks, the gate to escape."
     }
   ]
 }
