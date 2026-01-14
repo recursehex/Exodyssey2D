@@ -6,11 +6,11 @@ using UnityEngine.Tilemaps;
 public class TilemapRevealAnimator : MonoBehaviour
 {
     private const float FullScale = 1f;
+    private const float HiddenScale = 0f;
     [SerializeField] private Tilemap TilemapGround;
     [SerializeField] private Tilemap TilemapWalls;
     [SerializeField] private float RingDelay = 0.05f;
     [SerializeField] private float TilePopDuration = 0.20f;
-    [SerializeField] private float InitialScale = 0.01f;
     [SerializeField] private float IntraRingStagger = 0.025f;
     private readonly List<TileTarget> Targets = new();
     private readonly List<Coroutine> ActiveAnimations = new();
@@ -89,7 +89,7 @@ public class TilemapRevealAnimator : MonoBehaviour
         AddTargets(GroundTiles, TilemapGround, SpawnTile);
         AddTargets(WallTiles, TilemapWalls, SpawnTile);
         foreach (TileTarget Target in Targets)
-            Target.Tilemap.SetTransformMatrix(Target.Position, GetScaleMatrix(InitialScale));
+            Target.Tilemap.SetTransformMatrix(Target.Position, GetScaleMatrix(HiddenScale));
         hasPreparedTiles = Targets.Count > 0;
     }
     /// <summary>
@@ -123,7 +123,7 @@ public class TilemapRevealAnimator : MonoBehaviour
             {
                 float tileDelay = IntraRingStagger > 0f ? Random.Range(0f, IntraRingStagger) : 0f;
                 maxTileDelay = Mathf.Max(maxTileDelay, tileDelay);
-                Coroutine Animation = StartCoroutine(AnimateTile(Target, tileDelay, InitialScale, FullScale, true));
+                Coroutine Animation = StartCoroutine(AnimateTile(Target, tileDelay, HiddenScale, FullScale, true));
                 ActiveAnimations.Add(Animation);
             }
             yield return new WaitForSeconds(RingDelay);
@@ -152,7 +152,7 @@ public class TilemapRevealAnimator : MonoBehaviour
             {
                 float tileDelay = IntraRingStagger > 0f ? Random.Range(0f, IntraRingStagger) : 0f;
                 maxTileDelay = Mathf.Max(maxTileDelay, tileDelay);
-                Coroutine Animation = StartCoroutine(AnimateTile(Target, tileDelay, FullScale, InitialScale, false));
+                Coroutine Animation = StartCoroutine(AnimateTile(Target, tileDelay, FullScale, HiddenScale, false));
                 ActiveAnimations.Add(Animation);
             }
             yield return new WaitForSeconds(RingDelay);
@@ -248,7 +248,7 @@ public class TilemapRevealAnimator : MonoBehaviour
             OriginalScale = ObjectTransform.localScale
         };
         if (scaleToInitial)
-            ObjectTransform.localScale = Entry.OriginalScale * InitialScale;
+            ObjectTransform.localScale = Entry.OriginalScale * HiddenScale;
         Objects.Add(Entry);
     }
 }
