@@ -187,7 +187,6 @@
       "isFlammable": true
     },
     {
-      "disabled": false,
       "Tag": "Helmet",
       "Rarity": "Scarce",
       "Type": "Armor",
@@ -197,7 +196,6 @@
       "isEquipable": true
     },
     {
-      "disabled": false,
       "Tag": "Vest",
       "Rarity": "Rare",
       "Type": "Armor",
