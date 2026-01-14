@@ -20,7 +20,7 @@
       "EnemyPool": ["Weak"],
       "ItemPool": ["Common", "Limited", "Scarce"],
       "VehiclePool": ["Common", "Limited"],
-      "Description": "Rolling hills with floating rocks and stone pillars. Only weak aliens roam the area."
+      "Description": "Calm surf under suspended stone, the first whisper of beyond."
     },
     {
       "Tag": "GlacialDesert",
