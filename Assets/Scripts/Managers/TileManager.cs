@@ -93,6 +93,53 @@ public class TileManager : MonoBehaviour
             NotifyMarkersChanged();
     }
     /// <summary>
+    /// Calculates firestarter area using adjacency or line of sight
+    /// </summary>
+    public Dictionary<Vector3Int, Node> CalculateFirestarterArea(Vector3 PlayerPosition, Vector3Int PlayerCell, int range, bool useLineOfSight, Tilemap Walls, BoundsInt Bounds, System.Func<Vector3Int, bool> IsValidTarget)
+    {
+        if (IsValidTarget == null)
+            return null;
+        Dictionary<Vector3Int, Node> Area = new();
+        if (useLineOfSight)
+        {
+            if (range <= 0)
+                return Area;
+            for (int x = Bounds.xMin; x < Bounds.xMax; x++)
+            {
+                for (int y = Bounds.yMin; y < Bounds.yMax; y++)
+                {
+                    Vector3Int Cell = new(x, y);
+                    if (Cell == PlayerCell)
+                        continue;
+                    if (!IsValidTarget(Cell))
+                        continue;
+                    Vector3 WorldPosition = Cell + new Vector3(0.5f, 0.5f);
+                    if (!IsInLineOfSight(PlayerPosition, WorldPosition, range, Walls))
+                        continue;
+                    Area[Cell] = new Node(Cell);
+                }
+            }
+            return Area;
+        }
+        Vector3Int[] Offsets = new Vector3Int[]
+        {
+            new(1, 0, 0),
+            new(-1, 0, 0),
+            new(0, 1, 0),
+            new(0, -1, 0),
+        };
+        foreach (Vector3Int Offset in Offsets)
+        {
+            Vector3Int Cell = PlayerCell + Offset;
+            if (!Bounds.Contains(Cell))
+                continue;
+            if (!IsValidTarget(Cell))
+                continue;
+            Area[Cell] = new Node(Cell);
+        }
+        return Area;
+    }
+    /// <summary>
     /// Checks if enemy is in line of sight and range
     /// </summary>
     private bool IsInLineOfSight(Vector3 PlayerPosition, Vector3 EnemyPosition, int weaponRange, Tilemap Walls)
@@ -152,7 +199,7 @@ public class TileManager : MonoBehaviour
     /// <summary>
     /// Returns true if position is in movement range
     /// </summary>
-    public bool IsInMovementRange(Vector3Int Position) => TileAreasToDraw?.ContainsKey(Position) == true;
+    public bool IsInTileArea(Vector3Int Position) => TileAreasToDraw?.ContainsKey(Position) == true;
     /// <summary>
     /// Returns true if position is in ranged weapon range
     /// </summary>

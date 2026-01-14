@@ -134,7 +134,7 @@ public class CursorController : MonoBehaviour
         if (IsHoveringButton())
             return true;
         Vector3Int tilePoint = ConvertWorldToTilePoint(WorldPosition);
-        if (TileManager.IsInMovementRange(tilePoint))
+        if (TileManager.IsInTileArea(tilePoint))
             return true;
         Vector3 tileCenter = GetTileCenterWorld(tilePoint);
         return TileManager.IsInRangedWeaponRange(tileCenter);

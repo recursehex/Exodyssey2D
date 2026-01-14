@@ -566,7 +566,7 @@ public class GameManager : MonoBehaviour
 			&& !Player.Vehicle.HasCharge())
 			TileManager.TileDot.SetActive(false);
 		// Move TileDot to hovered tile if Player is in movement range
-		else if (TileManager.IsInMovementRange(TilePoint))
+		else if (TileManager.IsInTileArea(TilePoint))
 		{
 			TileManager.TileDot.SetActive(true);
 			TileManager.TileDot.transform.position = ShiftedClickPoint;
@@ -593,7 +593,7 @@ public class GameManager : MonoBehaviour
 		}
 		// If Player's vehicle is off and clicked tile is in movement range, try to exit vehicle
 		else if (!Player.Vehicle.Info.IsOn
-				&& TileManager.IsInMovementRange(TilePoint))
+				&& TileManager.IsInTileArea(TilePoint))
 			TryExitVehicle(WorldPoint, TilePoint, ShiftedClickPoint);
 		// If Player's vehicle is on, has fuel, and clicked tile is in movement range, try to move vehicle
 		else if (Player.Vehicle.Info.IsOn
@@ -607,7 +607,7 @@ public class GameManager : MonoBehaviour
 	private void TryExitVehicle(Vector3 WorldPoint, Vector3Int TilePoint, Vector3 ShiftedClickPoint)
 	{
 		// Check if Player's vehicle can exit to clicked tile
-		bool isInMovementRange = TileManager.IsInMovementRange(TilePoint);
+		bool isInMovementRange = TileManager.IsInTileArea(TilePoint);
 		// Return if not in movement range, enemy present, clicked on current position, or Player has no energy
 		if (!isInMovementRange
 			|| HasEnemyAtPosition(ShiftedClickPoint)
@@ -630,7 +630,7 @@ public class GameManager : MonoBehaviour
 	private void TryVehicleMovement(Vector3 WorldPoint, Vector3Int TilePoint, Vector3 ShiftedClickPoint)
 	{
 		// Check if Player's vehicle can move to clicked tile
-		bool isInMovementRange = TileManager.IsInMovementRange(TilePoint);
+		bool isInMovementRange = TileManager.IsInTileArea(TilePoint);
 		// Return if not in movement range, enemy present, or clicked on current position
 		if (!isInMovementRange
 			|| HasEnemyAtPosition(ShiftedClickPoint)
@@ -683,14 +683,17 @@ public class GameManager : MonoBehaviour
 		// Firestarters place a fire tile, but only if no fire, wall, enemy, vehicle, or player at position
 		else if (Selected.Tag is ItemInfo.Tags.Blowtorch or ItemInfo.Tags.Flamethrower)
 		{
-			if (!IsPlayerAdjacentTo(ShiftedClickPoint) && !TileManager.IsInRangedWeaponRange(ShiftedClickPoint)
+			if (!TileManager.IsInTileArea(TilePoint)
 				|| LevelManager.HasWallAtPosition(TilePoint)
 				|| HasEnemyAtPosition(ShiftedClickPoint)
 				|| HasFireAtPosition(TilePoint)
 				|| HasVehicleAtPosition(ShiftedClickPoint)
 				|| ShiftedClickPoint == Player.transform.position)
 				return false;
-			if (TrySpawnFire(TilePoint, false, true))
+			bool spawnedFire = Selected.Tag == ItemInfo.Tags.Flamethrower
+				? TrySpawnFlamethrowerLine(ShiftedClickPoint)
+				: TrySpawnFire(TilePoint, false, true);
+			if (spawnedFire)
 			{
 				Player.UseItem();
 				TurnManager.TurnTimer.StartTimer();
@@ -754,8 +757,10 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	private bool TryPlayerMovement(Vector3 WorldPoint, Vector3Int TilePoint, Vector3 ShiftedClickPoint)
 	{
+		if (IsFirestarterSelected())
+			return false;
 		// Check if player can move to clicked tile
-		bool isInMovementRange = TileManager.IsInMovementRange(TilePoint);
+		bool isInMovementRange = TileManager.IsInTileArea(TilePoint);
 		// Return false if not in movement range, enemy present, or clicked on current position
 		if (!isInMovementRange
 			|| HasEnemyAtPosition(ShiftedClickPoint)
@@ -843,42 +848,76 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	private bool IsPlayerAdjacentTo(Vector3 Position) => Vector3.Distance(Player.transform.position, Position) <= 1.0f;
 	/// <summary>
+	/// Returns true when Player has a selected firestarter item
+	/// </summary>
+	private bool IsFirestarterSelected() => Player.SelectedItemInfo?.Tag is ItemInfo.Tags.Blowtorch or ItemInfo.Tags.Flamethrower;
+	private bool IsValidFireTarget(Vector3Int Cell)
+	{
+		if (Cell == TilemapGround.WorldToCell(Player.transform.position))
+			return false;
+		if (LevelManager.HasWallAtPosition(Cell))
+			return false;
+		if (HasFireAtPosition(Cell))
+			return false;
+		Vector3 WorldPosition = Cell + new Vector3(0.5f, 0.5f);
+		if (HasEnemyAtPosition(WorldPosition))
+			return false;
+		if (HasVehicleAtPosition(WorldPosition))
+			return false;
+		return true;
+	}
+	/// <summary>
 	/// Updates tile areas based on Player's movement and energy
 	/// </summary>
-	private void UpdateTileAreas()
-    {
-        // Only update areas if Player is not in movement and it is Player's turn
-        if (Player.IsInMovement || !TurnManager.IsPlayersTurn)
-            return;
-        // Clear areas if player has no energy
-        if (!Player.HasEnergy)
-        {
-            TileManager.ClearTileAreas();
-            return;
-        }
-        Dictionary<Vector3Int, Node> AreasToDraw = null;
-        // If Player is in a vehicle that is on and has charge, calculate vehicle area
-        if (Player.IsInVehicle
-            && Player.Vehicle.Info.IsOn
-            && Player.Vehicle.HasCharge())
-            AreasToDraw = Player.Vehicle.CalculateArea();
-        // If Player is not in a vehicle, or is in a vehicle that is off, calculate player area
-        else if (!Player.IsInVehicle
-                || (Player.IsInVehicle && !Player.Vehicle.Info.IsOn))
-            AreasToDraw = Player.CalculateArea();
-        // Draw areas if any needed
-        if (AreasToDraw != null)
-            TileManager.DrawTileAreas(AreasToDraw);
-        // Clear areas if in vehicle with no charge
-        else if (Player.IsInVehicle
-                && Player.Vehicle.Info.IsOn
-                && !Player.Vehicle.HasCharge())
-            TileManager.ClearTileAreas();
-    }
-    /// <summary>
-    /// Updates targets based on Player's weapon range and energy
-    /// </summary>
-    public void UpdateTargets()
+	public void UpdateTileAreas()
+	{
+		// Only update areas if Player is not in movement and it is Player's turn
+		if (Player.IsInMovement || !TurnManager.IsPlayersTurn)
+			return;
+		// Clear areas if player has no energy
+		if (!Player.HasEnergy)
+		{
+			TileManager.ClearTileAreas();
+			return;
+		}
+		Dictionary<Vector3Int, Node> AreasToDraw = null;
+		// Firestarters override movement areas while on foot
+		if (!Player.IsInVehicle && IsFirestarterSelected())
+		{
+			Vector3 PlayerPosition = Player.transform.position;
+			Vector3Int PlayerCell = TilemapGround.WorldToCell(PlayerPosition);
+			bool useLineOfSight = Player.SelectedItemInfo.Tag == ItemInfo.Tags.Flamethrower;
+			AreasToDraw = TileManager.CalculateFirestarterArea(
+				PlayerPosition,
+				PlayerCell,
+				Player.WeaponRange,
+				useLineOfSight,
+				TilemapWalls,
+				TilemapGround.cellBounds,
+				IsValidFireTarget);
+		}
+		// If Player is in a vehicle that is on and has charge, calculate vehicle area
+		else if (Player.IsInVehicle
+			&& Player.Vehicle.Info.IsOn
+			&& Player.Vehicle.HasCharge())
+			AreasToDraw = Player.Vehicle.CalculateArea();
+		// If Player is not in a vehicle, or is in a vehicle that is off, calculate player area
+		else if (!Player.IsInVehicle
+			|| (Player.IsInVehicle && !Player.Vehicle.Info.IsOn))
+			AreasToDraw = Player.CalculateArea();
+		// Draw areas if any needed
+		if (AreasToDraw != null)
+			TileManager.DrawTileAreas(AreasToDraw);
+		// Clear areas if in vehicle with no charge
+		else if (Player.IsInVehicle
+			&& Player.Vehicle.Info.IsOn
+			&& !Player.Vehicle.HasCharge())
+			TileManager.ClearTileAreas();
+	}
+	/// <summary>
+	/// Updates targets based on Player's weapon range and energy
+	/// </summary>
+	public void UpdateTargets()
 	{
 		// Only update targets if Player is not in movement, has a ranged weapon, it is Player's turn, and Player has energy
 		if (Player.HasRange
