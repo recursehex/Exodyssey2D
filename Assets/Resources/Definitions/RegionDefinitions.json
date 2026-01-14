@@ -64,7 +64,7 @@
       "EnemyPool": ["Weak", "Mediocre", "Strong"],
       "ItemPool": ["Common", "Limited", "Scarce", "Rare", "Anomalous"],
       "VehiclePool": ["Common", "Limited", "Scarce", "Rare"],
-      "Description": "A molten valley, dissuades trespassers with flowing lava."
+      "Description": "A molten valley, dissuading trespassers with flowing lava."
     },
     {
       "Tag": "LuminousSwamp",
