@@ -4,8 +4,7 @@ using UnityEngine;
 public class ItemManager : MonoBehaviour
 {
     [SerializeField] private GameObject[] ItemTemplates;
-    [SerializeField] private List<Item> Items = new();
-    public IReadOnlyList<Item> ActiveItems => Items;
+    public List<Item> Items { get; private set; } = new();
     [SerializeField] private int spawnItemCount;
     [Header("Spawning")]
     [SerializeField] private int minSpawnCount = 3;

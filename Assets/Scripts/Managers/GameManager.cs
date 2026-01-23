@@ -392,7 +392,7 @@ public class GameManager : MonoBehaviour
 			if (Enemy != null)
 				RegisterObjectForTileCollapse(Enemy.transform);
 		}
-		foreach (Item Item in ItemManager.ActiveItems)
+		foreach (Item Item in ItemManager.Items)
 		{
 			if (Item != null)
 				RegisterObjectForTileCollapse(Item.transform);
