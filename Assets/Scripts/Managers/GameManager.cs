@@ -295,13 +295,7 @@ public class GameManager : MonoBehaviour
 		RegisterObjectForTileReveal(Position, Enemy.transform);
 		return Enemy;
 	}
-	public Vehicle SpawnVehicle(int index, Vector3 Position)
-	{
-		Vehicle Vehicle = VehicleManager.SpawnVehicle(index, Position);
-		RegisterObjectForTileReveal(Position, Vehicle.transform);
-		return Vehicle;
-	}
-	public Vehicle SpawnVehicle(int index, Vector3 Position, int startingFuel)
+	public Vehicle SpawnVehicle(int index, Vector3 Position, int startingFuel = -1)
 	{
 		Vehicle Vehicle = VehicleManager.SpawnVehicle(index, Position, startingFuel);
 		RegisterObjectForTileReveal(Position, Vehicle.transform);

@@ -161,17 +161,11 @@ public class VehicleInfo
 	}
 	public void SetCharge(int amount) => CurrentCharge = Mathf.Clamp(amount, 0, Data.maxCharge);
 	public void SwitchIgnition() => IsOn = !IsOn;
-	public static VehicleInfo CreateWithFuel(int index, int fuel)
-	{
-		VehicleInfo VehicleInfo = new(index);
-		VehicleInfo.SetCharge(fuel);
-		return VehicleInfo;
-	}
 	/// <summary>
 	/// Returns info for a desired vehicle,
 	/// n must match Tag order and GameManager VehicleTemplates order
 	/// </summary>
-	public VehicleInfo(int n)
+	public VehicleInfo(int n, int startingFuel = -1)
 	{
 		LoadDatabase();
 		Tags TagData = (Tags)n;
@@ -186,6 +180,8 @@ public class VehicleInfo
 				LoadFromData(Data);
 				CurrentCharge = Data.maxCharge;
 				CurrentHealth = Data.maxHealth;
+				if (startingFuel >= 0)
+					SetCharge(startingFuel);
 				return;
 			}
 			else if (Data != null && Data.disabled)
@@ -206,6 +202,8 @@ public class VehicleInfo
 		Data.maxHealth 		= 1;
 		CurrentCharge 		= Data.maxCharge;
 		CurrentHealth 		= Data.maxHealth;
+		if (startingFuel >= 0)
+			SetCharge(startingFuel);
 	}
 	/// <summary>
 	/// Loads vehicle data from source VehicleData object

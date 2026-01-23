@@ -75,11 +75,16 @@ public static class WeightedRarityGeneration
                 if (index != -1)
                     GameManager.Instance.SpawnEnemy(index, ChosenPosition);
                 break;
-            case nameof(Vehicle):
-                index = VehicleInfo.GetRandomIndexFrom(ChosenRarity);
-                if (index != -1)
-                    GameManager.Instance.SpawnVehicle(index, ChosenPosition);
-                break;
+			case nameof(Vehicle):
+				index = VehicleInfo.GetRandomIndexFrom(ChosenRarity);
+				if (index != -1)
+				{
+					VehicleInfo VehicleInfo = new(index);
+					int maxStartingFuel = VehicleInfo.CurrentCharge;
+					int startingFuel = Random.Range(0, maxStartingFuel + 1);
+					GameManager.Instance.SpawnVehicle(index, ChosenPosition, startingFuel);
+				}
+				break;
             default:
 				Debug.LogError($"WeightedRarityGeneration.Generate<T>() " +
 								$"does not support type {typeof(T)}");
