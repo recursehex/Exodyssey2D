@@ -17,8 +17,7 @@ public class Player : MonoBehaviour
 	[SerializeField] private int maxHealth 	   	= 3;
 	[SerializeField] private int maxEnergy	   	= fixedMaxEnergy;
 	[SerializeField] private int currentHealth	= 3;
-	[SerializeField] private int currentEnergy 	= 3;
-	public int CurrentEnergy => currentEnergy;
+	public int CurrentEnergy { get; private set; } = 3;
 	private readonly int walkSpeed 		= 2;
 	private readonly int inventorySize 	= 2;
 	public int DamagePoints => SelectedItemInfo?.DamagePoints ?? 0;
@@ -163,7 +162,7 @@ public class Player : MonoBehaviour
 		Profession = Profession.GetRandomProfession();
 		maxEnergy = fixedMaxEnergy;
 		currentHealth = maxHealth;
-		currentEnergy = maxEnergy;
+		CurrentEnergy = maxEnergy;
 		StatsDisplayManager.RestoreHealthDisplay();
 		StatsDisplayManager.RestoreEnergyDisplay(currentHealth);
 	}
@@ -219,12 +218,12 @@ public class Player : MonoBehaviour
 		OnMovementComplete?.Invoke();
 	}
 	/// <summary>
-	/// Calculates area Player can move to in a turn based on currentEnergy
+	/// Calculates area Player can move to in a turn based on CurrentEnergy
 	/// </summary>
 	public Dictionary<Vector3Int, Node> CalculateArea()
 	{
 		AStar.Initialize();
-		Dictionary<Vector3Int, Node> ReachableArea = AStar.GetReachableAreaByDistance(transform.position, currentEnergy);
+		Dictionary<Vector3Int, Node> ReachableArea = AStar.GetReachableAreaByDistance(transform.position, CurrentEnergy);
 		Vector3Int StartCell = TilemapGround.WorldToCell(transform.position);
 		ReachableArea.Remove(StartCell);
 		return ReachableArea;
@@ -311,8 +310,8 @@ public class Player : MonoBehaviour
 		// If 1 health left, reduce max energy to simulate weakness
 		if (currentHealth == 1)
 		{
-			currentEnergy = 1;
-			StatsDisplayManager.DecreaseEnergyDisplay(currentEnergy, maxEnergy);
+			CurrentEnergy = 1;
+			StatsDisplayManager.DecreaseEnergyDisplay(CurrentEnergy, maxEnergy);
 			maxEnergy = 1;
 		}
 	}
@@ -328,14 +327,14 @@ public class Player : MonoBehaviour
 	}
 	#endregion
 	#region ENERGY METHODS
-	public bool HasEnergy => currentEnergy > 0;
+	public bool HasEnergy => CurrentEnergy > 0;
 	/// <summary>
 	/// Decreases CurrentEnergy by 1 and updates energy display
 	/// </summary>
 	private void DecrementEnergy()
 	{
-		currentEnergy = Mathf.Clamp(--currentEnergy, 0, maxEnergy);
-		StatsDisplayManager.DecreaseEnergyDisplay(currentEnergy, maxEnergy);
+		CurrentEnergy = Mathf.Clamp(--CurrentEnergy, 0, maxEnergy);
+		StatsDisplayManager.DecreaseEnergyDisplay(CurrentEnergy, maxEnergy);
 		// End turn and stop timer if no more energy
 		if (!HasEnergy)
 			GameManager.Instance.StopTurnTimer();
@@ -345,15 +344,15 @@ public class Player : MonoBehaviour
 	/// </summary>
 	public void SetEnergyToZero()
 	{
-		currentEnergy = 0;
-		StatsDisplayManager.DecreaseEnergyDisplay(currentEnergy, maxEnergy);
+		CurrentEnergy = 0;
+		StatsDisplayManager.DecreaseEnergyDisplay(CurrentEnergy, maxEnergy);
 	}
 	/// <summary>
 	/// Restores Player Energy to maxEnergy
 	/// </summary>
 	public void RestoreEnergy() 
 	{
-		currentEnergy = maxEnergy;
+		CurrentEnergy = maxEnergy;
 		StatsDisplayManager.RestoreEnergyDisplay(currentHealth);
 	}
 	/// <summary>
