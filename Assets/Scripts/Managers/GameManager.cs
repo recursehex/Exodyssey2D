@@ -354,7 +354,7 @@ public class GameManager : MonoBehaviour
 	public bool HasVehicleAtPosition(Vector3 Position) => VehicleManager.HasVehicleAtPosition(Position);
 	public Vehicle GetVehicleAtPosition(Vector3Int Position) => VehicleManager.GetVehicleAtPosition(Position);
 	public bool HasWallAtPosition(Vector3Int Position) 		=> LevelManager.HasWallAtPosition(Position);
-	public bool ApplyDamageToVehicle(Vehicle Vehicle, int damage) => VehicleManager.ApplyDamageToVehicle(Vehicle, damage);
+	public bool DamageVehicle(Vehicle Vehicle, int damage) 	=> VehicleManager.DamageVehicle(Vehicle, damage);
 	public void DestroyVehicle(Vehicle Vehicle) 			=> VehicleManager.DestroyVehicle(Vehicle);
 	public void ClearTileAreas() 							=> TileManager.ClearTileAreas();
 	public void ClearTargets() 								=> TileManager.ClearTargets();

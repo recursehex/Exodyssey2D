@@ -243,7 +243,7 @@ public class Enemy : MonoBehaviour
 		Info.DecrementEnergy();
 		// If Player is in Vehicle, damage Vehicle
 		if (Player.IsInVehicle)
-			GameManager.Instance.ApplyDamageToVehicle(Player.Vehicle, Info.DamagePoints);
+			GameManager.Instance.DamageVehicle(Player.Vehicle, Info.DamagePoints);
 		// If Player is not in Vehicle, damage Player
 		else
 			Player.DecreaseHealthBy(Info.DamagePoints, Info.Range == 0);

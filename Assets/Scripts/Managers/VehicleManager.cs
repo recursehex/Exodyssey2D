@@ -66,7 +66,7 @@ public class VehicleManager : MonoBehaviour
     /// <summary>
     /// Applies damage to a vehicle, handling destruction and ejecting the player if needed
     /// </summary>
-    public bool ApplyDamageToVehicle(Vehicle Vehicle, int damage)
+    public bool DamageVehicle(Vehicle Vehicle, int damage)
     {
         if (Vehicle == null)
             return false;

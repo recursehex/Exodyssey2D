@@ -301,7 +301,7 @@ public class FireManager : MonoBehaviour
                 continue;
             Vector3Int Cell = TilemapGround.WorldToCell(Vehicle.transform.position);
             if (HasFireAtCell(Cell))
-                VehicleManager.ApplyDamageToVehicle(Vehicle, fireDamage);
+                VehicleManager.DamageVehicle(Vehicle, fireDamage);
         }
         // Damage player on fire if not in vehicle
         if (!Player.IsInVehicle && HasFireAtWorld(Player.transform.position))
