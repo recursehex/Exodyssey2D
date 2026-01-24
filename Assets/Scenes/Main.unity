@@ -958,6 +958,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: bc0b0f7e95da3be4ca78e2f9f5b7fc51, type: 2}
   - {fileID: 11400000, guid: 6d5ac7c2a11ac224f8879914a994d0bd, type: 2}
   - {fileID: 11400000, guid: 04f411d322f2dd14280a7181840f87f4, type: 2}
+  - {fileID: 11400000, guid: 7311aff186a4c40ea839967f80160a77, type: 2}
   FC_WallTiles:
   - {fileID: 11400000, guid: 3cfd4d96da0b6c74aa5e5d9dc2c69628, type: 2}
   - {fileID: 11400000, guid: c460a9e9d7021bd40861beafe3a92647, type: 2}
