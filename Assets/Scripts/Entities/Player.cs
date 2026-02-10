@@ -337,7 +337,10 @@ public class Player : MonoBehaviour
 	{
 		if (amount <= 0)
 			return;
+		int previousEnergy = CurrentEnergy;
 		CurrentEnergy = Mathf.Clamp(CurrentEnergy - amount, 0, maxEnergy);
+		if (CurrentEnergy < previousEnergy)
+			GameManager.Instance.OnPlayerActionPointSpent();
 		StatsDisplayManager.DecreaseEnergyDisplay(CurrentEnergy, maxEnergy);
 		// End turn and stop timer if no more energy
 		if (!HasEnergy)
@@ -354,7 +357,10 @@ public class Player : MonoBehaviour
 	/// </summary>
 	private void DecrementEnergy()
 	{
+		int previousEnergy = CurrentEnergy;
 		CurrentEnergy = Mathf.Clamp(--CurrentEnergy, 0, maxEnergy);
+		if (CurrentEnergy < previousEnergy)
+			GameManager.Instance.OnPlayerActionPointSpent();
 		StatsDisplayManager.DecreaseEnergyDisplay(CurrentEnergy, maxEnergy);
 		// End turn and stop timer if no more energy
 		if (!HasEnergy)
