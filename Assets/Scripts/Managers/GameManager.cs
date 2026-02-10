@@ -821,7 +821,8 @@ public class GameManager : MonoBehaviour
 		if (!HasEnemyAtPosition(ShiftedClickPoint)
 			|| !isInMeleeRange
 			&& !isInRangedWeaponRange
-			|| Player.SelectedItemInfo?.Type is not ItemInfo.Types.Weapon)
+			|| Player.SelectedItemInfo?.Type is not ItemInfo.Types.Weapon
+			|| !Player.HasUses)
 			return;
 		// Flamethrower sprays a fire streak; blowtorch spawns a single fire tile
 		if (Player.SelectedItemInfo.Tag is ItemInfo.Tags.Blowtorch or ItemInfo.Tags.Flamethrower)
@@ -954,28 +955,30 @@ public class GameManager : MonoBehaviour
 	public void UpdateTargets()
 	{
 		// Only update targets if Player is not in movement, has a ranged weapon, it is Player's turn, and Player has energy
-		if (Player.HasRange
-			&& TurnManager.IsPlayersTurn
-			&& Player.HasEnergy)
+		if (!Player.HasRange
+			|| !TurnManager.IsPlayersTurn
+			|| !Player.HasEnergy)
 		{
-			// When flamethrower is equipped, don't draw targets on enemies on fire
-			if (Player.SelectedItemInfo.Tag is ItemInfo.Tags.Flamethrower)
+			TileManager.ClearTargets();
+			return;
+		}
+		// When flamethrower is equipped, don't draw targets on enemies on fire
+		if (Player.SelectedItemInfo.Tag is ItemInfo.Tags.Flamethrower)
+		{
+			List<Enemy> TargetableEnemies = new();
+			foreach (Enemy Enemy in EnemyManager.Enemies)
 			{
-				List<Enemy> TargetableEnemies = new();
-				foreach (Enemy Enemy in EnemyManager.Enemies)
-				{
-					if (Enemy == null)
-						continue;
-					if (HasFireAtWorld(Enemy.transform.position))
-						continue;
-					TargetableEnemies.Add(Enemy);
-				}
-				TileManager.DrawTargets(TargetableEnemies, Player.transform.position, Player.WeaponRange, Player.SelectedItemInfo.IsStunning, TilemapWalls);
+				if (Enemy == null)
+					continue;
+				if (HasFireAtWorld(Enemy.transform.position))
+					continue;
+				TargetableEnemies.Add(Enemy);
 			}
-			else
-			{
-				TileManager.DrawTargets(EnemyManager.Enemies, Player.transform.position, Player.WeaponRange, Player.SelectedItemInfo.IsStunning, TilemapWalls);
-			}
+			TileManager.DrawTargets(TargetableEnemies, Player.transform.position, Player.WeaponRange, Player.SelectedItemInfo.IsStunning, TilemapWalls);
+		}
+		else
+		{
+			TileManager.DrawTargets(EnemyManager.Enemies, Player.transform.position, Player.WeaponRange, Player.SelectedItemInfo.IsStunning, TilemapWalls);
 		}
 	}
 }

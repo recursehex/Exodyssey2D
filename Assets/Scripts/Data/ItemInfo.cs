@@ -78,6 +78,7 @@ public class ItemInfo
 	public int ArmorDamage 		=> Data.armorDamage;					// Damage of item to armor, -1 = does same damage as DamagePoints
 	public int Range 			=> Data.range;                          // Range of item, -1 = not a ranged weapon
 	public bool HasRange 		=> Range > 0;
+	public bool IsUnbreakable	=> Tag is Tags.PlasmaRailgun;
 	public bool IsEquipable 	=> Data.isEquipable;					// If item can be equipped, enabling and removing from inventory
 	public bool IsAttachable 	=> Data.isAttachable;					// If item can be attached to vehicles, enabling and removing from inventory
 	public bool IsFlammable 	=> Data.isFlammable;					// If item is flammable, can be destroyed by fire and helps it spread
@@ -174,7 +175,9 @@ public class ItemInfo
 	/// </summary>
 	public void DecreaseDurability(int amount = 1)
 	{
-		CurrentUses -= amount;
+		if (amount <= 0)
+			return;
+		CurrentUses = Mathf.Max(CurrentUses - amount, 0);
 		RefreshStats();
 	}
 	/// <summary>

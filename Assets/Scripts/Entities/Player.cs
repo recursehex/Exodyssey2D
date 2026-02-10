@@ -20,7 +20,7 @@ public class Player : MonoBehaviour
 	public int CurrentEnergy { get; private set; } = 3;
 	private readonly int walkSpeed 		= 2;
 	private readonly int inventorySize 	= 2;
-	public int DamagePoints => SelectedItemInfo?.DamagePoints ?? 0;
+	public int DamagePoints => HasUses ? SelectedItemInfo?.DamagePoints ?? 0 : 0;
 	[Header("Vehicle")]
 	public Vehicle Vehicle;
 	public bool IsInVehicle => Vehicle != null;
@@ -396,7 +396,7 @@ public class Player : MonoBehaviour
 		UseItem();
 	}
 	/// <summary>
-	/// Decreases item durability by 1, removes item if uses run out
+	/// Decreases item durability by 1, removes item if uses run out (except unbreakable items)
 	/// </summary>
 	private void DecrementItemDurability()
 	{
@@ -406,11 +406,12 @@ public class Player : MonoBehaviour
 	}
 	/// <summary>
 	/// Removes selected item from inventory and resets related variables
+	/// Unbreakable items are kept at 0 UP unless forceRemove is true
 	/// If forceRemove is true, item is removed regardless of durability
 	/// </summary>
 	private void TryRemoveSelectedItem(bool forceRemove = false)
 	{
-		if (!forceRemove && HasUses)
+		if (!forceRemove && (HasUses || ShouldKeepDepletedSelectedItem))
 			return;
 		InventoryUI.RemoveItem(InventoryUI.SelectedIndex);
 		InventoryUI.SetNoneSelected();
@@ -419,14 +420,15 @@ public class Player : MonoBehaviour
 		GameManager.Instance.UpdateTileAreas();
 	}
 	public bool HasUses => SelectedItemInfo?.CurrentUses > 0;
+	private bool ShouldKeepDepletedSelectedItem => SelectedItemInfo?.IsUnbreakable ?? false;
 	/// <summary>
 	/// Returns true if Player has a selected item in inventory
 	/// </summary>
-	public bool HasRange => SelectedItemInfo?.HasRange ?? false;
+	public bool HasRange => (SelectedItemInfo?.HasRange ?? false) && HasUses;
 	/// <summary>
 	/// Returns weapon range of selected item, 0 if no item is selected or item is not a weapon
 	/// </summary>
-	public int WeaponRange => SelectedItemInfo?.Range ?? 0;
+	public int WeaponRange => HasRange ? SelectedItemInfo.Range : 0;
 	#endregion
 	#region ITEM METHODS
 	/// <summary>
