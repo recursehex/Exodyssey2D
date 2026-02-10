@@ -364,6 +364,7 @@ public class GameManager : MonoBehaviour
 	public void OnUndoButtonPress() 						=> ChronoclasmManager.TryUndoLastMove();
 	public void ForceChronoclasmReady() 					=> ChronoclasmManager.ForceChronoclasmReady();
 	public void ClearChronoclasmReadyOverride() 			=> ChronoclasmManager.ClearChronoclasmReadyOverride();
+	public void OnPlayerActionPointSpent() 				=> ChronoclasmManager.MarkActionPointSpentThisTurn();
 	public void ClearUndoHistory(string Reason) 			=> ChronoclasmManager.ClearUndoHistory(Reason);
 	public void RecordUndoSnapshot(bool recordGroundItem = false) => ChronoclasmManager.RecordUndoSnapshot(recordGroundItem);
 	public bool HasItemAtPosition(Vector3 Position) 		=> ItemManager.HasItemAtPosition(Position);
@@ -525,8 +526,6 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	private void OnPlayerMovementComplete()
 	{
-		if (TurnManager.IsPlayersTurn)
-			ChronoclasmManager.MarkMovedThisTurn();
 		// Move Player to vehicle position if in vehicle
 		if (Player.IsInVehicle && Player.Vehicle != null)
 			Player.transform.position = Player.Vehicle.transform.position;
@@ -765,7 +764,7 @@ public class GameManager : MonoBehaviour
 		return true;
 	}
 	private bool TryEnterVehicle(Vector3Int TilePoint)
-    {
+	{
 		// Get vehicle index at position
 		Vehicle Vehicle = GetVehicleAtPosition(TilePoint);
 		// Return false if no vehicle found
@@ -777,12 +776,11 @@ public class GameManager : MonoBehaviour
 			return false;
 		ChronoclasmManager.RecordUndoSnapshot();
 		Player.EnterVehicle(Vehicle);
-		ChronoclasmManager.MarkMovedThisTurn();
-        TurnManager.TurnTimer.StartTimer();
+		TurnManager.TurnTimer.StartTimer();
 		TileManager.ClearTargets();
 		UpdateTileAreas();
 		return true;
-    }
+	}
 	/// <summary>
 	/// Tries to move Player to clicked tile point
 	/// </summary>

@@ -23,7 +23,7 @@ public class ChronoclasmManager : MonoBehaviour
 		public bool hadGroundItemSnapshot;
 		public Vector3 GroundItemPosition;
 		public ItemInfo GroundItemInfo;
-		public bool hadMovedThisTurn;
+		public bool hadSpentActionPointsThisTurn;
 		public bool wasInVehicle;
 		public bool vehicleWasOn;
 	}
@@ -38,7 +38,7 @@ public class ChronoclasmManager : MonoBehaviour
 	private readonly Stack<UndoSnapshot> UndoSnapshots = new();
 	private bool undoBlockedThisTurn = false;
 	private string LastUndoBlockReason = string.Empty;
-	private bool hasMovedThisTurn = false;
+	private bool hasSpentActionPointsThisTurn = false;
 	private GameManager GameManager;
 	private TurnManager TurnManager;
 	private TileManager TileManager;
@@ -89,7 +89,7 @@ public class ChronoclasmManager : MonoBehaviour
 		UndoSnapshot Snapshot = new();
 		Snapshot.PlayerPosition = GetTileCenterPosition(Player.transform.position);
 		Snapshot.playerEnergy = Player.CurrentEnergy;
-		Snapshot.hadMovedThisTurn = hasMovedThisTurn;
+		Snapshot.hadSpentActionPointsThisTurn = hasSpentActionPointsThisTurn;
 		Snapshot.wasInVehicle = Player.IsInVehicle;
 		Snapshot.Vehicle = Player.Vehicle;
 		CaptureInventorySnapshot(ref Snapshot);
@@ -179,10 +179,10 @@ public class ChronoclasmManager : MonoBehaviour
 		GameManager.RemoveItemAtPosition(Item);
 		Destroy(Item.gameObject);
 	}
-	public void MarkMovedThisTurn()
+	public void MarkActionPointSpentThisTurn()
 	{
-		hasMovedThisTurn = true;
-		if (LastChronoclasmFailureReason == "Chronoclasm requires movement before use.")
+		hasSpentActionPointsThisTurn = true;
+		if (LastChronoclasmFailureReason == "Chronoclasm requires an AP-costing action before use.")
 			LastChronoclasmFailureReason = string.Empty;
 	}
 	public void ClearUndoHistory(string Reason)
@@ -236,7 +236,7 @@ public class ChronoclasmManager : MonoBehaviour
 			return false;
 		}
 		Player.SetEnergy(Snapshot.playerEnergy);
-		hasMovedThisTurn = Snapshot.hadMovedThisTurn;
+		hasSpentActionPointsThisTurn = Snapshot.hadSpentActionPointsThisTurn;
 		RestoreInventorySnapshot(Snapshot);
 		RestoreGroundItemSnapshot(Snapshot);
 		RefreshAfterReposition();
@@ -260,9 +260,9 @@ public class ChronoclasmManager : MonoBehaviour
 			Reason = "Chronoclasm snapshot is missing.";
 			return false;
 		}
-		if (!hasMovedThisTurn)
+		if (!hasSpentActionPointsThisTurn)
 		{
-			Reason = "Chronoclasm requires movement before use.";
+			Reason = "Chronoclasm requires an AP-costing action before use.";
 			return false;
 		}
 		if (GameManager != null && GameManager.IsDoingSetup)
@@ -430,7 +430,7 @@ public class ChronoclasmManager : MonoBehaviour
 		UndoSnapshots.Clear();
 		undoBlockedThisTurn = false;
 		LastUndoBlockReason = string.Empty;
-		hasMovedThisTurn = false;
+		hasSpentActionPointsThisTurn = false;
 	}
 	private void BlockUndoForTurn(string Reason)
 	{
