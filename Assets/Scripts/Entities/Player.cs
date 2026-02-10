@@ -105,17 +105,9 @@ public class Player : MonoBehaviour
 		InventoryItemUses.Clear();
 		if (Inventory == null)
 			return;
-		for (int i = 0; i < Inventory.Count; i++)
+		for (int i = 0; i < Inventory.Size; i++)
 		{
-			Item InventoryItem = Inventory[i];
-			if (ReferenceEquals(InventoryItem, null))
-			{
-				InventoryItemTags.Add(ItemInfo.Tags.Unknown);
-				InventoryItemNames.Add(string.Empty);
-				InventoryItemUses.Add(0);
-				continue;
-			}
-			ItemInfo InventoryItemInfo = InventoryItem.Info;
+			ItemInfo InventoryItemInfo = Inventory[i];
 			if (InventoryItemInfo == null)
 			{
 				InventoryItemTags.Add(ItemInfo.Tags.Unknown);
@@ -245,6 +237,19 @@ public class Player : MonoBehaviour
 		SetPlayerVisibility(true);
 		Vehicle = null;
     }
+	public void SetVehicleState(Vehicle Vehicle, bool isInVehicle, Vector3 PlayerPosition)
+	{
+		if (isInVehicle && Vehicle == null)
+		{
+			SetPlayerVisibility(true);
+			this.Vehicle = null;
+			transform.position = PlayerPosition;
+			return;
+		}
+		this.Vehicle = isInVehicle ? Vehicle : null;
+		transform.position = PlayerPosition;
+		SetPlayerVisibility(!isInVehicle);
+	}
 	public void VehicleMovement(Vector3 WorldPoint)
 	{
 		if (Vehicle == null)
@@ -328,6 +333,22 @@ public class Player : MonoBehaviour
 	#endregion
 	#region ENERGY METHODS
 	public bool HasEnergy => CurrentEnergy > 0;
+	public void SpendEnergy(int amount)
+	{
+		if (amount <= 0)
+			return;
+		CurrentEnergy = Mathf.Clamp(CurrentEnergy - amount, 0, maxEnergy);
+		StatsDisplayManager.DecreaseEnergyDisplay(CurrentEnergy, maxEnergy);
+		// End turn and stop timer if no more energy
+		if (!HasEnergy)
+			GameManager.Instance.StopTurnTimer();
+	}
+	public void SetEnergy(int newEnergy)
+	{
+		CurrentEnergy = Mathf.Clamp(newEnergy, 0, maxEnergy);
+		StatsDisplayManager.RestoreEnergyDisplay(currentHealth);
+		StatsDisplayManager.DecreaseEnergyDisplay(CurrentEnergy, maxEnergy);
+	}
 	/// <summary>
 	/// Decreases CurrentEnergy by 1 and updates energy display
 	/// </summary>
@@ -413,7 +434,7 @@ public class Player : MonoBehaviour
 	/// </summary>
 	public bool TryAddItem(Item Item)
 	{
-		if (Inventory.TryAddItem(Item))
+		if (Inventory.TryAddItem(Item.Info))
 		{
 			InventoryUI.RefreshInventoryIcons();
 			return true;
@@ -426,9 +447,9 @@ public class Player : MonoBehaviour
 	public void TryClickItem(int itemIndex)
 	{
 		// Ensures index is within bounds and inventory has an item
-		if (Inventory.IsEmpty || itemIndex >= Inventory.Count)
+		if (!Inventory.HasItemAt(itemIndex))
 			return;
-		ItemInfo ClickedItem = Inventory[itemIndex].Info;
+		ItemInfo ClickedItem = Inventory[itemIndex];
 		// If item is selected, update selection, otherwise reset
 		if (InventoryUI.ProcessSelection(InventoryUI.SelectedIndex, itemIndex))
 		{
@@ -539,10 +560,11 @@ public class Player : MonoBehaviour
 	public void TryDropItem(int itemIndex)
 	{
 		// Returns if called when inventory is empty
-		if (Inventory.IsEmpty)
+		if (!Inventory.HasItemAt(itemIndex))
 			return;
+		GameManager.Instance.RecordUndoSnapshot(true);
 		// Put dropped item in temp slot out of inventory
-		ItemInfo DroppedItemInfo = Inventory[itemIndex].Info;
+		ItemInfo DroppedItemInfo = Inventory[itemIndex];
 		if (DroppedItemInfo == SelectedItemInfo)
 		{
 			// Clears targeting if ranged weapon is dropped
@@ -557,7 +579,7 @@ public class Player : MonoBehaviour
 		if (ItemAtPosition != null)
 		{
 			// Swap dropped item with ground item
-			Inventory[itemIndex].Info = ItemAtPosition.Info;
+			Inventory[itemIndex] = ItemAtPosition.Info;
 			GameManager.Instance.RemoveItemAtPosition(ItemAtPosition);
 			Destroy(ItemAtPosition.gameObject);
 			InventoryUI.RefreshInventoryIcons();
@@ -570,6 +592,25 @@ public class Player : MonoBehaviour
 		GameManager.Instance.SpawnItem(DroppedItemInfo, transform.position);
 		// Removes item from inventory and plays corresponding sound
 		SoundManager.Instance.PlaySound(Move);
+	}
+	public void RechargePlasmaRailgun()
+	{
+		if (Inventory.IsEmpty)
+			return;
+		bool shouldRefreshSelected = false;
+		for (int i = 0; i < Inventory.Size; i++)
+		{
+			ItemInfo InventoryItemInfo = Inventory[i];
+			if (InventoryItemInfo == null)
+				continue;
+			if (InventoryItemInfo.Tag != ItemInfo.Tags.PlasmaRailgun)
+				continue;
+			InventoryItemInfo.RestoreDurabilityToMax();
+			if (SelectedItemInfo == InventoryItemInfo)
+				shouldRefreshSelected = true;
+		}
+		if (shouldRefreshSelected && InventoryUI.SelectedIndex >= 0)
+			InventoryUI.SetCurrentSelected(InventoryUI.SelectedIndex);
 	}
     #endregion
 }

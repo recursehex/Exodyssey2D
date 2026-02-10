@@ -27,6 +27,7 @@ public class GameManager : MonoBehaviour
 	private TurnManager TurnManager;
 	private LevelManager LevelManager;
 	private InputManager InputManager;
+	private ChronoclasmManager ChronoclasmManager;
 	private TilemapRevealAnimator TilemapRevealAnimator;
 	[Header("Prefab Templates")]
 	[SerializeField] private GameObject[] EnemyTemplates;
@@ -74,6 +75,7 @@ public class GameManager : MonoBehaviour
 		TurnManager 	= gameObject.AddComponent<TurnManager>();
 		LevelManager 	= gameObject.AddComponent<LevelManager>();
 		InputManager 	= gameObject.AddComponent<InputManager>();
+		ChronoclasmManager = gameObject.AddComponent<ChronoclasmManager>();
 		TilemapRevealAnimator = gameObject.AddComponent<TilemapRevealAnimator>();
 		// Initialize managers
 		RegionManager	.Initialize();
@@ -85,6 +87,7 @@ public class GameManager : MonoBehaviour
 		TurnManager		.Initialize(TurnTimer, EndTurnButton);
 		TilemapRevealAnimator.Initialize(TilemapGround, TilemapWalls);
 		LevelManager	.Initialize(TilemapGround, TilemapWalls, TilemapExit, RegionManager, RegionText, DayText, LevelText, LevelImage, TilemapRevealAnimator);
+		ChronoclasmManager.Initialize(this, TurnManager, TileManager, Player, TilemapGround);
 		// Subscribe to events
 		TurnManager.OnPlayerTurnEnded 	+= OnPlayerTurnEnded;
 		TurnManager.OnEnemyTurnEnded 	+= OnEnemyTurnEnded;
@@ -133,6 +136,7 @@ public class GameManager : MonoBehaviour
 	private void ResetForNextLevel()
 	{
 		LevelManager.PrepareNextLevel();
+		ChronoclasmManager.HandleGridExit();
 		TurnManager.TurnTimer.timerIsRunning = false;
 		TurnManager.TurnTimer.ResetTimer();
 		FireManager.DestroyAllFires();
@@ -212,6 +216,7 @@ public class GameManager : MonoBehaviour
 			UpdateTargets();
 		// Draw tile areas at start of game
 		UpdateTileAreas();
+		ChronoclasmManager.OnPlayerTurnStart();
 	}
 	/// <summary>
 	/// Handles changes to loading screen visibility
@@ -239,6 +244,7 @@ public class GameManager : MonoBehaviour
 	public void GameOver()
 	{
 		CleanupWorldEntities();
+		ChronoclasmManager.ResetForNewRun();
 		SoundManager.Instance.PlayGameOver(GameOverClip);
 		LevelManager.ShowGameOver();
 		NewGameButton.gameObject.SetActive(true);
@@ -257,6 +263,7 @@ public class GameManager : MonoBehaviour
 		RegionManager.ResetRegionProgress();
 		LevelManager.ResetLevelProgress();
 		TurnManager.ResetTurnState();
+		ChronoclasmManager.ResetForNewRun();
 		Player.ResetForNewGame(PlayerStartPosition);
 		SoundManager.Instance.PlayMusic();
 		InitGame();
@@ -346,12 +353,25 @@ public class GameManager : MonoBehaviour
 		return true;
 	}
 	// Public accessor methods
+	public bool IsDoingSetup 								=> doingSetup;
+	public bool IsChronoclasmReady 							=> ChronoclasmManager != null && ChronoclasmManager.IsChronoclasmReady;
+	public bool HasChronoclasmSnapshot 						=> ChronoclasmManager != null && ChronoclasmManager.HasChronoclasmSnapshot;
+	public int ChronoclasmGridsRemaining 					=> ChronoclasmManager.ChronoclasmGridsRemaining;
+	public string ChronoclasmStatusLabel 					=> ChronoclasmManager.ChronoclasmStatusLabel;
+	public string ChronoclasmFailureReason 					=> ChronoclasmManager.ChronoclasmFailureReason;
+	public bool CanUndo 									=> ChronoclasmManager != null && ChronoclasmManager.CanUndo;
+	public string UndoBlockReason 							=> ChronoclasmManager.UndoBlockReason;
+	public void OnUndoButtonPress() 						=> ChronoclasmManager.TryUndoLastMove();
+	public void ForceChronoclasmReady() 					=> ChronoclasmManager.ForceChronoclasmReady();
+	public void ClearChronoclasmReadyOverride() 			=> ChronoclasmManager.ClearChronoclasmReadyOverride();
+	public void ClearUndoHistory(string Reason) 			=> ChronoclasmManager.ClearUndoHistory(Reason);
+	public void RecordUndoSnapshot(bool recordGroundItem = false) => ChronoclasmManager.RecordUndoSnapshot(recordGroundItem);
 	public bool HasItemAtPosition(Vector3 Position) 		=> ItemManager.HasItemAtPosition(Position);
 	public Item GetItemAtPosition(Vector3 Position) 		=> ItemManager.GetItemAtPosition(Position);
 	public void RemoveItemAtPosition(Item Item) 			=> ItemManager.RemoveItemAtPosition(Item);
 	public bool HasEnemyAtPosition(Vector3 Position) 		=> EnemyManager.HasEnemyAtPosition(Position);
 	public Enemy GetEnemyAtPosition(Vector3 Position) 		=> EnemyManager.GetEnemyAtPosition(Position);
-	public bool HasVehicleAtPosition(Vector3 Position) => VehicleManager.HasVehicleAtPosition(Position);
+	public bool HasVehicleAtPosition(Vector3 Position) 		=> VehicleManager.HasVehicleAtPosition(Position);
 	public Vehicle GetVehicleAtPosition(Vector3Int Position) => VehicleManager.GetVehicleAtPosition(Position);
 	public bool HasWallAtPosition(Vector3Int Position) 		=> LevelManager.HasWallAtPosition(Position);
 	public bool DamageVehicle(Vehicle Vehicle, int damage) 	=> VehicleManager.DamageVehicle(Vehicle, damage);
@@ -359,14 +379,14 @@ public class GameManager : MonoBehaviour
 	public void ClearTileAreas() 							=> TileManager.ClearTileAreas();
 	public void ClearTargets() 								=> TileManager.ClearTargets();
 	public bool HasEnemies() 								=> EnemyManager.Enemies.Count > 0;
-	public bool HasExitTileAtPosition(Vector3Int Position) => LevelManager.HasExitTileAtPosition(Position);
+	public bool HasExitTileAtPosition(Vector3Int Position) 	=> LevelManager.HasExitTileAtPosition(Position);
 	public bool HasFireAtPosition(Vector3Int Position) 		=> FireManager.HasFireAtCell(Position);
 	public bool HasFireAtWorld(Vector3 Position) 			=> FireManager.HasFireAtWorld(Position);
 	public bool TrySpawnFire(Vector3Int Position, bool isWildfire = false, bool allowBurnedCell = false) => FireManager.TrySpawnFire(Position, isWildfire, allowBurnedCell);
 	public bool TryExtinguishFire(Vector3Int Position) 		=> FireManager.ExtinguishFire(Position);
-	public int Level => LevelManager.Level;
-	public RegionManager GetRegionManager() => RegionManager;
-    public void StopTurnTimer() => TurnManager.StopTurnTimer();
+	public int Level 										=> LevelManager.Level;
+	public RegionManager GetRegionManager() 				=> RegionManager;
+    public void StopTurnTimer() 							=> TurnManager.StopTurnTimer();
 	public void RegisterObjectForTileReveal(Vector3 WorldPosition, Transform ObjectTransform)
 	{
 		if (TilemapRevealAnimator == null
@@ -416,6 +436,7 @@ public class GameManager : MonoBehaviour
 			return;
 		TurnManager.OnEndTurnPress();
 	}
+	public void OnChronoclasmButtonPress() => ChronoclasmManager.TryUseChronoclasm();
 	/// <summary>
 	/// Prepares Enemy turn after Player turn ends
 	/// </summary>
@@ -447,6 +468,7 @@ public class GameManager : MonoBehaviour
 		Player.SetEnergyToZero();
 		TileManager.ClearTileAreas();
 		TileManager.ClearTargets();
+		ChronoclasmManager.OnTurnTimerExpired();
 		TurnManager.OnTurnTimerEnd();
 	}
 	/// <summary>
@@ -455,6 +477,7 @@ public class GameManager : MonoBehaviour
 	private void OnEnemyTurnEnded()
 	{
 		TurnManager.SetEndTurnButtonInteractable(false);
+		ChronoclasmManager.OnPlayerTurnStart();
 		if (PlayerTurnDelayRoutine != null)
 		{
 			StopCoroutine(PlayerTurnDelayRoutine);
@@ -502,6 +525,8 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	private void OnPlayerMovementComplete()
 	{
+		if (TurnManager.IsPlayersTurn)
+			ChronoclasmManager.MarkMovedThisTurn();
 		// Move Player to vehicle position if in vehicle
 		if (Player.IsInVehicle && Player.Vehicle != null)
 			Player.transform.position = Player.Vehicle.transform.position;
@@ -611,6 +636,7 @@ public class GameManager : MonoBehaviour
 			return;
 		// Player exits vehicle
 		TurnManager.SetEndTurnButtonInteractable(false);
+		ChronoclasmManager.RecordUndoSnapshot();
 		Player.IsInMovement = true;
 		Player.ExitVehicle();
 		Player.ComputePathAndStartMovement(WorldPoint);
@@ -633,6 +659,7 @@ public class GameManager : MonoBehaviour
 			return;
 		// Start Player's vehicle movement
 		TurnManager.SetEndTurnButtonInteractable(false);
+		ChronoclasmManager.RecordUndoSnapshot();
 		Player.IsInMovement = true;
 		Player.VehicleMovement(WorldPoint);
 		TileManager.ClearTileAreas();
@@ -647,6 +674,10 @@ public class GameManager : MonoBehaviour
 		if (ShiftedClickPoint != Player.transform.position
 			|| GetItemAtPosition(ShiftedClickPoint) is not Item Item)
 			return false;
+		Inventory Inventory = Player.InventoryUI != null ? Player.InventoryUI.Inventory : null;
+		if (Inventory == null || Inventory.Count >= Inventory.Size)
+			return false;
+		ChronoclasmManager.RecordUndoSnapshot(true);
 		// Return false if Player's inventory is full
 		if (!Player.TryAddItem(Item))
 			return false;
@@ -671,6 +702,7 @@ public class GameManager : MonoBehaviour
 				Player.UseItem();
 				TurnManager.TurnTimer.StartTimer();
 				UpdateTileAreas();
+				ChronoclasmManager.ClearUndoHistory("Undo history cleared after using an item on a tile.");
 				return true;
 			}
 		}
@@ -693,6 +725,7 @@ public class GameManager : MonoBehaviour
 				TurnManager.TurnTimer.StartTimer();
 				TileManager.ClearTileAreas();
 				UpdateTileAreas();
+				ChronoclasmManager.ClearUndoHistory("Undo history cleared after using an item on a tile.");
 				return true;
 			}
 		}
@@ -709,6 +742,7 @@ public class GameManager : MonoBehaviour
 			return false;
 		TurnManager.TurnTimer.StartTimer();
 		UpdateTileAreas();
+		ChronoclasmManager.ClearUndoHistory("Undo history cleared after using an item.");
 		return true;
 	}
 	/// <summary>
@@ -727,6 +761,7 @@ public class GameManager : MonoBehaviour
 			return false;
 		TurnManager.TurnTimer.StartTimer();
 		UpdateTileAreas();
+		ChronoclasmManager.ClearUndoHistory("Undo history cleared after using an item on a vehicle.");
 		return true;
 	}
 	private bool TryEnterVehicle(Vector3Int TilePoint)
@@ -740,7 +775,9 @@ public class GameManager : MonoBehaviour
 		if (!IsPlayerAdjacentTo(Vehicle.transform.position)
 			|| HasFireAtPosition(TilePoint))
 			return false;
+		ChronoclasmManager.RecordUndoSnapshot();
 		Player.EnterVehicle(Vehicle);
+		ChronoclasmManager.MarkMovedThisTurn();
         TurnManager.TurnTimer.StartTimer();
 		TileManager.ClearTargets();
 		UpdateTileAreas();
@@ -765,6 +802,7 @@ public class GameManager : MonoBehaviour
 		}
 		// Start Player movement
 		TurnManager.SetEndTurnButtonInteractable(false);
+		ChronoclasmManager.RecordUndoSnapshot();
 		Player.IsInMovement = true;
 		Player.ComputePathAndStartMovement(WorldPoint);
 		TileManager.ClearTileAreas();
@@ -804,6 +842,7 @@ public class GameManager : MonoBehaviour
 				TileManager.TileDot.SetActive(false);
 				UpdateTargets();
 				UpdateTileAreas();
+				ChronoclasmManager.ClearUndoHistory("Undo history cleared after attacking.");
 			}
 			return;
 		}
@@ -818,6 +857,7 @@ public class GameManager : MonoBehaviour
 		TileManager.TileDot.SetActive(false);
 		UpdateTargets();
 		UpdateTileAreas();
+		ChronoclasmManager.ClearUndoHistory("Undo history cleared after attacking.");
 	}
 	/// <summary>
 	/// Spawns a flamethrower fire streak between Player and target

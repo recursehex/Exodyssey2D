@@ -36,16 +36,24 @@ public class Item : MonoBehaviour
 #endif
 	public Sprite GetSprite()
 	{
-		if (Info == null)
+		return GetSpriteForInfo(Info);
+	}
+	public static Sprite GetSpriteForInfo(ItemInfo ItemInfo)
+	{
+		if (ItemInfo == null)
 			return null;
-		if (SpriteCache.TryGetValue(Info.Tag, out Sprite CachedSprite))
+		return GetSpriteForTag(ItemInfo.Tag);
+	}
+	public static Sprite GetSpriteForTag(ItemInfo.Tags Tag)
+	{
+		if (SpriteCache.TryGetValue(Tag, out Sprite CachedSprite))
 			return CachedSprite;
-		string ResourcePath = $"Sprites/{Info.Tag.ToString().ToLowerInvariant()}";
+		string ResourcePath = $"Sprites/{Tag.ToString().ToLowerInvariant()}";
 		Sprite Sprite = Resources.Load<Sprite>(ResourcePath);
 		if (Sprite != null)
-			SpriteCache[Info.Tag] = Sprite;
+			SpriteCache[Tag] = Sprite;
 		else
-			Debug.LogWarning($"Sprite not found at path {ResourcePath} for Item Tag {Info.Tag}.");
+			Debug.LogWarning($"Sprite not found at path {ResourcePath} for Item Tag {Tag}.");
 		return Sprite;
 	}
 }

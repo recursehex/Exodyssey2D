@@ -259,7 +259,7 @@ public class CursorController : MonoBehaviour
         Inventory inventory = ResolveInventory();
         if (inventory == null)
             return false;
-        return index < inventory.Count;
+        return inventory.HasItemAt(index);
     }
     /// <summary>
     /// Tries to extract the inventory index from the inventory icon name

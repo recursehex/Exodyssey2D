@@ -175,6 +175,18 @@ public class ItemInfo
 	public void DecreaseDurability(int amount = 1)
 	{
 		CurrentUses -= amount;
+		RefreshStats();
+	}
+	/// <summary>
+	/// Restores durability to max uses and updates description
+	/// </summary>
+	public void RestoreDurabilityToMax()
+	{
+		CurrentUses = Data.maxUses;
+		RefreshStats();
+	}
+	private void RefreshStats()
+	{
 		Stats = $"\nUP:{CurrentUses}/{Data.maxUses}";
 		if (Type is Types.Weapon) 
 		{

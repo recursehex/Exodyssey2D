@@ -95,12 +95,6 @@ public class InventoryUI : MonoBehaviour
 				ItemDescText.text = "";
 			}
 		}
-		else if (index == 0 && SelectedIndex != -1)
-		{
-			SelectedIndex = 0;
-			InventoryPressed1.transform.localScale = Vector3.one;
-			InventoryPressed0.transform.localScale = Vector3.zero;
-		}
 		Inventory.RemoveItem(index);
 		RefreshInventoryIcons();
 	}
@@ -128,17 +122,17 @@ public class InventoryUI : MonoBehaviour
 	/// </summary>
 	public void RefreshText()
 	{
-		if (SelectedIndex != -1 && SelectedIndex < Inventory.Count)
+		if (SelectedIndex != -1 && Inventory.HasItemAt(SelectedIndex))
 		{
 			if (ItemNameText != null)
 			{
-				ItemNameText.text = Inventory[SelectedIndex].Info.Name;
-				ItemNameText.color = Inventory[SelectedIndex].Info.Rarity.Color;
+				ItemNameText.text = Inventory[SelectedIndex].Name;
+				ItemNameText.color = Inventory[SelectedIndex].Rarity.Color;
 			}
 			if (ItemDescText != null)
 			{
-				ItemDescText.text = Inventory[SelectedIndex].Info.Description
-									+ Inventory[SelectedIndex].Info.Stats;
+				ItemDescText.text = Inventory[SelectedIndex].Description
+									+ Inventory[SelectedIndex].Stats;
 			}
 		}
 		else
@@ -163,8 +157,8 @@ public class InventoryUI : MonoBehaviour
 			if (Icon == null)
 				continue;
 			// Add item icon
-			if (i < Inventory.Count)
-				Icon.sprite = Inventory[i].GetSprite();
+			if (Inventory.HasItemAt(i))
+				Icon.sprite = Item.GetSpriteForInfo(Inventory[i]);
 			// Cleanup icons
 			else
 				Icon.sprite = ItemBackground;
@@ -175,16 +169,16 @@ public class InventoryUI : MonoBehaviour
 	/// </summary>
 	public void SetCurrentSelected(int itemIndex)
 	{
-		if (itemIndex < 0 || itemIndex >= Inventory.Count)
+		if (!Inventory.HasItemAt(itemIndex))
 		{
 			Debug.LogError("Invalid item index: " + itemIndex);
 			return;
 		}
 		SelectedIndex = itemIndex;
-		CachedName 	= Inventory[SelectedIndex].Info.Name;
-		CachedColor = Inventory[SelectedIndex].Info.Rarity.Color;
-		CachedDesc 	= Inventory[SelectedIndex].Info.Description
-					+ Inventory[SelectedIndex].Info.Stats;
+		CachedName 	= Inventory[SelectedIndex].Name;
+		CachedColor = Inventory[SelectedIndex].Rarity.Color;
+		CachedDesc 	= Inventory[SelectedIndex].Description
+					+ Inventory[SelectedIndex].Stats;
 		if (ItemNameText != null)
 		{
 			ItemNameText.text = CachedName;
@@ -192,6 +186,18 @@ public class InventoryUI : MonoBehaviour
 		}
 		if (ItemDescText != null)
 			ItemDescText.text = CachedDesc;
+	}
+	/// <summary>
+	/// Syncs pressed indicators with current SelectedIndex
+	/// </summary>
+	public void SyncSelectionVisuals()
+	{
+		ResetPressedStates();
+		if (SelectedIndex < 0)
+			return;
+		Transform PressedTransform = GetInventoryPressed(SelectedIndex);
+		if (PressedTransform != null)
+			PressedTransform.localScale = Vector3.zero;
 	}
 	/// <summary>
 	/// Sets selected index to -1
@@ -259,14 +265,14 @@ public class InventoryUI : MonoBehaviour
 		bool mouseIsOverIcon = false;
 		Text NameText = ItemNameText;
 		Text DescText = ItemDescText;
-		int itemIndex = 0;
-		while (itemIndex < Inventory.Count)
+		for (int itemIndex = 0; itemIndex < Inventory.Size; itemIndex++)
 		{
-			Item Item = Inventory[itemIndex];
+			if (!Inventory.HasItemAt(itemIndex))
+				continue;
+			ItemInfo Item = Inventory[itemIndex];
 			Image Icon = GetInventoryIcon(itemIndex);
 			if (Icon == null)
 			{
-				itemIndex++;
 				continue;
 			}
 			Vector3 IconPosition = Icon.transform.position;
@@ -276,14 +282,13 @@ public class InventoryUI : MonoBehaviour
 				mouseIsOverIcon = true;
 				if (NameText != null)
 				{
-					NameText.text 	= Item.Info.Name;
-					NameText.color 	= Item.Info.Rarity.Color;
+					NameText.text 	= Item.Name;
+					NameText.color 	= Item.Rarity.Color;
 				}
 				if (DescText != null)
-					DescText.text = Item.Info.Description + Item.Info.Stats;
+					DescText.text = Item.Description + Item.Stats;
 				break;
 			}
-			itemIndex++;
 		}
 		if (mouseIsOverIcon)
 			return;

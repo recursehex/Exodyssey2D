@@ -26,6 +26,14 @@ public class TurnTimer : MonoBehaviour
 		lastDisplayedSeconds = -1;
 		DisplayTime(timeRemaining);
 	}
+	public void RefundElapsedTime()
+	{
+		timeRemaining = timerLimit;
+		timerIsRunning = true;
+		TimeText.color = NormalColor;
+		lastDisplayedSeconds = -1;
+		DisplayTime(timeRemaining);
+	}
 	void Update()
 	{
 		if (!timerIsRunning)
