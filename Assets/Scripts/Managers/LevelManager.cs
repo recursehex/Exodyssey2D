@@ -5,12 +5,22 @@ using UnityEngine.UI;
 
 public class LevelManager : MonoBehaviour
 {
+    public enum TimeOfDay
+    {
+        Dawn = 0,
+        Noon,
+        Afternoon,
+        Dusk,
+        Night
+    }
+
     [SerializeField] private Text RegionText;
     [SerializeField] private Text DayText;
     [SerializeField] private Text LevelText;
     [SerializeField] private GameObject LevelImage;
     public int Level { get; private set; } = 0;
     public int Day { get; private set; } = 1;
+    public TimeOfDay CurrentTimeOfDay { get; private set; } = TimeOfDay.Dawn;
     private readonly float levelStartDelay = 1.5f;
     private readonly string[] timeOfDayNames = { "DAWN", "NOON", "AFTERNOON", "DUSK", "NIGHT" };
     private Tilemap TilemapGround;
@@ -26,6 +36,7 @@ public class LevelManager : MonoBehaviour
     public delegate void LevelInitializedDelegate();
     public event LevelInitializedDelegate OnLevelInitialized;
     public event System.Action<bool> OnLoadingScreenVisibilityChanged;
+    public event System.Action<TimeOfDay> OnTimeOfDayChanged;
     public void Initialize(Tilemap Ground, Tilemap Walls, Tilemap Exits, RegionManager RegionManager,
                            Text RegionText, Text DayText, Text LevelText, GameObject LevelImage,
                            TilemapRevealAnimator TilemapRevealAnimator)
@@ -48,6 +59,8 @@ public class LevelManager : MonoBehaviour
         DayText.gameObject.SetActive(true);
         RegionText.gameObject.SetActive(true);
         RegionText.text = RegionManager.CurrentRegion.Name;
+        DayText.text = $"DAY {Day}";
+        UpdateTimeOfDay(emitEvent: true);
         SpawnTile = TilemapGround.WorldToCell(GameManager.Instance.PlayerStartPosition);
         GenerateGround();
         GenerateWalls();
@@ -74,7 +87,7 @@ public class LevelManager : MonoBehaviour
         Level++;
         if (Level % timeOfDayNames.Length == 0) Day++;
         DayText.text = $"DAY {Day}";
-        LevelText.text = $"{timeOfDayNames[Level % timeOfDayNames.Length]}";
+        UpdateTimeOfDay(emitEvent: true);
         // Track region progression
         RegionManager.CompleteGrid();
         RegionManager.TryAdvanceRegion();
@@ -88,7 +101,7 @@ public class LevelManager : MonoBehaviour
         Level = 0;
         Day = 1;
         DayText.text = "DAY 1";
-        LevelText.text = timeOfDayNames[0];
+        UpdateTimeOfDay(emitEvent: true);
         RegionText.text = string.Empty;
         LevelImage.SetActive(false);
         LevelText.gameObject.SetActive(false);
@@ -151,5 +164,12 @@ public class LevelManager : MonoBehaviour
         RegionText.text = "YOU DIED";
         DayText.text = Day == 1 ? "AFTER 1 DAY" : $"AFTER {(Level / timeOfDayNames.Length) + 1} DAYS";
         LevelImage.SetActive(true);
+    }
+    private void UpdateTimeOfDay(bool emitEvent)
+    {
+        CurrentTimeOfDay = (TimeOfDay)(Level % timeOfDayNames.Length);
+        LevelText.text = timeOfDayNames[(int)CurrentTimeOfDay];
+        if (emitEvent)
+            OnTimeOfDayChanged?.Invoke(CurrentTimeOfDay);
     }
 }

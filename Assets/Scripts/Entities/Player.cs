@@ -30,6 +30,7 @@ public class Player : MonoBehaviour
 	private bool hasVest = false;
 	private int vestHealth = 0;
 	private bool hasNightVision = false;
+	public bool HasNightVision => hasNightVision;
 	public Profession Profession;
 	#endregion
 	#region EVENTS
@@ -535,6 +536,14 @@ public class Player : MonoBehaviour
 			DecrementEnergy();
 			return true;
 		}
+		else if (SelectedItemInfo.Tag is ItemInfo.Tags.Flare
+			&& HasEnergy
+			&& SelectedItemInfo.ActivateFlare())
+		{
+			DecrementEnergy();
+			InventoryUI.SetCurrentSelected(InventoryUI.SelectedIndex);
+			return true;
+		}
 		return false;
 	}
 	/// <summary>
@@ -598,6 +607,7 @@ public class Player : MonoBehaviour
 		InventoryUI.RefreshText();
 		// Drop item onto ground from temp slot with preserved state
 		GameManager.Instance.SpawnItem(DroppedItemInfo, transform.position);
+		GameManager.Instance.RefreshVisibility();
 		// Removes item from inventory and plays corresponding sound
 		SoundManager.Instance.PlaySound(Move);
 	}
