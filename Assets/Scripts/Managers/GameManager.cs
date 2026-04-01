@@ -29,6 +29,7 @@ public class GameManager : MonoBehaviour
 	private InputManager InputManager;
 	private ChronoclasmManager ChronoclasmManager;
 	private TilemapRevealAnimator TilemapRevealAnimator;
+	private VisibilityManager VisibilityManager;
 	[Header("Prefab Templates")]
 	[SerializeField] private GameObject[] EnemyTemplates;
 	[SerializeField] private GameObject[] ItemTemplates;
@@ -77,6 +78,7 @@ public class GameManager : MonoBehaviour
 		InputManager 	= gameObject.AddComponent<InputManager>();
 		ChronoclasmManager = gameObject.AddComponent<ChronoclasmManager>();
 		TilemapRevealAnimator = gameObject.AddComponent<TilemapRevealAnimator>();
+		VisibilityManager = gameObject.AddComponent<VisibilityManager>();
 		// Initialize managers
 		RegionManager	.Initialize();
 		EnemyManager	.Initialize(TilemapGround, TilemapWalls, EnemyTemplates);
@@ -88,6 +90,7 @@ public class GameManager : MonoBehaviour
 		TilemapRevealAnimator.Initialize(TilemapGround, TilemapWalls);
 		LevelManager	.Initialize(TilemapGround, TilemapWalls, TilemapExit, RegionManager, RegionText, DayText, LevelText, LevelImage, TilemapRevealAnimator);
 		ChronoclasmManager.Initialize(this, TurnManager, TileManager, Player, TilemapGround);
+		VisibilityManager.Initialize(this, TilemapGround, TilemapWalls, TilemapExit, Player, LevelManager, EnemyManager, ItemManager, VehicleManager, FireManager);
 		// Subscribe to events
 		TurnManager.OnPlayerTurnEnded 	+= OnPlayerTurnEnded;
 		TurnManager.OnEnemyTurnEnded 	+= OnEnemyTurnEnded;
@@ -107,6 +110,9 @@ public class GameManager : MonoBehaviour
 	}
 	void Update()
 	{
+		// Always allow inventory hover text to update
+		if (Player.FinishedInit)
+			Player.InventoryUI.ProcessHoverForInventory(MainCamera.ScreenToWorldPoint(Input.mousePosition));
 		// Check if game is still setting up or Player is in movement
 		if (doingSetup
 			|| !Player.FinishedInit
@@ -173,6 +179,7 @@ public class GameManager : MonoBehaviour
 		TileManager.TileDot.SetActive(false);
 		TileManager.ClearTileAreas();
 		TileManager.ClearTargets();
+		RefreshVisibility();
 	}
 	private IEnumerator RunTileRevealAndFinalize()
 	{
@@ -193,6 +200,7 @@ public class GameManager : MonoBehaviour
 		TileManager.TileDot.SetActive(false);
 		TileManager.ClearTileAreas();
 		TileManager.ClearTargets();
+		ClearAllLights();
 		if (TilemapRevealAnimator != null)
 		{
 			Vector3Int PlayerCell = TilemapGround.WorldToCell(Player.transform.position);
@@ -211,6 +219,7 @@ public class GameManager : MonoBehaviour
 	{
 		doingSetup = false;
 		TurnManager.SetEndTurnButtonInteractable(true);
+		RefreshVisibility();
 		// Update targets if player has ranged weapon
 		if (!Player.IsInVehicle)
 			UpdateTargets();
@@ -282,6 +291,7 @@ public class GameManager : MonoBehaviour
 		FireManager.DestroyAllFires();
 		TileManager.DestroyAllMarkers();
 		TileManager.TileDot.SetActive(false);
+		RefreshVisibility();
 	}
 	// Public methods for spawning entities, called by WeightedRarityGeneration
 	public Item SpawnItem(int index, Vector3 Position)
@@ -388,6 +398,9 @@ public class GameManager : MonoBehaviour
 	public int Level 										=> LevelManager.Level;
 	public RegionManager GetRegionManager() 				=> RegionManager;
     public void StopTurnTimer() 							=> TurnManager.StopTurnTimer();
+	public bool IsCellVisible(Vector3Int Cell) 				=> VisibilityManager == null || VisibilityManager.IsCellVisible(Cell);
+	public void RefreshVisibility() 						=> VisibilityManager?.RefreshVisibility();
+	public void ClearAllLights() 							=> VisibilityManager?.ClearAllLights();
 	public void RegisterObjectForTileReveal(Vector3 WorldPosition, Transform ObjectTransform)
 	{
 		if (TilemapRevealAnimator == null
@@ -457,6 +470,7 @@ public class GameManager : MonoBehaviour
 			TileManager.ClearTileAreas();
 			TileManager.TileDot.SetActive(false);
 		}
+		RefreshVisibility();
 		EnemyManager.NeedToStartEnemyMovement = false;
 		FireTurnRoutine = StartCoroutine(RunEnemyTurnSequence());
 	}
@@ -479,6 +493,7 @@ public class GameManager : MonoBehaviour
 	{
 		TurnManager.SetEndTurnButtonInteractable(false);
 		ChronoclasmManager.OnPlayerTurnStart();
+		RefreshVisibility();
 		if (PlayerTurnDelayRoutine != null)
 		{
 			StopCoroutine(PlayerTurnDelayRoutine);
@@ -491,7 +506,9 @@ public class GameManager : MonoBehaviour
 		bool hadFires = FireManager.HasActiveFires();
 		if (turnPhaseDelay > 0f)
 			yield return new WaitForSecondsRealtime(turnPhaseDelay);
-		bool fireSpread = FireManager.HandleTurnStart(false);
+		VisibilityManager?.TickActiveFlaresOnRoundStart();
+		FireManager.HandleTurnStart(false);
+		RefreshVisibility();
 		if (EnemyManager.Enemies.Count == 0)
 		{
 			TurnManager.EndEnemyTurn();
@@ -513,6 +530,7 @@ public class GameManager : MonoBehaviour
 		if (turnPhaseDelay > 0f)
 			yield return new WaitForSecondsRealtime(turnPhaseDelay);
 		FireManager.HandleTurnStart(true);
+		RefreshVisibility();
 		TileManager.TileDot.SetActive(true);
 		if (!Player.IsInVehicle)
 			UpdateTargets();
@@ -529,6 +547,7 @@ public class GameManager : MonoBehaviour
 		// Move Player to vehicle position if in vehicle
 		if (Player.IsInVehicle && Player.Vehicle != null)
 			Player.transform.position = Player.Vehicle.transform.position;
+		RefreshVisibility();
 		// Check if player is on exit tile
 		HandlePlayerExitTile();
 		if (TurnManager.IsPlayersTurn)
@@ -558,9 +577,14 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	private void HandlePlayerClick(Vector3 WorldPoint, Vector3Int TilePoint, Vector3 ShiftedClickPoint)
 	{
-		if (!Player.IsInMovement
-			&& TurnManager.IsPlayersTurn
-			&& !LevelManager.HasWallAtPosition(TilePoint))
+		if (Player.IsInMovement || !TurnManager.IsPlayersTurn)
+			return;
+		if (!IsCellVisible(TilePoint))
+		{
+			TileManager.TileDot.SetActive(false);
+			return;
+		}
+		if (!LevelManager.HasWallAtPosition(TilePoint))
 		{
 			if (PlayerIsInVehicle(WorldPoint, TilePoint, ShiftedClickPoint)) return;
 			if (TryAddItem(ShiftedClickPoint)) return;
@@ -578,6 +602,11 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	private void HandlePlayerHover(Vector3 WorldPoint, Vector3Int TilePoint, Vector3 ShiftedClickPoint)
 	{
+		if (!IsCellVisible(TilePoint))
+		{
+			TileManager.TileDot.SetActive(false);
+			return;
+		}
 		// Hide TileDot if player is in vehicle with no charge
 		if (Player.IsInVehicle
 			&& Player.Vehicle.Info.IsOn
@@ -601,13 +630,24 @@ public class GameManager : MonoBehaviour
 		// Return false if Player is not in a vehicle
 		if (!Player.IsInVehicle)
 			return false;
-		// If Player's vehicle is at clicked position, switch ignition
+		// If Player's vehicle is at clicked position, try self-use item first (e.g. flare), then toggle ignition
 		if (Player.Vehicle.transform.position == ShiftedClickPoint)
 		{
-			Player.Vehicle.SwitchIgnition();
-			TileManager.ClearTileAreas();
-			TileManager.ClearTargets();
-			UpdateTileAreas();
+			if (Player.HasEnergy && Player.ClickOnToUseItem())
+			{
+				TurnManager.TurnTimer.StartTimer();
+				RefreshVisibility();
+				UpdateTileAreas();
+				ChronoclasmManager.ClearUndoHistory("Undo history cleared after using an item.");
+			}
+			else
+			{
+				Player.Vehicle.SwitchIgnition();
+				TileManager.ClearTileAreas();
+				TileManager.ClearTargets();
+				RefreshVisibility();
+				UpdateTileAreas();
+			}
 		}
 		// If Player's vehicle is off and clicked tile is in movement range, try to exit vehicle
 		else if (!Player.Vehicle.Info.IsOn
@@ -638,6 +678,7 @@ public class GameManager : MonoBehaviour
 		ChronoclasmManager.RecordUndoSnapshot();
 		Player.IsInMovement = true;
 		Player.ExitVehicle();
+		RefreshVisibility();
 		Player.ComputePathAndStartMovement(WorldPoint);
 		TileManager.ClearTileAreas();
 		UpdateTargets();
@@ -681,6 +722,7 @@ public class GameManager : MonoBehaviour
 		if (!Player.TryAddItem(Item))
 			return false;
 		ItemManager.DestroyItemAtPosition(ShiftedClickPoint);
+		RefreshVisibility();
 		return true;
 	}
 	/// <summary>
@@ -700,6 +742,7 @@ public class GameManager : MonoBehaviour
 			{
 				Player.UseItem();
 				TurnManager.TurnTimer.StartTimer();
+				RefreshVisibility();
 				UpdateTileAreas();
 				ChronoclasmManager.ClearUndoHistory("Undo history cleared after using an item on a tile.");
 				return true;
@@ -723,6 +766,7 @@ public class GameManager : MonoBehaviour
 				Player.UseItem();
 				TurnManager.TurnTimer.StartTimer();
 				TileManager.ClearTileAreas();
+				RefreshVisibility();
 				UpdateTileAreas();
 				ChronoclasmManager.ClearUndoHistory("Undo history cleared after using an item on a tile.");
 				return true;
@@ -740,6 +784,7 @@ public class GameManager : MonoBehaviour
 			|| !Player.ClickOnToUseItem())
 			return false;
 		TurnManager.TurnTimer.StartTimer();
+		RefreshVisibility();
 		UpdateTileAreas();
 		ChronoclasmManager.ClearUndoHistory("Undo history cleared after using an item.");
 		return true;
@@ -759,6 +804,7 @@ public class GameManager : MonoBehaviour
 			|| !Player.ClickOnVehicleToUseItem(Vehicle))
 			return false;
 		TurnManager.TurnTimer.StartTimer();
+		RefreshVisibility();
 		UpdateTileAreas();
 		ChronoclasmManager.ClearUndoHistory("Undo history cleared after using an item on a vehicle.");
 		return true;
@@ -778,6 +824,7 @@ public class GameManager : MonoBehaviour
 		Player.EnterVehicle(Vehicle);
 		TurnManager.TurnTimer.StartTimer();
 		TileManager.ClearTargets();
+		RefreshVisibility();
 		UpdateTileAreas();
 		return true;
 	}
@@ -886,6 +933,8 @@ public class GameManager : MonoBehaviour
 	private bool IsFirestarterSelected() => Player.SelectedItemInfo?.Tag is ItemInfo.Tags.Blowtorch or ItemInfo.Tags.Flamethrower;
 	private bool IsValidFireTarget(Vector3Int Cell)
 	{
+		if (!IsCellVisible(Cell))
+			return false;
 		if (Cell == TilemapGround.WorldToCell(Player.transform.position))
 			return false;
 		if (LevelManager.HasWallAtPosition(Cell))
@@ -940,7 +989,12 @@ public class GameManager : MonoBehaviour
 			AreasToDraw = Player.CalculateArea();
 		// Draw areas if any needed
 		if (AreasToDraw != null)
+		{
+			AreasToDraw = VisibilityManager != null
+				? VisibilityManager.FilterVisibleCells(AreasToDraw)
+				: AreasToDraw;
 			TileManager.DrawTileAreas(AreasToDraw);
+		}
 		// Clear areas if in vehicle with no charge
 		else if (Player.IsInVehicle
 			&& Player.Vehicle.Info.IsOn
@@ -968,6 +1022,9 @@ public class GameManager : MonoBehaviour
 			{
 				if (Enemy == null)
 					continue;
+				Vector3Int EnemyCell = TilemapGround.WorldToCell(Enemy.transform.position);
+				if (!IsCellVisible(EnemyCell))
+					continue;
 				if (HasFireAtWorld(Enemy.transform.position))
 					continue;
 				TargetableEnemies.Add(Enemy);
@@ -976,7 +1033,17 @@ public class GameManager : MonoBehaviour
 		}
 		else
 		{
-			TileManager.DrawTargets(EnemyManager.Enemies, Player.transform.position, Player.WeaponRange, Player.SelectedItemInfo.IsStunning, TilemapWalls);
+			List<Enemy> TargetableEnemies = new();
+			foreach (Enemy Enemy in EnemyManager.Enemies)
+			{
+				if (Enemy == null)
+					continue;
+				Vector3Int EnemyCell = TilemapGround.WorldToCell(Enemy.transform.position);
+				if (!IsCellVisible(EnemyCell))
+					continue;
+				TargetableEnemies.Add(Enemy);
+			}
+			TileManager.DrawTargets(TargetableEnemies, Player.transform.position, Player.WeaponRange, Player.SelectedItemInfo.IsStunning, TilemapWalls);
 		}
 	}
 }

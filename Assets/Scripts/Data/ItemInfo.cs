@@ -74,6 +74,8 @@ public class ItemInfo
 	public string Description 	=> Data.Description;					// Ingame description of item
 	public string Stats 		{ get; private set; }					// Ingame list of durability, damage, armor damage, and range
 	public int CurrentUses 		{ get; private set; } = 1;				// Current durability of item
+	public bool IsActiveFlare 	{ get; private set; } = false;
+	public int ActiveFlareTurnsRemaining { get; private set; } = 0;
 	public int DamagePoints 	=> Data.damagePoints;					// Damage of item, -1 = not a weapon
 	public int ArmorDamage 		=> Data.armorDamage;					// Damage of item to armor, -1 = does same damage as DamagePoints
 	public int Range 			=> Data.range;                          // Range of item, -1 = not a ranged weapon
@@ -188,6 +190,47 @@ public class ItemInfo
 		CurrentUses = Data.maxUses;
 		RefreshStats();
 	}
+	private const int flareBurnTurns = 3;
+	public bool ActivateFlare()
+	{
+		if (Tag != Tags.Flare || IsActiveFlare)
+			return false;
+		IsActiveFlare = true;
+		ActiveFlareTurnsRemaining = flareBurnTurns;
+		RefreshStats();
+		return true;
+	}
+	/// <summary>
+	/// Advances active flare lifetime by one turn.
+	/// Returns true if the flare burned out this tick.
+	/// </summary>
+	public bool TickActiveFlare()
+	{
+		if (!IsActiveFlare)
+			return false;
+		ActiveFlareTurnsRemaining = Mathf.Max(ActiveFlareTurnsRemaining - 1, 0);
+		bool burnedOut = ActiveFlareTurnsRemaining <= 0;
+		if (burnedOut)
+			ExtinguishFlare();
+		else
+			RefreshStats();
+		return burnedOut;
+	}
+	public void ExtinguishFlare()
+	{
+		IsActiveFlare = false;
+		ActiveFlareTurnsRemaining = 0;
+		RefreshStats();
+	}
+	public ItemInfo Clone()
+	{
+		ItemInfo ClonedItem = new((int)Tag);
+		ClonedItem.CurrentUses = CurrentUses;
+		ClonedItem.IsActiveFlare = IsActiveFlare;
+		ClonedItem.ActiveFlareTurnsRemaining = ActiveFlareTurnsRemaining;
+		ClonedItem.RefreshStats();
+		return ClonedItem;
+	}
 	private void RefreshStats()
 	{
 		Stats = $"\nUP:{CurrentUses}/{Data.maxUses}";
@@ -203,6 +246,8 @@ public class ItemInfo
 				Stats += $"\nRP:{Range}";
 			}
 		}
+		if (Tag == Tags.Flare && IsActiveFlare)
+			Stats += $"\nFLR:{ActiveFlareTurnsRemaining}";
 	}
 	/// <summary>
 	/// Returns info for a desired item,
@@ -222,6 +267,9 @@ public class ItemInfo
 			{
 				LoadFromData(Data);
 				CurrentUses = Data.maxUses;
+				IsActiveFlare = false;
+				ActiveFlareTurnsRemaining = 0;
+				RefreshStats();
 				return;
 			}
 			else if (Data != null && Data.disabled)
@@ -269,18 +317,6 @@ public class ItemInfo
 		Rarity 	= Rarity.Parse(Data.Rarity);
 		Type 	= Enum.TryParse(Data.Type, out Types ParsedType) ? ParsedType : Types.Unknown;
 		// Generate stats string
-		Stats = $"\nUP:{Data.maxUses}/{Data.maxUses}";
-		if (Type == Types.Weapon)
-		{
-			Stats += $"\tDP:{Data.damagePoints}";
-			if (Data.armorDamage >= 0)
-			{
-				Stats += $"\nAD:{Data.armorDamage}";
-			}
-			if (Data.range > 0)
-			{
-				Stats += $"\nRP:{Data.range}";
-			}
-		}
+		RefreshStats();
 	}
 }

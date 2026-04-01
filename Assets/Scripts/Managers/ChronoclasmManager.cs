@@ -115,7 +115,7 @@ public class ChronoclasmManager : MonoBehaviour
 		}
 		ItemInfo[] InventoryItems = new ItemInfo[Inventory.Size];
 		for (int i = 0; i < Inventory.Size; i++)
-			InventoryItems[i] = Inventory[i];
+			InventoryItems[i] = Inventory[i]?.Clone();
 		Snapshot.InventoryItems = InventoryItems;
 		Snapshot.selectedInventoryIndex = InventoryUI.SelectedIndex;
 	}
@@ -154,7 +154,7 @@ public class ChronoclasmManager : MonoBehaviour
 		Snapshot.hadGroundItemSnapshot = true;
 		Snapshot.GroundItemPosition = GroundPosition;
 		Item GroundItem = GameManager.GetItemAtPosition(GroundPosition);
-		Snapshot.GroundItemInfo = GroundItem != null ? GroundItem.Info : null;
+		Snapshot.GroundItemInfo = GroundItem != null ? GroundItem.Info?.Clone() : null;
 	}
 	private void RestoreGroundItemSnapshot(UndoSnapshot Snapshot)
 	{
@@ -496,6 +496,7 @@ public class ChronoclasmManager : MonoBehaviour
 			GameManager.UpdateTileAreas();
 			if (Player != null && !Player.IsInVehicle)
 				GameManager.UpdateTargets();
+			GameManager.RefreshVisibility();
 		}
 		TurnManager.SetEndTurnButtonInteractable(true);
 	}
