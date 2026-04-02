@@ -1,19 +1,28 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 public class KeyPressHandler : MonoBehaviour
 {
-    public KeyCode PrimaryKey;
-    public KeyCode SecondaryKey;
+    public string ActionName; // e.g. "Player/EndTurn"
     private Button Button;
+    private InputAction Action;
 
-    void Awake() => Button = GetComponent<Button>();
+    void Awake()
+    {
+        Button = GetComponent<Button>();
+    }
+
+    void Start()
+    {
+        Action = InputSystem.actions.FindAction(ActionName);
+    }
 
     void Update()
     {
         if (!Button.interactable)
             return;
-        if (Input.GetKeyDown(PrimaryKey) || Input.GetKeyDown(SecondaryKey))
+        if (Action != null && Action.WasPressedThisFrame())
             Button.onClick.Invoke();
     }
 }

@@ -5,6 +5,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.Tilemaps;
 using UnityEngine.U2D;
 using UnityEngine.UI;
+using UnityEngine.InputSystem;
 
 public class CursorController : MonoBehaviour
 {
@@ -17,6 +18,13 @@ public class CursorController : MonoBehaviour
     [SerializeField] private InventoryUI InventoryUI;
     [SerializeField] private LevelManager LevelManager;
     private Camera MainCamera;
+    private InputAction PointAction;
+    private InputAction MoveAction;
+    [SerializeField] private float StickCursorSpeed = 600f;
+    private Vector2 VirtualCursorPosition;
+    public Vector2 CursorScreenPosition => VirtualCursorPosition;
+    // TODO: Can be used to hide hardware cursor on gamepad or show different button prompts (e.g. "Press Y" vs "Left Click")
+    // private bool UsingGamepad;
     private int PixelsPerUnit;
     private bool SelectCursorActive;
     private bool LoadingScreenVisible;
@@ -43,6 +51,12 @@ public class CursorController : MonoBehaviour
         SelectSprite.gameObject.SetActive(false);
         EnsureInvisibleCursorTexture();
         BindTileManagerEvents();
+    }
+    private void Start()
+    {
+        PointAction = InputSystem.actions.FindAction("UI/Point");
+        MoveAction = InputSystem.actions.FindAction("Player/Move");
+        VirtualCursorPosition = new Vector2(Screen.width / 2f, Screen.height / 2f);
     }
     private void OnEnable()
     {
@@ -84,16 +98,31 @@ public class CursorController : MonoBehaviour
         if (!Application.isFocused)
             return;
         ApplyInvisibleSystemCursorOnce();
-        Vector3 MousePosition   = Input.mousePosition;
+        Vector2 mouseScreenPos  = PointAction.ReadValue<Vector2>();
+        Vector2 stickInput      = MoveAction.ReadValue<Vector2>();
+        bool stickActive        = stickInput.sqrMagnitude > 0.01f;
+        bool mouseMovedRaw      = (Vector3)(Vector2)mouseScreenPos != LastMousePosition;
+        if (stickActive)
+        {
+            // UsingGamepad = true;
+            VirtualCursorPosition += stickInput * StickCursorSpeed * Time.deltaTime;
+            VirtualCursorPosition.x = Mathf.Clamp(VirtualCursorPosition.x, 0, Screen.width);
+            VirtualCursorPosition.y = Mathf.Clamp(VirtualCursorPosition.y, 0, Screen.height);
+        }
+        else if (mouseMovedRaw)
+        {
+            // UsingGamepad = false;
+            VirtualCursorPosition = mouseScreenPos;
+        }
+        bool cursorMoved = stickActive || mouseMovedRaw;
         EnsureTileManagerReference();
         BindTileManagerEvents();
-        bool mouseMoved = MousePosition != LastMousePosition;
-        if (!mouseMoved && !NeedsHoverRefresh)
+        if (!cursorMoved && !NeedsHoverRefresh)
             return;
-        LastMousePosition = MousePosition;
+        LastMousePosition = mouseScreenPos;
         NeedsHoverRefresh = false;
         Vector3 ScreenPosition  = MainCamera.WorldToScreenPoint(CursorSprite.position);
-        Vector3 WorldPosition   = MainCamera.ScreenToWorldPoint(new Vector3(MousePosition.x, MousePosition.y, ScreenPosition.z));
+        Vector3 WorldPosition   = MainCamera.ScreenToWorldPoint(new Vector3(VirtualCursorPosition.x, VirtualCursorPosition.y, ScreenPosition.z));
         WorldPosition.z         = CursorSprite.position.z;
         bool shouldUseSelectCursor  = IsHoveringSelectable(WorldPosition);
         Vector3 SnappedPosition     = SnapToPixelGrid(WorldPosition);
@@ -154,7 +183,7 @@ public class CursorController : MonoBehaviour
         if (EventSystem.current == null)
             return false;
         PointerEventData ??= new PointerEventData(EventSystem.current);
-        PointerEventData.position = Input.mousePosition;
+        PointerEventData.position = PointAction.ReadValue<Vector2>();
         RaycastResults.Clear();
         EventSystem.current.RaycastAll(PointerEventData, RaycastResults);
         foreach (RaycastResult Result in RaycastResults)
