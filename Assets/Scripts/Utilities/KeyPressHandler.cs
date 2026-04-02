@@ -13,15 +13,16 @@ public class KeyPressHandler : MonoBehaviour
         Button = GetComponent<Button>();
     }
 
-    void Start()
-    {
-        Action = InputSystem.actions.FindAction(ActionName);
-    }
-
     void Update()
     {
         if (!Button.interactable)
             return;
+        if (Action == null)
+        {
+            if (InputSystem.actions == null)
+                return;
+            Action = InputSystem.actions.FindAction(ActionName);
+        }
         if (Action != null && Action.WasPressedThisFrame())
             Button.onClick.Invoke();
     }

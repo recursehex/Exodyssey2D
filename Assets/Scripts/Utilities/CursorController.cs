@@ -54,8 +54,6 @@ public class CursorController : MonoBehaviour
     }
     private void Start()
     {
-        PointAction = InputSystem.actions.FindAction("UI/Point");
-        MoveAction = InputSystem.actions.FindAction("Player/Move");
         VirtualCursorPosition = new Vector2(Screen.width / 2f, Screen.height / 2f);
     }
     private void OnEnable()
@@ -98,6 +96,15 @@ public class CursorController : MonoBehaviour
         if (!Application.isFocused)
             return;
         ApplyInvisibleSystemCursorOnce();
+        if (PointAction == null || MoveAction == null)
+        {
+            if (InputSystem.actions == null)
+                return;
+            PointAction ??= InputSystem.actions.FindAction("UI/Point");
+            MoveAction ??= InputSystem.actions.FindAction("Player/Move");
+            if (PointAction == null || MoveAction == null)
+                return;
+        }
         Vector2 mouseScreenPos  = PointAction.ReadValue<Vector2>();
         Vector2 stickInput      = MoveAction.ReadValue<Vector2>();
         bool stickActive        = stickInput.sqrMagnitude > 0.01f;
