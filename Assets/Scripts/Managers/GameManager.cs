@@ -30,6 +30,7 @@ public class GameManager : MonoBehaviour
 	private ChronoclasmManager ChronoclasmManager;
 	private TilemapRevealAnimator TilemapRevealAnimator;
 	private VisibilityManager VisibilityManager;
+	private CursorController CursorController;
 	[Header("Prefab Templates")]
 	[SerializeField] private GameObject[] EnemyTemplates;
 	[SerializeField] private GameObject[] ItemTemplates;
@@ -104,7 +105,8 @@ public class GameManager : MonoBehaviour
 	private void Start()
 	{
 		MainCamera = Camera.main;
-		InputManager.Initialize(MainCamera, TilemapGround, Player);
+		CursorController = FindFirstObjectByType<CursorController>();
+		InputManager.Initialize(MainCamera, TilemapGround, Player, CursorController);
 		SoundManager.Instance.PlayMusic();
 		NewGameButton.gameObject.SetActive(false);
 	}
@@ -112,7 +114,7 @@ public class GameManager : MonoBehaviour
 	{
 		// Always allow inventory hover text to update
 		if (Player.FinishedInit)
-			Player.InventoryUI.ProcessHoverForInventory(MainCamera.ScreenToWorldPoint(Input.mousePosition));
+			Player.InventoryUI.ProcessHoverForInventory(MainCamera.ScreenToWorldPoint(CursorController.CursorScreenPosition));
 		// Check if game is still setting up or Player is in movement
 		if (doingSetup
 			|| !Player.FinishedInit
