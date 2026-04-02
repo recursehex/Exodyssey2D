@@ -888,6 +888,7 @@ public class GameManager : MonoBehaviour
 				Player.AttackEnemy();
 				TurnManager.TurnTimer.StartTimer();
 				TileManager.TileDot.SetActive(false);
+				RefreshVisibility();
 				UpdateTargets();
 				UpdateTileAreas();
 				ChronoclasmManager.ClearUndoHistory("Undo history cleared after attacking.");
