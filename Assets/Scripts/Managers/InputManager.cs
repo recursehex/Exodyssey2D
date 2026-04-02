@@ -22,14 +22,19 @@ TilePoint, Vector3 ShiftedClickPoint);
         this.TilemapGround    = TilemapGround;
         this.Player           = Player;
         this.CursorController = CursorController;
-        ClickAction = InputSystem.actions.FindAction("UI/Click");
-        InteractAction = InputSystem.actions.FindAction("Player/Interact");
-        Drop1Action = InputSystem.actions.FindAction("Player/Drop1");
-        Drop2Action = InputSystem.actions.FindAction("Player/Drop2");
     }
 
     public void ProcessInput()
     {
+        if (ClickAction == null)
+        {
+            if (InputSystem.actions == null)
+                return;
+            ClickAction = InputSystem.actions.FindAction("UI/Click");
+            InteractAction = InputSystem.actions.FindAction("Player/Interact");
+            Drop1Action = InputSystem.actions.FindAction("Player/Drop1");
+            Drop2Action = InputSystem.actions.FindAction("Player/Drop2");
+        }
         BoundsInt CellBounds      = TilemapGround.cellBounds;
         Vector3 WorldPoint        = MainCamera.ScreenToWorldPoint(CursorController.CursorScreenPosition);
         Vector3Int TilePoint      = TilemapGround.WorldToCell(WorldPoint);
