@@ -533,7 +533,11 @@ public class GameManager : MonoBehaviour
 			yield return new WaitForSecondsRealtime(turnPhaseDelay);
 		FireManager.HandleTurnStart(true);
 		RefreshVisibility();
-		TileManager.TileDot.SetActive(true);
+		// Hide TileDot if player is in vehicle with no charge, otherwise show it
+		bool hideForDepletedVehicle = Player.IsInVehicle
+			&& Player.Vehicle.Info.IsOn
+			&& !Player.Vehicle.HasCharge();
+		TileManager.TileDot.SetActive(!hideForDepletedVehicle);
 		if (!Player.IsInVehicle)
 			UpdateTargets();
 		// Draw tile areas at start of player's turn
