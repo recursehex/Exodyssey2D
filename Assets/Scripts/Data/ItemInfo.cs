@@ -1,7 +1,7 @@
-using System.Collections.Generic;
-using UnityEngine;
-using System.Linq;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 
 /// <summary>
 /// Contains all item variables, creates items with specific values, and manages items after usage
@@ -66,76 +66,68 @@ public class ItemInfo
 		Utility,
 		Unknown,
 	}
-	private ItemData Data = new();										// Internal data
+	private int maxUses = 1;
 	public Tags Tag 			{ get; private set; } = Tags.Unknown;	// Name of item
 	public Rarity Rarity 		{ get; private set; } = Rarity.Common;	// Rarity of item
 	public Types Type 			{ get; private set; } = Types.Unknown;	// Type of item
-	public string Name 			=> Data.Name;							// Ingame name of item
-	public string Description 	=> Data.Description;					// Ingame description of item
+	public string Name 			{ get; private set; }					// Ingame name of item
+	public string Description 	{ get; private set; }					// Ingame description of item
 	public string Stats 		{ get; private set; }					// Ingame list of durability, damage, armor damage, and range
 	public int CurrentUses 		{ get; private set; } = 1;				// Current durability of item
 	public bool IsActiveFlare 	{ get; private set; } = false;
 	public int ActiveFlareTurnsRemaining { get; private set; } = 0;
-	public int DamagePoints 	=> Data.damagePoints;					// Damage of item, -1 = not a weapon
-	public int ArmorDamage 		=> Data.armorDamage;					// Damage of item to armor, -1 = does same damage as DamagePoints
-	public int Range 			=> Data.range;                          // Range of item, -1 = not a ranged weapon
+	public int DamagePoints 	{ get; private set; } = -1;				// Damage of item, -1 = not a weapon
+	public int ArmorDamage 		{ get; private set; } = -1;				// Damage of item to armor, -1 = does same damage as DamagePoints
+	public int Range 			{ get; private set; } = -1;				// Range of item, -1 = not a ranged weapon
 	public bool HasRange 		=> Range > 0;
 	public bool IsUnbreakable	=> Tag is Tags.PlasmaRailgun;
-	public bool IsEquipable 	=> Data.isEquipable;					// If item can be equipped, enabling and removing from inventory
-	public bool IsAttachable 	=> Data.isAttachable;					// If item can be attached to vehicles, enabling and removing from inventory
-	public bool IsFlammable 	=> Data.isFlammable;					// If item is flammable, can be destroyed by fire and helps it spread
-	public bool IsStunning 		=> Data.isStunning;						// If item stuns enemies when used
+	public bool IsEquipable 	{ get; private set; } = false;			// If item can be equipped, enabling and removing from inventory
+	public bool IsAttachable 	{ get; private set; } = false;			// If item can be attached to vehicles, enabling and removing from inventory
+	public bool IsFlammable 	{ get; private set; } = false;			// If item is flammable, can be destroyed by fire and helps it spread
+	public bool IsStunning 		{ get; private set; } = false;			// If item stuns enemies when used
+	[Serializable] private class Entry
+	{
+		public string Tag, Rarity, Type, Name, Description;
+		public int maxUses = 1, damagePoints = -1, armorDamage = -1, range = -1;
+		public bool isEquipable = false, isAttachable = false, isFlammable = false, isStunning = false, disabled = false;
+	}
+	[Serializable] private class EntryList { public List<Entry> Items; }
 	private static readonly int lastItemIndex = (int)Tags.Unknown;
 	private static readonly List<Rarity> ItemRarityList = GenerateAllRarities();
-	private static ItemDatabase ItemDatabase;
+	private static List<Entry> Database;
 	/// <summary>
 	/// Loads item definitions from JSON file in Resources folder
 	/// </summary>
 	private static void LoadDatabase()
 	{
-		if (ItemDatabase != null)
+		if (Database != null)
 			return;
 		TextAsset JsonFile = Resources.Load<TextAsset>("Definitions/ItemDefinitions");
 		if (JsonFile != null)
-			ItemDatabase = JsonUtility.FromJson<ItemDatabase>(JsonFile.text);
+			Database = JsonUtility.FromJson<EntryList>(JsonFile.text).Items;
 		else
 			Debug.LogError("ItemDefinitions.json not found in Resources folder!");
 	}
 	/// <summary>
-	/// Generates list of all rarities based on ItemDatabase
+	/// Generates list of all rarities based on database
 	/// </summary>
 	private static List<Rarity> GenerateAllRarities()
 	{
 		LoadDatabase();
-		List<Rarity> Rarities = new();
-		// First, try to get rarities from JSON
-		if (ItemDatabase != null
-		 && ItemDatabase.Items != null)
+		if (Database == null)
 		{
-			for (int i = 0; i < lastItemIndex; i++)
-			{
-				Tags Tag = (Tags)i;
-				string TagName = Tag.ToString();
-				ItemData Data = ItemDatabase.Items.Find(Item => Item.Tag == TagName);
-				if (Data != null && !Data.disabled)
-				{
-					Rarities.Add(Rarity.Parse(Data.Rarity));
-				}
-				else if (Data != null && Data.disabled)
-				{
-					// Skip disabled items
-					continue;
-				}
-				else
-				{
-					// Fallback to creating ItemInfo if not found in JSON
-					Rarities.Add(new ItemInfo(i).Rarity);
-				}
-			}
+			Debug.LogWarning("Database failed to load, returning empty list");
+			return new();
 		}
-		else
+		List<Rarity> Rarities = new();
+		for (int i = 0; i < lastItemIndex; i++)
 		{
-			Debug.LogWarning($"Database failed to load, returning empty list");
+			string TagName = ((Tags)i).ToString();
+			Entry Entry = Database.Find(Entry => Entry.Tag == TagName);
+			if (Entry != null && !Entry.disabled)
+				Rarities.Add(Rarity.Parse(Entry.Rarity));
+			else if (Entry == null)
+				Rarities.Add(new ItemInfo(i).Rarity);
 		}
 		return Rarities;
 	}
@@ -187,7 +179,7 @@ public class ItemInfo
 	/// </summary>
 	public void RestoreDurabilityToMax()
 	{
-		CurrentUses = Data.maxUses;
+		CurrentUses = maxUses;
 		RefreshStats();
 	}
 	private const int flareBurnTurns = 3;
@@ -233,8 +225,8 @@ public class ItemInfo
 	}
 	private void RefreshStats()
 	{
-		Stats = $"\nUP:{CurrentUses}/{Data.maxUses}";
-		if (Type is Types.Weapon) 
+		Stats = $"\nUP:{CurrentUses}/{maxUses}";
+		if (Type is Types.Weapon)
 		{
 			Stats += $"\tDP:{DamagePoints}";
 			if (ArmorDamage >= 0)
@@ -259,64 +251,45 @@ public class ItemInfo
 		Tags TagData	= (Tags)n;
 		string TagName 	= TagData.ToString();
 		// Try to load from JSON first
-		if (ItemDatabase != null
-		 && ItemDatabase.Items != null)
+		if (Database != null)
 		{
-			ItemData Data = ItemDatabase.Items.Find(Item => Item.Tag == TagName);
-			if (Data != null && !Data.disabled)
+			Entry Entry = Database.Find(Entry => Entry.Tag == TagName);
+			if (Entry != null && !Entry.disabled)
 			{
-				LoadFromData(Data);
-				CurrentUses = Data.maxUses;
+				LoadFrom(Entry);
+				CurrentUses = maxUses;
 				IsActiveFlare = false;
 				ActiveFlareTurnsRemaining = 0;
 				RefreshStats();
 				return;
 			}
-			else if (Data != null && Data.disabled)
+			else if (Entry != null && Entry.disabled)
 			{
 				Debug.LogWarning($"Item {n} {TagName} is disabled in JSON");
 			}
 		}
 		// Fallback to hardcoded values if JSON loading fails
 		Debug.LogWarning($"Item {n} {TagName} not found in JSON, using default values");
-		// Set minimal defaults for unknown items
-		Tag 				= TagData;
-		Rarity 				= Rarity.Common;
-		Type 				= Types.Unknown;
-		Data.Tag 			= TagName;
-		Data.Name 			= TagName.ToUpper();
-		Data.Description 	= "Unknown item";
-		Data.maxUses 		= 1;
-		CurrentUses 		= Data.maxUses;
-		Stats 				= $"\nUP:{Data.maxUses}/{Data.maxUses}";
+		Tag 			= TagData;
+		Name 			= TagName.ToUpper();
+		Description 	= "Unknown item";
+		CurrentUses 	= maxUses;
+		Stats 			= $"\nUP:{maxUses}/{maxUses}";
 	}
-	/// <summary>
-	/// Loads item data from source ItemData object
-	/// </summary>
-	private void LoadFromData(ItemData SourceData)
+	private void LoadFrom(Entry Source)
 	{
-		// Copy the data
-		Data = new ItemData
-		{
-			Tag 			= SourceData.Tag,
-			Rarity 			= SourceData.Rarity,
-			Type 			= SourceData.Type,
-			Name 			= SourceData.Name,
-			Description 	= SourceData.Description,
-			maxUses 		= SourceData.maxUses,
-			damagePoints 	= SourceData.damagePoints,
-			armorDamage 	= SourceData.armorDamage,
-			range 			= SourceData.range,
-			isEquipable 	= SourceData.isEquipable,
-			isAttachable 	= SourceData.isAttachable,
-			isFlammable 	= SourceData.isFlammable,
-			isStunning 		= SourceData.isStunning
-		};
-		// Parse enums
-		Tag 	= Enum.TryParse(Data.Tag, out Tags ParsedTag) ? ParsedTag : Tags.Unknown;
-		Rarity 	= Rarity.Parse(Data.Rarity);
-		Type 	= Enum.TryParse(Data.Type, out Types ParsedType) ? ParsedType : Types.Unknown;
-		// Generate stats string
-		RefreshStats();
+		Name 			= Source.Name;
+		Description 	= Source.Description;
+		maxUses 		= Source.maxUses;
+		DamagePoints 	= Source.damagePoints;
+		ArmorDamage 	= Source.armorDamage;
+		Range 			= Source.range;
+		IsEquipable 	= Source.isEquipable;
+		IsAttachable 	= Source.isAttachable;
+		IsFlammable 	= Source.isFlammable;
+		IsStunning 		= Source.isStunning;
+		Tag 	= Enum.TryParse(Source.Tag, out Tags ParsedTag) ? ParsedTag : Tags.Unknown;
+		Rarity 	= Rarity.Parse(Source.Rarity);
+		Type 	= Enum.TryParse(Source.Type, out Types ParsedType) ? ParsedType : Types.Unknown;
 	}
 }

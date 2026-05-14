@@ -17,25 +17,33 @@ public class RegionInfo
         RadiantCascades,
         Unknown,
     }
-    private RegionData Data = new();                                        // Internal data
     public Tags Tag                 { get; private set; } = Tags.Unknown;   // Tag of region
-    public string Name              => Data.Name;                           // Display name of region
-    public int GridsRequired        => Data.GridsRequired;                  // Number of grids to complete region
+    public string Name              { get; private set; }                   // Display name of region
+    public int GridsRequired        { get; private set; } = 3;             // Number of grids to complete region
     public int GridsCompleted       { get; set; } = 0;                      // Current progress in region
-    public string Description       => Data.Description;                    // Lore description
+    public string Description       { get; private set; }                   // Lore description
     public Tile[] GroundTiles       { get; set; }                           // Ground tiles for this region
     public Tile[] WallTiles         { get; set; }                           // Wall tiles for this region
-    public List<string> EnemyPool   => Data.EnemyPool;                      // Allowed enemy types for this region
-    public List<string> ItemPool    => Data.ItemPool;                       // Allowed item tags for this region
-    public List<string> VehiclePool => Data.VehiclePool;                    // Allowed vehicle tags for this region
-    private static RegionDatabase RegionDatabase;
+    public List<string> EnemyPool   { get; private set; } = new();          // Allowed enemy types for this region
+    public List<string> ItemPool    { get; private set; } = new();          // Allowed item tags for this region
+    public List<string> VehiclePool { get; private set; } = new();          // Allowed vehicle tags for this region
+    [Serializable] private class Entry
+    {
+        public string Tag, Name, Description;
+        public int GridsRequired = 3;
+        public string GroundTileSetName, WallTileSetName;
+        public List<string> EnemyPool = new(), ItemPool = new(), VehiclePool = new();
+        public bool disabled = false;
+    }
+    [Serializable] private class EntryList { public List<Entry> Regions; }
+    private static List<Entry> Database;
 	private static void LoadDatabase()
 	{
-		if (RegionDatabase != null)
+		if (Database != null)
 			return;
 		TextAsset JsonFile = Resources.Load<TextAsset>("Definitions/RegionDefinitions");
 		if (JsonFile != null)
-			RegionDatabase = JsonUtility.FromJson<RegionDatabase>(JsonFile.text);
+			Database = JsonUtility.FromJson<EntryList>(JsonFile.text).Regions;
 		else
 			Debug.LogError("RegionDefinitions.json not found in Resources folder!");
 	}
@@ -48,50 +56,32 @@ public class RegionInfo
         LoadDatabase();
         Tags TagData = (Tags)index;
         string TagName = TagData.ToString();
-        // Try to load from JSON first
-        if (RegionDatabase != null && RegionDatabase.Regions != null)
+        if (Database != null)
         {
-            RegionData Data = RegionDatabase.Regions.Find(region => region.Tag == TagName);
-            if (Data != null && !Data.disabled)
+            Entry Entry = Database.Find(Entry => Entry.Tag == TagName);
+            if (Entry != null && !Entry.disabled)
             {
-                LoadFromData(Data);
+                LoadFrom(Entry);
                 return;
             }
-            else if (Data != null && Data.disabled)
+            else if (Entry != null && Entry.disabled)
                 Debug.LogWarning($"Region {index} {TagName} is disabled in JSON");
         }
         // Fallback to default values if JSON loading fails
         Debug.LogWarning($"Region {TagName} not found in JSON, using default values");
-        Tag = TagData;
-        Data.Tag = TagName;
-        Data.Name = TagName.ToUpper();
-        Data.GridsRequired = 3;
-        Data.Description = "Unknown region";
-        Data.EnemyPool = new();
-        Data.ItemPool = new();
-        Data.VehiclePool = new();
+        Tag             = TagData;
+        Name            = TagName.ToUpper();
+        Description     = "Unknown region";
     }
-    /// <summary>
-    /// Loads region data from source RegionData object
-    /// </summary>
-    private void LoadFromData(RegionData SourceData)
+    private void LoadFrom(Entry Source)
     {
-        // Copy the data
-        Data = new RegionData
-        {
-            Tag                 = SourceData.Tag,
-            Name                = SourceData.Name,
-            GridsRequired       = SourceData.GridsRequired,
-            GroundTileSetName   = SourceData.GroundTileSetName,
-            WallTileSetName     = SourceData.WallTileSetName,
-            EnemyPool           = new(SourceData.EnemyPool),
-            ItemPool            = new(SourceData.ItemPool),
-            VehiclePool         = new(SourceData.VehiclePool),
-            Description         = SourceData.Description
-        };
-
-        // Parse enum
-        Tag = Enum.TryParse(Data.Tag, out Tags ParsedTag) ? ParsedTag : Tags.Unknown;
+        Name            = Source.Name;
+        GridsRequired   = Source.GridsRequired;
+        Description     = Source.Description;
+        EnemyPool       = new(Source.EnemyPool);
+        ItemPool        = new(Source.ItemPool);
+        VehiclePool     = new(Source.VehiclePool);
+        Tag = Enum.TryParse(Source.Tag, out Tags ParsedTag) ? ParsedTag : Tags.Unknown;
     }
     /// <summary>
     /// Checks if an enemy type is allowed in this region's spawn pool
