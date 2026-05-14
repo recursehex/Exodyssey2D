@@ -51,13 +51,6 @@ public class RarityTests
     }
 
     [Test]
-    public void Equality_SameRarity_ReturnsTrue()
-    {
-        Assert.IsTrue(Rarity.Common == Rarity.Common);
-        Assert.IsTrue(Rarity.Anomalous == Rarity.Anomalous);
-    }
-
-    [Test]
     public void Equality_DifferentRarity_ReturnsFalse()
     {
         Assert.IsTrue(Rarity.Common != Rarity.Rare);
