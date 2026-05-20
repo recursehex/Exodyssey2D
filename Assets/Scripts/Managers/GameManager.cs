@@ -594,6 +594,7 @@ public class GameManager : MonoBehaviour
 			TileManager.TileDot.SetActive(false);
 			return;
 		}
+		if (Player.HasEnergy && TryBreakWall(TilePoint, ShiftedClickPoint)) return;
 		if (!LevelManager.HasWallAtPosition(TilePoint))
 		{
 			if (PlayerIsInVehicle(WorldPoint, TilePoint, ShiftedClickPoint)) return;
@@ -905,7 +906,7 @@ public class GameManager : MonoBehaviour
 				: TrySpawnFire(TilePoint, false, true);
 			if (spawnedFire)
 			{
-				Player.AttackEnemy();
+				Player.AttackEntity();
 				TurnManager.TurnTimer.StartTimer();
 				TileManager.TileDot.SetActive(false);
 				RefreshVisibility();
@@ -921,7 +922,7 @@ public class GameManager : MonoBehaviour
 		// Handle damage to enemy
 		Enemy Enemy = GetEnemyAtPosition(ShiftedClickPoint);
 		EnemyManager.HandleDamageToEnemy(Enemy, Player.DamagePoints, Player.SelectedItemInfo.IsStunning);
-		Player.AttackEnemy();
+		Player.AttackEntity();
 		TurnManager.TurnTimer.StartTimer();
 		TileManager.TileDot.SetActive(false);
 		UpdateTargets();
@@ -991,7 +992,7 @@ public class GameManager : MonoBehaviour
 			return false;
 		Item SpawnedDynamite = SpawnItem((int)ItemInfo.Tags.Dynamite, ShiftedClickPoint);
 		LitDynamite.Add(SpawnedDynamite);
-		Player.AttackEnemy();
+		Player.AttackEntity();
 		TurnManager.TurnTimer.StartTimer();
 		TileManager.TileDot.SetActive(false);
 		UpdateTargets();
@@ -1019,6 +1020,39 @@ public class GameManager : MonoBehaviour
 	}
 	private static readonly string BushSpriteName = "bush";
 	private static readonly string RocksSpriteName = "rocks";
+	private bool TryBreakWall(Vector3Int TilePoint, Vector3 ShiftedClickPoint)
+	{
+		if (!LevelManager.HasWallAtPosition(TilePoint)
+			|| !IsPlayerAdjacentTo(ShiftedClickPoint)
+			|| Player.SelectedItemInfo == null
+			|| !Player.HasUses)
+			return false;
+		Sprite WallSprite = TilemapWalls.GetSprite(TilePoint);
+		string spriteName = WallSprite != null ? WallSprite.name : "";
+		if (Player.SelectedItemInfo.Tag is ItemInfo.Tags.FireAxe && spriteName == BushSpriteName)
+		{
+			TilemapWalls.SetTile(TilePoint, null);
+			SpawnItem((int)ItemInfo.Tags.Branch, ShiftedClickPoint);
+			Player.AttackEntity();
+			TurnManager.TurnTimer.StartTimer();
+			RefreshVisibility();
+			UpdateTileAreas();
+			ChronoclasmManager.ClearUndoHistory("Undo history cleared after breaking a wall.");
+			return true;
+		}
+		if (Player.SelectedItemInfo.Tag is ItemInfo.Tags.Chainsaw && spriteName == RocksSpriteName)
+		{
+			TilemapWalls.SetTile(TilePoint, null);
+			SpawnItem((int)ItemInfo.Tags.Rock, ShiftedClickPoint);
+			Player.AttackEntity();
+			TurnManager.TurnTimer.StartTimer();
+			RefreshVisibility();
+			UpdateTileAreas();
+			ChronoclasmManager.ClearUndoHistory("Undo history cleared after breaking a wall.");
+			return true;
+		}
+		return false;
+	}
 	private void ExplodeArea(Vector3 Center, int damage)
 	{
 		Vector3Int CenterCell = TilemapGround.WorldToCell(Center);
