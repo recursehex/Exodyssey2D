@@ -262,6 +262,10 @@ public class FireManager : MonoBehaviour
             return;
         TilemapGround.SetTile(Cell, BurnedTile);
     }
+    public void MarkGroundBurned(Vector3Int Cell)
+    {
+        MarkBurnedGroundAt(Cell);
+    }
     /// <summary>
     /// Picks a cell guaranteed to be near the top and bottom edges
     /// </summary>
