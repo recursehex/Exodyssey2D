@@ -36,7 +36,7 @@ public class ItemInfo
 		// THROWABLE
 		Rock,
 		//SmokeGrenade,
-		//Dynamite,
+		Dynamite,
 		//StickyGrenade,
 
 		// ARMOR

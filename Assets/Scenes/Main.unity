@@ -884,6 +884,7 @@ MonoBehaviour:
   - {fileID: 2145379877062402088, guid: ba8e62b527e3c4b2c8c15ddde698b587, type: 3}
   - {fileID: 2145379877062402088, guid: 33186f847f6305748921b5b654aa8c9d, type: 3}
   - {fileID: 2145379877062402088, guid: 1a6b4107ceb4a4d4db276eae951f74b4, type: 3}
+  - {fileID: 2145379877062402088, guid: 4df51288c77fc49bba0d5c3268d51265, type: 3}
   - {fileID: 1336611518689343522, guid: 8dbc07541346f47ae9af415f363b2da5, type: 3}
   - {fileID: 1336611518689343522, guid: 6f2398810c76e4b15b3830ba7833107d, type: 3}
   - {fileID: 1336611518689343522, guid: aeb86c0077d274d9b8a3e58629e201f1, type: 3}
@@ -1715,6 +1716,7 @@ MonoBehaviour:
   Player: {fileID: 569674968}
   InventoryUI: {fileID: 524301576}
   LevelManager: {fileID: 0}
+  StickCursorSpeed: 600
 --- !u!4 &988303361
 Transform:
   m_ObjectHideFlags: 0

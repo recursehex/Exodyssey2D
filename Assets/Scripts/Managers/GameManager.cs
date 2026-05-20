@@ -17,6 +17,7 @@ public class GameManager : MonoBehaviour
 	private Coroutine FireTurnRoutine;
 	private Coroutine PlayerTurnDelayRoutine;
 	private Coroutine ExitTransitionRoutine;
+	private readonly List<Item> LitDynamite = new();
 	[Header("Managers")]
 	[SerializeField] private RegionManager RegionManager;
 	private EnemyManager EnemyManager;
@@ -147,6 +148,7 @@ public class GameManager : MonoBehaviour
 		ChronoclasmManager.HandleGridExit();
 		TurnManager.TurnTimer.timerIsRunning = false;
 		TurnManager.TurnTimer.ResetTimer();
+		LitDynamite.Clear();
 		FireManager.DestroyAllFires();
 		ItemManager.DestroyAllItems();
 		EnemyManager.DestroyAllEnemies();
@@ -285,6 +287,7 @@ public class GameManager : MonoBehaviour
 	private void CleanupWorldEntities()
 	{
 		TurnManager.StopTurnTimer();
+		LitDynamite.Clear();
 		ItemManager.DestroyAllItems();
 		EnemyManager.DestroyAllEnemies();
 		if (Player.IsInVehicle)
@@ -532,6 +535,7 @@ public class GameManager : MonoBehaviour
 		if (turnPhaseDelay > 0f)
 			yield return new WaitForSecondsRealtime(turnPhaseDelay);
 		FireManager.HandleTurnStart(true);
+		ProcessDynamiteExplosions();
 		RefreshVisibility();
 		// Hide TileDot if player is in vehicle with no charge, otherwise show it
 		bool hideForDepletedVehicle = Player.IsInVehicle
@@ -599,6 +603,7 @@ public class GameManager : MonoBehaviour
 			if (TryUseItemOnPlayer(ShiftedClickPoint)) return;
 			if (TryUseItemOnVehicle(TilePoint)) return;
 			if (TryEnterVehicle(TilePoint)) return;
+			if (TryThrowDynamite(TilePoint, ShiftedClickPoint)) return;
 			if (TryPlayerMovement(WorldPoint, TilePoint, ShiftedClickPoint)) return;
 			TryPlayerAttack(ShiftedClickPoint);
 		}
@@ -742,9 +747,18 @@ public class GameManager : MonoBehaviour
 		// Extinguisher puts out fire on the clicked tile
 		if (Selected.Tag is ItemInfo.Tags.Extinguisher)
 		{
-			if (!IsPlayerAdjacentTo(ShiftedClickPoint) || !HasFireAtPosition(TilePoint))
+			if (!IsPlayerAdjacentTo(ShiftedClickPoint))
 				return false;
-			if (TryExtinguishFire(TilePoint))
+			bool didSomething = false;
+			if (HasFireAtPosition(TilePoint) && TryExtinguishFire(TilePoint))
+				didSomething = true;
+			Item LitDynamiteItem = LitDynamite.Find(d => d != null && d.transform.position == ShiftedClickPoint);
+			if (LitDynamiteItem != null)
+			{
+				LitDynamite.Remove(LitDynamiteItem);
+				didSomething = true;
+			}
+			if (didSomething)
 			{
 				Player.UseItem();
 				TurnManager.TurnTimer.StartTimer();
@@ -839,7 +853,7 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	private bool TryPlayerMovement(Vector3 WorldPoint, Vector3Int TilePoint, Vector3 ShiftedClickPoint)
 	{
-		if (IsFirestarterSelected())
+		if (IsFirestarterSelected() || IsDynamiteSelected())
 			return false;
 		// Check if player can move to clicked tile
 		bool isInMovementRange = TileManager.IsInTileArea(TilePoint);
@@ -874,6 +888,8 @@ public class GameManager : MonoBehaviour
 			&& !isInRangedWeaponRange
 			|| Player.SelectedItemInfo?.Type is not ItemInfo.Types.Weapon
 			|| !Player.HasUses)
+			return;
+		if (IsDynamiteSelected())
 			return;
 		// Flamethrower sprays a fire streak; blowtorch spawns a single fire tile
 		if (Player.SelectedItemInfo.Tag is ItemInfo.Tags.Blowtorch or ItemInfo.Tags.Flamethrower)
@@ -938,6 +954,7 @@ public class GameManager : MonoBehaviour
 	/// Returns true when Player has a selected firestarter item
 	/// </summary>
 	private bool IsFirestarterSelected() => Player.SelectedItemInfo?.Tag is ItemInfo.Tags.Blowtorch or ItemInfo.Tags.Flamethrower;
+	private bool IsDynamiteSelected() => Player.SelectedItemInfo?.Tag is ItemInfo.Tags.Dynamite;
 	private bool IsValidFireTarget(Vector3Int Cell)
 	{
 		if (!IsCellVisible(Cell))
@@ -954,6 +971,116 @@ public class GameManager : MonoBehaviour
 		if (HasVehicleAtPosition(WorldPosition))
 			return false;
 		return true;
+	}
+	private bool IsValidDynamiteTarget(Vector3Int Cell)
+	{
+		if (!IsCellVisible(Cell))
+			return false;
+		if (Cell == TilemapGround.WorldToCell(Player.transform.position))
+			return false;
+		if (LevelManager.HasWallAtPosition(Cell))
+			return false;
+		return true;
+	}
+	private bool TryThrowDynamite(Vector3Int TilePoint, Vector3 ShiftedClickPoint)
+	{
+		if (!IsDynamiteSelected()
+			|| !Player.HasUses
+			|| ShiftedClickPoint == Player.transform.position
+			|| !TileManager.IsInTileArea(TilePoint))
+			return false;
+		Item SpawnedDynamite = SpawnItem((int)ItemInfo.Tags.Dynamite, ShiftedClickPoint);
+		LitDynamite.Add(SpawnedDynamite);
+		Player.AttackEnemy();
+		TurnManager.TurnTimer.StartTimer();
+		TileManager.TileDot.SetActive(false);
+		UpdateTargets();
+		UpdateTileAreas();
+		ChronoclasmManager.ClearUndoHistory("Undo history cleared after throwing dynamite.");
+		return true;
+	}
+	private void ProcessDynamiteExplosions()
+	{
+		if (LitDynamite.Count == 0)
+			return;
+		List<Item> ToProcess = new(LitDynamite);
+		LitDynamite.Clear();
+		foreach (Item Dynamite in ToProcess)
+		{
+			if (Dynamite == null)
+				continue;
+			Vector3 Position = Dynamite.transform.position;
+			int damage = Dynamite.Info.DamagePoints;
+			ItemManager.RemoveItemAtPosition(Dynamite);
+			Destroy(Dynamite.gameObject);
+			ExplodeArea(Position, damage);
+		}
+		RefreshVisibility();
+	}
+	private static readonly string BushSpriteName = "bush";
+	private static readonly string RocksSpriteName = "rocks";
+	private void ExplodeArea(Vector3 Center, int damage)
+	{
+		Vector3Int CenterCell = TilemapGround.WorldToCell(Center);
+		List<Vector3Int> FireCandidates = new();
+		for (int dx = -1; dx <= 1; dx++)
+		{
+			for (int dy = -1; dy <= 1; dy++)
+			{
+				Vector3Int Cell = CenterCell + new Vector3Int(dx, dy, 0);
+				Vector3 WorldPos = Cell + new Vector3(0.5f, 0.5f);
+				if (HasEnemyAtPosition(WorldPos))
+				{
+					Enemy Enemy = GetEnemyAtPosition(WorldPos);
+					if (Enemy != null)
+						EnemyManager.HandleDamageToEnemy(Enemy, damage, false);
+				}
+				if (WorldPos == Player.transform.position)
+				{
+					if (Player.IsInVehicle)
+						DamageVehicle(Player.Vehicle, damage);
+					else
+						Player.DecreaseHealthBy(damage, false);
+				}
+				Vehicle Vehicle = GetVehicleAtPosition(Cell);
+				if (Vehicle != null)
+					DamageVehicle(Vehicle, damage);
+				if (HasWallAtPosition(Cell))
+				{
+					Sprite WallSprite = TilemapWalls.GetSprite(Cell);
+					string spriteName = WallSprite != null ? WallSprite.name : "";
+					if (spriteName == BushSpriteName)
+					{
+						TilemapWalls.SetTile(Cell, null);
+						SpawnItem((int)ItemInfo.Tags.Branch, WorldPos);
+						FireManager.MarkGroundBurned(Cell);
+						if (!HasFireAtPosition(Cell))
+							FireCandidates.Add(Cell);
+					}
+					else if (spriteName == RocksSpriteName && Random.value < 0.5f)
+					{
+						TilemapWalls.SetTile(Cell, null);
+						SpawnItem((int)ItemInfo.Tags.Rock, WorldPos);
+						FireManager.MarkGroundBurned(Cell);
+						if (!HasFireAtPosition(Cell))
+							FireCandidates.Add(Cell);
+					}
+				}
+				else
+				{
+					FireManager.MarkGroundBurned(Cell);
+					if (!HasFireAtPosition(Cell))
+						FireCandidates.Add(Cell);
+				}
+			}
+		}
+		int fireCount = Mathf.Min(3, FireCandidates.Count);
+		for (int i = 0; i < fireCount; i++)
+		{
+			int index = Random.Range(i, FireCandidates.Count);
+			(FireCandidates[i], FireCandidates[index]) = (FireCandidates[index], FireCandidates[i]);
+			TrySpawnFire(FireCandidates[i], false, true);
+		}
 	}
 	/// <summary>
 	/// Updates tile areas based on Player's movement and energy
@@ -984,6 +1111,20 @@ public class GameManager : MonoBehaviour
 				TilemapWalls,
 				TilemapGround.cellBounds,
 				IsValidFireTarget);
+		}
+		// Dynamite overrides movement areas while on foot
+		else if (!Player.IsInVehicle && IsDynamiteSelected())
+		{
+			Vector3 PlayerPosition = Player.transform.position;
+			Vector3Int PlayerCell = TilemapGround.WorldToCell(PlayerPosition);
+			AreasToDraw = TileManager.CalculateFirestarterArea(
+				PlayerPosition,
+				PlayerCell,
+				Player.WeaponRange,
+				true,
+				TilemapWalls,
+				TilemapGround.cellBounds,
+				IsValidDynamiteTarget);
 		}
 		// If Player is in a vehicle that is on and has charge, calculate vehicle area
 		else if (Player.IsInVehicle
@@ -1017,6 +1158,12 @@ public class GameManager : MonoBehaviour
 		if (!Player.HasRange
 			|| !TurnManager.IsPlayersTurn
 			|| !Player.HasEnergy)
+		{
+			TileManager.ClearTargets();
+			return;
+		}
+		// Dynamite uses tile areas instead of enemy targets
+		if (IsDynamiteSelected())
 		{
 			TileManager.ClearTargets();
 			return;
