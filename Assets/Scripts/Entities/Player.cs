@@ -396,7 +396,7 @@ public class Player : MonoBehaviour
 	/// <summary>
 	/// Handles Player variables when attacking an enemy
 	/// </summary>
-	public void AttackEnemy()
+	public void AttackEntity()
 	{
 		SoundManager.Instance.PlaySound(Attack);
 		Animator.SetTrigger("playerAttack");
