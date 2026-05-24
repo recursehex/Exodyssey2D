@@ -561,6 +561,18 @@ public class Player : MonoBehaviour
 			DecrementItemDurability();
 			return true;
 		}
+		// Try to use Wrench on vehicle
+		if (SelectedItemInfo.Tag is ItemInfo.Tags.Wrench
+			&& Vehicle.RepairBy(1))
+		{
+			// Uses energy if profession is not mechanic, otherwise wrench can be used for free
+			if (Profession.Tag is not Profession.Tags.Mechanic)
+				DecrementEnergy();
+			// Wrench does not lose durability if user is master mechanic, otherwise it loses durability on use
+			if (Profession.Tag is not Profession.Tags.Mechanic && !Profession.IsMaster)
+				DecrementItemDurability();
+			return true;
+		}
 		// Try to use PowerCell on vehicle
 		if (SelectedItemInfo.Tag is ItemInfo.Tags.PowerCell
 			&& Vehicle.ClickOnToRecharge(SelectedItemInfo))
