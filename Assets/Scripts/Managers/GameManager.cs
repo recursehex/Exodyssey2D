@@ -1000,6 +1000,10 @@ public class GameManager : MonoBehaviour
 		ChronoclasmManager.ClearUndoHistory("Undo history cleared after throwing dynamite.");
 		return true;
 	}
+	public void RemoveLitDynamite(Item Dynamite)
+	{
+		LitDynamite.Remove(Dynamite);
+	}
 	private void ProcessDynamiteExplosions()
 	{
 		if (LitDynamite.Count == 0)
@@ -1053,7 +1057,7 @@ public class GameManager : MonoBehaviour
 		}
 		return false;
 	}
-	private void ExplodeArea(Vector3 Center, int damage)
+	public void ExplodeArea(Vector3 Center, int damage)
 	{
 		Vector3Int CenterCell = TilemapGround.WorldToCell(Center);
 		List<Vector3Int> FireCandidates = new();
@@ -1079,6 +1083,7 @@ public class GameManager : MonoBehaviour
 				Vehicle Vehicle = GetVehicleAtPosition(Cell);
 				if (Vehicle != null)
 					DamageVehicle(Vehicle, damage);
+				ItemManager.DestroyAllItemsAtPosition(WorldPos);
 				if (HasWallAtPosition(Cell))
 				{
 					Sprite WallSprite = TilemapWalls.GetSprite(Cell);
@@ -1091,7 +1096,7 @@ public class GameManager : MonoBehaviour
 						if (!HasFireAtPosition(Cell))
 							FireCandidates.Add(Cell);
 					}
-					else if (spriteName == RocksSpriteName && Random.value < 0.5f)
+					else if (spriteName == RocksSpriteName)
 					{
 						TilemapWalls.SetTile(Cell, null);
 						SpawnItem((int)ItemInfo.Tags.Rock, WorldPos);
@@ -1108,12 +1113,18 @@ public class GameManager : MonoBehaviour
 				}
 			}
 		}
-		int fireCount = Mathf.Min(3, FireCandidates.Count);
-		for (int i = 0; i < fireCount; i++)
+		Vector3Int[] CrossPattern = new Vector3Int[]
 		{
-			int index = Random.Range(i, FireCandidates.Count);
-			(FireCandidates[i], FireCandidates[index]) = (FireCandidates[index], FireCandidates[i]);
-			TrySpawnFire(FireCandidates[i], false, true);
+			CenterCell,
+			CenterCell + Vector3Int.up,
+			CenterCell + Vector3Int.down,
+			CenterCell + Vector3Int.left,
+			CenterCell + Vector3Int.right
+		};
+		foreach (Vector3Int Cell in CrossPattern)
+		{
+			if (FireCandidates.Contains(Cell))
+				TrySpawnFire(Cell, false, true);
 		}
 	}
 	/// <summary>

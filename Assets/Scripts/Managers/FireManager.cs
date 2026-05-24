@@ -245,6 +245,14 @@ public class FireManager : MonoBehaviour
             && ItemAtCell.Info != null
             && ItemAtCell.Info.IsFlammable)
         {
+            if (ItemAtCell.Info.Tag == ItemInfo.Tags.Dynamite)
+            {
+                GameManager.Instance.RemoveLitDynamite(ItemAtCell);
+                GameManager.Instance.RemoveItemAtPosition(ItemAtCell);
+                Destroy(ItemAtCell.gameObject);
+                GameManager.Instance.ExplodeArea(World, ItemAtCell.Info.DamagePoints);
+                return;
+            }
             GameManager.Instance.RemoveItemAtPosition(ItemAtCell);
             Destroy(ItemAtCell.gameObject);
         }
