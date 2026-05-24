@@ -141,6 +141,15 @@ public class Vehicle : MonoBehaviour
 		}
 		return false;
 	}
+	public bool RepairBy(int amount)
+	{
+		if (Info.TryRestoreHealthBy(amount))
+		{
+			SoundManager.Instance.PlaySound(Select);
+			return true;
+		}
+		return false;
+	}
 	/// <summary>
 	/// Returns true if vehicle's health reaches 0
 	/// </summary>

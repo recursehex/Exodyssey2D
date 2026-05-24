@@ -126,6 +126,15 @@ public class VehicleInfo
 		CurrentHealth = maxHealth;
 		return true;
 	}
+	public bool TryRestoreHealthBy(int amount)
+	{
+		if (CurrentHealth == maxHealth)
+		{
+			return false;
+		}
+		CurrentHealth = Mathf.Min(CurrentHealth + amount, maxHealth);
+		return true;
+	}
 	/// <summary>
 	/// Recharges vehicle by amount, subtract from input, returns false if already fully charged
 	/// </summary>
