@@ -41,7 +41,7 @@ public class Enemy : MonoBehaviour
 		TilemapWalls = Walls;
 		Info = EnemyInfo;
 		AStar = new(TilemapGround, TilemapWalls);
-		Player = FindFirstObjectByType<Player>();
+		Player = FindAnyObjectByType<Player>();
 		StunIcon = Instantiate(StunIcon, transform.position, Quaternion.identity);
 	}
 #if UNITY_EDITOR
