@@ -608,7 +608,7 @@ public class VisibilityManager : MonoBehaviour
 		}
 		int desiredOverlayOrder = Mathf.Max(overlaySortingOrder, maxWorldOrder + 1);
 		int minCanvasOrder = int.MaxValue;
-		Canvas[] Canvases = FindObjectsByType<Canvas>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+		Canvas[] Canvases = FindObjectsByType<Canvas>(FindObjectsInactive.Exclude);
 		foreach (Canvas Canvas in Canvases)
 		{
 			if (Canvas == null || !Canvas.isActiveAndEnabled)

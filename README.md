@@ -26,6 +26,7 @@ Exodyssey 2D is a sci-fi turn-based strategy roguelike by Axiomatic Systems.
  
 | Update| Tag | Status |
 | :---: | :---: | :---: |
+| Generation | [v1.5.0-alpha](https://github.com/recursehex/Exodyssey2D/releases/tag/v1.5.0-alpha) | Latest release |
 | Regions | [v1.4.0-alpha](https://github.com/recursehex/Exodyssey2D/releases/tag/v1.4.0-alpha) | Latest release |
 | Vehicles | [v1.3.0-alpha](https://github.com/recursehex/Exodyssey2D/releases/tag/v1.3.0-alpha) | Outdated |
 | Player | [v1.2.1-alpha](https://github.com/recursehex/Exodyssey2D/releases/tag/v1.2.1-alpha) | Outdated |

@@ -106,7 +106,7 @@ public class GameManager : MonoBehaviour
 	private void Start()
 	{
 		MainCamera = Camera.main;
-		CursorController = FindFirstObjectByType<CursorController>();
+		CursorController = FindAnyObjectByType<CursorController>();
 		InputManager.Initialize(MainCamera, TilemapGround, Player, CursorController);
 		SoundManager.Instance.PlayMusic();
 		NewGameButton.gameObject.SetActive(false);

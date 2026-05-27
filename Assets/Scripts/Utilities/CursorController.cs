@@ -41,11 +41,11 @@ public class CursorController : MonoBehaviour
     {
         MainCamera      = Camera.main;
         PixelsPerUnit   = PixelPerfectCamera.assetsPPU;
-        TileManager     = FindFirstObjectByType<TileManager>();
-        Player          = FindFirstObjectByType<Player>();
+        TileManager     = FindAnyObjectByType<TileManager>();
+        Player          = FindAnyObjectByType<Player>();
         InventoryUI     = Player.InventoryUI;
         Tilemap         = Player.TilemapGround;
-        LevelManager    = FindFirstObjectByType<LevelManager>();
+        LevelManager    = FindAnyObjectByType<LevelManager>();
         LevelManager.OnLoadingScreenVisibilityChanged += HandleLoadingScreenVisibilityChanged;
         CursorSprite.gameObject.SetActive(true);
         SelectSprite.gameObject.SetActive(false);
@@ -205,7 +205,7 @@ public class CursorController : MonoBehaviour
     private void EnsureTileManagerReference()
     {
         if (TileManager == null)
-            TileManager = FindFirstObjectByType<TileManager>();
+            TileManager = FindAnyObjectByType<TileManager>();
     }
     private void BindTileManagerEvents()
     {
@@ -327,10 +327,10 @@ public class CursorController : MonoBehaviour
             if (Tilemap == null)
                 Tilemap = Player.TilemapGround;
         }
-        InventoryUI = FindFirstObjectByType<InventoryUI>();
+        InventoryUI = FindAnyObjectByType<InventoryUI>();
         if (InventoryUI != null)
             return InventoryUI.Inventory;
-        Player = FindFirstObjectByType<Player>();
+        Player = FindAnyObjectByType<Player>();
         if (Player != null)
         {
             InventoryUI = Player.InventoryUI;
@@ -340,7 +340,7 @@ public class CursorController : MonoBehaviour
             return InventoryUI != null ? InventoryUI.Inventory : null;
         }
         if (Tilemap == null)
-            Tilemap = FindFirstObjectByType<Tilemap>();
+            Tilemap = FindAnyObjectByType<Tilemap>();
         return null;
     }
 }
