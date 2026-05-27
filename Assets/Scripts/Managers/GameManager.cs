@@ -757,6 +757,7 @@ public class GameManager : MonoBehaviour
 			if (LitDynamiteItem != null)
 			{
 				LitDynamite.Remove(LitDynamiteItem);
+				SetDynamiteLitSprite(LitDynamiteItem, false);
 				didSomething = true;
 			}
 			if (didSomething)
@@ -991,6 +992,7 @@ public class GameManager : MonoBehaviour
 			|| !TileManager.IsInTileArea(TilePoint))
 			return false;
 		Item SpawnedDynamite = SpawnItem((int)ItemInfo.Tags.Dynamite, ShiftedClickPoint);
+		SetDynamiteLitSprite(SpawnedDynamite, true);
 		LitDynamite.Add(SpawnedDynamite);
 		Player.AttackEntity();
 		TurnManager.TurnTimer.StartTimer();
@@ -1003,6 +1005,13 @@ public class GameManager : MonoBehaviour
 	public void RemoveLitDynamite(Item Dynamite)
 	{
 		LitDynamite.Remove(Dynamite);
+	}
+	private static void SetDynamiteLitSprite(Item Dynamite, bool Lit)
+	{
+		string Path = Lit ? "Sprites/dynamite_lit" : "Sprites/dynamite";
+		Sprite Sprite = Resources.Load<Sprite>(Path);
+		if (Sprite != null)
+			Dynamite.GetComponent<SpriteRenderer>().sprite = Sprite;
 	}
 	private void ProcessDynamiteExplosions()
 	{
