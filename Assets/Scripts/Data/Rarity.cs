@@ -25,30 +25,12 @@ public struct Rarity
     public static readonly Rarity Rare 		= new(Tags.Rare, 		new(34/255f,  113/255f, 191/255f));
     public static readonly Rarity Anomalous = new(Tags.Anomalous, 	new(117/255f, 33/255f,  202/255f));
 	public static readonly List<Rarity> RarityList = new() { Common, Limited, Scarce, Rare, Anomalous };
-    public readonly int GetDropRate()
-    {
-        return (int)Tag;
-    }
-	public override bool Equals(object obj)
-    {
-        return obj is Rarity rarity && Equals(rarity);
-    }
-    public bool Equals(Rarity Other)
-    {
-        return Tag == Other.Tag && Color.Equals(Other.Color);
-    }
-    public readonly override int GetHashCode()
-    {
-        return HashCode.Combine(Tag, Color);
-    }
-    public static bool operator ==(Rarity Left, Rarity Right)
-    {
-        return Left.Equals(Right);
-    }
-    public static bool operator !=(Rarity Left, Rarity Right)
-    {
-        return !(Left == Right);
-    }
+    public readonly int GetDropRate() => (int)Tag;
+	public override bool Equals(object obj) => obj is Rarity rarity && Equals(rarity);
+    public bool Equals(Rarity Other) => Tag == Other.Tag && Color.Equals(Other.Color);
+    public readonly override int GetHashCode() => HashCode.Combine(Tag, Color);
+    public static bool operator ==(Rarity Left, Rarity Right) => Left.Equals(Right);
+    public static bool operator !=(Rarity Left, Rarity Right) => !(Left == Right);
     public static Rarity Parse(string RarityString)
     {
         switch (RarityString)

@@ -9,6 +9,14 @@ public class Vehicle : MonoBehaviour
 	public VehicleInfo Info;
 	public Inventory Inventory;
 	#endregion
+	[Header("Debug")]
+	[SerializeField] private VehicleInfo.Tags VehicleTag = VehicleInfo.Tags.Unknown;
+	[SerializeField] private VehicleInfo.Types VehicleType = VehicleInfo.Types.Unknown;
+	[SerializeField] private string VehicleName = string.Empty;
+	[SerializeField] private int currentHealth = 0;
+	[SerializeField] private int currentCharge = 0;
+	[SerializeField] private bool isOn = false;
+	[SerializeField] private int movementRange = 0;
 	#region EVENTS
 	public System.Action OnVehicleMovementComplete;
 	#endregion
@@ -34,6 +42,33 @@ public class Vehicle : MonoBehaviour
 		Inventory = new(Info.Storage);
 		AStar = new(TilemapGround, TilemapWalls);
 	}
+#if UNITY_EDITOR
+	private void LateUpdate()
+	{
+		SyncDebugFields();
+	}
+	private void SyncDebugFields()
+	{
+		if (Info == null)
+		{
+			VehicleTag = VehicleInfo.Tags.Unknown;
+			VehicleType = VehicleInfo.Types.Unknown;
+			VehicleName = string.Empty;
+			currentHealth = 0;
+			currentCharge = 0;
+			isOn = false;
+			movementRange = 0;
+			return;
+		}
+		VehicleTag = Info.Tag;
+		VehicleType = Info.Type;
+		VehicleName = Info.Name;
+		currentHealth = Info.CurrentHealth;
+		currentCharge = Info.CurrentCharge;
+		isOn = Info.IsOn;
+		movementRange = Info.MovementRange;
+	}
+#endif
 	#region MOVEMENT METHODS
 	/// <summary>
 	/// Vehicle can only move on roads unless canOffroad is true
@@ -43,17 +78,13 @@ public class Vehicle : MonoBehaviour
 		AStar.Initialize();
 		Path = AStar.ComputePath(transform.position, Goal);
 		if (Path == null)
-		{
 			return;
-		}
 		Path.Pop();
 		Destination = Path.Pop();
 		IsInMovement = true;
 		// Stop movement if game ends
 		if (MoveRoutine != null)
-		{
 			StopCoroutine(MoveRoutine);
-		}
 		MoveRoutine = StartCoroutine(MoveAlongPath());
 	}
 	/// <summary>
@@ -69,21 +100,15 @@ public class Vehicle : MonoBehaviour
 			// Move vehicle smoothly to next tile
 			while (Vector3.Distance(transform.position, ShiftedDistance) > 0f)
 			{
-				transform.position = Vector3.MoveTowards(
-					transform.position, 
-					ShiftedDistance, 
-					Info.Speed * Time.deltaTime);
+				transform.position = Vector3.MoveTowards(transform.position, 
+														 ShiftedDistance, 
+														 Info.Speed * Time.deltaTime);
 				yield return null;
 			}
 			// Pop next tile in path
 			if (Path != null && Path.Count > 0)
-			{
 				Destination = Path.Pop();
-			}
-			else
-			{
-				break;
-			}
+			else break;
 		}
 		// When Vehicle stops moving
 		Path = null;
@@ -98,17 +123,27 @@ public class Vehicle : MonoBehaviour
 	public Dictionary<Vector3Int, Node> CalculateArea()
 	{
 		if (!Info.IsOn)
-		{
 			return new();
-		}
 		AStar.Initialize();
-		return AStar.GetReachableAreaByDistance(transform.position, Info.MovementRange);
+		Dictionary<Vector3Int, Node> ReachableArea = AStar.GetReachableAreaByDistance(transform.position, Info.MovementRange);
+		Vector3Int StartCell = TilemapGround.WorldToCell(transform.position);
+		ReachableArea.Remove(StartCell);
+		return ReachableArea;
 	}
 	#endregion
 	#region HEALTH METHODS
 	public bool Repair()
 	{
-		if (Info.RestoreHealth())
+		if (Info.TryRestoreHealth())
+		{
+			SoundManager.Instance.PlaySound(Select);
+			return true;
+		}
+		return false;
+	}
+	public bool RepairBy(int amount)
+	{
+		if (Info.TryRestoreHealthBy(amount))
 		{
 			SoundManager.Instance.PlaySound(Select);
 			return true;
@@ -122,28 +157,19 @@ public class Vehicle : MonoBehaviour
 	{
 		SoundManager.Instance.PlaySound(Hurt);
 		Info.DecreaseHealthBy(damage);
-		if (Info.CurrentHealth <= 0)
-		{
-			GameManager.Instance.DestroyVehicle(this);
-			return true;
-		}
-		return false;
+		return Info.CurrentHealth <= 0;
 	}
 	#endregion
 	#region CHARGE METHODS
 	/// <summary>
 	/// Uses a Power Cell from inventory to recharge vehicle, returns false if Vehicle is already fully charged
 	/// </summary>
-	/// <param name="Item"></param>
-	/// <returns></returns>
 	public bool ClickOnToRecharge(ItemInfo Item)
 	{
 		int amount = Item.CurrentUses;
 		// Try to recharge vehicle
-		if (!Info.RechargeBy(ref amount))
-		{
+		if (!Info.TryRechargeBy(ref amount))
 			return false;
-		}
 		// Decrease item durability by amount used to recharge vehicle
 		Item.DecreaseDurability(amount);
 		SoundManager.Instance.PlaySound(Select);
@@ -152,9 +178,7 @@ public class Vehicle : MonoBehaviour
 	/// <summary>
 	/// Decreases vehicle's CurrentCharge by amount, returns false if vehicle would have negative charge after decrease
 	/// </summary>
-	/// <param name="amount"></param>
-	/// <returns></returns>
-	public bool DecreaseChargeBy(int amount) => Info.DecreaseChargeBy(amount);
+	public bool DecreaseChargeBy(int amount) => Info.TryDecreaseChargeBy(amount);
 	/// <summary>
 	/// Toggles vehicle ignition
 	/// </summary>
@@ -166,10 +190,6 @@ public class Vehicle : MonoBehaviour
 	/// <summary>
 	/// Returns true if vehicle has charge remaining
 	/// </summary>
-	/// <returns></returns>
-	public bool HasCharge()
-	{
-		return Info.CurrentCharge > 0;
-	}
+	public bool HasCharge() => Info.CurrentCharge > 0;
 	#endregion
 }

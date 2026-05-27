@@ -20,10 +20,10 @@ public class DragAndDrop : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
 	private Button Button;
 	void Awake()
 	{
-		RectTransform = GetComponent<RectTransform>();
-		CanvasGroup = GetComponent<CanvasGroup>();
-		Canvas = GetComponentInParent<Canvas>();
-		Button = GetComponent<Button>();
+		RectTransform 	= GetComponent<RectTransform>();
+		CanvasGroup 	= GetComponent<CanvasGroup>();
+		Canvas 			= GetComponentInParent<Canvas>();
+		Button 			= GetComponent<Button>();
 	}
 	public void OnBeginDrag(PointerEventData eventData)
 	{
@@ -39,21 +39,15 @@ public class DragAndDrop : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
 		transform.SetParent(transform.root);
 		transform.SetAsLastSibling();
 		if (CanvasGroup != null)
-		{
 			CanvasGroup.blocksRaycasts = false;
-		}
+		// Disable the button interaction during drag
 		if (Button != null)
-		{
-			// Disable the button interaction during drag
 			Button.interactable = false;
-		}
 	}
 	public void OnDrag(PointerEventData eventData)
 	{
 		if (!isDraggable)
-		{
 			return;
-		}
 		RectTransformUtility.ScreenPointToLocalPointInRectangle(
 			Canvas.transform as RectTransform,
 			eventData.position,
@@ -64,31 +58,22 @@ public class DragAndDrop : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
 	public void OnEndDrag(PointerEventData eventData)
 	{
 		if (!isDraggable)
-		{
 			return;
-		}
 		// Get cell bounds and int position of dragged item
 		BoundsInt CellBounds = TilemapGround.cellBounds;
 		Vector3Int RectTransformInt = Vector3Int.FloorToInt(RectTransform.localPosition);
 		// Drop item if let go within cell bounds
 		if (CellBounds.Contains(RectTransformInt))
-		{
-			// Try to drop the item
 			Player.TryDropItem(inventoryIndex);
-		}
 		// Return the icon to its original position
 		RectTransform.localPosition = OriginalPosition;
 		transform.SetParent(ParentAfterDrag);
 		transform.SetAsLastSibling();
 		if (CanvasGroup != null)
-		{
 			CanvasGroup.blocksRaycasts = true;
-		}
+		// Delay re-enabling to ensure the Button's OnClick isn't triggered accidentally
 		if (Button != null)
-		{
-			// Delay re-enabling to ensure the Button's OnClick isn't triggered accidentally
 			StartCoroutine(EnableButtonAfterFrame());
-		}
 	}
 	private IEnumerator EnableButtonAfterFrame()
 	{

@@ -1,11 +1,12 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 public class KeyPressHandler : MonoBehaviour
 {
-    public KeyCode PrimaryKey;
-    public KeyCode SecondaryKey;
+    public string ActionName; // e.g. "Player/EndTurn"
     private Button Button;
+    private InputAction Action;
 
     void Awake()
     {
@@ -14,9 +15,15 @@ public class KeyPressHandler : MonoBehaviour
 
     void Update()
     {
-        if ((Input.GetKeyDown(PrimaryKey) || Input.GetKeyDown(SecondaryKey)) && Button.interactable)
+        if (!Button.interactable)
+            return;
+        if (Action == null)
         {
-            Button.onClick.Invoke();
+            if (InputSystem.actions == null)
+                return;
+            Action = InputSystem.actions.FindAction(ActionName);
         }
+        if (Action != null && Action.WasPressedThisFrame())
+            Button.onClick.Invoke();
     }
 }

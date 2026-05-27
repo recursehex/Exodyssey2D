@@ -7,6 +7,11 @@ public class EnemyManager : MonoBehaviour
     [SerializeField] private GameObject[] EnemyTemplates;
     public List<Enemy> Enemies { get; private set; } = new();
     [SerializeField] private int spawnEnemyCount;
+    [Header("Spawning")]
+    [SerializeField] private int baseMinSpawn = 1;
+    [SerializeField] private int baseMaxSpawn = 3;
+    [SerializeField] private int spawnScalePerLevel = 2;
+    [SerializeField] private int spawnRetryMultiplier = 2;
     public bool NeedToStartEnemyMovement { get; set; } = false;
     [SerializeField] private bool EnemiesAreMoving = false;
     [SerializeField] private int indexOfMovingEnemy = -1;
@@ -15,74 +20,106 @@ public class EnemyManager : MonoBehaviour
     private Tilemap TilemapGround;
     private Tilemap TilemapWalls;
     public System.Action OnEnemyKilled;
+    public bool IsProcessingEnemyMovement => NeedToStartEnemyMovement || EnemiesAreMoving;
     public void Initialize(Tilemap Ground, Tilemap Walls, GameObject[] Templates)
     {
         TilemapGround   = Ground;
         TilemapWalls    = Walls;
         EnemyTemplates  = Templates;
     }
+    /// <summary>
+    /// Generates random number of enemies based on the current level
+    /// </summary>
     public void GenerateEnemies()
     {
-        spawnEnemyCount = Random.Range(1 + (int)(GameManager.Instance.Level * 0.5),
-                                       3 + (int)(GameManager.Instance.Level * 0.5));
-        int cap = spawnEnemyCount * 2;
+        int levelBonus = (int)RegionManager.CurrentRegion.Tag / spawnScalePerLevel;
+        spawnEnemyCount = Random.Range(baseMinSpawn + levelBonus,
+                                       baseMaxSpawn + levelBonus);
+        int cap = spawnEnemyCount * spawnRetryMultiplier;
         while (cap > 0 && spawnEnemyCount > 0)
         {
             if (WeightedRarityGeneration.Generate<Enemy>())
-            {
                 spawnEnemyCount--;
-            }
             cap--;
         }
     }
-    public void SpawnEnemy(int index, Vector3 Position)
+    /// <summary>
+    /// Spawns an enemy of the specified type at the specified position
+    /// </summary>
+    public Enemy SpawnEnemy(int index, Vector3 Position)
     {
+        EnemyInfo EnemyInfo = new(index);
         Enemy Enemy = Instantiate(EnemyTemplates[index], Position, Quaternion.identity).GetComponent<Enemy>();
-        Enemy.Initialize(TilemapGround, TilemapWalls, new EnemyInfo(index));
+        Enemy.Initialize(TilemapGround, TilemapWalls, EnemyInfo);
         Enemies.Add(Enemy);
+        return Enemy;
     }
+    /// <summary>
+    /// Returns true if an enemy is at the specified position
+    /// </summary>
     public bool HasEnemyAtPosition(Vector3 Position)
     {
-        return Enemies.Find(Enemy => Enemy.transform.position == Position) != null;
+        CleanupDestroyedEnemies();
+        return Enemies.Find(Enemy => Enemy != null && Enemy.transform.position == Position) != null;
     }
-    public int GetEnemyIndexAtPosition(Vector3Int Position)
+    /// <summary>
+    /// Returns enemy at the specified position, or null if no enemy is found
+    /// </summary>
+    public Enemy GetEnemyAtPosition(Vector3 Position)
     {
-        Vector3 ShiftedPosition = Position + new Vector3(0.5f, 0.5f);
-        return Enemies.FindIndex(Enemy => Enemy.transform.position == ShiftedPosition);
+        CleanupDestroyedEnemies();
+        return Enemies.Find(Enemy => Enemy.transform.position == Position);
     }
+    /// <summary>
+    /// Destroys the specified enemy
+    /// </summary>
     private void DestroyEnemy(Enemy Enemy)
     {
         Destroy(Enemy.StunIcon);
         Destroy(Enemy.gameObject);
     }
+    /// <summary>
+    /// Destroys all enemies and clears Enemies list
+    /// </summary>
     public void DestroyAllEnemies()
     {
         Enemies.ForEach(Enemy => DestroyEnemy(Enemy));
         Enemies.Clear();
+        NeedToStartEnemyMovement = false;
+        EnemiesAreMoving = false;
+        indexOfMovingEnemy = -1;
+        BlockedEnemies.Clear();
+        IsRetryingBlockedEnemies = false;
     }
-    private void RestoreAllEnemyEnergy()
+    /// <summary>
+    /// Restores all enemies' energy
+    /// </summary>
+    private void RestoreAllEnemyEnergy() => Enemies.ForEach(Enemy => Enemy.RestoreEnergy());
+    /// <summary>
+    /// Handles damage to an enemy
+    /// </summary>
+    public void HandleDamageToEnemy(Enemy Enemy, int damagePoints, bool isStunning)
     {
-        Enemies.ForEach(Enemy => Enemy.RestoreEnergy());
-    }
-    public void HandleDamageToEnemy(int index, int damagePoints, bool isStunning)
-    {
-        Enemy DamagedEnemy = Enemies[index];
-        DamagedEnemy.DecreaseHealthBy(damagePoints);
-        if (DamagedEnemy.Info.CurrentHealth <= 0)
+        Enemy.DecreaseHealthBy(damagePoints);
+        if (Enemy.Info.CurrentHealth <= 0)
         {
-            Enemies.RemoveAt(index);
-            DestroyEnemy(DamagedEnemy);
+            Enemies.Remove(Enemy);
+            DestroyEnemy(Enemy);
             OnEnemyKilled?.Invoke();
             return;
         }
         if (isStunning)
         {
-            DamagedEnemy.Info.IsStunned = true;
-            DamagedEnemy.StunIcon.SetActive(true);
+            Enemy.Info.IsStunned = true;
+            Enemy.StunIcon.SetActive(true);
         }
     }
+    /// <summary>
+    /// Processes enemy movement for all enemies
+    /// </summary>
     public void ProcessEnemyMovement(System.Action OnMovementComplete)
     {
+        CleanupDestroyedEnemies();
         if (Enemies.Count == 0)
         {
             OnMovementComplete?.Invoke();
@@ -100,14 +137,14 @@ public class EnemyManager : MonoBehaviour
             EnemiesAreMoving = true;
             return;
         }
+        // Handle blocked enemies
         if (EnemiesAreMoving && !Enemies[indexOfMovingEnemy].IsInMovement)
         {
             // Check if current enemy was blocked
-            Enemy currentEnemy = IsRetryingBlockedEnemies ? BlockedEnemies[indexOfMovingEnemy] : Enemies[indexOfMovingEnemy];
-            if (!IsRetryingBlockedEnemies && currentEnemy.WasBlockedThisTurn)
-            {
-                BlockedEnemies.Add(currentEnemy);
-            }
+            Enemy CurrentEnemy = IsRetryingBlockedEnemies ? BlockedEnemies[indexOfMovingEnemy] : Enemies[indexOfMovingEnemy];
+            // Add to blocked list if not already retrying blocked enemies
+            if (!IsRetryingBlockedEnemies && CurrentEnemy.WasBlockedThisTurn)
+                BlockedEnemies.Add(CurrentEnemy);
             // Continue with next enemy in current list
             int maxIndex = IsRetryingBlockedEnemies
                             ? BlockedEnemies.Count - 1
@@ -116,13 +153,9 @@ public class EnemyManager : MonoBehaviour
             {
                 indexOfMovingEnemy++;
                 if (IsRetryingBlockedEnemies)
-                {
                     BlockedEnemies[indexOfMovingEnemy].ComputePathAndStartMovement();
-                }
                 else
-                {
                     Enemies[indexOfMovingEnemy].ComputePathAndStartMovement();
-                }
                 return;
             }
             // If finished first pass and have blocked enemies, retry them
@@ -136,10 +169,24 @@ public class EnemyManager : MonoBehaviour
             EndEnemyTurn(OnMovementComplete);
         }
     }
+    /// <summary>
+    /// Ends the enemy turn and restores energy
+    /// </summary>
     private void EndEnemyTurn(System.Action OnMovementComplete)
     {
         EnemiesAreMoving = false;
         RestoreAllEnemyEnergy();
         OnMovementComplete?.Invoke();
+    }
+    /// <summary>
+    /// Cleans up destroyed enemies from the Enemies list
+    /// </summary>
+    private void CleanupDestroyedEnemies()
+    {
+        for (int i = Enemies.Count - 1; i >= 0; i--)
+        {
+            if (Enemies[i] == null)
+                Enemies.RemoveAt(i);
+        }
     }
 }
