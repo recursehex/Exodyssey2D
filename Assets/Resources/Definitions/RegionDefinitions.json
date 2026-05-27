@@ -1,0 +1,92 @@
+{
+  "Regions": [
+    {
+      "Tag": "RuinedOutpost",
+      "Name": "RUINED OUTPOST",
+      "GridsRequired": 3,
+      "GroundTileSetName": "RO_Ground",
+      "WallTileSetName": "RO_Walls",
+      "EnemyPool": ["Weak"],
+      "ItemPool": ["Common", "Limited"],
+      "VehiclePool": ["Common", "Limited"],
+      "Description": "A scorched cradle of a failed mission, still echoing with alarms."
+    },
+    {
+      "Tag": "FragmentedCoast",
+      "Name": "FRAGMENTED COAST",
+      "GridsRequired": 5,
+      "GroundTileSetName": "FC_Ground",
+      "WallTileSetName": "FC_Walls",
+      "EnemyPool": ["Weak"],
+      "ItemPool": ["Common", "Limited", "Scarce"],
+      "VehiclePool": ["Common", "Limited"],
+      "Description": "Calm surf under suspended stone, the first whisper of beyond."
+    },
+    {
+      "Tag": "GlacialDesert",
+      "Name": "GLACIAL DESERT",
+      "GridsRequired": 5,
+      "GroundTileSetName": "GD_Ground",
+      "WallTileSetName": "GD_Walls",
+      "EnemyPool": ["Weak", "Mediocre"],
+      "ItemPool": ["Common", "Limited", "Scarce"],
+      "VehiclePool": ["Common", "Limited", "Scarce"],
+      "Description": "An icy expanse where breath freezes and footsteps ring."
+    },
+    {
+      "Tag": "ScorchedPlateau",
+      "Name": "SCORCHED PLATEAU",
+      "GridsRequired": 5,
+      "GroundTileSetName": "SP_Ground",
+      "WallTileSetName": "SP_Walls",
+      "EnemyPool": ["Weak", "Mediocre"],
+      "ItemPool": ["Common", "Limited", "Scarce", "Rare"],
+      "VehiclePool": ["Common", "Limited", "Scarce"],
+      "Description": "Heat and stone sharpened into a long, open road."
+    },
+    {
+      "Tag": "RainforestRavines",
+      "Name": "RAINFOREST RAVINES",
+      "GridsRequired": 7,
+      "GroundTileSetName": "RR_Ground",
+      "WallTileSetName": "RR_Walls",
+      "EnemyPool": ["Weak", "Mediocre", "Exotic"],
+      "ItemPool": ["Common", "Limited", "Scarce", "Rare", "Anomalous"],
+      "VehiclePool": ["Common", "Limited", "Scarce", "Anomalous"],
+      "Description": "A canopy with no sky, where roots and ravines trade places."
+    },
+    {
+      "Tag": "VolatileVolcanoes",
+      "Name": "VOLATILE VOLCANOES",
+      "GridsRequired": 7,
+      "GroundTileSetName": "VV_Ground",
+      "WallTileSetName": "VV_Walls",
+      "EnemyPool": ["Weak", "Mediocre", "Strong"],
+      "ItemPool": ["Common", "Limited", "Scarce", "Rare", "Anomalous"],
+      "VehiclePool": ["Common", "Limited", "Scarce", "Rare"],
+      "Description": "A molten valley, dissuading trespassers with flowing lava."
+    },
+    {
+      "Tag": "LuminousSwamp",
+      "Name": "LUMINOUS SWAMP",
+      "GridsRequired": 9,
+      "GroundTileSetName": "LS_Ground",
+      "WallTileSetName": "LS_Walls",
+      "EnemyPool": ["Weak", "Exotic"],
+      "ItemPool": ["Common", "Limited", "Scarce", "Rare", "Anomalous"],
+      "VehiclePool": ["Common", "Limited", "Scarce", "Rare", "Anomalous"],
+      "Description": "Glow and rot braided together, a mire of false light."
+    },
+    {
+      "Tag": "RadiantCascades",
+      "Name": "RADIANT CASCADES",
+      "GridsRequired": 9,
+      "GroundTileSetName": "RC_Ground",
+      "WallTileSetName": "RC_Walls",
+      "EnemyPool": ["Strong", "Exotic"],
+      "ItemPool": ["Common", "Limited", "Scarce", "Rare", "Anomalous"],
+      "VehiclePool": ["Common", "Limited", "Scarce", "Rare", "Anomalous"],
+      "Description": "Endless night on frozen peaks, the gate to escape."
+    }
+  ]
+}

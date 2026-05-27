@@ -19,19 +19,23 @@ public class AStar
 	private Vector3Int StartPosition;
 	private Vector3Int GoalPosition;
 	private bool allowDiagonal = true;
+	private const int MoveCostPerTile = 10;
 	public AStar(Tilemap Ground, Tilemap Walls) 
 	{
 		TilemapGround = Ground;
 		TilemapWalls = Walls;
 	}
-	public void Initialize()
-	{
-		AllNodes = new();
-	}
-	public void SetAllowDiagonal(bool flag)
-	{
-		allowDiagonal = flag;
-	}
+	/// <summary>
+	/// Initializes A* algorithm with empty node dictionary
+	/// </summary>
+	public void Initialize() => AllNodes = new();
+	/// <summary>
+	/// Sets whether diagonal movement is allowed
+	/// </summary>
+	public void SetAllowDiagonal(bool flag) => allowDiagonal = flag;
+	/// <summary>
+	/// Gets all reachable positions within specified distance from start position
+	/// </summary>
 	public Dictionary<Vector3Int, Node> GetReachableAreaByDistance(Vector3 Start, int distance)
 	{
 		Vector3Int StartInt = TilemapGround.WorldToCell(Start);
@@ -80,38 +84,46 @@ public class AStar
 		int randomIndex = UnityEngine.Random.Range(0, Positions.Count);
 		Vector3Int RandomGoal = Positions[randomIndex];
 		// Compute path to the random goal
-		Stack<Vector3Int> path = ComputePath(Start, TilemapGround.CellToWorld(RandomGoal) + new Vector3(0.5f, 0.5f));
+		Stack<Vector3Int> Path = ComputePath(Start, TilemapGround.CellToWorld(RandomGoal) + new Vector3(0.5f, 0.5f));
 		// Verify the path actually moves the entity (more than just the starting position)
-		if (path != null && path.Count <= 1)
-			return null;
-		return path;
+		return Path?.Count > 1 ? Path : null;
 	}
+	/// <summary>
+	/// Computes path from Start to Goal position.
+	/// Contains nain loop for A* algorithm.
+	/// Continues until OpenList is empty or valid Path is found.
+	/// 1. FindNeighbors: 		Retrieves neighboring nodes of current node
+	/// 2. ExamineNeighbors: 	Evaluates and updates neighbors based on algorithm's criteria
+	/// 3. UpdateCurrentTile: 	Updates current node to next node with lowest cost in OpenList
+	/// 4. GeneratePath: 		Attempts to construct final path if destination is reached or partial path is allowed
+	/// </summary>
     public Stack<Vector3Int> ComputePath(Vector3 Start, Vector3 Goal, bool allowPartialPath = false)
-    {
-        StartPosition = TilemapGround.WorldToCell(Start);
-        GoalPosition = TilemapGround.WorldToCell(Goal);
-        AllNodes.Clear();
-        Current = GetNode(StartPosition);
-        // For nodes to be looked at later
-        OpenList = new();
-        // For examined nodes
-        ClosedList = new();
-        // Adds the current node to OpenList (has been examined)
-        OpenList.Add(Current);
-        Path = null;
-        while (OpenList.Count > 0 && Path == null)
-        {
+	{
+		// Convert world positions to tilemap cell positions
+		StartPosition = TilemapGround.WorldToCell(Start);
+		GoalPosition = TilemapGround.WorldToCell(Goal);
+		// Reset all nodes and lists
+		AllNodes.Clear();
+		Current = GetNode(StartPosition);
+		// For nodes to be looked at later
+		OpenList = new();
+		// For examined nodes
+		ClosedList = new();
+		// Adds the current node to OpenList (has been examined)
+		OpenList.Add(Current);
+		Path = null;
+		while (OpenList.Count > 0 && Path == null)
+		{
 			List<Node> Neighbors = FindNeighbors(Current.Position, allowPartialPath);
 			ExamineNeighbors(Neighbors, Current);
 			UpdateCurrentTile(ref Current);
 			Path = GeneratePath(Current, allowPartialPath);
 		}
-		if (Path != null)
-		{
-			return Path;
-		}
-		return null;
+		return Path ?? null;
 	}
+	/// <summary>
+	/// Finds all neighbors of current node
+	/// </summary>
 	private List<Node> FindNeighbors(Vector3Int ParentPosition, bool allowPartialPath = false)
 	{
 		List<Node> Neighbors = new();
@@ -124,6 +136,7 @@ public class AStar
 				Vector3 EntityPosition = ParentPosition - new Vector3(x - 0.5f, y - 0.5f);
 				bool IsEntityAtPosition = GameManager.Instance.HasEnemyAtPosition(EntityPosition)
 									   || GameManager.Instance.HasVehicleAtPosition(EntityPosition);
+				bool HasFireAtPosition = GameManager.Instance.HasFireAtPosition(Position);
 				if ((y != 0 || x != 0)
 					&& (allowDiagonal || (!allowDiagonal && (y == 0 || x == 0))))
 				{
@@ -135,14 +148,13 @@ public class AStar
 						&& Position.y >= Size.min.y
 						&& Position.y < Size.max.y
 						&& !TilemapWalls.HasTile(Position)
+						&& !HasFireAtPosition
 						&& (!IsEntityAtPosition || allowPartialPath))
 					{
 						Node Neighbor = GetNode(Position);
 						// Mark if this node has an entity for partial path logic
 						if (allowPartialPath && IsEntityAtPosition)
-						{
 							Neighbor.HasEntity = true;
-						}
 						Neighbors.Add(Neighbor);
 					}
 				}
@@ -150,30 +162,55 @@ public class AStar
 		}
 		return Neighbors;
 	}
+	/// <summary>
+	/// Examines neighbors of current node and updates their values
+	/// </summary>
 	private void ExamineNeighbors(List<Node> Neighbors, Node Current)
-	{	
+	{
 		for (int i = 0; i < Neighbors.Count; i++)
 		{
 			Node Neighbor = Neighbors[i];
-			int gScore = 10;
+			int gScore = MoveCostPerTile;
+			int candidateG = Current.G + gScore;
 			if (OpenList.Contains(Neighbor))
 			{
-				if (Current.G + gScore < Neighbor.G)
-				{
-					CalcValues(Current, Neighbor, GoalPosition, gScore);
-				}
+				// Prefer straighter/tighter paths when the total move cost is the same
+				if (IsBetterPath(Current, Neighbor, candidateG))
+					CalculateNodeValues(Current, Neighbor, GoalPosition, gScore);
 			}
 			else if (!ClosedList.Contains(Neighbor))
 			{
-				CalcValues(Current, Neighbor, GoalPosition, gScore);
+				CalculateNodeValues(Current, Neighbor, GoalPosition, gScore);
 				// An extra check for OpenList containing the neighbor
 				if (!OpenList.Contains(Neighbor))
-				{
 					OpenList.Add(Neighbor);
-				}
 			}
 		}
 	}
+	/// <summary>
+	/// Determines whether the new path to a node is better than its existing one
+	/// </summary>
+	private bool IsBetterPath(Node Parent, Node Neighbor, int candidateG)
+	{
+		if (candidateG < Neighbor.G)
+			return true;
+		if (candidateG > Neighbor.G)
+			return false;
+		int candidateAlignmentCost = Parent.AlignmentCost + GetAlignmentCost(Neighbor.Position, StartPosition, GoalPosition);
+		if (candidateAlignmentCost < Neighbor.AlignmentCost)
+			return true;
+		if (candidateAlignmentCost > Neighbor.AlignmentCost)
+			return false;
+		int candidateTurns = GetTurnCount(Parent, Neighbor);
+		if (candidateTurns < Neighbor.Turns)
+			return true;
+		if (candidateTurns > Neighbor.Turns)
+			return false;
+		return false;
+	}
+	/// <summary>
+	/// Updates the current tile to next tile with lowest F value
+	/// </summary>
 	private void UpdateCurrentTile(ref Node Current)
 	{
 		// The current node is removed from OpenList
@@ -182,11 +219,16 @@ public class AStar
 		ClosedList.Add(Current);
 		// If the OpenList has nodes in it, then sort them by F value
 		if (OpenList.Count > 0)
-		{
-			// Orders the list by F value to make it easier to pick node with lowest F value
-			Current = OpenList.OrderBy(x => x.F).First();
-		}
+			Current = OpenList
+				.OrderBy(Node => Node.F)
+				.ThenBy(Node => Node.AlignmentCost)
+				.ThenBy(Node => Node.Turns)
+				.ThenBy(Node => Node.H)
+				.First();
 	}
+	/// <summary>
+	/// Generates path from current node to the goal position
+	/// </summary>
 	private Stack<Vector3Int> GeneratePath(Node Current, bool allowPartialPath = false)
 	{
 		// If the current node is goal, then path is found
@@ -212,9 +254,7 @@ public class AStar
 			while (TempNode != null)
 			{
 				if (TempNode.H < ClosestNode.H)
-				{
 					ClosestNode = TempNode;
-				}
 				TempNode = TempNode.Parent;
 			}
 			// Generate partial path to closest reachable point, checking for entities
@@ -228,29 +268,69 @@ public class AStar
 			}
 			// Only return partial path if it has meaningful progress
 			if (PartialPath.Count > 1)
-			{
 				return PartialPath;
-			}
 		}
 		return null;
 	}
-	private void CalcValues(Node Parent, Node Neighbor, Vector3Int GoalPos, int cost)
+	/// <summary>
+	/// Calculates G, H, and F values for neighbor node
+	/// </summary>
+	private void CalculateNodeValues(Node Parent, Node Neighbor, Vector3Int GoalPosition, int cost)
 	{
 		// Sets the parent node
 		Neighbor.Parent = Parent;
 		// Calculates this node's G cost, the parent's G cost + what it costs to move to this node
 		Neighbor.G = Parent.G + cost;
 		// H is calculated, it is the distance from this node to the goal * 10
-		Neighbor.H = (Math.Abs(Neighbor.Position.x - GoalPos.x) + Math.Abs(Neighbor.Position.y - GoalPos.y)) * 10;
+		Neighbor.H = GetHeuristicCost(Neighbor.Position, GoalPosition);
 		// F is calculated, it is G + H
 		Neighbor.F = Neighbor.G + Neighbor.H;
+		// Track turn count to prefer straighter paths when costs are tied
+		Neighbor.Turns = GetTurnCount(Parent, Neighbor);
+		// Prefer paths that stay closer to the ideal line from start to goal when costs are tied
+		Neighbor.AlignmentCost = Parent.AlignmentCost + GetAlignmentCost(Neighbor.Position, StartPosition, GoalPosition);
 	}
+	/// <summary>
+	/// Gets heuristic cost for the current movement rules
+	/// </summary>
+	private int GetHeuristicCost(Vector3Int position, Vector3Int GoalPosition)
+	{
+		int dx = Math.Abs(position.x - GoalPosition.x);
+		int dy = Math.Abs(position.y - GoalPosition.y);
+		int distance = allowDiagonal ? Math.Max(dx, dy) : dx + dy;
+		return distance * MoveCostPerTile;
+	}
+	/// <summary>
+	/// Counts turns along the current path to prefer straighter routes
+	/// </summary>
+	private int GetTurnCount(Node Parent, Node Neighbor)
+	{
+		if (Parent == null || Parent.Parent == null)
+			return 0;
+		Vector3Int PreviousDirection = Parent.Position - Parent.Parent.Position;
+		Vector3Int CurrentDirection = Neighbor.Position - Parent.Position;
+		int turn = PreviousDirection == CurrentDirection ? 0 : 1;
+		return Parent.Turns + turn;
+	}
+	/// <summary>
+	/// Gets a lower score for positions closer to the start-goal line
+	/// </summary>
+	private int GetAlignmentCost(Vector3Int position, Vector3Int StartPosition, Vector3Int GoalPosition)
+	{
+		Vector3Int LineVector = GoalPosition - StartPosition;
+		if (LineVector == Vector3Int.zero)
+			return 0;
+		Vector3Int PositionVector = position - StartPosition;
+		int cross = Math.Abs(PositionVector.x * LineVector.y - PositionVector.y * LineVector.x);
+		return cross;
+	}
+	/// <summary>
+	/// Gets or creates node at specified position
+	/// </summary>
 	private Node GetNode(Vector3Int Position)
 	{
 		if (AllNodes.ContainsKey(Position))
-		{
 			return AllNodes[Position];
-		}
 		else
 		{
 			Node Node = new(Position);
@@ -264,11 +344,10 @@ public class Node
 	public int G { get; set; }
 	public int H { get; set; }
 	public int F { get; set; }
+	public int Turns { get; set; }
+	public int AlignmentCost { get; set; }
 	public Node Parent { get; set; }
 	public Vector3Int Position { get; set; }
 	public bool HasEntity { get; set; } = false;
-	public Node(Vector3Int Position)
-	{
-		this.Position = Position;
-	}
+	public Node(Vector3Int Position) => this.Position = Position;
 }

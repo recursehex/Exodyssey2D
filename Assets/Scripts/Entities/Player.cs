@@ -1,33 +1,40 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+
+[RequireComponent(typeof(Animator))]
 
 /// <summary>
 /// Contains functionality specific to the Player
 /// </summary>
 public class Player : MonoBehaviour
 {
+	[Header("Player Stats")]
 	#region DATA
-	private readonly int maxHealth 		= 3;
-	private static readonly int fixedMaxEnergy = 3; // Used to restore energy to original value
-	private int maxEnergy 				= fixedMaxEnergy;
-	private int currentHealth 			= 3;
-	public int currentEnergy 			= 3;
+	private static readonly int fixedMaxEnergy = 3; // To restore energy to original value
+	[SerializeField] private int maxHealth 	   	= 3;
+	[SerializeField] private int maxEnergy	   	= fixedMaxEnergy;
+	[SerializeField] private int currentHealth	= 3;
+	public int CurrentEnergy { get; private set; } = 3;
 	private readonly int walkSpeed 		= 2;
 	private readonly int inventorySize 	= 2;
-	public int DamagePoints { get; private set; } = 0;
+	public int DamagePoints => HasUses ? SelectedItemInfo?.DamagePoints ?? 0 : 0;
+	[Header("Vehicle")]
 	public Vehicle Vehicle;
 	public bool IsInVehicle => Vehicle != null;
+	[Header("Armor & Equipment")]
 	private bool hasHelmet = false;
-	private int helmetHealth;
+	private int helmetHealth = 0;
 	private bool hasVest = false;
-	private int vestHealth;
+	private int vestHealth = 0;
 	private bool hasNightVision = false;
-	public Profession Job;
+	public bool HasNightVision => hasNightVision;
+	public Profession Profession;
 	#endregion
 	#region EVENTS
-	public System.Action OnMovementComplete;
+	public Action OnMovementComplete;
 	#endregion
 	#region AUDIO
 	[SerializeField] private AudioClip Move;
@@ -43,6 +50,15 @@ public class Player : MonoBehaviour
 	public InventoryUI InventoryUI;
 	public ItemInfo SelectedItemInfo = null;
 	public StatsDisplayManager StatsDisplayManager;
+	#endregion
+	#region DEBUG
+	[Header("Debug")]
+	[SerializeField] private ItemInfo.Tags SelectedItemTag = ItemInfo.Tags.Unknown;
+	[SerializeField] private int selectedItemUses = 0;
+	[SerializeField] private bool isInVehicle = false;
+	[SerializeField] private List<ItemInfo.Tags> InventoryItemTags = new();
+	[SerializeField] private List<string> InventoryItemNames = new();
+	[SerializeField] private List<int> InventoryItemUses = new();
 	#endregion
 	#region PATHFINDING
 	public bool IsInMovement { get; set; } = false;
@@ -60,8 +76,88 @@ public class Player : MonoBehaviour
 		Inventory = new(inventorySize);
 		InventoryUI.Inventory = Inventory;
 		Animator = GetComponent<Animator>();
-		Job = Profession.GetRandomProfession();
+		Profession = Profession.GetRandomProfession();
 		FinishedInit = true;
+	}
+#if UNITY_EDITOR
+	private void LateUpdate()
+	{
+		SyncDebugFields();
+	}
+	private void SyncDebugFields()
+	{
+		if (SelectedItemInfo != null)
+		{
+			SelectedItemTag = SelectedItemInfo.Tag;
+			selectedItemUses = SelectedItemInfo.CurrentUses;
+		}
+		else
+		{
+			SelectedItemTag = ItemInfo.Tags.Unknown;
+			selectedItemUses = 0;
+		}
+		isInVehicle = IsInVehicle;
+		SyncInventoryDebugFields();
+	}
+	private void SyncInventoryDebugFields()
+	{
+		InventoryItemTags.Clear();
+		InventoryItemNames.Clear();
+		InventoryItemUses.Clear();
+		if (Inventory == null)
+			return;
+		for (int i = 0; i < Inventory.Size; i++)
+		{
+			ItemInfo InventoryItemInfo = Inventory[i];
+			if (InventoryItemInfo == null)
+			{
+				InventoryItemTags.Add(ItemInfo.Tags.Unknown);
+				InventoryItemNames.Add(string.Empty);
+				InventoryItemUses.Add(0);
+				continue;
+			}
+			InventoryItemTags.Add(InventoryItemInfo.Tag);
+			InventoryItemNames.Add(InventoryItemInfo.Name);
+			InventoryItemUses.Add(InventoryItemInfo.CurrentUses);
+		}
+	}
+#endif
+	private void OnDisable() => StopMoveRoutineIfRunning();
+	private void OnDestroy() => StopMoveRoutineIfRunning();
+	private void StopMoveRoutineIfRunning()
+	{
+		if (MoveRoutine == null)
+			return;
+		StopCoroutine(MoveRoutine);
+		MoveRoutine = null;
+	}
+	public void ResetForNewGame(Vector3 StartPosition)
+	{
+		StopMoveRoutineIfRunning();
+		Path = null;
+		Destination = Vector3Int.zero;
+		IsInMovement = false;
+		transform.position = StartPosition;
+		SetPlayerVisibility(true);
+		if (Vehicle != null)
+			ExitVehicle();
+		hasHelmet = false;
+		helmetHealth = 0;
+		hasVest = false;
+		vestHealth = 0;
+		hasNightVision = false;
+		SelectedItemInfo = null;
+		Inventory = new(inventorySize);
+		InventoryUI.Inventory = Inventory;
+		InventoryUI.SetNoneSelected();
+		InventoryUI.RefreshInventoryIcons();
+		InventoryUI.RefreshText();
+		Profession = Profession.GetRandomProfession();
+		maxEnergy = fixedMaxEnergy;
+		currentHealth = maxHealth;
+		CurrentEnergy = maxEnergy;
+		StatsDisplayManager.RestoreHealthDisplay();
+		StatsDisplayManager.RestoreEnergyDisplay(currentHealth);
 	}
 	#region MOVEMENT METHODS
 	/// <summary>
@@ -72,17 +168,13 @@ public class Player : MonoBehaviour
 		AStar.Initialize();
 		Path = AStar.ComputePath(transform.position, Goal);
 		if (Path == null)
-		{
 			return;
-		}
 		Path.Pop();
 		Destination = Path.Pop();
 		IsInMovement = true;
 		// Stop movement if game ends
 		if (MoveRoutine != null)
-		{
 			StopCoroutine(MoveRoutine);
-		}
 		MoveRoutine = StartCoroutine(MoveAlongPath());
 	}
 	/// <summary>
@@ -99,40 +191,35 @@ public class Player : MonoBehaviour
 			// Move Player smoothly to next tile
 			while (Vector3.Distance(transform.position, ShiftedDistance) > 0f)
 			{
-				transform.position = Vector3.MoveTowards(
-					transform.position, 
-					ShiftedDistance, 
-					walkSpeed * Time.deltaTime);
+				transform.position = Vector3.MoveTowards(transform.position, 
+														 ShiftedDistance, 
+														 walkSpeed * Time.deltaTime);
 				yield return null;
 			}
 			// Pop next tile in path
 			if (Path != null && Path.Count > 0)
-			{
 				Destination = Path.Pop();
-			}
-			else
-			{
-				break;
-			}
+			else break;
 		}
 		// When Player stops moving
 		Path = null;
 		IsInMovement = false;
 		// Update targets if a ranged weapon is selected
-		if (SelectedItemInfo != null && SelectedItemInfo.Range > 0 && !IsInVehicle)
-		{
+		if (HasRange && !IsInVehicle)
 			GameManager.Instance.UpdateTargets();
-		}
 		// Notify that movement is complete
 		OnMovementComplete?.Invoke();
 	}
 	/// <summary>
-	/// Calculates area Player can move to in a turn based on currentEnergy
+	/// Calculates area Player can move to in a turn based on CurrentEnergy
 	/// </summary>
 	public Dictionary<Vector3Int, Node> CalculateArea()
 	{
 		AStar.Initialize();
-		return AStar.GetReachableAreaByDistance(transform.position, currentEnergy);
+		Dictionary<Vector3Int, Node> ReachableArea = AStar.GetReachableAreaByDistance(transform.position, CurrentEnergy);
+		Vector3Int StartCell = TilemapGround.WorldToCell(transform.position);
+		ReachableArea.Remove(StartCell);
+		return ReachableArea;
 	}
 	#endregion
 	#region VEHICLE METHODS
@@ -151,12 +238,23 @@ public class Player : MonoBehaviour
 		SetPlayerVisibility(true);
 		Vehicle = null;
     }
+	public void SetVehicleState(Vehicle Vehicle, bool isInVehicle, Vector3 PlayerPosition)
+	{
+		if (isInVehicle && Vehicle == null)
+		{
+			SetPlayerVisibility(true);
+			this.Vehicle = null;
+			transform.position = PlayerPosition;
+			return;
+		}
+		this.Vehicle = isInVehicle ? Vehicle : null;
+		transform.position = PlayerPosition;
+		SetPlayerVisibility(!isInVehicle);
+	}
 	public void VehicleMovement(Vector3 WorldPoint)
 	{
 		if (Vehicle == null)
-		{
 			return;
-		}
 		// Subscribe to vehicle movement complete event
 		Vehicle.OnVehicleMovementComplete = () => {
 			IsInMovement = false;
@@ -174,14 +272,10 @@ public class Player : MonoBehaviour
 	private void SetPlayerVisibility(bool isVisible)
 	{
 		if (TryGetComponent(out SpriteRenderer SpriteRenderer))
-		{
 			SpriteRenderer.enabled = isVisible;
-		}
 		// Also hide or show the animator component
 		if (Animator != null)
-		{
 			Animator.enabled = isVisible;
-		}
 	}
 	#endregion
 	#region HEALTH METHODS
@@ -213,7 +307,6 @@ public class Player : MonoBehaviour
 		// Game over if Player is killed
 		if (currentHealth <= 0)
 		{
-			SoundManager.Instance.PlaySound(GameOver);
 			GameManager.Instance.GameOver();
 			return;
 		}
@@ -223,8 +316,8 @@ public class Player : MonoBehaviour
 		// If 1 health left, reduce max energy to simulate weakness
 		if (currentHealth == 1)
 		{
-			currentEnergy = 1;
-			StatsDisplayManager.DecreaseEnergyDisplay(currentEnergy, maxEnergy);
+			CurrentEnergy = 1;
+			StatsDisplayManager.DecreaseEnergyDisplay(CurrentEnergy, maxEnergy);
 			maxEnergy = 1;
 		}
 	}
@@ -240,53 +333,77 @@ public class Player : MonoBehaviour
 	}
 	#endregion
 	#region ENERGY METHODS
+	public bool HasEnergy => CurrentEnergy > 0;
+	public void SpendEnergy(int amount)
+	{
+		if (amount <= 0)
+			return;
+		int previousEnergy = CurrentEnergy;
+		CurrentEnergy = Mathf.Clamp(CurrentEnergy - amount, 0, maxEnergy);
+		if (CurrentEnergy < previousEnergy)
+			GameManager.Instance.OnPlayerActionPointSpent();
+		StatsDisplayManager.DecreaseEnergyDisplay(CurrentEnergy, maxEnergy);
+		// End turn and stop timer if no more energy
+		if (!HasEnergy)
+			GameManager.Instance.StopTurnTimer();
+	}
+	public void SetEnergy(int newEnergy)
+	{
+		CurrentEnergy = Mathf.Clamp(newEnergy, 0, maxEnergy);
+		StatsDisplayManager.RestoreEnergyDisplay(currentHealth);
+		StatsDisplayManager.DecreaseEnergyDisplay(CurrentEnergy, maxEnergy);
+	}
 	/// <summary>
 	/// Decreases CurrentEnergy by 1 and updates energy display
 	/// </summary>
 	private void DecrementEnergy()
 	{
-		currentEnergy = Mathf.Clamp(--currentEnergy, 0, maxEnergy);
-		StatsDisplayManager.DecreaseEnergyDisplay(currentEnergy, maxEnergy);
-		// End turn and stop timer if CurrentEnergy reaches 0
-		if (currentEnergy == 0)
-		{
+		int previousEnergy = CurrentEnergy;
+		CurrentEnergy = Mathf.Clamp(--CurrentEnergy, 0, maxEnergy);
+		if (CurrentEnergy < previousEnergy)
+			GameManager.Instance.OnPlayerActionPointSpent();
+		StatsDisplayManager.DecreaseEnergyDisplay(CurrentEnergy, maxEnergy);
+		// End turn and stop timer if no more energy
+		if (!HasEnergy)
 			GameManager.Instance.StopTurnTimer();
-		}
 	}
 	/// <summary>
 	/// Sets Player CurrentEnergy to 0
 	/// </summary>
 	public void SetEnergyToZero()
 	{
-		currentEnergy = 0;
-		StatsDisplayManager.DecreaseEnergyDisplay(currentEnergy, maxEnergy);
+		CurrentEnergy = 0;
+		StatsDisplayManager.DecreaseEnergyDisplay(CurrentEnergy, maxEnergy);
 	}
 	/// <summary>
 	/// Restores Player Energy to maxEnergy
 	/// </summary>
 	public void RestoreEnergy() 
 	{
-		currentEnergy = maxEnergy;
+		CurrentEnergy = maxEnergy;
 		StatsDisplayManager.RestoreEnergyDisplay(currentHealth);
 	}
-	public bool HasEnergy()
+	/// <summary>
+	/// Spends energy and durability when using a utility-style item (e.g. extinguisher).
+	/// </summary>
+	public void UseItem()
 	{
-		return currentEnergy > 0;
+		DecrementEnergy();
+		DecrementItemDurability();
 	}
 	#endregion
 	#region ATTACK METHODS
 	/// <summary>
 	/// Handles Player variables when attacking an enemy
 	/// </summary>
-	public void AttackEnemy()
+	public void AttackEntity()
 	{
 		SoundManager.Instance.PlaySound(Attack);
 		Animator.SetTrigger("playerAttack");
-		DecrementEnergy();
-		DecrementItemDurability();
+		UseItem();
 	}
 	/// <summary>
-	/// Decreases item durability by 1, removes item if uses == 0
+	/// Decreases item durability by 1, removes item if uses run out (except unbreakable items)
 	/// </summary>
 	private void DecrementItemDurability()
 	{
@@ -296,27 +413,29 @@ public class Player : MonoBehaviour
 	}
 	/// <summary>
 	/// Removes selected item from inventory and resets related variables
+	/// Unbreakable items are kept at 0 UP unless forceRemove is true
+	/// If forceRemove is true, item is removed regardless of durability
 	/// </summary>
-	private void TryRemoveSelectedItem()
+	private void TryRemoveSelectedItem(bool forceRemove = false)
 	{
-		if (SelectedItemInfo.CurrentUses > 0)
-		{
+		if (!forceRemove && (HasUses || ShouldKeepDepletedSelectedItem))
 			return;
-		}
 		InventoryUI.RemoveItem(InventoryUI.SelectedIndex);
-		InventoryUI.SetCurrentSelected(-1);
+		InventoryUI.SetNoneSelected();
 		SelectedItemInfo = null;
-		DamagePoints = 0;
 		GameManager.Instance.ClearTargets();
+		GameManager.Instance.UpdateTileAreas();
 	}
+	public bool HasUses => SelectedItemInfo?.CurrentUses > 0;
+	private bool ShouldKeepDepletedSelectedItem => SelectedItemInfo?.IsUnbreakable ?? false;
+	/// <summary>
+	/// Returns true if Player has a selected item in inventory
+	/// </summary>
+	public bool HasRange => (SelectedItemInfo?.HasRange ?? false) && HasUses;
 	/// <summary>
 	/// Returns weapon range of selected item, 0 if no item is selected or item is not a weapon
 	/// </summary>
-	/// <returns></returns>
-	public int GetWeaponRange()
-	{
-		return SelectedItemInfo == null ? 0 : SelectedItemInfo.Range;
-	}
+	public int WeaponRange => HasRange ? SelectedItemInfo.Range : 0;
 	#endregion
 	#region ITEM METHODS
 	/// <summary>
@@ -324,7 +443,7 @@ public class Player : MonoBehaviour
 	/// </summary>
 	public bool TryAddItem(Item Item)
 	{
-		if (Inventory.TryAddItem(Item))
+		if (Inventory.TryAddItem(Item.Info))
 		{
 			InventoryUI.RefreshInventoryIcons();
 			return true;
@@ -337,37 +456,30 @@ public class Player : MonoBehaviour
 	public void TryClickItem(int itemIndex)
 	{
 		// Ensures index is within bounds and inventory has an item
-		if (itemIndex >= Inventory.Count
-			|| Inventory.Count == 0)
-		{
+		if (!Inventory.HasItemAt(itemIndex))
 			return;
-		}
-		ItemInfo ClickedItem = Inventory[itemIndex].Info;
+		ItemInfo ClickedItem = Inventory[itemIndex];
 		// If item is selected, update selection, otherwise reset
 		if (InventoryUI.ProcessSelection(InventoryUI.SelectedIndex, itemIndex))
 		{
 			InventoryUI.SetCurrentSelected(itemIndex);
 			SelectedItemInfo = ClickedItem;
 			SoundManager.Instance.PlaySound(Select);
-			DamagePoints = ClickedItem.DamagePoints;
 			// Only update targets if ranged weapon is selected
-			if (ClickedItem.Range > 0 && !IsInVehicle)
-			{
+			if (ClickedItem.HasRange && !IsInVehicle)
 				GameManager.Instance.UpdateTargets();
-			}
 			// Clear targets for non-ranged weapons
 			else
-			{
 				GameManager.Instance.ClearTargets();
-			}
+			GameManager.Instance.UpdateTileAreas();
 		}
 		// Item was deselected
 		else
 		{
-			InventoryUI.SetCurrentSelected(-1);
+			InventoryUI.SetNoneSelected();
 			SelectedItemInfo = null;
-			DamagePoints = 0;
 			GameManager.Instance.ClearTargets();
+			GameManager.Instance.UpdateTileAreas();
 		}
 	}
 	/// <summary>
@@ -376,58 +488,60 @@ public class Player : MonoBehaviour
 	public bool ClickOnToUseItem()
 	{
 		if (SelectedItemInfo == null)
-		{
 			return false;
-		}
-		bool wasUsed = WasItemUsed();
+		bool wasUsed = WasItemUsedOnPlayer();
 		return wasUsed;
 	}
 	/// <summary>
 	/// Returns true if item was used on Player
 	/// </summary>
-	private bool WasItemUsed()
+	private bool WasItemUsedOnPlayer()
 	{
 		if (SelectedItemInfo.Tag is ItemInfo.Tags.MedKit
 			&& currentHealth < maxHealth
-			&& currentEnergy > 0)
+			&& HasEnergy)
 		{
 			RestoreHealth();
 			// Uses energy if profession is not medic
-			if (Job.Tag is not Profession.Tags.Medic)
-			{
+			if (Profession.Tag is not Profession.Tags.Medic)
 				DecrementEnergy();
-			}
 			// Uses MedKit if profession is not master medic
-			if (!(Job.IsMaster && Job.Tag is Profession.Tags.Medic))
-			{
+			if (!(Profession.IsMaster && Profession.Tag is Profession.Tags.Medic))
 				DecrementItemDurability();
-			}
 			return true;
 		}
-		// else if (SelectedItemInfo.Tag is ItemInfo.Tags.Helmet
-		// 	&& !hasHelmet)
-		// {
-		// 	hasHelmet = true;
-		// 	helmetHealth = SelectedItemInfo.CurrentUses;
-		// 	DecrementItemDurability();
-		// 	DecrementEnergy();
-		// 	return true;
-		// }
-		// else if (SelectedItemInfo.Tag is ItemInfo.Tags.Vest
-		// 	&& !hasVest)
-		// {
-		// 	hasVest = true;
-		// 	vestHealth = SelectedItemInfo.CurrentUses;
-		// 	DecrementItemDurability();
-		// 	DecrementEnergy();
-		// 	return true;
-		// }
+		else if (SelectedItemInfo.Tag is ItemInfo.Tags.Helmet
+			&& !hasHelmet)
+		{
+			hasHelmet = true;
+			helmetHealth = SelectedItemInfo.CurrentUses;
+			TryRemoveSelectedItem(true);
+			DecrementEnergy();
+			return true;
+		}
+		else if (SelectedItemInfo.Tag is ItemInfo.Tags.Vest
+			&& !hasVest)
+		{
+			hasVest = true;
+			vestHealth = SelectedItemInfo.CurrentUses;
+			TryRemoveSelectedItem(true);
+			DecrementEnergy();
+			return true;
+		}
 		else if (SelectedItemInfo.Tag is ItemInfo.Tags.NightVision
 			&& !hasNightVision)
 		{
 			hasNightVision = true;
-			DecrementItemDurability();
+			TryRemoveSelectedItem(true);
 			DecrementEnergy();
+			return true;
+		}
+		else if (SelectedItemInfo.Tag is ItemInfo.Tags.Flare
+			&& HasEnergy
+			&& SelectedItemInfo.ActivateFlare())
+		{
+			DecrementEnergy();
+			InventoryUI.SetCurrentSelected(InventoryUI.SelectedIndex);
 			return true;
 		}
 		return false;
@@ -435,19 +549,28 @@ public class Player : MonoBehaviour
 	/// <summary>
 	/// Uses an item from inventory on vehicle, returns false if item cannot be used on vehicle
 	/// </summary>
-	/// <returns></returns>
 	public bool ClickOnVehicleToUseItem(Vehicle Vehicle)
 	{
 		// Returns if no item is selected
 		if (SelectedItemInfo == null)
-		{
 			return false;
-		}
 		// Try to use ToolKit on vehicle
 		if (SelectedItemInfo.Tag is ItemInfo.Tags.ToolKit
 			&& Vehicle.Repair())
 		{
 			DecrementItemDurability();
+			return true;
+		}
+		// Try to use Wrench on vehicle
+		if (SelectedItemInfo.Tag is ItemInfo.Tags.Wrench
+			&& Vehicle.RepairBy(1))
+		{
+			// Uses energy if profession is not mechanic, otherwise wrench can be used for free
+			if (Profession.Tag is not Profession.Tags.Mechanic)
+				DecrementEnergy();
+			// Wrench does not lose durability if user is master mechanic, otherwise it loses durability on use
+			if (Profession.Tag is not Profession.Tags.Mechanic && !Profession.IsMaster)
+				DecrementItemDurability();
 			return true;
 		}
 		// Try to use PowerCell on vehicle
@@ -466,48 +589,58 @@ public class Player : MonoBehaviour
 	public void TryDropItem(int itemIndex)
 	{
 		// Returns if called when inventory is empty
-		if (Inventory.Count == 0)
-		{
+		if (!Inventory.HasItemAt(itemIndex))
 			return;
-		}
-		// Resets damage points if weapon is dropped
-		if (SelectedItemInfo == Inventory[itemIndex].Info
-			&& Inventory[itemIndex].Info?.Type is ItemInfo.Types.Weapon)
-		{
-			DamagePoints = 0;
-			// Clears targeting if ranged weapon is dropped
-			if (GetWeaponRange() > 0)
-			{
-				GameManager.Instance.ClearTargets();
-			}
-		}
+		GameManager.Instance.RecordUndoSnapshot(true);
 		// Put dropped item in temp slot out of inventory
-		ItemInfo DroppedItemInfo = Inventory[itemIndex].Info;
+		ItemInfo DroppedItemInfo = Inventory[itemIndex];
 		if (DroppedItemInfo == SelectedItemInfo)
 		{
+			// Clears targeting if ranged weapon is dropped
+			if (HasRange)
+				GameManager.Instance.ClearTargets();
 			SelectedItemInfo = null;
 			InventoryUI.DeselectItem(itemIndex);
+			GameManager.Instance.UpdateTileAreas();
 		}
 		Item ItemAtPosition = GameManager.Instance.GetItemAtPosition(transform.position);
 		// If there is item at Player's position
 		if (ItemAtPosition != null)
 		{
 			// Swap dropped item with ground item
-			Inventory[itemIndex].Info = ItemAtPosition.Info;
+			Inventory[itemIndex] = ItemAtPosition.Info;
 			GameManager.Instance.RemoveItemAtPosition(ItemAtPosition);
 			Destroy(ItemAtPosition.gameObject);
 			InventoryUI.RefreshInventoryIcons();
 		}
 		// Remove dropped item from inventory
 		else
-		{
 			InventoryUI.RemoveItem(itemIndex);
-		}
 		InventoryUI.RefreshText();
 		// Drop item onto ground from temp slot with preserved state
 		GameManager.Instance.SpawnItem(DroppedItemInfo, transform.position);
+		GameManager.Instance.RefreshVisibility();
 		// Removes item from inventory and plays corresponding sound
 		SoundManager.Instance.PlaySound(Move);
+	}
+	public void RechargePlasmaRailgun()
+	{
+		if (Inventory.IsEmpty)
+			return;
+		bool shouldRefreshSelected = false;
+		for (int i = 0; i < Inventory.Size; i++)
+		{
+			ItemInfo InventoryItemInfo = Inventory[i];
+			if (InventoryItemInfo == null)
+				continue;
+			if (InventoryItemInfo.Tag != ItemInfo.Tags.PlasmaRailgun)
+				continue;
+			InventoryItemInfo.RestoreDurabilityToMax();
+			if (SelectedItemInfo == InventoryItemInfo)
+				shouldRefreshSelected = true;
+		}
+		if (shouldRefreshSelected && InventoryUI.SelectedIndex >= 0)
+			InventoryUI.SetCurrentSelected(InventoryUI.SelectedIndex);
 	}
     #endregion
 }

@@ -1,7 +1,10 @@
 fileFormatVersion: 2
 guid: 6a4c2cd8540b043b4b7116cfd06e7e73
 TextureImporter:
-  internalIDToNameTable: []
+  internalIDToNameTable:
+  - first:
+      213: -5552390378372755272
+    second: tranquilizer_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:

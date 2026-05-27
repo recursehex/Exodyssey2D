@@ -7,9 +7,7 @@ public class PanelActivator : MonoBehaviour
 	public void OpenPanel()
 	{
 		if (Panel == null)
-		{
 			return;
-		}
 		isActive = Panel.activeSelf;
 		Panel.SetActive(!isActive);
 	}
