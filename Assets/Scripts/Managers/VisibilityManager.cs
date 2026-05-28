@@ -35,6 +35,7 @@ public class VisibilityManager : MonoBehaviour
 	private EnemyManager EnemyManager;
 	private ItemManager ItemManager;
 	private VehicleManager VehicleManager;
+	private StructureManager StructureManager;
 	private FireManager FireManager;
 	private GameObject OverlayObject;
 	private MeshRenderer OverlayRenderer;
@@ -68,6 +69,7 @@ public class VisibilityManager : MonoBehaviour
 		EnemyManager EnemyManager,
 		ItemManager ItemManager,
 		VehicleManager VehicleManager,
+		StructureManager StructureManager,
 		FireManager FireManager)
 	{
 		this.GameManager = GameManager;
@@ -79,6 +81,7 @@ public class VisibilityManager : MonoBehaviour
 		this.EnemyManager = EnemyManager;
 		this.ItemManager = ItemManager;
 		this.VehicleManager = VehicleManager;
+		this.StructureManager = StructureManager;
 		this.FireManager = FireManager;
 		if (this.LevelManager != null)
 			this.LevelManager.OnTimeOfDayChanged += HandleTimeOfDayChanged;
@@ -585,6 +588,10 @@ public class VisibilityManager : MonoBehaviour
 		{
 			TryConsumeRendererLayer(Vehicle != null ? Vehicle.GetComponent<SpriteRenderer>() : null, ref topLayerId, ref topLayerValue);
 		}
+		foreach (Structure Structure in StructureManager != null ? StructureManager.Structures : new List<Structure>())
+		{
+			TryConsumeRendererLayer(Structure != null ? Structure.GetComponent<SpriteRenderer>() : null, ref topLayerId, ref topLayerValue);
+		}
 		if (topLayerValue == int.MinValue && TilemapGround != null && TilemapGround.TryGetComponent(out TilemapRenderer GroundRenderer))
 		{
 			topLayerId = GroundRenderer.sortingLayerID;
@@ -605,6 +612,10 @@ public class VisibilityManager : MonoBehaviour
 		foreach (Vehicle Vehicle in VehicleManager != null ? VehicleManager.Vehicles : new List<Vehicle>())
 		{
 			TryConsumeRendererOrder(Vehicle != null ? Vehicle.GetComponent<SpriteRenderer>() : null, topLayerId, ref maxWorldOrder);
+		}
+		foreach (Structure Structure in StructureManager != null ? StructureManager.Structures : new List<Structure>())
+		{
+			TryConsumeRendererOrder(Structure != null ? Structure.GetComponent<SpriteRenderer>() : null, topLayerId, ref maxWorldOrder);
 		}
 		int desiredOverlayOrder = Mathf.Max(overlaySortingOrder, maxWorldOrder + 1);
 		int minCanvasOrder = int.MaxValue;
@@ -823,6 +834,8 @@ public class VisibilityManager : MonoBehaviour
 			}
 			SetEntityListVisibility(ItemManager.Items, true);
 			SetEntityListVisibility(VehicleManager.Vehicles, true);
+			if (StructureManager != null)
+				SetEntityListVisibility(StructureManager.Structures, true);
 			SetEntityListVisibility(FireManager.Fires, true);
 			foreach (Fire Fire in FireManager.Fires)
 			{
@@ -859,6 +872,16 @@ public class VisibilityManager : MonoBehaviour
 			}
 			bool isVisible = IsCellVisible(TilemapGround.WorldToCell(Vehicle.transform.position));
 			SetRenderersVisible(Vehicle.gameObject, isVisible);
+		}
+		if (StructureManager != null)
+		{
+			foreach (Structure Structure in StructureManager.Structures)
+			{
+				if (Structure == null)
+					continue;
+				bool isVisible = IsCellVisible(TilemapGround.WorldToCell(Structure.transform.position));
+				SetRenderersVisible(Structure.gameObject, isVisible);
+			}
 		}
 			foreach (Fire Fire in FireManager.Fires)
 			{

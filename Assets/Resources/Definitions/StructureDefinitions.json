@@ -1,0 +1,12 @@
+{
+  "Structures": [
+    {
+      "Tag": "MedCrate",
+      "Name": "MED CRATE",
+      "Description": "Contains a medkit",
+      "width": 1,
+      "height": 1,
+      "isInteractable": true
+    }
+  ]
+}

@@ -38,6 +38,7 @@ public static class WeightedRarityGeneration
 				if (GameManager.Instance.HasWallAtPosition(Position)
 					|| GameManager.Instance.HasFireAtPosition(Position)
 					|| GameManager.Instance.HasExitTileAtPosition(Position)
+					|| GameManager.Instance.HasStructureAtCell(Position)
 					|| (x <= GameConfig.Grid.SafeZoneMaxX
 						&& y <= GameConfig.Grid.SafeZoneMaxY
 						&& y >= GameConfig.Grid.SafeZoneMinY))
