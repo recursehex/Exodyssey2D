@@ -143,12 +143,14 @@ public class AStar
 					BoundsInt Size = TilemapGround.cellBounds;
 					// If node is within bounds of the grid and if there is no wall tile, then add it to the neighbors list
 					// For partial paths, allow movement through enemy positions but mark them for stopping before
+					bool HasStructureAtPosition = GameManager.Instance.HasStructureAtCell(Position);
 					if (Position.x >= Size.min.x
 						&& Position.x < Size.max.x
 						&& Position.y >= Size.min.y
 						&& Position.y < Size.max.y
 						&& !TilemapWalls.HasTile(Position)
 						&& !HasFireAtPosition
+						&& !HasStructureAtPosition
 						&& (!IsEntityAtPosition || allowPartialPath))
 					{
 						Node Neighbor = GetNode(Position);

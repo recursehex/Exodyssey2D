@@ -23,6 +23,7 @@ public class GameManager : MonoBehaviour
 	private EnemyManager EnemyManager;
 	private ItemManager ItemManager;
 	private VehicleManager VehicleManager;
+	private StructureManager StructureManager;
 	private FireManager FireManager;
 	private TileManager TileManager;
 	private TurnManager TurnManager;
@@ -73,6 +74,7 @@ public class GameManager : MonoBehaviour
 		EnemyManager 	= gameObject.AddComponent<EnemyManager>();
 		ItemManager 	= gameObject.AddComponent<ItemManager>();
 		VehicleManager 	= gameObject.AddComponent<VehicleManager>();
+		StructureManager = gameObject.AddComponent<StructureManager>();
 		FireManager 	= gameObject.AddComponent<FireManager>();
 		TileManager 	= gameObject.AddComponent<TileManager>();
 		TurnManager 	= gameObject.AddComponent<TurnManager>();
@@ -92,7 +94,7 @@ public class GameManager : MonoBehaviour
 		TilemapRevealAnimator.Initialize(TilemapGround, TilemapWalls);
 		LevelManager	.Initialize(TilemapGround, TilemapWalls, TilemapExit, RegionManager, RegionText, DayText, LevelText, LevelImage, TilemapRevealAnimator);
 		ChronoclasmManager.Initialize(this, TurnManager, TileManager, Player, TilemapGround);
-		VisibilityManager.Initialize(this, TilemapGround, TilemapWalls, TilemapExit, Player, LevelManager, EnemyManager, ItemManager, VehicleManager, FireManager);
+		VisibilityManager.Initialize(this, TilemapGround, TilemapWalls, TilemapExit, Player, LevelManager, EnemyManager, ItemManager, VehicleManager, StructureManager, FireManager);
 		// Subscribe to events
 		TurnManager.OnPlayerTurnEnded 	+= OnPlayerTurnEnded;
 		TurnManager.OnEnemyTurnEnded 	+= OnEnemyTurnEnded;
@@ -153,6 +155,7 @@ public class GameManager : MonoBehaviour
 		ItemManager.DestroyAllItems();
 		EnemyManager.DestroyAllEnemies();
 		VehicleManager.DestroyAllVehicles(Player.Vehicle);
+		StructureManager.DestroyAllStructures();
 		Player.transform.position = PlayerStartPosition;
 		if (Player.IsInVehicle)
 			Player.Vehicle.transform.position = Player.transform.position;
@@ -173,6 +176,7 @@ public class GameManager : MonoBehaviour
 	private void OnLevelInitialized()
 	{
 		FireManager.ResetForLevel();
+		StructureManager.GenerateStructures();
 		// Guarantee vehicle spawn on first level
 		if (LevelManager.Level == 0)
 			SpawnFirstLevelVehicle();
@@ -293,6 +297,7 @@ public class GameManager : MonoBehaviour
 		if (Player.IsInVehicle)
 			Player.ExitVehicle();
 		VehicleManager.DestroyAllVehicles();
+		StructureManager.DestroyAllStructures();
 		FireManager.DestroyAllFires();
 		TileManager.DestroyAllMarkers();
 		TileManager.TileDot.SetActive(false);
@@ -322,6 +327,12 @@ public class GameManager : MonoBehaviour
 		Vehicle Vehicle = VehicleManager.SpawnVehicle(index, Position, startingFuel);
 		RegisterObjectForTileReveal(Position, Vehicle.transform);
 		return Vehicle;
+	}
+	public Structure SpawnStructure(int index, Vector3 Position)
+	{
+		Structure Structure = StructureManager.SpawnStructure(index, Position);
+		RegisterObjectForTileReveal(Position, Structure.transform);
+		return Structure;
 	}
 	private void SpawnFirstLevelVehicle()
 	{
@@ -353,7 +364,8 @@ public class GameManager : MonoBehaviour
 				Vector3 ShiftedPosition = Cell + new Vector3(0.5f, 0.5f);
 				if (HasItemAtPosition(ShiftedPosition)
 					|| HasEnemyAtPosition(ShiftedPosition)
-					|| HasVehicleAtPosition(ShiftedPosition))
+					|| HasVehicleAtPosition(ShiftedPosition)
+					|| HasStructureAtCell(Cell))
 					continue;
 				CandidateCells.Add(Cell);
 			}
@@ -389,6 +401,8 @@ public class GameManager : MonoBehaviour
 	public Enemy GetEnemyAtPosition(Vector3 Position) 		=> EnemyManager.GetEnemyAtPosition(Position);
 	public bool HasVehicleAtPosition(Vector3 Position) 		=> VehicleManager.HasVehicleAtPosition(Position);
 	public Vehicle GetVehicleAtPosition(Vector3Int Position) => VehicleManager.GetVehicleAtPosition(Position);
+	public bool HasStructureAtCell(Vector3Int Cell) 		=> StructureManager.HasStructureAtCell(Cell);
+	public Structure GetStructureAtCell(Vector3Int Cell) 	=> StructureManager.GetStructureAtCell(Cell);
 	public bool HasWallAtPosition(Vector3Int Position) 		=> LevelManager.HasWallAtPosition(Position);
 	public bool DamageVehicle(Vehicle Vehicle, int damage) 	=> VehicleManager.DamageVehicle(Vehicle, damage);
 	public void DestroyVehicle(Vehicle Vehicle) 			=> VehicleManager.DestroyVehicle(Vehicle);
@@ -440,6 +454,11 @@ public class GameManager : MonoBehaviour
 		{
 			if (Vehicle != null)
 				RegisterObjectForTileCollapse(Vehicle.transform);
+		}
+		foreach (Structure Structure in StructureManager.Structures)
+		{
+			if (Structure != null)
+				RegisterObjectForTileCollapse(Structure.transform);
 		}
 		foreach (Fire Fire in FireManager.Fires)
 		{
@@ -600,6 +619,7 @@ public class GameManager : MonoBehaviour
 			if (PlayerIsInVehicle(WorldPoint, TilePoint, ShiftedClickPoint)) return;
 			if (TryAddItem(ShiftedClickPoint)) return;
 			if (!Player.HasEnergy) return;
+			if (TryInteractWithStructure(TilePoint)) return;
 			if (TryUseItemOnTile(TilePoint, ShiftedClickPoint)) return;
 			if (TryUseItemOnPlayer(ShiftedClickPoint)) return;
 			if (TryUseItemOnVehicle(TilePoint)) return;
@@ -848,6 +868,40 @@ public class GameManager : MonoBehaviour
 		TileManager.ClearTargets();
 		RefreshVisibility();
 		UpdateTileAreas();
+		return true;
+	}
+	private bool TryInteractWithStructure(Vector3Int TilePoint)
+	{
+		Structure Structure = StructureManager.GetStructureAtCell(TilePoint);
+		if (Structure == null || !Structure.Info.IsInteractable || Structure.Info.IsLooted)
+			return false;
+		if (!Structure.IsAdjacentTo(Player.transform.position))
+			return false;
+		bool interacted = false;
+		switch (Structure.Info.Tag)
+		{
+			case StructureInfo.Tags.MedCrate:
+				interacted = InteractMedCrate(Structure);
+				break;
+		}
+		if (!interacted)
+			return false;
+		Player.SpendEnergy(1);
+		TurnManager.TurnTimer.StartTimer();
+		UpdateTileAreas();
+		ChronoclasmManager.ClearUndoHistory("Undo history cleared after structure interaction.");
+		return true;
+	}
+	private bool InteractMedCrate(Structure Structure)
+	{
+		Structure.Info.IsLooted = true;
+		Structure.UpdateSprite();
+		ItemInfo MedKitInfo = new((int)ItemInfo.Tags.MedKit);
+		Inventory Inventory = Player.InventoryUI.Inventory;
+		if (Inventory != null && Inventory.TryAddItem(MedKitInfo))
+			Player.InventoryUI.RefreshInventoryIcons();
+		else
+			SpawnItem(MedKitInfo, Player.transform.position);
 		return true;
 	}
 	/// <summary>
