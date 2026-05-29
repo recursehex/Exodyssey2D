@@ -62,6 +62,9 @@ TagManager:
   - name: Fire
     uniqueID: 1427339299
     locked: 0
+  - name: Structures
+    uniqueID: 266996651
+    locked: 0
   - name: Targets
     uniqueID: 1731597615
     locked: 0
