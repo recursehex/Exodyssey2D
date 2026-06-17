@@ -60,11 +60,15 @@ public class DragAndDrop : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
 		if (!isDraggable)
 			return;
 		// Get cell bounds and int position of dragged item
-		BoundsInt CellBounds = TilemapGround.cellBounds;
-		Vector3Int RectTransformInt = Vector3Int.FloorToInt(RectTransform.localPosition);
-		// Drop item if let go within cell bounds
-		if (CellBounds.Contains(RectTransformInt))
-			Player.TryDropItem(inventoryIndex);
+			BoundsInt CellBounds = TilemapGround.cellBounds;
+			Camera MainCamera = Camera.main;
+			Vector3 ScreenPosition = eventData.position;
+			ScreenPosition.z = Mathf.Abs(MainCamera.transform.position.z - TilemapGround.transform.position.z);
+			Vector3 WorldPosition = MainCamera.ScreenToWorldPoint(ScreenPosition);
+			Vector3Int DropCell = TilemapGround.WorldToCell(WorldPosition);
+			// Drop item if let go within cell bounds
+			if (CellBounds.Contains(DropCell))
+				Player.TryDropItem(inventoryIndex);
 		// Return the icon to its original position
 		RectTransform.localPosition = OriginalPosition;
 		transform.SetParent(ParentAfterDrag);
