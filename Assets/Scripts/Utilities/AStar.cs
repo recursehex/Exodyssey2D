@@ -90,7 +90,7 @@ public class AStar
 	}
 	/// <summary>
 	/// Computes path from Start to Goal position.
-	/// Contains nain loop for A* algorithm.
+	/// Contains main loop for A* algorithm.
 	/// Continues until OpenList is empty or valid Path is found.
 	/// 1. FindNeighbors: 		Retrieves neighboring nodes of current node
 	/// 2. ExamineNeighbors: 	Evaluates and updates neighbors based on algorithm's criteria

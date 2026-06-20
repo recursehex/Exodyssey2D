@@ -747,13 +747,53 @@ public class GameManager : MonoBehaviour
 			|| GetItemAtPosition(ShiftedClickPoint) is not Item Item)
 			return false;
 		Inventory Inventory = Player.InventoryUI != null ? Player.InventoryUI.Inventory : null;
-		if (Inventory == null || Inventory.Count >= Inventory.Size)
+		if (Inventory == null)
+			return false;
+		// If item is a Power Cell, try to stack it on existing Power Cell in inventory first, then try to add to inventory if any uses remain
+		if (Item.Info.Tag is ItemInfo.Tags.PowerCell)
+			return TryAddPowerCell(Item, Inventory, ShiftedClickPoint);
+		if (Inventory.Count >= Inventory.Size)
 			return false;
 		ChronoclasmManager.RecordUndoSnapshot(true);
 		// Return false if Player's inventory is full
 		if (!Player.TryAddItem(Item))
 			return false;
 		ItemManager.DestroyItemAtPosition(ShiftedClickPoint);
+		RefreshVisibility();
+		return true;
+	}
+	private bool TryAddPowerCell(Item GroundItem, Inventory Inventory, Vector3 ShiftedClickPoint)
+	{
+		ItemInfo ExistingCell = Inventory.FindItemByTag(ItemInfo.Tags.PowerCell);
+		if (ExistingCell == null)
+		{
+			if (Inventory.Count >= Inventory.Size)
+				return false;
+			ChronoclasmManager.RecordUndoSnapshot(true);
+			if (!Player.TryAddItem(GroundItem))
+				return false;
+			ItemManager.DestroyItemAtPosition(ShiftedClickPoint);
+			RefreshVisibility();
+			return true;
+		}
+		if (ExistingCell.CurrentUses >= ExistingCell.MaxUses
+			&& Inventory.Count >= Inventory.Size)
+			return false;
+		ChronoclasmManager.RecordUndoSnapshot(true);
+		int transferred = ExistingCell.AddUses(GroundItem.Info.CurrentUses);
+		GroundItem.Info.DecreaseDurability(transferred);
+		if (GroundItem.Info.CurrentUses > 0
+			&& Inventory.Count < Inventory.Size)
+		{
+			Player.TryAddItem(GroundItem);
+			ItemManager.DestroyItemAtPosition(ShiftedClickPoint);
+		}
+		else if (GroundItem.Info.CurrentUses <= 0)
+		{
+			ItemManager.DestroyItemAtPosition(ShiftedClickPoint);
+		}
+		Player.InventoryUI.RefreshInventoryIcons();
+		Player.InventoryUI.RefreshText();
 		RefreshVisibility();
 		return true;
 	}
@@ -771,9 +811,10 @@ public class GameManager : MonoBehaviour
 			if (!IsPlayerAdjacentTo(ShiftedClickPoint))
 				return false;
 			bool didSomething = false;
-			if (HasFireAtPosition(TilePoint) && TryExtinguishFire(TilePoint))
+			if (HasFireAtPosition(TilePoint)
+				&& TryExtinguishFire(TilePoint))
 				didSomething = true;
-			Item LitDynamiteItem = LitDynamite.Find(d => d != null && d.transform.position == ShiftedClickPoint);
+			Item LitDynamiteItem = LitDynamite.Find(Dynamite => Dynamite != null && Dynamite.transform.position == ShiftedClickPoint);
 			if (LitDynamiteItem != null)
 			{
 				LitDynamite.Remove(LitDynamiteItem);

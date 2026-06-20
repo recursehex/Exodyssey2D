@@ -66,7 +66,7 @@ public class ItemInfo
 		Utility,
 		Unknown,
 	}
-	private int maxUses = 1;
+	public int MaxUses			{ get; private set; } = 1;				// Max durability of item, also max uses for consumables
 	public Tags Tag 			{ get; private set; } = Tags.Unknown;	// Name of item
 	public Rarity Rarity 		{ get; private set; } = Rarity.Common;	// Rarity of item
 	public Types Type 			{ get; private set; } = Types.Unknown;	// Type of item
@@ -175,11 +175,24 @@ public class ItemInfo
 		RefreshStats();
 	}
 	/// <summary>
+	/// Adds uses up to maxUses, returns the amount actually added
+	/// </summary>
+	public int AddUses(int amount)
+	{
+		if (amount <= 0)
+			return 0;
+		int spaceLeft = MaxUses - CurrentUses;
+		int added = Mathf.Min(amount, spaceLeft);
+		CurrentUses += added;
+		RefreshStats();
+		return added;
+	}
+	/// <summary>
 	/// Restores durability to max uses and updates description
 	/// </summary>
 	public void RestoreDurabilityToMax()
 	{
-		CurrentUses = maxUses;
+		CurrentUses = MaxUses;
 		RefreshStats();
 	}
 	private const int flareBurnTurns = 3;
@@ -225,7 +238,7 @@ public class ItemInfo
 	}
 	private void RefreshStats()
 	{
-		Stats = $"\nUP:{CurrentUses}/{maxUses}";
+		Stats = $"\nUP:{CurrentUses}/{MaxUses}";
 		if (Type is Types.Weapon)
 		{
 			Stats += $"\tDP:{DamagePoints}";
@@ -257,7 +270,7 @@ public class ItemInfo
 			if (Entry != null && !Entry.disabled)
 			{
 				LoadFrom(Entry);
-				CurrentUses = maxUses;
+				CurrentUses = MaxUses;
 				IsActiveFlare = false;
 				ActiveFlareTurnsRemaining = 0;
 				RefreshStats();
@@ -273,14 +286,14 @@ public class ItemInfo
 		Tag 			= TagData;
 		Name 			= TagName.ToUpper();
 		Description 	= "Unknown item";
-		CurrentUses 	= maxUses;
-		Stats 			= $"\nUP:{maxUses}/{maxUses}";
+		CurrentUses 	= MaxUses;
+		Stats 			= $"\nUP:{MaxUses}/{MaxUses}";
 	}
 	private void LoadFrom(Entry Source)
 	{
 		Name 			= Source.Name;
 		Description 	= Source.Description;
-		maxUses 		= Source.maxUses;
+		MaxUses 		= Source.maxUses;
 		DamagePoints 	= Source.damagePoints;
 		ArmorDamage 	= Source.armorDamage;
 		Range 			= Source.range;

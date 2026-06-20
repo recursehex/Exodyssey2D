@@ -67,4 +67,14 @@ public class Inventory
 	/// Returns true if inventory is empty
 	/// </summary>
 	public bool IsEmpty => Count == 0;
+	public ItemInfo FindItemByTag(ItemInfo.Tags Tag)
+	{
+		for (int i = 0; i < InventoryList.Count; i++)
+		{
+			if (InventoryList[i] != null
+				&& InventoryList[i].Tag == Tag)
+				return InventoryList[i];
+		}
+		return null;
+	}
 }
