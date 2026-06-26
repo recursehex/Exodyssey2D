@@ -13,10 +13,7 @@ public class FireManager : MonoBehaviour
     [SerializeField] private EnemyManager EnemyManager;
     [SerializeField] private VehicleManager VehicleManager;
     [SerializeField] private GameObject FireTemplate;
-    private const string BushSpriteResourcePath = "Sprites/bush";
-    private const string BushSpriteName = "bush";
     private const string BurnedSpriteResourcePath = "Sprites/burned";
-    private Sprite BushSprite;
     private Sprite BurnedSprite;
     private Tile BurnedTile;
     [Header("Behavior")]
@@ -59,7 +56,6 @@ public class FireManager : MonoBehaviour
         this.EnemyManager = EnemyManager;
         this.VehicleManager = VehicleManager;
         this.FireTemplate = FireTemplate;
-        BushSprite = Resources.Load<Sprite>(BushSpriteResourcePath);
         if (BurnedTile == null)
         {
             if (BurnedSprite == null)
@@ -158,19 +154,17 @@ public class FireManager : MonoBehaviour
     {
         if (!TilemapWalls.HasTile(Cell))
             return false;
-        return !IsBushWallTile(Cell);
+        return !IsFlammableWallTile(Cell);
     }
     /// <summary>
-    /// Returns true if the wall tile at the cell uses the bush sprite.
+    /// Returns true if the wall tile at the cell is flammable per its WallInfo definition.
     /// </summary>
-    private bool IsBushWallTile(Vector3Int Cell)
+    private bool IsFlammableWallTile(Vector3Int Cell)
     {
         Sprite WallSprite = TilemapWalls.GetSprite(Cell);
         if (WallSprite == null)
             return false;
-        if (BushSprite != null)
-            return WallSprite == BushSprite;
-        return WallSprite.name == BushSpriteName;
+        return WallInfo.Get(WallSprite.name)?.IsFlammable ?? false;
     }
     /// <summary>
     /// Advances fire state at the start of a turn.
@@ -213,14 +207,14 @@ public class FireManager : MonoBehaviour
         }
     }
     /// <summary>
-    /// Queue delayed burning for items, bushes, and ground after a full turn on fire
+    /// Queue delayed burning for items, flammable walls, and ground after a full turn on fire
     /// </summary>
     private void QueueEnvironmentBurn(Vector3Int Cell)
     {
         PendingBurnCells.Add(Cell);
     }
     /// <summary>
-    /// Handles delayed burning for flammable items, bush walls, and ground tiles
+    /// Handles delayed burning for flammable items, flammable walls, and ground tiles
     /// </summary>
     private void ResolvePendingBurns()
     {
@@ -233,7 +227,7 @@ public class FireManager : MonoBehaviour
             if (!HasFireAtCell(Cell))
                 continue;
             BurnFlammableItemAt(Cell);
-            BurnBushWallAt(Cell);
+            BurnFlammableWallAt(Cell);
             MarkBurnedGroundAt(Cell);
         }
     }
@@ -257,9 +251,9 @@ public class FireManager : MonoBehaviour
             Destroy(ItemAtCell.gameObject);
         }
     }
-    private void BurnBushWallAt(Vector3Int Cell)
+    private void BurnFlammableWallAt(Vector3Int Cell)
     {
-        if (!IsBushWallTile(Cell))
+        if (!IsFlammableWallTile(Cell))
             return;
         TilemapWalls.SetTile(Cell, null);
     }

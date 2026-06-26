@@ -1126,8 +1126,6 @@ public class GameManager : MonoBehaviour
 		}
 		RefreshVisibility();
 	}
-	private static readonly string BushSpriteName = "bush";
-	private static readonly string RocksSpriteName = "rocks";
 	private bool TryBreakWall(Vector3Int TilePoint, Vector3 ShiftedClickPoint)
 	{
 		if (!LevelManager.HasWallAtPosition(TilePoint)
@@ -1136,30 +1134,20 @@ public class GameManager : MonoBehaviour
 			|| !Player.HasUses)
 			return false;
 		Sprite WallSprite = TilemapWalls.GetSprite(TilePoint);
-		string spriteName = WallSprite != null ? WallSprite.name : "";
-		if (Player.SelectedItemInfo.Tag is ItemInfo.Tags.FireAxe && spriteName == BushSpriteName)
-		{
-			TilemapWalls.SetTile(TilePoint, null);
-			SpawnItem((int)ItemInfo.Tags.Branch, ShiftedClickPoint);
-			Player.AttackEntity();
-			TurnManager.TurnTimer.StartTimer();
-			RefreshVisibility();
-			UpdateTileAreas();
-			ChronoclasmManager.ClearUndoHistory("Undo history cleared after breaking a wall.");
-			return true;
-		}
-		if (Player.SelectedItemInfo.Tag is ItemInfo.Tags.Chainsaw && spriteName == RocksSpriteName)
-		{
-			TilemapWalls.SetTile(TilePoint, null);
-			SpawnItem((int)ItemInfo.Tags.Rock, ShiftedClickPoint);
-			Player.AttackEntity();
-			TurnManager.TurnTimer.StartTimer();
-			RefreshVisibility();
-			UpdateTileAreas();
-			ChronoclasmManager.ClearUndoHistory("Undo history cleared after breaking a wall.");
-			return true;
-		}
-		return false;
+		WallInfo Wall = WallInfo.Get(WallSprite != null ? WallSprite.name : "");
+		if (Wall == null
+			|| !Wall.IsChoppable
+			|| Player.SelectedItemInfo.Tag != Wall.ChopTool)
+			return false;
+		TilemapWalls.SetTile(TilePoint, null);
+		if (Wall.DropItem != ItemInfo.Tags.Unknown)
+			SpawnItem((int)Wall.DropItem, ShiftedClickPoint);
+		Player.AttackEntity();
+		TurnManager.TurnTimer.StartTimer();
+		RefreshVisibility();
+		UpdateTileAreas();
+		ChronoclasmManager.ClearUndoHistory("Undo history cleared after breaking a wall.");
+		return true;
 	}
 	public void ExplodeArea(Vector3 Center, int damage)
 	{
@@ -1191,19 +1179,12 @@ public class GameManager : MonoBehaviour
 				if (HasWallAtPosition(Cell))
 				{
 					Sprite WallSprite = TilemapWalls.GetSprite(Cell);
-					string spriteName = WallSprite != null ? WallSprite.name : "";
-					if (spriteName == BushSpriteName)
+					WallInfo Wall = WallInfo.Get(WallSprite != null ? WallSprite.name : "");
+					if (Wall != null && Wall.IsExplodable)
 					{
 						TilemapWalls.SetTile(Cell, null);
-						SpawnItem((int)ItemInfo.Tags.Branch, WorldPos);
-						FireManager.MarkGroundBurned(Cell);
-						if (!HasFireAtPosition(Cell))
-							FireCandidates.Add(Cell);
-					}
-					else if (spriteName == RocksSpriteName)
-					{
-						TilemapWalls.SetTile(Cell, null);
-						SpawnItem((int)ItemInfo.Tags.Rock, WorldPos);
+						if (Wall.DropItem != ItemInfo.Tags.Unknown)
+							SpawnItem((int)Wall.DropItem, WorldPos);
 						FireManager.MarkGroundBurned(Cell);
 						if (!HasFireAtPosition(Cell))
 							FireCandidates.Add(Cell);

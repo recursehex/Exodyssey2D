@@ -1,0 +1,28 @@
+{
+  "Walls": [
+    {
+      "Name": "bush",
+      "isFlammable": true,
+      "isExplodable": true,
+      "isChoppable": true,
+      "ChopTool": "FireAxe",
+      "DropItem": "Branch"
+    },
+    {
+      "Name": "stump",
+      "isFlammable": true,
+      "isExplodable": true,
+      "isChoppable": true,
+      "ChopTool": "FireAxe",
+      "DropItem": "Branch"
+    },
+    {
+      "Name": "rocks",
+      "isFlammable": false,
+      "isExplodable": true,
+      "isChoppable": true,
+      "ChopTool": "Chainsaw",
+      "DropItem": "Rock"
+    }
+  ]
+}
