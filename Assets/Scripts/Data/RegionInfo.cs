@@ -27,13 +27,20 @@ public class RegionInfo
     public List<string> EnemyPool   { get; private set; } = new();          // Allowed enemy types for this region
     public List<string> ItemPool    { get; private set; } = new();          // Allowed item tags for this region
     public List<string> VehiclePool { get; private set; } = new();          // Allowed vehicle tags for this region
+    public Dictionary<string, int> WallWeights { get; private set; } = new(); // Per-region wall spawn weights by sprite name
     [Serializable] private class Entry
     {
         public string Tag, Name, Description;
         public int GridsRequired = 3;
         public string GroundTileSetName, WallTileSetName;
         public List<string> EnemyPool = new(), ItemPool = new(), VehiclePool = new();
+        public List<WallWeight> WallWeights = new();
         public bool disabled = false;
+    }
+    [Serializable] private class WallWeight
+    {
+        public string Name;
+        public int weight = 1;
     }
     [Serializable] private class EntryList { public List<Entry> Regions; }
     private static List<Entry> Database;
@@ -81,6 +88,12 @@ public class RegionInfo
         EnemyPool       = new(Source.EnemyPool);
         ItemPool        = new(Source.ItemPool);
         VehiclePool     = new(Source.VehiclePool);
+        WallWeights     = new();
+        foreach (WallWeight Weight in Source.WallWeights)
+        {
+            if (!string.IsNullOrEmpty(Weight.Name))
+                WallWeights[Weight.Name] = Weight.weight;
+        }
         Tag = Enum.TryParse(Source.Tag, out Tags ParsedTag) ? ParsedTag : Tags.Unknown;
     }
     /// <summary>

@@ -10,6 +10,7 @@ using UnityEngine;
 public class WallInfo
 {
 	public string Name 				{ get; private set; }
+	public int SpawnWeight 			{ get; private set; } = 1;	// Relative chance to be picked during map generation
 	public bool IsFlammable 		{ get; private set; } = false;
 	public bool IsExplodable 		{ get; private set; } = false;
 	public bool IsChoppable 		{ get; private set; } = false;
@@ -18,6 +19,7 @@ public class WallInfo
 	[Serializable] private class Entry
 	{
 		public string Name, ChopTool, DropItem;
+		public int weight = 1;
 		public bool isFlammable = false, isExplodable = false, isChoppable = false, disabled = false;
 	}
 	[Serializable] private class EntryList { public List<Entry> Walls; }
@@ -44,6 +46,7 @@ public class WallInfo
 	private WallInfo(Entry Source)
 	{
 		Name 			= Source.Name;
+		SpawnWeight 	= Source.weight;
 		IsFlammable 	= Source.isFlammable;
 		IsExplodable 	= Source.isExplodable;
 		IsChoppable 	= Source.isChoppable;

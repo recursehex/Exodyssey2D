@@ -8,7 +8,12 @@
       "WallTileSetName": "RO_Walls",
       "EnemyPool": ["Weak"],
       "ItemPool": ["Common", "Limited"],
-      "VehiclePool": ["Common", "Limited"]
+      "VehiclePool": ["Common", "Limited"],
+      "WallWeights": [
+        { "Name": "bush", "weight": 50 },
+        { "Name": "rocks", "weight": 35 },
+        { "Name": "stump", "weight": 15 }
+      ]
     },
     {
       "Tag": "FragmentedCoast",
@@ -18,7 +23,12 @@
       "WallTileSetName": "FC_Walls",
       "EnemyPool": ["Weak"],
       "ItemPool": ["Common", "Limited", "Scarce"],
-      "VehiclePool": ["Common", "Limited"]
+      "VehiclePool": ["Common", "Limited"],
+      "WallWeights": [
+        { "Name": "bush", "weight": 40 },
+        { "Name": "rocks", "weight": 50 },
+        { "Name": "stump", "weight": 10 }
+      ]
     },
     {
       "Tag": "GlacialDesert",

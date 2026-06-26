@@ -144,7 +144,7 @@ public class LevelManager : MonoBehaviour
     {
         WallTiles = RegionManager.GetCurrentWallTiles();
         WallTilePositions.Clear();
-        MapGenerator.GenerateMap(TilemapWalls, WallTiles, WallTilePositions);
+        MapGenerator.GenerateMap(TilemapWalls, WallTiles, RegionManager.GetCurrentWallWeights(), WallTilePositions);
     }
     /// <summary>
     /// Returns true a wall is at the given position

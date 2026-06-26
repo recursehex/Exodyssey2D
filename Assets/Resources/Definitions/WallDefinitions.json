@@ -2,6 +2,7 @@
   "Walls": [
     {
       "Name": "bush",
+      "weight": 50,
       "isFlammable": true,
       "isExplodable": true,
       "isChoppable": true,
@@ -10,6 +11,7 @@
     },
     {
       "Name": "stump",
+      "weight": 15,
       "isFlammable": true,
       "isExplodable": true,
       "isChoppable": true,
@@ -18,6 +20,7 @@
     },
     {
       "Name": "rocks",
+      "weight": 35,
       "isFlammable": false,
       "isExplodable": true,
       "isChoppable": true,

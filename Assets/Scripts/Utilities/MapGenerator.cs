@@ -49,7 +49,43 @@ public static class MapGenerator
         return res;
     }
     private const float minimumChance = 0.15f;
-    public static void GenerateMap(Tilemap TilemapWalls, Tile[] WallTiles, ICollection<Vector3Int> PlacedPositions = null)
+    // Weight used for wall tiles with no WallInfo definition
+    private const int defaultWallWeight = 1;
+    /// <summary>
+    /// Picks a wall tile weighted by its spawn weight so some tiles appear more often.
+    /// Region weights override the global WallInfo weight. Falls back to a uniform pick
+    /// if no tile carries a positive weight.
+    /// </summary>
+    private static Tile PickWeightedWall(Tile[] WallTiles, IReadOnlyDictionary<string, int> WallWeights)
+    {
+        int totalWeight = 0;
+        for (int i = 0; i < WallTiles.Length; i++)
+            totalWeight += GetWallWeight(WallTiles[i], WallWeights);
+        if (totalWeight <= 0)
+            return WallTiles[Random.Range(0, WallTiles.Length)];
+        int roll = Random.Range(0, totalWeight);
+        for (int i = 0; i < WallTiles.Length; i++)
+        {
+            roll -= GetWallWeight(WallTiles[i], WallWeights);
+            if (roll < 0)
+                return WallTiles[i];
+        }
+        return WallTiles[WallTiles.Length - 1];
+    }
+    /// <summary>
+    /// Returns the spawn weight for a wall tile by sprite name: the region override if present,
+    /// otherwise the global WallInfo weight, otherwise the default
+    /// </summary>
+    private static int GetWallWeight(Tile WallTile, IReadOnlyDictionary<string, int> WallWeights)
+    {
+        if (WallTile == null || WallTile.sprite == null)
+            return 0;
+        string SpriteName = WallTile.sprite.name;
+        if (WallWeights != null && WallWeights.TryGetValue(SpriteName, out int RegionWeight))
+            return RegionWeight;
+        return WallInfo.Get(SpriteName)?.SpawnWeight ?? defaultWallWeight;
+    }
+    public static void GenerateMap(Tilemap TilemapWalls, Tile[] WallTiles, IReadOnlyDictionary<string, int> WallWeights = null, ICollection<Vector3Int> PlacedPositions = null)
     {
         int totalTemplates = Templates.Count;
         int numberGenerated = 0;
@@ -75,7 +111,7 @@ public static class MapGenerator
                         if (template[y, x] > 0)
                         {
                             Vector3Int Position = new(baseX + x, baseY - y);
-                            TilemapWalls.SetTile(Position, WallTiles[Random.Range(0, WallTiles.Length)]);
+                            TilemapWalls.SetTile(Position, PickWeightedWall(WallTiles, WallWeights));
                             PlacedPositions?.Add(Position);
                         }
                     }

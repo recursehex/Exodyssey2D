@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -133,6 +134,10 @@ public class RegionManager : MonoBehaviour
     /// Returns current region's wall tiles
     /// </summary>
     public Tile[] GetCurrentWallTiles() => CurrentRegion?.WallTiles;
+    /// <summary>
+    /// Returns the current region's per-sprite wall spawn weight overrides
+    /// </summary>
+    public IReadOnlyDictionary<string, int> GetCurrentWallWeights() => CurrentRegion?.WallWeights;
     /// <summary>
     /// Checks if an enemy type is allowed in the current region
     /// </summary>
