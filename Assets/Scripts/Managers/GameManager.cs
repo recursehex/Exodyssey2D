@@ -614,6 +614,7 @@ public class GameManager : MonoBehaviour
 			return;
 		}
 		if (Player.HasEnergy && TryBreakWall(TilePoint, ShiftedClickPoint)) return;
+		if (Player.HasEnergy && TryIgniteWall(TilePoint)) return;
 		if (!LevelManager.HasWallAtPosition(TilePoint))
 		{
 			if (PlayerIsInVehicle(WorldPoint, TilePoint, ShiftedClickPoint)) return;
@@ -1148,6 +1149,51 @@ public class GameManager : MonoBehaviour
 		UpdateTileAreas();
 		ChronoclasmManager.ClearUndoHistory("Undo history cleared after breaking a wall.");
 		return true;
+	}
+	/// <summary>
+	/// Sets a flammable wall tile on fire when a firestarter is selected and the wall is within reach
+	/// </summary>
+	private bool TryIgniteWall(Vector3Int TilePoint)
+	{
+		if (!IsFirestarterSelected()
+			|| !Player.HasUses
+			|| !LevelManager.HasWallAtPosition(TilePoint)
+			|| HasFireAtPosition(TilePoint))
+			return false;
+		Sprite WallSprite = TilemapWalls.GetSprite(TilePoint);
+		WallInfo Wall = WallInfo.Get(WallSprite != null ? WallSprite.name : "");
+		if (Wall == null || !Wall.IsFlammable)
+			return false;
+		if (!HasFirestarterReachToWall(TilePoint))
+			return false;
+		// Flamethrower sprays a fire streak up to the wall; blowtorch ignites the wall directly
+		Vector3 WallCenter = TilePoint + new Vector3(0.5f, 0.5f);
+		bool spawnedFire = Player.SelectedItemInfo.Tag is ItemInfo.Tags.Flamethrower
+			? TrySpawnFlamethrowerLine(WallCenter)
+			: TrySpawnFire(TilePoint, false, true);
+		if (!spawnedFire)
+			return false;
+		Player.UseItem();
+		TurnManager.TurnTimer.StartTimer();
+		TileManager.ClearTileAreas();
+		TileManager.TileDot.SetActive(false);
+		RefreshVisibility();
+		UpdateTileAreas();
+		ChronoclasmManager.ClearUndoHistory("Undo history cleared after using an item on a tile.");
+		return true;
+	}
+	/// <summary>
+	/// Returns true if a firestarter can reach a flammable wall: any firestarter point-blank
+	/// (adjacent), or the flamethrower at range with a clear line of sight to the wall
+	/// </summary>
+	private bool HasFirestarterReachToWall(Vector3Int WallCell)
+	{
+		Vector3 WallCenter = WallCell + new Vector3(0.5f, 0.5f);
+		if (IsPlayerAdjacentTo(WallCenter))
+			return true;
+		if (Player.SelectedItemInfo.Tag is not ItemInfo.Tags.Flamethrower || !Player.HasRange)
+			return false;
+		return TileManager.HasLineOfSightToWall(Player.transform.position, WallCell, Player.WeaponRange, TilemapWalls);
 	}
 	public void ExplodeArea(Vector3 Center, int damage)
 	{

@@ -156,7 +156,26 @@ public class TileManager : MonoBehaviour
                 return false;
         }
         return true;
-    }    
+    }
+    /// <summary>
+    /// Returns true if a wall cell is within range and line of sight from a position,
+    /// allowing the target wall itself as the endpoint while blocking on any wall in between
+    /// </summary>
+    public bool HasLineOfSightToWall(Vector3 FromPosition, Vector3Int WallCell, int range, Tilemap Walls)
+    {
+        Vector3 WallCenter = WallCell + new Vector3(0.5f, 0.5f);
+        if (Vector3.Distance(FromPosition, WallCenter) > range)
+            return false;
+        List<Vector3Int> Path = BresenhamsAlgorithm(FromPosition, WallCenter);
+        foreach (Vector3Int Position in Path)
+        {
+            if (Position == WallCell)
+                continue;
+            if (Walls.HasTile(Position))
+                return false;
+        }
+        return true;
+    }
     /// <summary>
     /// Bresenham's Line Algorithm to get cells between two positions
     /// </summary>
