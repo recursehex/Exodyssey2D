@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -6,8 +7,8 @@ using UnityEngine.Tilemaps;
 public class Vehicle : MonoBehaviour
 {
 	#region DATA
-	public VehicleInfo Info;
-	public Inventory Inventory;
+	[NonSerialized] public VehicleInfo Info;
+	[NonSerialized] public Inventory Inventory;
 	#endregion
 	[Header("Debug")]
 	[SerializeField] private VehicleInfo.Tags VehicleTag = VehicleInfo.Tags.Unknown;

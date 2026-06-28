@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -6,7 +7,7 @@ using UnityEngine.Tilemaps;
 public class Enemy : MonoBehaviour
 {
 	#region DATA
-	public EnemyInfo Info;
+	[NonSerialized] public EnemyInfo Info;
 	public GameObject StunIcon;
 	#endregion
 	[Header("Debug")]

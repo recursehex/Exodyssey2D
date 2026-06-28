@@ -1,9 +1,10 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class Structure : MonoBehaviour
 {
-	public StructureInfo Info;
+	[NonSerialized] public StructureInfo Info;
 	private static readonly Dictionary<string, Sprite> SpriteCache = new();
 #if UNITY_EDITOR
 	[Header("Debug")]

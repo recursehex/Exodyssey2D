@@ -8,7 +8,7 @@ using UnityEngine.UI;
 /// </summary>
 public class InventoryUI : MonoBehaviour
 {
-	public Inventory Inventory;
+	[NonSerialized] public Inventory Inventory;
 	[SerializeField] private Sprite ItemBackground;
 	[SerializeField] private GameObject InventoryPressed0;
 	[SerializeField] private GameObject InventoryPressed1;

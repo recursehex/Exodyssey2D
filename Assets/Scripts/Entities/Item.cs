@@ -1,9 +1,10 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class Item : MonoBehaviour
 {
-	public ItemInfo Info;
+	[NonSerialized] public ItemInfo Info;
 	[Header("Debug")]
 	[SerializeField] private ItemInfo.Tags ItemTag = ItemInfo.Tags.Unknown;
 	[SerializeField] private ItemInfo.Types ItemType = ItemInfo.Types.Unknown;

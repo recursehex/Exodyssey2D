@@ -31,7 +31,7 @@ public class Player : MonoBehaviour
 	private int vestHealth = 0;
 	private bool hasNightVision = false;
 	public bool HasNightVision => hasNightVision;
-	public Profession Profession;
+	[NonSerialized] public Profession Profession;
 	#endregion
 	#region EVENTS
 	public Action OnMovementComplete;
@@ -48,7 +48,7 @@ public class Player : MonoBehaviour
 	#region INVENTORY
 	private Inventory Inventory;
 	public InventoryUI InventoryUI;
-	public ItemInfo SelectedItemInfo = null;
+	[NonSerialized] public ItemInfo SelectedItemInfo = null;
 	public StatsDisplayManager StatsDisplayManager;
 	#endregion
 	#region DEBUG
