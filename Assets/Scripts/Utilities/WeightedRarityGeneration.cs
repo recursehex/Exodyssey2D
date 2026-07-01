@@ -3,10 +3,13 @@ using UnityEngine;
 
 public static class WeightedRarityGeneration
 {
-	private static Rarity ChosenRarity;
-	private static Vector3 ChosenPosition;
-	private static bool GenerateRarityAndPosition<T>()
+	/// <summary>
+	/// Rolls a weighted-random rarity for the given entity type based on the
+	/// current region's allowed rarities. Returns false if none are available.
+	/// </summary>
+	private static bool TryRollRarity<T>(out Rarity Chosen)
 	{
+		Chosen = default;
 		// Get allowed rarities based on entity type
 		List<Rarity> AllowedRarities = typeof(T).Name switch
 		{
@@ -31,51 +34,33 @@ public static class WeightedRarityGeneration
 			cumulative += Rarity.GetDropRate();
 			if (roll <= cumulative)
 			{
-				int x = Random.Range(GameConfig.Grid.MinX, GameConfig.Grid.MaxX + 1);
-				int y = Random.Range(GameConfig.Grid.MinY, GameConfig.Grid.MaxY + 1);
-				Vector3Int Position = new(x, y);
-				// Fails if wall tile or Player is at selected position
-				if (GameManager.Instance.HasWallAtPosition(Position)
-					|| GameManager.Instance.HasFireAtPosition(Position)
-					|| GameManager.Instance.HasExitTileAtPosition(Position)
-					|| GameManager.Instance.HasStructureAtCell(Position)
-					|| (x <= GameConfig.Grid.SafeZoneMaxX
-						&& y <= GameConfig.Grid.SafeZoneMaxY
-						&& y >= GameConfig.Grid.SafeZoneMinY))
-					return false;
-				Vector3 ShiftedPosition = Position + new Vector3(0.5f, 0.5f);
-				// Fails if item, enemy, or vehicle is at selected position
-				if (GameManager.Instance.HasItemAtPosition(ShiftedPosition)
-				 || GameManager.Instance.HasEnemyAtPosition(ShiftedPosition)
-				 || GameManager.Instance.HasVehicleAtPosition(ShiftedPosition))
-					return false;
-				ChosenRarity = Rarity;
-				ChosenPosition = ShiftedPosition;
+				Chosen = Rarity;
 				return true;
 			}
 		}
 		return false;
 	}
 	/// <summary>
-	/// Generates an item, enemy, or vehicle of a random rarity/type and position
+	/// Spawns a single item, enemy, or vehicle of a random rarity/type at the
+	/// given (already-empty) shifted world position. Returns true if spawned.
 	/// </summary>
-	public static bool Generate<T>()
-    {
-        if (!GenerateRarityAndPosition<T>())
-            return false;
-        int index = -1;
-        switch (typeof(T).Name)
-        {
-            case nameof(Item):
-                index = ItemInfo.GetRandomIndexFrom(ChosenRarity);
-                if (index != -1)
-                    GameManager.Instance.SpawnItem(index, ChosenPosition);
-                break;
-            case nameof(Enemy):
-                index = EnemyInfo.GetRandomIndexFrom(ChosenRarity);
-                if (index != -1)
-                    GameManager.Instance.SpawnEnemy(index, ChosenPosition);
-                break;
+	private static bool GenerateAt<T>(Vector3 Position)
+	{
+		if (!TryRollRarity<T>(out Rarity ChosenRarity))
+			return false;
+		int index = -1;
+		switch (typeof(T).Name)
+		{
+			case nameof(Item):
+				index = ItemInfo.GetRandomIndexFrom(ChosenRarity);
+				if (index != -1)
+					GameManager.Instance.SpawnItem(index, Position);
+				break;
+			case nameof(Enemy):
+				index = EnemyInfo.GetRandomIndexFrom(ChosenRarity);
+				if (index != -1)
+					GameManager.Instance.SpawnEnemy(index, Position);
+				break;
 			case nameof(Vehicle):
 				index = VehicleInfo.GetRandomIndexFrom(ChosenRarity);
 				if (index != -1)
@@ -83,14 +68,49 @@ public static class WeightedRarityGeneration
 					VehicleInfo VehicleInfo = new(index);
 					int maxStartingFuel = VehicleInfo.CurrentCharge;
 					int startingFuel = Random.Range(0, maxStartingFuel + 1);
-					GameManager.Instance.SpawnVehicle(index, ChosenPosition, startingFuel);
+					GameManager.Instance.SpawnVehicle(index, Position, startingFuel);
 				}
 				break;
-            default:
-				Debug.LogError($"WeightedRarityGeneration.Generate<T>() " +
+			default:
+				Debug.LogError($"WeightedRarityGeneration.GenerateAt<T>() " +
 								$"does not support type {typeof(T)}");
-                break;
-        }
-        return index != -1;
-    }
+				break;
+		}
+		return index != -1;
+	}
+	/// <summary>
+	/// Spawns up to <paramref name="targetCount"/> entities of type T into the
+	/// grid's currently-empty tiles. Because placement draws from the known list
+	/// of empty tiles, at least <paramref name="targetCount"/> (which is always
+	/// >= the minimum) is guaranteed whenever enough empty tiles exist. When
+	/// there are too few empty tiles to meet <paramref name="guaranteedMin"/>,
+	/// the minimum simply fails: a warning is logged and only what fits spawns.
+	/// Returns the number actually spawned.
+	/// </summary>
+	public static int GenerateBatch<T>(int guaranteedMin, int targetCount)
+	{
+		List<Vector3Int> EmptyCells = GameManager.Instance.GetEmptyCells();
+		if (EmptyCells.Count < guaranteedMin)
+			Debug.LogWarning($"Only {EmptyCells.Count} empty tiles available, cannot guarantee " +
+							$"minimum {guaranteedMin} {typeof(T).Name} spawns this level");
+		int toSpawn = Mathf.Min(targetCount, EmptyCells.Count);
+		// Shuffle empty cells so distinct tiles are drawn without positional bias
+		for (int i = 0; i < EmptyCells.Count; i++)
+		{
+			int swapIndex = Random.Range(i, EmptyCells.Count);
+			(EmptyCells[i], EmptyCells[swapIndex]) = (EmptyCells[swapIndex], EmptyCells[i]);
+		}
+		int spawned = 0;
+		int cellIndex = 0;
+		// Each empty cell is used at most once; advance past cells where the
+		// rarity/type roll fails so a rare miss does not consume the target
+		while (spawned < toSpawn && cellIndex < EmptyCells.Count)
+		{
+			Vector3 Position = EmptyCells[cellIndex] + new Vector3(0.5f, 0.5f);
+			if (GenerateAt<T>(Position))
+				spawned++;
+			cellIndex++;
+		}
+		return spawned;
+	}
 }

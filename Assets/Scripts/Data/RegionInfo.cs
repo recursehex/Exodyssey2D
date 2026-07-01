@@ -21,6 +21,7 @@ public class RegionInfo
     public string Name              { get; private set; }                   // Display name of region
     public int GridsRequired        { get; private set; } = 3;             // Number of grids to complete region
     public int GridsCompleted       { get; set; } = 0;                      // Current progress in region
+    public int MinEnemySpawn        { get; private set; } = 0;              // Guaranteed minimum enemies per level
     public string Description       { get; private set; }                   // Lore description
     public Tile[] GroundTiles       { get; set; }                           // Ground tiles for this region
     public Tile[] WallTiles         { get; set; }                           // Wall tiles for this region
@@ -32,6 +33,7 @@ public class RegionInfo
     {
         public string Tag, Name, Description;
         public int GridsRequired = 3;
+        public int MinEnemySpawn = 0;
         public string GroundTileSetName, WallTileSetName;
         public List<string> EnemyPool = new(), ItemPool = new(), VehiclePool = new();
         public List<WallWeight> WallWeights = new();
@@ -84,6 +86,7 @@ public class RegionInfo
     {
         Name            = Source.Name;
         GridsRequired   = Source.GridsRequired;
+        MinEnemySpawn   = Source.MinEnemySpawn;
         Description     = Source.Description;
         EnemyPool       = new(Source.EnemyPool);
         ItemPool        = new(Source.ItemPool);

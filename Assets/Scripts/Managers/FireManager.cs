@@ -22,7 +22,6 @@ public class FireManager : MonoBehaviour
     [SerializeField] private int naturalWildfireSeeds = 2;
     [SerializeField, Range(0f, 1f)] private float naturalWildfireChance = 0.15f;
     [SerializeField] private int wildfireSpawnBudget = 2;
-    [SerializeField] private int wildfireAttemptsPerSeed = 8;
     [SerializeField] private int wildfireEdgeInset = 2;
     [SerializeField] private int maxNeighborSpread = 1;
     private readonly List<Fire> ActiveFires = new();
@@ -191,20 +190,57 @@ public class FireManager : MonoBehaviour
     {
         if (naturalWildfireChance <= 0f || Random.value > naturalWildfireChance)
             return;
-        Vector3Int PlayerCell = TilemapGround.WorldToCell(Player.transform.position);
         int seeds = Mathf.Max(1, naturalWildfireSeeds);
-        int attempts = seeds * wildfireAttemptsPerSeed;
-        while (seeds > 0 && attempts-- > 0)
+        // Collect every valid edge-biased seed cell so the minimum seed count is
+        // guaranteed whenever enough tiles exist, drawing distinct cells
+        List<Vector3Int> Candidates = GetWildfireCandidateCells();
+        if (Candidates.Count < seeds)
+            Debug.LogWarning($"Only {Candidates.Count} valid tiles available, cannot guarantee " +
+                            $"minimum {seeds} natural wildfire seeds this level");
+        // Shuffle candidates to avoid positional bias
+        for (int i = 0; i < Candidates.Count; i++)
         {
-            Vector3Int Cell = GetBiasedWildfireCell();
-            if (IsBlockingWall(Cell)
-                || FireCells.Contains(Cell)
-                || Cell == PlayerCell
-                || GameManager.Instance.HasExitTileAtPosition(Cell))
-                continue;
-            if (TrySpawnFire(Cell, true))
-                seeds--;
+            int swapIndex = Random.Range(i, Candidates.Count);
+            (Candidates[i], Candidates[swapIndex]) = (Candidates[swapIndex], Candidates[i]);
         }
+        int spawned = 0;
+        int index = 0;
+        while (spawned < seeds && index < Candidates.Count)
+        {
+            if (TrySpawnFire(Candidates[index], true))
+                spawned++;
+            index++;
+        }
+    }
+    /// <summary>
+    /// Collects all valid seed cells for a natural wildfire: near the top or
+    /// bottom edge (within wildfireEdgeInset), not a blocking wall, existing fire,
+    /// the player's cell, or an exit tile
+    /// </summary>
+    private List<Vector3Int> GetWildfireCandidateCells()
+    {
+        List<Vector3Int> Candidates = new();
+        BoundsInt Bounds = TilemapGround.cellBounds;
+        Vector3Int PlayerCell = TilemapGround.WorldToCell(Player.transform.position);
+        for (int x = Bounds.xMin; x < Bounds.xMax; x++)
+        {
+            for (int y = Bounds.yMin; y < Bounds.yMax; y++)
+            {
+                // Keep the edge bias: only cells within the inset of an edge
+                int distTop = Bounds.yMax - 1 - y;
+                int distBottom = y - Bounds.yMin;
+                if (distTop > wildfireEdgeInset && distBottom > wildfireEdgeInset)
+                    continue;
+                Vector3Int Cell = new(x, y, 0);
+                if (IsBlockingWall(Cell)
+                    || FireCells.Contains(Cell)
+                    || Cell == PlayerCell
+                    || GameManager.Instance.HasExitTileAtPosition(Cell))
+                    continue;
+                Candidates.Add(Cell);
+            }
+        }
+        return Candidates;
     }
     /// <summary>
     /// Queue delayed burning for items, flammable walls, and ground after a full turn on fire
@@ -267,22 +303,6 @@ public class FireManager : MonoBehaviour
     public void MarkGroundBurned(Vector3Int Cell)
     {
         MarkBurnedGroundAt(Cell);
-    }
-    /// <summary>
-    /// Picks a cell guaranteed to be near the top and bottom edges
-    /// </summary>
-    private Vector3Int GetBiasedWildfireCell()
-    {
-        BoundsInt Bounds = TilemapGround.cellBounds;
-        int x = Random.Range(Bounds.xMin, Bounds.xMax);
-        bool pickTop = Random.value < 0.5f;
-        int edgeBase = pickTop ? Bounds.yMax - 1 : Bounds.yMin;
-        // Allow up to 2 tiles inward from the chosen edge
-        int offset = Random.Range(0, wildfireEdgeInset + 1); // 0 to inset tiles offset
-        int y = pickTop ? edgeBase - offset : edgeBase + offset;
-        // Safety clamp to bounds in case the map is very small
-        y = Mathf.Clamp(y, Bounds.yMin, Bounds.yMax - 1);
-        return new Vector3Int(x, y, 0);
     }
     /// <summary>
     /// Applies damage to entities on fire at enemy turn start

@@ -11,7 +11,6 @@ public class EnemyManager : MonoBehaviour
     [SerializeField] private int baseMinSpawn = 1;
     [SerializeField] private int baseMaxSpawn = 3;
     [SerializeField] private int spawnScalePerLevel = 2;
-    [SerializeField] private int spawnRetryMultiplier = 2;
     public bool NeedToStartEnemyMovement { get; set; } = false;
     [SerializeField] private bool EnemiesAreMoving = false;
     [SerializeField] private int indexOfMovingEnemy = -1;
@@ -28,20 +27,17 @@ public class EnemyManager : MonoBehaviour
         EnemyTemplates  = Templates;
     }
     /// <summary>
-    /// Generates random number of enemies based on the current level
+    /// Generates random number of enemies based on the current level, guaranteeing
+    /// at least the current region's minimum whenever enough empty tiles exist
     /// </summary>
     public void GenerateEnemies()
     {
         int levelBonus = (int)RegionManager.CurrentRegion.Tag / spawnScalePerLevel;
-        spawnEnemyCount = Random.Range(baseMinSpawn + levelBonus,
-                                       baseMaxSpawn + levelBonus);
-        int cap = spawnEnemyCount * spawnRetryMultiplier;
-        while (cap > 0 && spawnEnemyCount > 0)
-        {
-            if (WeightedRarityGeneration.Generate<Enemy>())
-                spawnEnemyCount--;
-            cap--;
-        }
+        int regionMin = RegionManager.CurrentRegion.MinEnemySpawn;
+        int rolled = Random.Range(baseMinSpawn + levelBonus,
+                                  baseMaxSpawn + levelBonus);
+        int target = Mathf.Max(rolled, regionMin);
+        spawnEnemyCount = WeightedRarityGeneration.GenerateBatch<Enemy>(regionMin, target);
     }
     /// <summary>
     /// Spawns an enemy of the specified type at the specified position

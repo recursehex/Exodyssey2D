@@ -10,7 +10,6 @@ public class VehicleManager : MonoBehaviour
     [Header("Spawning")]
     [SerializeField] private int minSpawnCount = 0;
     [SerializeField] private int maxSpawnCountExclusive = 3;
-    [SerializeField] private int spawnRetryMultiplier = 2;
     private Tilemap TilemapGround;
     private Tilemap TilemapWalls;
     private Player Player;
@@ -23,14 +22,8 @@ public class VehicleManager : MonoBehaviour
     }
     public void GenerateVehicles()
     {
-        spawnVehicleCount = Random.Range(minSpawnCount, maxSpawnCountExclusive);
-        int cap = spawnVehicleCount * spawnRetryMultiplier;
-        while (cap > 0 && spawnVehicleCount > 0)
-        {
-            if (WeightedRarityGeneration.Generate<Vehicle>())
-                spawnVehicleCount--;
-            cap--;
-        }
+        int target = Random.Range(minSpawnCount, maxSpawnCountExclusive);
+        spawnVehicleCount = WeightedRarityGeneration.GenerateBatch<Vehicle>(minSpawnCount, target);
     }
     /// <summary>
     /// Spawns vehicle at specified position

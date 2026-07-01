@@ -4,6 +4,7 @@
       "Tag": "RuinedOutpost",
       "Name": "RUINED OUTPOST",
       "GridsRequired": 3,
+      "MinEnemySpawn": 1,
       "GroundTileSetName": "RO_Ground",
       "WallTileSetName": "RO_Walls",
       "EnemyPool": ["Weak"],

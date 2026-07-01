@@ -379,6 +379,37 @@ public class GameManager : MonoBehaviour
 		Position = SelectedCell + new Vector3(0.5f, 0.5f);
 		return true;
 	}
+	/// <summary>
+	/// Enumerates every grid cell that is currently empty: no wall, fire, exit,
+	/// structure, or existing item/enemy/vehicle, and outside the safe zone.
+	/// Used by spawners to guarantee a minimum count against the known free space.
+	/// </summary>
+	public List<Vector3Int> GetEmptyCells()
+	{
+		List<Vector3Int> EmptyCells = new();
+		for (int x = GameConfig.Grid.MinX; x <= GameConfig.Grid.MaxX; x++)
+		{
+			for (int y = GameConfig.Grid.MinY; y <= GameConfig.Grid.MaxY; y++)
+			{
+				Vector3Int Cell = new(x, y);
+				if (HasWallAtPosition(Cell)
+					|| HasFireAtPosition(Cell)
+					|| HasExitTileAtPosition(Cell)
+					|| HasStructureAtCell(Cell)
+					|| (x <= GameConfig.Grid.SafeZoneMaxX
+						&& y <= GameConfig.Grid.SafeZoneMaxY
+						&& y >= GameConfig.Grid.SafeZoneMinY))
+					continue;
+				Vector3 ShiftedPosition = Cell + new Vector3(0.5f, 0.5f);
+				if (HasItemAtPosition(ShiftedPosition)
+					|| HasEnemyAtPosition(ShiftedPosition)
+					|| HasVehicleAtPosition(ShiftedPosition))
+					continue;
+				EmptyCells.Add(Cell);
+			}
+		}
+		return EmptyCells;
+	}
 	// Public accessor methods
 	public bool IsDoingSetup 								=> doingSetup;
 	public bool IsChronoclasmReady 							=> ChronoclasmManager != null && ChronoclasmManager.IsChronoclasmReady;
