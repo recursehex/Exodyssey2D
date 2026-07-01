@@ -167,7 +167,13 @@ public class LevelManager : MonoBehaviour
     }
     private void UpdateTimeOfDay(bool emitEvent)
     {
-        CurrentTimeOfDay = (TimeOfDay)(Level % timeOfDayNames.Length);
+        // Radiant Cascades is locked to permanent night regardless of the day cycle
+        if (RegionManager != null
+            && RegionManager.CurrentRegion != null
+            && RegionManager.CurrentRegionIndex == (int)RegionInfo.Tags.RadiantCascades)
+            CurrentTimeOfDay = TimeOfDay.Night;
+        else
+            CurrentTimeOfDay = (TimeOfDay)(Level % timeOfDayNames.Length);
         LevelText.text = timeOfDayNames[(int)CurrentTimeOfDay];
         if (emitEvent)
             OnTimeOfDayChanged?.Invoke(CurrentTimeOfDay);
