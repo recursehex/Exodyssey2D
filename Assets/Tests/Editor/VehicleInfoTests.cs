@@ -224,4 +224,51 @@ public class VehicleInfoTests
             Assert.Greater(vehicle.MovementRange, 0, $"Vehicle {vehicle.Tag} should have positive movement range");
         }
     }
+
+    // --- Run Over Ability ---
+
+    [Test]
+    public void Rover_RunsOverWeakOnly()
+    {
+        VehicleInfo rover = new VehicleInfo((int)VehicleInfo.Tags.Rover);
+        Assert.IsTrue(rover.CanRunOverType(EnemyInfo.Types.Weak));
+        Assert.IsFalse(rover.CanRunOverType(EnemyInfo.Types.Mediocre));
+        Assert.IsFalse(rover.CanRunOverType(EnemyInfo.Types.Strong));
+        Assert.IsFalse(rover.CanRunOverType(EnemyInfo.Types.Exotic));
+    }
+
+    [Test]
+    public void Buggy_RunsOverWeakOnly()
+    {
+        VehicleInfo buggy = new VehicleInfo((int)VehicleInfo.Tags.Buggy);
+        Assert.IsTrue(buggy.CanRunOverType(EnemyInfo.Types.Weak));
+        Assert.IsFalse(buggy.CanRunOverType(EnemyInfo.Types.Mediocre));
+    }
+
+    [Test]
+    public void Trailer_RunsOverWeakAndMediocre()
+    {
+        VehicleInfo trailer = new VehicleInfo((int)VehicleInfo.Tags.Trailer);
+        Assert.IsTrue(trailer.CanRunOverType(EnemyInfo.Types.Weak));
+        Assert.IsTrue(trailer.CanRunOverType(EnemyInfo.Types.Mediocre));
+        Assert.IsFalse(trailer.CanRunOverType(EnemyInfo.Types.Strong));
+        Assert.IsFalse(trailer.CanRunOverType(EnemyInfo.Types.Exotic));
+    }
+
+    [Test]
+    public void Carrier_RunsOverAllNonBossTypes()
+    {
+        VehicleInfo carrier = new VehicleInfo((int)VehicleInfo.Tags.Carrier);
+        Assert.IsTrue(carrier.CanRunOverType(EnemyInfo.Types.Weak));
+        Assert.IsTrue(carrier.CanRunOverType(EnemyInfo.Types.Mediocre));
+        Assert.IsTrue(carrier.CanRunOverType(EnemyInfo.Types.Strong));
+        Assert.IsTrue(carrier.CanRunOverType(EnemyInfo.Types.Exotic));
+    }
+
+    [Test]
+    public void CanRunOverType_UnknownType_ReturnsFalse()
+    {
+        VehicleInfo carrier = new VehicleInfo((int)VehicleInfo.Tags.Carrier);
+        Assert.IsFalse(carrier.CanRunOverType(EnemyInfo.Types.Unknown));
+    }
 }

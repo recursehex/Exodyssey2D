@@ -111,6 +111,17 @@ public class EnemyManager : MonoBehaviour
         }
     }
     /// <summary>
+    /// Instantly kills an enemy that has been run over by a vehicle
+    /// </summary>
+    public void RunOverEnemy(Enemy Enemy)
+    {
+        if (Enemy == null)
+            return;
+        Enemies.Remove(Enemy);
+        DestroyEnemy(Enemy);
+        OnEnemyKilled?.Invoke();
+    }
+    /// <summary>
     /// Processes enemy movement for all enemies
     /// </summary>
     public void ProcessEnemyMovement(System.Action OnMovementComplete)

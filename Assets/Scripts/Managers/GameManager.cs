@@ -430,6 +430,27 @@ public class GameManager : MonoBehaviour
 	public void RemoveItemAtPosition(Item Item) 			=> ItemManager.RemoveItemAtPosition(Item);
 	public bool HasEnemyAtPosition(Vector3 Position) 		=> EnemyManager.HasEnemyAtPosition(Position);
 	public Enemy GetEnemyAtPosition(Vector3 Position) 		=> EnemyManager.GetEnemyAtPosition(Position);
+	/// <summary>
+	/// Returns true if a vehicle with the given info can run over the enemy (if any) at the position
+	/// </summary>
+	public bool CanVehicleRunOverEnemyAt(VehicleInfo Info, Vector3 Position)
+	{
+		if (Info == null || !Info.CanRunOver)
+			return false;
+		Enemy Enemy = GetEnemyAtPosition(Position);
+		return Enemy != null && Info.CanRunOverType(Enemy.Info.Type);
+	}
+	/// <summary>
+	/// Kills the enemy at the position if the vehicle is able to run it over
+	/// </summary>
+	public void RunOverEnemyAt(Vector3 Position, VehicleInfo Info)
+	{
+		if (Info == null || !Info.CanRunOver)
+			return;
+		Enemy Enemy = GetEnemyAtPosition(Position);
+		if (Enemy != null && Info.CanRunOverType(Enemy.Info.Type))
+			EnemyManager.RunOverEnemy(Enemy);
+	}
 	public bool HasVehicleAtPosition(Vector3 Position) 		=> VehicleManager.HasVehicleAtPosition(Position);
 	public Vehicle GetVehicleAtPosition(Vector3Int Position) => VehicleManager.GetVehicleAtPosition(Position);
 	public bool HasStructureAtCell(Vector3Int Cell) 		=> StructureManager.HasStructureAtCell(Cell);
@@ -755,9 +776,10 @@ public class GameManager : MonoBehaviour
 	{
 		// Check if Player's vehicle can move to clicked tile
 		bool isInMovementRange = TileManager.IsInTileArea(TilePoint);
-		// Return if not in movement range, enemy present, or clicked on current position
+		// Return if not in movement range, a non-run-over-able enemy is present, or clicked on current position
 		if (!isInMovementRange
-			|| HasEnemyAtPosition(ShiftedClickPoint)
+			|| (HasEnemyAtPosition(ShiftedClickPoint)
+				&& !CanVehicleRunOverEnemyAt(Player.Vehicle.Info, ShiftedClickPoint))
 			|| HasFireAtPosition(TilePoint)
 			|| ShiftedClickPoint == Player.transform.position)
 			return;

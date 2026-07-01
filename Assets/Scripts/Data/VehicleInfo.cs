@@ -39,9 +39,15 @@ public class VehicleInfo
 	public bool HasBattery 		{ get; private set; } = false;			// If vehicle has battery
 	public bool HasSpotlight 	{ get; private set; } = false;			// If vehicle has spotlight
 	public bool IsOn 			{ get; private set; } = false;			// If vehicle is turned on
+	public bool CanRunOver 		{ get; private set; } = false;			// If vehicle can run over enemies
+	public EnemyInfo.Types RunOverType { get; private set; } = EnemyInfo.Types.Weak; // Highest enemy type it can run over
+	/// <summary>
+	/// Returns true if this vehicle can run over (crush and kill) an enemy of the given type
+	/// </summary>
+	public bool CanRunOverType(EnemyInfo.Types Type) => CanRunOver && Type <= RunOverType;
 	[Serializable] private class Entry
 	{
-		public string Tag, Rarity, Type, Name, Description;
+		public string Tag, Rarity, Type, Name, Description, runOverType;
 		public int efficiency = 1, movementRange = 3, storage = 1, maxCharge = 1, maxHealth = 1;
 		public float speed = 2f;
 		public bool canOffroad = false, hasBattery = false, hasSpotlight = false, disabled = false;
@@ -213,6 +219,14 @@ public class VehicleInfo
 		CanOffroad 		= Source.canOffroad;
 		HasBattery 		= Source.hasBattery;
 		HasSpotlight 	= Source.hasSpotlight;
+		// A vehicle can run over enemies up to and including the specified type (Weak < Mediocre < Strong < Exotic)
+		if (!string.IsNullOrEmpty(Source.runOverType)
+			&& Enum.TryParse(Source.runOverType, out EnemyInfo.Types ParsedRunOverType)
+			&& ParsedRunOverType != EnemyInfo.Types.Unknown)
+		{
+			CanRunOver 	= true;
+			RunOverType = ParsedRunOverType;
+		}
 		Tag 	= Enum.TryParse(Source.Tag, out Tags ParsedTag) ? ParsedTag : Tags.Unknown;
 		Rarity 	= Rarity.Parse(Source.Rarity);
 		Type 	= Enum.TryParse(Source.Type, out Types ParsedType) ? ParsedType : Types.Unknown;

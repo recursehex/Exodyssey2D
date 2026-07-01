@@ -19,6 +19,7 @@ public class AStar
 	private Vector3Int StartPosition;
 	private Vector3Int GoalPosition;
 	private bool allowDiagonal = true;
+	private Func<Vector3, bool> IsEnemyPassable = null;
 	private const int MoveCostPerTile = 10;
 	public AStar(Tilemap Ground, Tilemap Walls) 
 	{
@@ -33,6 +34,11 @@ public class AStar
 	/// Sets whether diagonal movement is allowed
 	/// </summary>
 	public void SetAllowDiagonal(bool flag) => allowDiagonal = flag;
+	/// <summary>
+	/// Sets a predicate that decides whether an enemy at a given world position should be
+	/// treated as passable (e.g. a vehicle able to run it over). Null means all enemies block.
+	/// </summary>
+	public void SetEnemyPassabilityCheck(Func<Vector3, bool> Check) => IsEnemyPassable = Check;
 	/// <summary>
 	/// Gets all reachable positions within specified distance from start position
 	/// </summary>
@@ -134,8 +140,12 @@ public class AStar
 			{
 				Vector3Int Position = ParentPosition - new Vector3Int(x, y);
 				Vector3 EntityPosition = ParentPosition - new Vector3(x - 0.5f, y - 0.5f);
-				bool IsEntityAtPosition = GameManager.Instance.HasEnemyAtPosition(EntityPosition)
-									   || GameManager.Instance.HasVehicleAtPosition(EntityPosition);
+				bool HasEnemy = GameManager.Instance.HasEnemyAtPosition(EntityPosition);
+				bool HasVehicle = GameManager.Instance.HasVehicleAtPosition(EntityPosition);
+				// Enemies the current mover can run over do not block the path
+				bool EnemyBlocks = HasEnemy
+								&& (IsEnemyPassable == null || !IsEnemyPassable(EntityPosition));
+				bool IsEntityAtPosition = EnemyBlocks || HasVehicle;
 				bool HasFireAtPosition = GameManager.Instance.HasFireAtPosition(Position);
 				if ((y != 0 || x != 0)
 					&& (allowDiagonal || (!allowDiagonal && (y == 0 || x == 0))))

@@ -42,6 +42,18 @@ public class Vehicle : MonoBehaviour
 		Info = VehicleInfo;
 		Inventory = new(Info.Storage);
 		AStar = new(TilemapGround, TilemapWalls);
+		// Let pathfinding treat enemies this vehicle can run over as non-obstacles
+		AStar.SetEnemyPassabilityCheck(CanRunOverEnemyAt);
+	}
+	/// <summary>
+	/// Returns true if there is an enemy at the given world position that this vehicle can run over
+	/// </summary>
+	private bool CanRunOverEnemyAt(Vector3 Position)
+	{
+		if (!Info.CanRunOver)
+			return false;
+		Enemy Enemy = GameManager.Instance.GetEnemyAtPosition(Position);
+		return Enemy != null && Info.CanRunOverType(Enemy.Info.Type);
 	}
 #if UNITY_EDITOR
 	private void LateUpdate()
@@ -101,11 +113,13 @@ public class Vehicle : MonoBehaviour
 			// Move vehicle smoothly to next tile
 			while (Vector3.Distance(transform.position, ShiftedDistance) > 0f)
 			{
-				transform.position = Vector3.MoveTowards(transform.position, 
-														 ShiftedDistance, 
+				transform.position = Vector3.MoveTowards(transform.position,
+														 ShiftedDistance,
 														 Info.Speed * Time.deltaTime);
 				yield return null;
 			}
+			// Crush and kill any run-over-able enemy on the tile just reached
+			GameManager.Instance.RunOverEnemyAt(ShiftedDistance, Info);
 			// Pop next tile in path
 			if (Path != null && Path.Count > 0)
 				Destination = Path.Pop();
