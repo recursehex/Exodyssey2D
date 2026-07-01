@@ -35,19 +35,27 @@ public class VehicleInfo
 	public int Storage 			{ get; private set; } = 1;				// Number of inventory slots
 	public int CurrentCharge 	{ get; private set; } = 1;				// Current charge
 	public int CurrentHealth 	{ get; private set; } = 1;				// Current health
+	public int MaxHealth 		=> maxHealth;							// Maximum (rated) health
 	public bool CanOffroad 		{ get; private set; } = false;			// If vehicle can drive offroad
 	public bool HasBattery 		{ get; private set; } = false;			// If vehicle has battery
 	public bool HasSpotlight 	{ get; private set; } = false;			// If vehicle has spotlight
 	public bool IsOn 			{ get; private set; } = false;			// If vehicle is turned on
-	public bool CanRunOver 		{ get; private set; } = false;			// If vehicle can run over enemies
+	public bool CanRunOver 		{ get; private set; } = false;			// If vehicle can run over enemies for free
 	public EnemyInfo.Types RunOverType { get; private set; } = EnemyInfo.Types.Weak; // Highest enemy type it can run over
+	public bool CanRam 			{ get; private set; } = false;			// If vehicle can ram enemies at a cost of 1 HP
+	public EnemyInfo.Types RamType { get; private set; } = EnemyInfo.Types.Weak; // Highest enemy type it can ram
 	/// <summary>
-	/// Returns true if this vehicle can run over (crush and kill) an enemy of the given type
+	/// Returns true if this vehicle can run over (crush and kill for free) an enemy of the given type
 	/// </summary>
 	public bool CanRunOverType(EnemyInfo.Types Type) => CanRunOver && Type <= RunOverType;
+	/// <summary>
+	/// Returns true if this vehicle can ram (deal damage equal to its health from an adjacent tile, at a
+	/// cost of 1 HP) an enemy of the given type. Run-over-able types are excluded (destroyed for free instead).
+	/// </summary>
+	public bool CanRamType(EnemyInfo.Types Type) => CanRam && Type <= RamType && !CanRunOverType(Type);
 	[Serializable] private class Entry
 	{
-		public string Tag, Rarity, Type, Name, Description, runOverType;
+		public string Tag, Rarity, Type, Name, Description, runOverType, ramType;
 		public int efficiency = 1, movementRange = 3, storage = 1, maxCharge = 1, maxHealth = 1;
 		public float speed = 2f;
 		public bool canOffroad = false, hasBattery = false, hasSpotlight = false, disabled = false;
@@ -219,13 +227,21 @@ public class VehicleInfo
 		CanOffroad 		= Source.canOffroad;
 		HasBattery 		= Source.hasBattery;
 		HasSpotlight 	= Source.hasSpotlight;
-		// A vehicle can run over enemies up to and including the specified type (Weak < Mediocre < Strong < Exotic)
+		// A vehicle can run over enemies up to and including the specified type (Weak < Mediocre < Strong < Exotic < Boss)
 		if (!string.IsNullOrEmpty(Source.runOverType)
 			&& Enum.TryParse(Source.runOverType, out EnemyInfo.Types ParsedRunOverType)
 			&& ParsedRunOverType != EnemyInfo.Types.Unknown)
 		{
 			CanRunOver 	= true;
 			RunOverType = ParsedRunOverType;
+		}
+		// A vehicle can ram enemies up to and including the specified type, at a cost of 1 HP each
+		if (!string.IsNullOrEmpty(Source.ramType)
+			&& Enum.TryParse(Source.ramType, out EnemyInfo.Types ParsedRamType)
+			&& ParsedRamType != EnemyInfo.Types.Unknown)
+		{
+			CanRam 	= true;
+			RamType = ParsedRamType;
 		}
 		Tag 	= Enum.TryParse(Source.Tag, out Tags ParsedTag) ? ParsedTag : Tags.Unknown;
 		Rarity 	= Rarity.Parse(Source.Rarity);

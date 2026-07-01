@@ -271,4 +271,53 @@ public class VehicleInfoTests
         VehicleInfo carrier = new VehicleInfo((int)VehicleInfo.Tags.Carrier);
         Assert.IsFalse(carrier.CanRunOverType(EnemyInfo.Types.Unknown));
     }
+
+    // --- Ram Ability ---
+
+    [Test]
+    public void Rover_RamsMediocreThroughExotic_NotBoss()
+    {
+        VehicleInfo rover = new VehicleInfo((int)VehicleInfo.Tags.Rover);
+        // Weak is run over, not rammed
+        Assert.IsFalse(rover.CanRamType(EnemyInfo.Types.Weak));
+        Assert.IsTrue(rover.CanRamType(EnemyInfo.Types.Mediocre));
+        Assert.IsTrue(rover.CanRamType(EnemyInfo.Types.Strong));
+        Assert.IsTrue(rover.CanRamType(EnemyInfo.Types.Exotic));
+        Assert.IsFalse(rover.CanRamType(EnemyInfo.Types.Boss));
+    }
+
+    [Test]
+    public void Trailer_RamsStrongAndExotic_NotBoss()
+    {
+        VehicleInfo trailer = new VehicleInfo((int)VehicleInfo.Tags.Trailer);
+        // Weak and Mediocre are run over, not rammed
+        Assert.IsFalse(trailer.CanRamType(EnemyInfo.Types.Weak));
+        Assert.IsFalse(trailer.CanRamType(EnemyInfo.Types.Mediocre));
+        Assert.IsTrue(trailer.CanRamType(EnemyInfo.Types.Strong));
+        Assert.IsTrue(trailer.CanRamType(EnemyInfo.Types.Exotic));
+        Assert.IsFalse(trailer.CanRamType(EnemyInfo.Types.Boss));
+    }
+
+    [Test]
+    public void Buggy_RamsMediocreOnly()
+    {
+        VehicleInfo buggy = new VehicleInfo((int)VehicleInfo.Tags.Buggy);
+        Assert.IsTrue(buggy.CanRamType(EnemyInfo.Types.Mediocre));
+        // Buggy cannot ram Strong or Exotic
+        Assert.IsFalse(buggy.CanRamType(EnemyInfo.Types.Strong));
+        Assert.IsFalse(buggy.CanRamType(EnemyInfo.Types.Exotic));
+        Assert.IsFalse(buggy.CanRamType(EnemyInfo.Types.Boss));
+    }
+
+    [Test]
+    public void Carrier_RamsBossOnly()
+    {
+        VehicleInfo carrier = new VehicleInfo((int)VehicleInfo.Tags.Carrier);
+        // All non-boss types are run over for free, so not rammed
+        Assert.IsFalse(carrier.CanRamType(EnemyInfo.Types.Weak));
+        Assert.IsFalse(carrier.CanRamType(EnemyInfo.Types.Exotic));
+        // Bosses cannot be run over, only rammed
+        Assert.IsFalse(carrier.CanRunOverType(EnemyInfo.Types.Boss));
+        Assert.IsTrue(carrier.CanRamType(EnemyInfo.Types.Boss));
+    }
 }

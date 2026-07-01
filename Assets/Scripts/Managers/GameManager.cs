@@ -431,25 +431,32 @@ public class GameManager : MonoBehaviour
 	public bool HasEnemyAtPosition(Vector3 Position) 		=> EnemyManager.HasEnemyAtPosition(Position);
 	public Enemy GetEnemyAtPosition(Vector3 Position) 		=> EnemyManager.GetEnemyAtPosition(Position);
 	/// <summary>
-	/// Returns true if a vehicle with the given info can run over the enemy (if any) at the position
+	/// Returns true if a vehicle with the given info can run over (and thus drive onto) the enemy at the position
 	/// </summary>
 	public bool CanVehicleRunOverEnemyAt(VehicleInfo Info, Vector3 Position)
 	{
-		if (Info == null || !Info.CanRunOver)
+		if (Info == null)
 			return false;
 		Enemy Enemy = GetEnemyAtPosition(Position);
 		return Enemy != null && Info.CanRunOverType(Enemy.Info.Type);
 	}
 	/// <summary>
-	/// Kills the enemy at the position if the vehicle is able to run it over
+	/// Instantly kills an enemy that has been run over by a vehicle
 	/// </summary>
-	public void RunOverEnemyAt(Vector3 Position, VehicleInfo Info)
+	public void KillEnemy(Enemy Enemy) => EnemyManager.KillEnemy(Enemy);
+	/// <summary>
+	/// Deals damage to an enemy (e.g. when rammed by a vehicle), killing it if its health reaches 0
+	/// </summary>
+	public void DamageEnemy(Enemy Enemy, int damage) => EnemyManager.HandleDamageToEnemy(Enemy, damage, false);
+	/// <summary>
+	/// Ejects the player and destroys their vehicle after a ram depleted its health,
+	/// then refreshes the grid state
+	/// </summary>
+	public void DestroyRammedVehicle(Vehicle Vehicle)
 	{
-		if (Info == null || !Info.CanRunOver)
-			return;
-		Enemy Enemy = GetEnemyAtPosition(Position);
-		if (Enemy != null && Info.CanRunOverType(Enemy.Info.Type))
-			EnemyManager.RunOverEnemy(Enemy);
+		VehicleManager.HandleVehicleDestroyed(Vehicle);
+		RefreshVisibility();
+		UpdateTileAreas();
 	}
 	public bool HasVehicleAtPosition(Vector3 Position) 		=> VehicleManager.HasVehicleAtPosition(Position);
 	public Vehicle GetVehicleAtPosition(Vector3Int Position) => VehicleManager.GetVehicleAtPosition(Position);
@@ -774,6 +781,9 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	private void TryVehicleMovement(Vector3 WorldPoint, Vector3Int TilePoint, Vector3 ShiftedClickPoint)
 	{
+		// If the clicked tile holds an enemy this vehicle can ram, approach and ram it instead of moving onto it
+		if (TryVehicleRam(ShiftedClickPoint))
+			return;
 		// Check if Player's vehicle can move to clicked tile
 		bool isInMovementRange = TileManager.IsInTileArea(TilePoint);
 		// Return if not in movement range, a non-run-over-able enemy is present, or clicked on current position
@@ -790,6 +800,30 @@ public class GameManager : MonoBehaviour
 		Player.VehicleMovement(WorldPoint);
 		TileManager.ClearTileAreas();
 		TurnManager.TurnTimer.StartTimer();
+	}
+	/// <summary>
+	/// If the clicked tile holds an enemy the vehicle can ram, drives up to the adjacent tile and rams it.
+	/// Returns true if the click was a ram attempt (whether or not the enemy was reachable this turn).
+	/// </summary>
+	private bool TryVehicleRam(Vector3 ShiftedClickPoint)
+	{
+		if (!HasEnemyAtPosition(ShiftedClickPoint))
+			return false;
+		Enemy Enemy = GetEnemyAtPosition(ShiftedClickPoint);
+		if (Enemy == null || !Player.Vehicle.Info.CanRamType(Enemy.Info.Type))
+			return false;
+		// Verify the vehicle can reach a tile adjacent to the enemy this turn before committing
+		if (!Player.Vehicle.PrepareRam(ShiftedClickPoint, TileManager.IsInTileArea))
+			return true;
+		TurnManager.SetEndTurnButtonInteractable(false);
+		ChronoclasmManager.RecordUndoSnapshot();
+		// Clear areas before starting the ram: an in-place ram completes synchronously and redraws
+		// the areas in its completion callback, so clearing afterwards would wipe the fresh draw
+		TileManager.ClearTileAreas();
+		Player.IsInMovement = true;
+		Player.BeginVehicleRam();
+		TurnManager.TurnTimer.StartTimer();
+		return true;
 	}
 	/// <summary>
 	/// Tries to add an item to Player's inventory at specified shifted click point

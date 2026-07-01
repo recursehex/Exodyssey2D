@@ -65,13 +65,21 @@ public class VehicleManager : MonoBehaviour
             return false;
         bool isDestroyed = Vehicle.DecreaseHealthBy(damage);
         if (isDestroyed)
-        {
-            if (Player.IsInVehicle
-                && Player.Vehicle == Vehicle)
-                Player.ExitVehicle();
-            DestroyVehicle(Vehicle);
-        }
+            HandleVehicleDestroyed(Vehicle);
         return isDestroyed;
+    }
+    /// <summary>
+    /// Ejects the player if inside, then destroys the vehicle. Used when a vehicle's
+    /// health has already been depleted (e.g. by ramming an enemy)
+    /// </summary>
+    public void HandleVehicleDestroyed(Vehicle Vehicle)
+    {
+        if (Vehicle == null)
+            return;
+        if (Player.IsInVehicle
+            && Player.Vehicle == Vehicle)
+            Player.ExitVehicle();
+        DestroyVehicle(Vehicle);
     }
     /// <summary>
     /// Destroys all vehicles except Player's vehicle

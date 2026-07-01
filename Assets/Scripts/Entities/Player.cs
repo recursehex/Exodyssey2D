@@ -267,6 +267,24 @@ public class Player : MonoBehaviour
 		DecrementEnergy();
 	}
 	/// <summary>
+	/// Begins a ram prepared by Vehicle.PrepareRam: drives up to the enemy and rams it
+	/// </summary>
+	public void BeginVehicleRam()
+	{
+		if (Vehicle == null)
+			return;
+		// Subscribe to vehicle movement complete event
+		Vehicle.OnVehicleMovementComplete = () => {
+			IsInMovement = false;
+			// Trigger player movement complete event
+			OnMovementComplete?.Invoke();
+			// Unsubscribe to prevent memory leaks
+			Vehicle.OnVehicleMovementComplete = null;
+		};
+		Vehicle.StartPreparedRam();
+		DecrementEnergy();
+	}
+	/// <summary>
 	/// Sets Player visibility when entering and exiting vehicles
 	/// </summary>
 	private void SetPlayerVisibility(bool isVisible)

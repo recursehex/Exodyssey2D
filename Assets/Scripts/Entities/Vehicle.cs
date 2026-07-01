@@ -34,6 +34,10 @@ public class Vehicle : MonoBehaviour
 	private Vector3Int Destination;
 	private AStar AStar;
 	private Coroutine MoveRoutine;
+	// Enemy to ram once the vehicle reaches the tile adjacent to it (killed on arrival, costs 1 HP)
+	private Enemy RamTarget;
+	private Enemy PendingRamTarget;
+	private Stack<Vector3Int> PendingPath;
 	#endregion
 	public void Initialize(Tilemap Ground, Tilemap Walls, VehicleInfo VehicleInfo)
 	{
@@ -42,7 +46,7 @@ public class Vehicle : MonoBehaviour
 		Info = VehicleInfo;
 		Inventory = new(Info.Storage);
 		AStar = new(TilemapGround, TilemapWalls);
-		// Let pathfinding treat enemies this vehicle can run over as non-obstacles
+		// Let pathfinding treat only enemies this vehicle can run over as non-obstacles
 		AStar.SetEnemyPassabilityCheck(CanRunOverEnemyAt);
 	}
 	/// <summary>
@@ -50,10 +54,28 @@ public class Vehicle : MonoBehaviour
 	/// </summary>
 	private bool CanRunOverEnemyAt(Vector3 Position)
 	{
-		if (!Info.CanRunOver)
-			return false;
 		Enemy Enemy = GameManager.Instance.GetEnemyAtPosition(Position);
 		return Enemy != null && Info.CanRunOverType(Enemy.Info.Type);
+	}
+	/// <summary>
+	/// Kills any run-over-able enemy on the tile just reached (free, no cost)
+	/// </summary>
+	private void RunOverEnemyAt(Vector3 Position)
+	{
+		Enemy Enemy = GameManager.Instance.GetEnemyAtPosition(Position);
+		if (Enemy != null && Info.CanRunOverType(Enemy.Info.Type))
+			GameManager.Instance.KillEnemy(Enemy);
+	}
+	/// <summary>
+	/// Rams an enemy from an adjacent tile: deals damage equal to the vehicle's health and costs it 1 HP.
+	/// Returns false if the ram destroyed this vehicle.
+	/// </summary>
+	private bool ExecuteRam(Enemy Enemy)
+	{
+		if (Enemy == null)
+			return true;
+		GameManager.Instance.DamageEnemy(Enemy, Info.MaxHealth);
+		return !DecreaseHealthBy(1);
 	}
 #if UNITY_EDITOR
 	private void LateUpdate()
@@ -92,10 +114,68 @@ public class Vehicle : MonoBehaviour
 		Path = AStar.ComputePath(transform.position, Goal);
 		if (Path == null)
 			return;
+		RamTarget = null;
 		Path.Pop();
 		Destination = Path.Pop();
 		IsInMovement = true;
 		// Stop movement if game ends
+		if (MoveRoutine != null)
+			StopCoroutine(MoveRoutine);
+		MoveRoutine = StartCoroutine(MoveAlongPath());
+	}
+	/// <summary>
+	/// Computes a path that stops on the tile directly to the left of a rammable enemy, so the vehicle
+	/// rams the enemy on its right. Returns false if that tile cannot be reached within this turn's
+	/// movement range. Does not move the vehicle.
+	/// </summary>
+	public bool PrepareRam(Vector3 EnemyWorldPos, Func<Vector3Int, bool> IsWithinRange)
+	{
+		PendingRamTarget = null;
+		PendingPath = null;
+		Enemy Enemy = GameManager.Instance.GetEnemyAtPosition(EnemyWorldPos);
+		if (Enemy == null)
+			return false;
+		Vector3Int StartCell = TilemapGround.WorldToCell(transform.position);
+		Vector3Int EnemyCell = TilemapGround.WorldToCell(EnemyWorldPos);
+		// The vehicle can only ram from the left: it must end on the tile directly left of the enemy
+		Vector3Int ApproachCell = EnemyCell + Vector3Int.left;
+		// Already positioned directly left of the enemy: ram in place without moving
+		if (StartCell == ApproachCell)
+		{
+			PendingRamTarget = Enemy;
+			return true;
+		}
+		// The approach tile must be reachable this turn
+		if (!IsWithinRange(ApproachCell))
+			return false;
+		AStar.Initialize();
+		Vector3 ApproachWorldPos = ApproachCell + new Vector3(0.5f, 0.5f);
+		Stack<Vector3Int> FullPath = AStar.ComputePath(transform.position, ApproachWorldPos);
+		if (FullPath == null || FullPath.Count < 2)
+			return false;
+		PendingRamTarget = Enemy;
+		PendingPath = FullPath;
+		return true;
+	}
+	/// <summary>
+	/// Begins the movement prepared by PrepareRam, ramming the target once the tile to its left is reached
+	/// </summary>
+	public void StartPreparedRam()
+	{
+		RamTarget = PendingRamTarget;
+		Path = PendingPath;
+		PendingRamTarget = null;
+		PendingPath = null;
+		IsInMovement = true;
+		// If there is no path the vehicle is already left of the enemy and rams in place
+		if (Path != null)
+		{
+			Path.Pop();
+			if (Path.Count > 0)
+				Destination = Path.Pop();
+			else
+				Path = null;
+		}
 		if (MoveRoutine != null)
 			StopCoroutine(MoveRoutine);
 		MoveRoutine = StartCoroutine(MoveAlongPath());
@@ -118,12 +198,20 @@ public class Vehicle : MonoBehaviour
 														 Info.Speed * Time.deltaTime);
 				yield return null;
 			}
-			// Crush and kill any run-over-able enemy on the tile just reached
-			GameManager.Instance.RunOverEnemyAt(ShiftedDistance, Info);
+			// Crush any run-over-able enemy on the tile just reached
+			RunOverEnemyAt(ShiftedDistance);
 			// Pop next tile in path
 			if (Path != null && Path.Count > 0)
 				Destination = Path.Pop();
 			else break;
+		}
+		// Ram the adjacent target, if any, now that the vehicle has reached the penultimate tile
+		bool wasDestroyedByRam = false;
+		if (RamTarget != null)
+		{
+			if (!ExecuteRam(RamTarget))
+				wasDestroyedByRam = true;
+			RamTarget = null;
 		}
 		// When Vehicle stops moving
 		Path = null;
@@ -131,6 +219,9 @@ public class Vehicle : MonoBehaviour
 		MoveRoutine = null;
 		// Notify player that vehicle movement is complete
 		OnVehicleMovementComplete?.Invoke();
+		// Eject the player and destroy the vehicle if a ram depleted its health
+		if (wasDestroyedByRam)
+			GameManager.Instance.DestroyRammedVehicle(this);
 	}
 	/// <summary>
 	/// Calculates area Vehicle can move to in a turn based on movement range

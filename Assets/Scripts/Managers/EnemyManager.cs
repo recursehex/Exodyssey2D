@@ -111,9 +111,9 @@ public class EnemyManager : MonoBehaviour
         }
     }
     /// <summary>
-    /// Instantly kills an enemy that has been run over by a vehicle
+    /// Instantly kills an enemy (e.g. when run over or rammed by a vehicle)
     /// </summary>
-    public void RunOverEnemy(Enemy Enemy)
+    public void KillEnemy(Enemy Enemy)
     {
         if (Enemy == null)
             return;

@@ -28,6 +28,7 @@ public class EnemyInfo
 		Mediocre,
 		Strong,
 		Exotic,
+		Boss,
 
 		Unknown,
 	}
