@@ -12,6 +12,11 @@ public class VisibilityManager : MonoBehaviour
 	[Header("Overlay")]
 	[SerializeField] private float transitionSpeed = 6f;
 	[SerializeField] private float duskAmbient = 0.62f;
+	[Header("Wake Up")]
+	// How dark the first grid starts before the darkness recedes (0 = pitch black, 1 = full daylight)
+	[SerializeField] private float wakeUpStartAmbient = 0.02f;
+	// How quickly the wake-up darkness recedes to daylight; higher is faster
+	[SerializeField] private float wakeUpTransitionSpeed = 0.5f;
 	[SerializeField] private float nightAmbient = 0.08f;
 	[SerializeField] private float nightVisionAmbient = 0.95f;
 	[SerializeField] private float overlayDarkAlpha = 0.95f;
@@ -43,6 +48,9 @@ public class VisibilityManager : MonoBehaviour
 	private bool IsInitialized;
 	private bool NeedsVisibilityRefresh = true;
 	private bool TargetOverlayEnabled;
+	// True during the first-grid "wake up" effect: the grid starts dark and quickly recedes to daylight,
+	// with every light source suppressed (no glow, nothing visible through the darkness) until it clears
+	private bool IsWakingUp;
 	private float TargetAmbient = 1f;
 	private float AppliedAmbient = 1f;
 	private float TargetNightVision = 0f;
@@ -144,6 +152,25 @@ public class VisibilityManager : MonoBehaviour
 	{
 		NeedsVisibilityRefresh = true;
 	}
+	/// <summary>
+	/// Starts the first-grid "wake up" effect: the whole grid begins dark like night and quickly recedes
+	/// to daylight. While waking up, no light sources emit light or show through the darkness.
+	/// </summary>
+	public void BeginWakeUp()
+	{
+		if (!IsInitialized)
+			return;
+		IsWakingUp = true;
+		// Snap to darkness so the grid starts black, then the ambient lerps back up to full daylight
+		AppliedAmbient = wakeUpStartAmbient;
+		AppliedNightVision = 0f;
+		// Drop any existing light glows so nothing is visible through the darkness while waking
+		AppliedLights.Clear();
+		RefreshVisibility();
+		FlushIfNeeded();
+		SetOverlayActive(true);
+		ApplyOverlayProperties();
+	}
 	public void ClearAllLights()
 	{
 		TargetLightData.Clear();
@@ -159,6 +186,7 @@ public class VisibilityManager : MonoBehaviour
 		AppliedNightVision = 0f;
 		TargetOverlayEnabled = false;
 		NeedsVisibilityRefresh = false;
+		IsWakingUp = false;
 		SetOverlayActive(false);
 		ApplyOverlayProperties();
 	}
@@ -310,6 +338,20 @@ public class VisibilityManager : MonoBehaviour
 		InventoryFlareLightIndices.Clear();
 		VehicleLightIndices.Clear();
 		ConfigureOverlaySorting();
+		if (IsWakingUp)
+		{
+			// The whole grid is uniformly dark and recedes to daylight; keep all cells visible so entities
+			// simply darken with the ambient, and emit no light sources so nothing shows through the dark
+			FillAllCellsVisible();
+			TargetAmbient = 1f;
+			TargetNightVision = 0f;
+			TargetLightCount = 0;
+			// Let the receding ambient keep the overlay on and turn it off once daylight is reached
+			TargetOverlayEnabled = false;
+			SetOverlayActive(true);
+			ApplyEntityVisibility();
+			return;
+		}
 		bool isNight = IsNightTime;
 		bool isDusk = IsDuskTime;
 		bool playerHasNV = Player != null && Player.HasNightVision;
@@ -750,8 +792,18 @@ public class VisibilityManager : MonoBehaviour
 		if (OverlayMaterial == null)
 			return;
 		float interpolation = Mathf.Clamp01(Time.deltaTime * transitionSpeed);
-		AppliedAmbient = Mathf.Lerp(AppliedAmbient, TargetAmbient, interpolation);
+		// The wake-up darkness recedes at its own tunable speed so the effect reads as waking up
+		float ambientInterpolation = IsWakingUp
+			? Mathf.Clamp01(Time.deltaTime * wakeUpTransitionSpeed)
+			: interpolation;
+		AppliedAmbient = Mathf.Lerp(AppliedAmbient, TargetAmbient, ambientInterpolation);
 		AppliedNightVision = Mathf.Lerp(AppliedNightVision, TargetNightVision, interpolation);
+		// End the wake-up once the grid has brightened back to daylight, then resume normal lighting rules
+		if (IsWakingUp && AppliedAmbient >= 0.995f)
+		{
+			IsWakingUp = false;
+			RefreshVisibility();
+		}
 		// Build active target key set
 		HashSet<int> activeTargetKeys = new(TargetLightCount);
 		for (int i = 0; i < TargetLightCount; i++)

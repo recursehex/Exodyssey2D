@@ -198,6 +198,10 @@ public class GameManager : MonoBehaviour
 		TileManager.TileDot.SetActive(false);
 		TileManager.ClearTileAreas();
 		TileManager.ClearTargets();
+		// On the first grid of a run, start the "wake up" darkness that quickly recedes to daylight so the
+		// player wakes into the ongoing disaster; all light sources stay hidden until the darkness clears
+		if (LevelManager.Level == 0)
+			VisibilityManager.BeginWakeUp();
 		if (TilemapRevealAnimator != null && TilemapRevealAnimator.HasPreparedTiles)
 			yield return TilemapRevealAnimator.PlayReveal();
 		OnLevelLoadComplete();
