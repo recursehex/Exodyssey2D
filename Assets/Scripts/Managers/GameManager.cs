@@ -211,7 +211,8 @@ public class GameManager : MonoBehaviour
 		TileManager.TileDot.SetActive(false);
 		TileManager.ClearTileAreas();
 		TileManager.ClearTargets();
-		ClearAllLights();
+		// Keep the darkness overlay up through the collapse; it is cleared once the loading screen covers
+		// the grid (see HandleLoadingScreenVisibilityChanged) so the grid is not revealed prematurely
 		if (TilemapRevealAnimator != null)
 		{
 			Vector3Int PlayerCell = TilemapGround.WorldToCell(Player.transform.position);
@@ -246,6 +247,9 @@ public class GameManager : MonoBehaviour
 		TurnManager.SetEndTurnButtonLock(isVisible);
 		if (isVisible)
 		{
+			// Now that the loading screen covers the grid, clear the darkness overlay and lights so the
+			// previous night grid is not seen revealed before the collapse-to-loading-screen handoff
+			ClearAllLights();
 			TurnManager.SetEndTurnButtonInteractable(false);
 			if (TileRevealRoutine != null)
 			{
