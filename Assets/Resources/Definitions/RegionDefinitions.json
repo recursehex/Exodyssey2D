@@ -10,6 +10,8 @@
       "EnemyPool": ["Weak"],
       "ItemPool": ["Common", "Limited"],
       "VehiclePool": ["Common", "Limited"],
+      "ForcedWildfires": 2,
+      "AllowNaturalWildfire": false,
       "WallWeights": [
         { "Name": "bush", "weight": 50 },
         { "Name": "rocks", "weight": 35 },
@@ -39,7 +41,8 @@
       "WallTileSetName": "GD_Walls",
       "EnemyPool": ["Weak", "Mediocre"],
       "ItemPool": ["Common", "Limited", "Scarce"],
-      "VehiclePool": ["Common", "Limited", "Scarce"]
+      "VehiclePool": ["Common", "Limited", "Scarce"],
+      "AllowNaturalWildfire": false
     },
     {
       "Tag": "ScorchedPlateau",
@@ -59,7 +62,8 @@
       "WallTileSetName": "RR_Walls",
       "EnemyPool": ["Weak", "Mediocre", "Exotic"],
       "ItemPool": ["Common", "Limited", "Scarce", "Rare", "Anomalous"],
-      "VehiclePool": ["Common", "Limited", "Scarce", "Anomalous"]
+      "VehiclePool": ["Common", "Limited", "Scarce", "Anomalous"],
+      "AllowNaturalWildfire": false
     },
     {
       "Tag": "VolatileVolcanoes",
@@ -79,7 +83,8 @@
       "WallTileSetName": "LS_Walls",
       "EnemyPool": ["Weak", "Exotic"],
       "ItemPool": ["Common", "Limited", "Scarce", "Rare", "Anomalous"],
-      "VehiclePool": ["Common", "Limited", "Scarce", "Rare", "Anomalous"]
+      "VehiclePool": ["Common", "Limited", "Scarce", "Rare", "Anomalous"],
+      "AllowNaturalWildfire": false
     },
     {
       "Tag": "RadiantCascades",
@@ -89,7 +94,8 @@
       "WallTileSetName": "RC_Walls",
       "EnemyPool": ["Strong", "Exotic"],
       "ItemPool": ["Common", "Limited", "Scarce", "Rare", "Anomalous"],
-      "VehiclePool": ["Common", "Limited", "Scarce", "Rare", "Anomalous"]
+      "VehiclePool": ["Common", "Limited", "Scarce", "Rare", "Anomalous"],
+      "AllowNaturalWildfire": false
     }
   ]
 }

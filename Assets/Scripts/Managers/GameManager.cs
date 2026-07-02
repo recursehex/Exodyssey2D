@@ -188,7 +188,12 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	private void OnLevelInitialized()
 	{
-		FireManager.ResetForLevel();
+		// Wildfire behavior is data-driven per region (see RegionDefinitions.json):
+		// AllowNaturalWildfire gates the natural chance roll, ForcedWildfires guarantees seeds
+		RegionInfo Region = RegionManager.CurrentRegion;
+		FireManager.ResetForLevel(Region.AllowNaturalWildfire);
+		if (Region.ForcedWildfires > 0)
+			FireManager.ForceSpawnWildfires(Region.ForcedWildfires);
 		StructureManager.GenerateStructures();
 		// Guarantee vehicle spawn on first level
 		if (LevelManager.Level == 0)

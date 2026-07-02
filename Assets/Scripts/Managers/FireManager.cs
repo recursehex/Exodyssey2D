@@ -186,11 +186,22 @@ public class FireManager : MonoBehaviour
     /// Attempts to start a natural wildfire for the current grid.
     /// Wildfires do not expire naturally and try to fill the grid
     /// </summary>
+    /// <summary>
+    /// Forces the given number of wildfire seeds to spawn this level, bypassing the
+    /// natural spawn chance roll. Used to guarantee wildfires on the first level.
+    /// </summary>
+    public void ForceSpawnWildfires(int seeds)
+    {
+        SpawnWildfireSeeds(Mathf.Max(1, seeds));
+    }
     private void TrySpawnNaturalWildfire()
     {
         if (naturalWildfireChance <= 0f || Random.value > naturalWildfireChance)
             return;
-        int seeds = Mathf.Max(1, naturalWildfireSeeds);
+        SpawnWildfireSeeds(Mathf.Max(1, naturalWildfireSeeds));
+    }
+    private void SpawnWildfireSeeds(int seeds)
+    {
         // Collect every valid edge-biased seed cell so the minimum seed count is
         // guaranteed whenever enough tiles exist, drawing distinct cells
         List<Vector3Int> Candidates = GetWildfireCandidateCells();

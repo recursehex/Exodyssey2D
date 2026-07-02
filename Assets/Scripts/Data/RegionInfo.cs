@@ -29,6 +29,8 @@ public class RegionInfo
     public List<string> ItemPool    { get; private set; } = new();          // Allowed item tags for this region
     public List<string> VehiclePool { get; private set; } = new();          // Allowed vehicle tags for this region
     public Dictionary<string, int> WallWeights { get; private set; } = new(); // Per-region wall spawn weights by sprite name
+    public int ForcedWildfires      { get; private set; } = 0;              // Guaranteed wildfires spawned per grid
+    public bool AllowNaturalWildfire { get; private set; } = true;          // Whether the natural wildfire chance roll can occur
     [Serializable] private class Entry
     {
         public string Tag, Name, Description;
@@ -37,6 +39,8 @@ public class RegionInfo
         public string GroundTileSetName, WallTileSetName;
         public List<string> EnemyPool = new(), ItemPool = new(), VehiclePool = new();
         public List<WallWeight> WallWeights = new();
+        public int ForcedWildfires = 0;
+        public bool AllowNaturalWildfire = true;
         public bool disabled = false;
     }
     [Serializable] private class WallWeight
@@ -91,6 +95,8 @@ public class RegionInfo
         EnemyPool       = new(Source.EnemyPool);
         ItemPool        = new(Source.ItemPool);
         VehiclePool     = new(Source.VehiclePool);
+        ForcedWildfires = Source.ForcedWildfires;
+        AllowNaturalWildfire = Source.AllowNaturalWildfire;
         WallWeights     = new();
         foreach (WallWeight Weight in Source.WallWeights)
         {
