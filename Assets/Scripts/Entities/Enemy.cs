@@ -145,8 +145,8 @@ public class Enemy : MonoBehaviour
 				&& Path.Count == AdjacentNodeCount
 				&& !isUsingRandomPath)
 		{
-			while (HasEnergy)
-				AttackPlayer();
+			// Stop attacking if the vehicle is destroyed, so leftover attacks do not hit the ejected player
+			while (HasEnergy && AttackPlayer()) { }
 		}
 		// If no valid movement available
 		else
@@ -239,15 +239,22 @@ public class Enemy : MonoBehaviour
 	public bool HasEnergy => Info.CurrentEnergy > 0;
 	#endregion
 	#region ATTACK METHODS
-	private void AttackPlayer()
+	/// <summary>
+	/// Attacks the Player, or their Vehicle if they are in one. Returns false if the attack destroyed the
+	/// vehicle, signalling the enemy to stop attacking rather than carry damage over to the ejected player.
+	/// </summary>
+	private bool AttackPlayer()
 	{
 		Info.DecrementEnergy();
-		// If Player is in Vehicle, damage Vehicle
+		// If Player is in Vehicle, damage Vehicle and stop if it was destroyed
 		if (Player.IsInVehicle)
-			GameManager.Instance.DamageVehicle(Player.Vehicle, Info.DamagePoints);
+		{
+			bool vehicleDestroyed = GameManager.Instance.DamageVehicle(Player.Vehicle, Info.DamagePoints);
+			return !vehicleDestroyed;
+		}
 		// If Player is not in Vehicle, damage Player
-		else
-			Player.DecreaseHealthBy(Info.DamagePoints, Info.Range == 0);
+		Player.DecreaseHealthBy(Info.DamagePoints, Info.Range == 0);
+		return true;
 	}
 	#endregion
 }

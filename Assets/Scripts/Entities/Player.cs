@@ -221,6 +221,16 @@ public class Player : MonoBehaviour
 		ReachableArea.Remove(StartCell);
 		return ReachableArea;
 	}
+	/// <summary>
+	/// Returns the number of tiles in the shortest path from the Player to Goal (start and goal included),
+	/// or -1 if no path exists. The walk energy cost is this count minus 1 (one per move).
+	/// </summary>
+	public int GetPathTileCountTo(Vector3 Goal)
+	{
+		AStar.Initialize();
+		Stack<Vector3Int> ComputedPath = AStar.ComputePath(transform.position, Goal);
+		return ComputedPath?.Count ?? -1;
+	}
 	#endregion
 	#region VEHICLE METHODS
 	public void EnterVehicle(Vehicle EnteredVehicle)
@@ -281,7 +291,11 @@ public class Player : MonoBehaviour
 			// Unsubscribe to prevent memory leaks
 			Vehicle.OnVehicleMovementComplete = null;
 		};
+		// Driving up to the enemy is a vehicle move (1 energy); the ram strike costs another 1
+		bool drivesToTarget = Vehicle.PreparedRamRequiresMovement;
 		Vehicle.StartPreparedRam();
+		if (drivesToTarget)
+			DecrementEnergy();
 		DecrementEnergy();
 	}
 	/// <summary>

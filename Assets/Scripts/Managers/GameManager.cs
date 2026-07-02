@@ -18,6 +18,8 @@ public class GameManager : MonoBehaviour
 	private Coroutine PlayerTurnDelayRoutine;
 	private Coroutine ExitTransitionRoutine;
 	private readonly List<Item> LitDynamite = new();
+	// Vehicle the player is walking toward to enter once the movement completes
+	private Vehicle PendingEnterVehicle;
 	[Header("Managers")]
 	[SerializeField] private RegionManager RegionManager;
 	private EnemyManager EnemyManager;
@@ -151,6 +153,7 @@ public class GameManager : MonoBehaviour
 		TurnManager.TurnTimer.timerIsRunning = false;
 		TurnManager.TurnTimer.ResetTimer();
 		LitDynamite.Clear();
+		PendingEnterVehicle = null;
 		FireManager.DestroyAllFires();
 		ItemManager.DestroyAllItems();
 		EnemyManager.DestroyAllEnemies();
@@ -292,6 +295,7 @@ public class GameManager : MonoBehaviour
 	{
 		TurnManager.StopTurnTimer();
 		LitDynamite.Clear();
+		PendingEnterVehicle = null;
 		ItemManager.DestroyAllItems();
 		EnemyManager.DestroyAllEnemies();
 		if (Player.IsInVehicle)
@@ -632,6 +636,9 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	private void OnPlayerMovementComplete()
 	{
+		// If the player walked over to a vehicle to enter it, finish entering now
+		if (TryCompletePendingVehicleEntry())
+			return;
 		// Move Player to vehicle position if in vehicle
 		if (Player.IsInVehicle && Player.Vehicle != null)
 			Player.transform.position = Player.Vehicle.transform.position;
@@ -643,6 +650,31 @@ public class GameManager : MonoBehaviour
 			TurnManager.SetEndTurnButtonInteractable(true);
 			UpdateTileAreas();
 		}
+	}
+	/// <summary>
+	/// Enters the vehicle the player walked toward, if still valid. Returns true if a pending entry was handled.
+	/// </summary>
+	private bool TryCompletePendingVehicleEntry()
+	{
+		if (PendingEnterVehicle == null)
+			return false;
+		Vehicle Vehicle = PendingEnterVehicle;
+		PendingEnterVehicle = null;
+		// Enter only if the vehicle still exists, the player reached an adjacent tile, it is not burning,
+		// and there is energy left for the entry
+		if (Vehicle != null
+			&& IsPlayerAdjacentTo(Vehicle.transform.position)
+			&& !HasFireAtPosition(TilemapGround.WorldToCell(Vehicle.transform.position))
+			&& Player.HasEnergy)
+		{
+			Player.EnterVehicle(Vehicle);
+			TileManager.ClearTargets();
+		}
+		RefreshVisibility();
+		if (TurnManager.IsPlayersTurn)
+			TurnManager.SetEndTurnButtonInteractable(true);
+		UpdateTileAreas();
+		return true;
 	}
 	/// <summary>
 	/// Checks if Player is on exit tile to reset for next level
@@ -741,13 +773,17 @@ public class GameManager : MonoBehaviour
 				UpdateTileAreas();
 			}
 		}
-		// If Player's vehicle is off and clicked tile is in movement range, try to exit vehicle
-		else if (!Player.Vehicle.Info.IsOn
+		// If Player's vehicle is off, try switching to another reachable vehicle, otherwise exit onto a reachable tile
+		else if (!Player.Vehicle.Info.IsOn)
+		{
+			if (!TrySwitchVehicle(TilePoint)
 				&& TileManager.IsInTileArea(TilePoint))
-			TryExitVehicle(WorldPoint, TilePoint, ShiftedClickPoint);
-		// If Player's vehicle is on, has fuel, and clicked tile is in movement range, try to move vehicle
+				TryExitVehicle(WorldPoint, TilePoint, ShiftedClickPoint);
+		}
+		// If Player's vehicle is on, has fuel, and has energy, try to move or ram (both cost 1 energy)
 		else if (Player.Vehicle.Info.IsOn
-				&& Player.Vehicle.HasCharge())
+				&& Player.Vehicle.HasCharge()
+				&& Player.HasEnergy)
 			TryVehicleMovement(WorldPoint, TilePoint, ShiftedClickPoint);
 		return true;
 	}
@@ -758,9 +794,10 @@ public class GameManager : MonoBehaviour
 	{
 		// Check if Player's vehicle can exit to clicked tile
 		bool isInMovementRange = TileManager.IsInTileArea(TilePoint);
-		// Return if not in movement range, enemy present, clicked on current position, or Player has no energy
+		// Return if not in movement range, enemy or vehicle present, clicked on current position, or no energy
 		if (!isInMovementRange
 			|| HasEnemyAtPosition(ShiftedClickPoint)
+			|| HasVehicleAtPosition(ShiftedClickPoint)
 			|| HasFireAtPosition(TilePoint)
 			|| ShiftedClickPoint == Player.transform.position
 			|| !Player.HasEnergy)
@@ -775,6 +812,44 @@ public class GameManager : MonoBehaviour
 		TileManager.ClearTileAreas();
 		UpdateTargets();
 		TurnManager.TurnTimer.StartTimer();
+	}
+	/// <summary>
+	/// While in an off vehicle, clicking another reachable vehicle exits the current one, walks over, and enters it.
+	/// Returns true if the click targeted a different vehicle (even if it could not be reached).
+	/// </summary>
+	private bool TrySwitchVehicle(Vector3Int TilePoint)
+	{
+		Vehicle Target = GetVehicleAtPosition(TilePoint);
+		// Not a switch attempt if the tile has no vehicle or is the current one
+		if (Target == null || Target == Player.Vehicle)
+			return false;
+		// Consume the click even if the target is unreachable this turn
+		if (!CanEnterVehicle(Target))
+			return true;
+		TurnManager.SetEndTurnButtonInteractable(false);
+		ChronoclasmManager.RecordUndoSnapshot();
+		// Leave the current (off) vehicle; the player is now on foot at the same tile
+		Player.ExitVehicle();
+		RefreshVisibility();
+		// Enter immediately if already adjacent, otherwise walk over and enter on arrival
+		if (IsPlayerAdjacentTo(Target.transform.position))
+		{
+			Player.EnterVehicle(Target);
+			TileManager.ClearTargets();
+			RefreshVisibility();
+			UpdateTileAreas();
+		}
+		else
+		{
+			TryGetVehicleApproach(Target, out Vector3 ApproachWorld);
+			PendingEnterVehicle = Target;
+			Player.IsInMovement = true;
+			Player.ComputePathAndStartMovement(ApproachWorld);
+			TileManager.ClearTileAreas();
+			TileManager.ClearTargets();
+		}
+		TurnManager.TurnTimer.StartTimer();
+		return true;
 	}
 	/// <summary>
 	/// Tries to move Player's vehicle to specified world point
@@ -814,6 +889,10 @@ public class GameManager : MonoBehaviour
 			return false;
 		// Verify the vehicle can reach a tile adjacent to the enemy this turn before committing
 		if (!Player.Vehicle.PrepareRam(ShiftedClickPoint, TileManager.IsInTileArea))
+			return true;
+		// A drive-up ram costs 2 energy (the approach move plus the strike); an in-place ram costs 1
+		int ramCost = Player.Vehicle.PreparedRamRequiresMovement ? 2 : 1;
+		if (Player.CurrentEnergy < ramCost)
 			return true;
 		TurnManager.SetEndTurnButtonInteractable(false);
 		ChronoclasmManager.RecordUndoSnapshot();
@@ -919,14 +998,14 @@ public class GameManager : MonoBehaviour
 				return true;
 			}
 		}
-		// Firestarters place a fire tile, but only if no fire, wall, enemy, vehicle, or player at position
+		// Firestarters place a fire tile, but only if no fire, wall, enemy, or player at position
+		// (vehicles may be set on fire, so they are allowed)
 		else if (Selected.Tag is ItemInfo.Tags.Blowtorch or ItemInfo.Tags.Flamethrower)
 		{
 			if (!TileManager.IsInTileArea(TilePoint)
 				|| LevelManager.HasWallAtPosition(TilePoint)
 				|| HasEnemyAtPosition(ShiftedClickPoint)
 				|| HasFireAtPosition(TilePoint)
-				|| HasVehicleAtPosition(ShiftedClickPoint)
 				|| ShiftedClickPoint == Player.transform.position)
 				return false;
 			bool spawnedFire = Selected.Tag == ItemInfo.Tags.Flamethrower
@@ -982,23 +1061,124 @@ public class GameManager : MonoBehaviour
 	}
 	private bool TryEnterVehicle(Vector3Int TilePoint)
 	{
-		// Get vehicle index at position
+		// Get vehicle at position
 		Vehicle Vehicle = GetVehicleAtPosition(TilePoint);
-		// Return false if no vehicle found
-		if (Vehicle == null)
+		if (Vehicle == null || !CanEnterVehicle(Vehicle))
 			return false;
-		// Return false if player is not adjacent to vehicle or if vehicle is on fire
-		if (!IsPlayerAdjacentTo(Vehicle.transform.position)
-			|| HasFireAtPosition(TilePoint))
+		// Enter immediately if already adjacent
+		if (IsPlayerAdjacentTo(Vehicle.transform.position))
+		{
+			EnterVehicleImmediately(Vehicle);
+			return true;
+		}
+		// Otherwise walk to the nearest reachable adjacent tile and enter on arrival
+		return TryWalkToEnterVehicle(Vehicle);
+	}
+	/// <summary>
+	/// Returns true if the player could enter the vehicle this turn: it is a different vehicle than the one
+	/// the player is in (if any), the player is not in a running vehicle, no priority item is selected, the
+	/// vehicle is not burning, and the player is adjacent or can walk to an adjacent tile and still afford
+	/// the 1-energy entry. While in an off vehicle, this represents switching to the other vehicle.
+	/// </summary>
+	private bool CanEnterVehicle(Vehicle Vehicle)
+	{
+		if (Vehicle == null
+			|| Vehicle == Player.Vehicle
+			|| (Player.IsInVehicle && Player.Vehicle.Info.IsOn)
+			|| !Player.HasEnergy
+			|| IsVehicleEntrySuppressedBySelectedItem()
+			|| HasFireAtPosition(TilemapGround.WorldToCell(Vehicle.transform.position)))
 			return false;
+		return IsPlayerAdjacentTo(Vehicle.transform.position)
+			|| TryGetVehicleApproach(Vehicle, out _);
+	}
+	/// <summary>
+	/// Adds a tile-area marker under every vehicle the player could enter this turn
+	/// </summary>
+	private void AddEnterableVehicleTiles(Dictionary<Vector3Int, Node> Area)
+	{
+		if (Area == null)
+			return;
+		foreach (Vehicle Vehicle in VehicleManager.Vehicles)
+		{
+			if (Vehicle == null || !CanEnterVehicle(Vehicle))
+				continue;
+			Vector3Int Cell = TilemapGround.WorldToCell(Vehicle.transform.position);
+			Area[Cell] = new Node(Cell);
+		}
+	}
+	/// <summary>
+	/// Enters the vehicle right away (player is already adjacent)
+	/// </summary>
+	private void EnterVehicleImmediately(Vehicle Vehicle)
+	{
 		ChronoclasmManager.RecordUndoSnapshot();
 		Player.EnterVehicle(Vehicle);
 		TurnManager.TurnTimer.StartTimer();
 		TileManager.ClearTargets();
 		RefreshVisibility();
 		UpdateTileAreas();
+	}
+	/// <summary>
+	/// Walks the player to the cheapest orthogonally-adjacent tile of the vehicle, then enters it on arrival.
+	/// Requires enough energy for the walk plus 1 for entering. Returns false if unaffordable or unreachable.
+	/// </summary>
+	private bool TryWalkToEnterVehicle(Vehicle Vehicle)
+	{
+		if (!Player.HasEnergy
+			|| !TryGetVehicleApproach(Vehicle, out Vector3 ApproachWorld))
+			return false;
+		TurnManager.SetEndTurnButtonInteractable(false);
+		ChronoclasmManager.RecordUndoSnapshot();
+		PendingEnterVehicle = Vehicle;
+		Player.IsInMovement = true;
+		Player.ComputePathAndStartMovement(ApproachWorld);
+		TileManager.ClearTileAreas();
+		TileManager.ClearTargets();
+		TurnManager.TurnTimer.StartTimer();
 		return true;
 	}
+	/// <summary>
+	/// Finds the orthogonally-adjacent tile of the vehicle with the cheapest reachable path such that the
+	/// player can still afford the 1-energy entry after walking there
+	/// </summary>
+	private bool TryGetVehicleApproach(Vehicle Vehicle, out Vector3 ApproachWorld)
+	{
+		ApproachWorld = default;
+		Vector3Int VehicleCell = TilemapGround.WorldToCell(Vehicle.transform.position);
+		Vector3Int[] Offsets = { Vector3Int.up, Vector3Int.down, Vector3Int.left, Vector3Int.right };
+		int bestMoves = int.MaxValue;
+		foreach (Vector3Int Offset in Offsets)
+		{
+			Vector3 CandidateWorld = VehicleCell + Offset + new Vector3(0.5f, 0.5f);
+			int tileCount = Player.GetPathTileCountTo(CandidateWorld);
+			// No path, or the candidate is the player's own tile
+			if (tileCount < 2)
+				continue;
+			int moves = tileCount - 1;
+			// Need energy for every move plus 1 to enter the vehicle
+			if (moves + 1 > Player.CurrentEnergy)
+				continue;
+			if (moves < bestMoves)
+			{
+				bestMoves = moves;
+				ApproachWorld = CandidateWorld;
+			}
+		}
+		return bestMoves != int.MaxValue;
+	}
+	/// <summary>
+	/// Returns true if the selected item should take priority over entering a vehicle
+	/// </summary>
+	private bool IsVehicleEntrySuppressedBySelectedItem()
+		=> Player.SelectedItemInfo?.Tag is
+			ItemInfo.Tags.Flamethrower
+			or ItemInfo.Tags.Blowtorch
+			or ItemInfo.Tags.Dynamite
+			or ItemInfo.Tags.Extinguisher
+			or ItemInfo.Tags.Wrench
+			or ItemInfo.Tags.ToolKit
+			or ItemInfo.Tags.PowerCell;
 	private bool TryInteractWithStructure(Vector3Int TilePoint)
 	{
 		Structure Structure = StructureManager.GetStructureAtCell(TilePoint);
@@ -1042,9 +1222,11 @@ public class GameManager : MonoBehaviour
 			return false;
 		// Check if player can move to clicked tile
 		bool isInMovementRange = TileManager.IsInTileArea(TilePoint);
-		// Return false if not in movement range, enemy present, or clicked on current position
+		// Return false if not in movement range, enemy or vehicle present (vehicle tiles are enter markers,
+		// not walkable), or clicked on current position
 		if (!isInMovementRange
 			|| HasEnemyAtPosition(ShiftedClickPoint)
+			|| HasVehicleAtPosition(ShiftedClickPoint)
 			|| HasFireAtPosition(TilePoint)
 			|| ShiftedClickPoint == Player.transform.position)
 		{
@@ -1153,8 +1335,7 @@ public class GameManager : MonoBehaviour
 		Vector3 WorldPosition = Cell + new Vector3(0.5f, 0.5f);
 		if (HasEnemyAtPosition(WorldPosition))
 			return false;
-		if (HasVehicleAtPosition(WorldPosition))
-			return false;
+		// Vehicles can be set on fire, so their tiles are valid firestarter targets
 		return true;
 	}
 	private bool IsValidDynamiteTarget(Vector3Int Cell)
@@ -1397,7 +1578,11 @@ public class GameManager : MonoBehaviour
 		// If Player is not in a vehicle, or is in a vehicle that is off, calculate player area
 		else if (!Player.IsInVehicle
 			|| (Player.IsInVehicle && !Player.Vehicle.Info.IsOn))
+		{
 			AreasToDraw = Player.CalculateArea();
+			// Mark any vehicle the player could walk up to and enter this turn (on foot, or switching from an off vehicle)
+			AddEnterableVehicleTiles(AreasToDraw);
+		}
 		// Draw areas if any needed
 		if (AreasToDraw != null)
 		{

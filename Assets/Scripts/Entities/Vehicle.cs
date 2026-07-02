@@ -38,6 +38,8 @@ public class Vehicle : MonoBehaviour
 	private Enemy RamTarget;
 	private Enemy PendingRamTarget;
 	private Stack<Vector3Int> PendingPath;
+	// True when the prepared ram must drive to the enemy (an approach move), false when already adjacent
+	public bool PreparedRamRequiresMovement => PendingPath != null;
 	#endregion
 	public void Initialize(Tilemap Ground, Tilemap Walls, VehicleInfo VehicleInfo)
 	{
