@@ -74,13 +74,14 @@ public class ItemInfo
 	public string Description 	{ get; private set; }					// Ingame description of item
 	public string Stats 		{ get; private set; }					// Ingame list of durability, damage, armor damage, and range
 	public int CurrentUses 		{ get; private set; } = 1;				// Current durability of item
-	public bool IsActiveFlare 	{ get; private set; } = false;
-	public int ActiveFlareTurnsRemaining { get; private set; } = 0;
 	public int DamagePoints 	{ get; private set; } = -1;				// Damage of item, -1 = not a weapon
 	public int ArmorDamage 		{ get; private set; } = -1;				// Damage of item to armor, -1 = does same damage as DamagePoints
 	public int Range 			{ get; private set; } = -1;				// Range of item, -1 = not a ranged weapon
-	public bool HasRange 		=> Range > 0;
-	public bool IsUnbreakable	=> Tag is Tags.PlasmaRailgun;
+	public int ActiveFlareTurnsRemaining { get; private set; } = 0;		// Number of turns remaining for an active flare, 0 = not active
+	public bool IsActiveFlare 	{ get; private set; } = false;			// If item is an active flare, burning and illuminating the area
+	public bool HasRange 		=> Range > 0;							// If item has a range value, meaning it is a ranged weapon
+	public bool IsUnbreakable	=> Tag is Tags.PlasmaRailgun;			// If item is unbreakable, meaning it cannot be depleted or destroyed
+	public bool IsDepleted		=> CurrentUses <= 0;					// If item is out of UP
 	public bool IsEquipable 	{ get; private set; } = false;			// If item can be equipped, enabling and removing from inventory
 	public bool IsAttachable 	{ get; private set; } = false;			// If item can be attached to vehicles, enabling and removing from inventory
 	public bool IsFlammable 	{ get; private set; } = false;			// If item is flammable, can be destroyed by fire and helps it spread

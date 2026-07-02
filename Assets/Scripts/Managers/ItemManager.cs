@@ -26,6 +26,7 @@ public class ItemManager : MonoBehaviour
     {
         Item Item = Instantiate(ItemTemplates[index], Position, Quaternion.identity).GetComponent<Item>();
         Item.Info = new(index);
+        Item.RefreshSprite();
         Items.Add(Item);
         return Item;
     }
@@ -37,6 +38,7 @@ public class ItemManager : MonoBehaviour
         int index = (int)Info.Tag;
         Item Item = Instantiate(ItemTemplates[index], Position, Quaternion.identity).GetComponent<Item>();
         Item.Info = Info;
+        Item.RefreshSprite();
         Items.Add(Item);
         return Item;
     }

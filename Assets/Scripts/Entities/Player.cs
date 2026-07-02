@@ -452,6 +452,8 @@ public partial class Player : MonoBehaviour
 		SelectedItemInfo.DecreaseDurability();
 		InventoryUI.SetCurrentSelected(InventoryUI.SelectedIndex);
 		TryRemoveSelectedItem();
+		// Update icons so depleted unbreakable items show their empty sprite
+		InventoryUI.RefreshInventoryIcons();
 	}
 	/// <summary>
 	/// Removes selected item from inventory and resets related variables
@@ -683,6 +685,8 @@ public partial class Player : MonoBehaviour
 		}
 		if (shouldRefreshSelected && InventoryUI.SelectedIndex >= 0)
 			InventoryUI.SetCurrentSelected(InventoryUI.SelectedIndex);
+		// Update icons so recharged railgun returns to its normal sprite
+		InventoryUI.RefreshInventoryIcons();
 	}
     #endregion
 }
