@@ -1,7 +1,10 @@
 fileFormatVersion: 2
 guid: d38d13e653a2c42e382135c5afbd03f1
 TextureImporter:
-  internalIDToNameTable: []
+  internalIDToNameTable:
+  - first:
+      213: 3356974202405458098
+    second: huntingrifle_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
