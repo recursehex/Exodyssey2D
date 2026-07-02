@@ -15,6 +15,11 @@ public class KeyPressHandler : MonoBehaviour
 
     void Update()
     {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        // Suppress all button hotkeys while the cheat menu is open or placing
+        if (CheatMenu.IsOpen || CheatMenu.IsPlacing)
+            return;
+#endif
         if (!Button.interactable)
             return;
         if (Action == null)

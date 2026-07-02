@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-public class RegionManager : MonoBehaviour
+public partial class RegionManager : MonoBehaviour
 {
     public static RegionInfo CurrentRegion { get; private set; }
     public int CurrentRegionIndex { get; private set; } = 0;

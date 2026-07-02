@@ -132,6 +132,18 @@ public class EnemyManager : MonoBehaviour
             OnMovementComplete?.Invoke();
             return;
         }
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        // Frozen enemies skip their turn entirely but keep the turn flow intact
+        if (CheatFlags.FreezeEnemies)
+        {
+            NeedToStartEnemyMovement = false;
+            EnemiesAreMoving = false;
+            indexOfMovingEnemy = -1;
+            RestoreAllEnemyEnergy();
+            OnMovementComplete?.Invoke();
+            return;
+        }
+#endif
         if (NeedToStartEnemyMovement)
         {
             NeedToStartEnemyMovement = false;

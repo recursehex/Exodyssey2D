@@ -27,6 +27,10 @@ public class VisibilityManager : MonoBehaviour
 	private readonly List<int> TargetLightKeys = new(maxLightSources);
 	private readonly Dictionary<int, Vector4> AppliedLights = new();
 	private readonly List<int> FadingKeys = new();
+	private readonly HashSet<int> ActiveTargetKeys = new();
+	// Reused per-frame buffers to avoid GetComponentsInChildren array garbage every frame
+	private static readonly List<SpriteRenderer> SpriteRendererBuffer = new();
+	private static readonly List<MeshRenderer> MeshRendererBuffer = new();
 	private readonly Vector4[] ShaderLightData = new Vector4[maxLightSources];
 	private int PlayerLightIndex = -1;
 	private readonly List<int> InventoryFlareLightIndices = new();
@@ -125,7 +129,16 @@ public class VisibilityManager : MonoBehaviour
 		RebuildVisibilityState();
 		UpdateTrackedLightPositions();
 	}
-	public bool IsVisibilityRestricted => IsNightTime && Player != null && !Player.HasNightVision;
+	public bool IsVisibilityRestricted
+	{
+		get
+		{
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+			if (CheatFlags.RevealAll) return false;
+#endif
+			return IsNightTime && Player != null && !Player.HasNightVision;
+		}
+	}
 	public bool IsCellVisible(Vector3Int Cell)
 	{
 		FlushIfNeeded();
@@ -338,6 +351,19 @@ public class VisibilityManager : MonoBehaviour
 		InventoryFlareLightIndices.Clear();
 		VehicleLightIndices.Clear();
 		ConfigureOverlaySorting();
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+		// Reveal-all cheat: full daylight, every cell visible, no darkness overlay
+		if (CheatFlags.RevealAll)
+		{
+			FillAllCellsVisible();
+			TargetAmbient = 1f;
+			TargetNightVision = 0f;
+			TargetOverlayEnabled = false;
+			TargetLightCount = 0;
+			ApplyEntityVisibility();
+			return;
+		}
+#endif
 		if (IsWakingUp)
 		{
 			// The whole grid is uniformly dark and recedes to daylight; keep all cells visible so entities
@@ -804,15 +830,15 @@ public class VisibilityManager : MonoBehaviour
 			IsWakingUp = false;
 			RefreshVisibility();
 		}
-		// Build active target key set
-		HashSet<int> activeTargetKeys = new(TargetLightCount);
+		// Build active target key set (reused each frame to avoid allocation)
+		ActiveTargetKeys.Clear();
 		for (int i = 0; i < TargetLightCount; i++)
-			activeTargetKeys.Add(TargetLightKeys[i]);
+			ActiveTargetKeys.Add(TargetLightKeys[i]);
 		// Fade out removed lights in-place (glow shrink)
 		FadingKeys.Clear();
 		foreach (var kvp in AppliedLights)
 		{
-			if (!activeTargetKeys.Contains(kvp.Key))
+			if (!ActiveTargetKeys.Contains(kvp.Key))
 				FadingKeys.Add(kvp.Key);
 		}
 		for (int i = FadingKeys.Count - 1; i >= 0; i--)
@@ -949,10 +975,11 @@ public class VisibilityManager : MonoBehaviour
 	{
 		if (Fire == null || OverlayRenderer == null)
 			return;
-		SpriteRenderer[] SpriteRenderers = Fire.GetComponentsInChildren<SpriteRenderer>(true);
+		// Fill a reused buffer instead of allocating an array each call
+		Fire.GetComponentsInChildren(true, SpriteRendererBuffer);
 		int fireSortingLayerId = OverlayRenderer.sortingLayerID;
 		int fireOrder = CurrentFireSortingOrder;
-		foreach (SpriteRenderer SpriteRenderer in SpriteRenderers)
+		foreach (SpriteRenderer SpriteRenderer in SpriteRendererBuffer)
 		{
 			SpriteRenderer.sortingLayerID = fireSortingLayerId;
 			SpriteRenderer.sortingOrder = fireOrder;
@@ -962,11 +989,12 @@ public class VisibilityManager : MonoBehaviour
 	{
 		if (Object == null)
 			return;
-		SpriteRenderer[] SpriteRenderers = Object.GetComponentsInChildren<SpriteRenderer>(true);
-		foreach (SpriteRenderer SpriteRenderer in SpriteRenderers)
+		// Use the List overloads (on a Component) to avoid per-call array allocation
+		Object.transform.GetComponentsInChildren(true, SpriteRendererBuffer);
+		foreach (SpriteRenderer SpriteRenderer in SpriteRendererBuffer)
 			SpriteRenderer.enabled = isVisible;
-		MeshRenderer[] MeshRenderers = Object.GetComponentsInChildren<MeshRenderer>(true);
-		foreach (MeshRenderer MeshRenderer in MeshRenderers)
+		Object.transform.GetComponentsInChildren(true, MeshRendererBuffer);
+		foreach (MeshRenderer MeshRenderer in MeshRendererBuffer)
 			MeshRenderer.enabled = isVisible;
 	}
 	private static void SetEntityListVisibility<T>(IEnumerable<T> Entities, bool isVisible) where T : Component

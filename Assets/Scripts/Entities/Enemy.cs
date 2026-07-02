@@ -354,6 +354,9 @@ public class Enemy : MonoBehaviour
 	#region HEALTH METHODS
 	public void DecreaseHealthBy(int damage)
 	{
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+		if (CheatFlags.InvincibleEnemies) return;
+#endif
 		Info.DecreaseHealthBy(damage);
 		if (Info.CurrentHealth <= 0)
 			gameObject.SetActive(false);

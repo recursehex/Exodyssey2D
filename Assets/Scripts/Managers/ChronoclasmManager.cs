@@ -79,6 +79,21 @@ public class ChronoclasmManager : MonoBehaviour
 	public void OnTurnTimerExpired() => BlockUndoForTurn("Undo blocked after turn timer expired.");
 	public void ForceChronoclasmReady() => chronoclasmReadyOverride = true;
 	public void ClearChronoclasmReadyOverride() => chronoclasmReadyOverride = false;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+	private bool chronoclasmUnlockOverride = false;
+	/// <summary>
+	/// Cheat: makes Chronoclasm immediately usable by bypassing the region lock and cooldown,
+	/// marking an AP as spent, and ensuring a destination snapshot exists.
+	/// </summary>
+	public void Debug_ForceChronoclasmUsable()
+	{
+		chronoclasmUnlockOverride = true;
+		chronoclasmReadyOverride = true;
+		hasSpentActionPointsThisTurn = true;
+		if (CurrentChronoclasmSnapshot == null)
+			CaptureChronoclasmSnapshot();
+	}
+#endif
 	public void RecordUndoSnapshot(bool recordGroundItem = false)
 	{
 		if (Player == null || TilemapGround == null)
@@ -503,6 +518,10 @@ public class ChronoclasmManager : MonoBehaviour
 	private int GetChronoclasmCooldownGrids() => Mathf.Max(chronoclasmGridsRequired, 0);
 	private bool IsChronoclasmUnlocked()
 	{
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+		if (chronoclasmUnlockOverride)
+			return true;
+#endif
 		RegionInfo CurrentRegion = global::RegionManager.CurrentRegion;
 		if (CurrentRegion == null)
 			return false;

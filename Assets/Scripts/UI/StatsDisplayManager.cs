@@ -36,6 +36,14 @@ public class StatsDisplayManager : MonoBehaviour
 			EnergyIcons[i].sprite = (currentHealth > 1 || i == 0) ? EnergyFull : EnergyEmpty;
 	}
 	/// <summary>
+	/// Sets energy icons to exactly match current energy (full for the first currentEnergy icons)
+	/// </summary>
+	public void SetEnergyDisplay(int currentEnergy)
+	{
+		for (int i = 0; i < EnergyIcons.Length; i++)
+			EnergyIcons[i].sprite = i < currentEnergy ? EnergyFull : EnergyEmpty;
+	}
+	/// <summary>
 	/// Decreases Player Energy icons, requires current and max energy
 	/// </summary>
 	public void DecreaseEnergyDisplay(int currentEnergy, int maxEnergy)

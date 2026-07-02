@@ -9,7 +9,7 @@ using UnityEngine.Tilemaps;
 /// <summary>
 /// Contains functionality specific to the Player
 /// </summary>
-public class Player : MonoBehaviour
+public partial class Player : MonoBehaviour
 {
 	[Header("Player Stats")]
 	#region DATA
@@ -316,6 +316,9 @@ public class Player : MonoBehaviour
 	/// </summary>
 	public void DecreaseHealthBy(int damage, bool isMeleeDamage)
 	{
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+		if (CheatFlags.Invincibility) return;
+#endif
 		// Handle armor
 		if (isMeleeDamage && hasHelmet)
 		{
@@ -368,6 +371,9 @@ public class Player : MonoBehaviour
 	public bool HasEnergy => CurrentEnergy > 0;
 	public void SpendEnergy(int amount)
 	{
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+		if (CheatFlags.InfiniteEnergy) return;
+#endif
 		if (amount <= 0)
 			return;
 		int previousEnergy = CurrentEnergy;
@@ -382,14 +388,17 @@ public class Player : MonoBehaviour
 	public void SetEnergy(int newEnergy)
 	{
 		CurrentEnergy = Mathf.Clamp(newEnergy, 0, maxEnergy);
-		StatsDisplayManager.RestoreEnergyDisplay(currentHealth);
-		StatsDisplayManager.DecreaseEnergyDisplay(CurrentEnergy, maxEnergy);
+		// Display exactly current energy (independent of health, so cheat-raised max shows right)
+		StatsDisplayManager.SetEnergyDisplay(CurrentEnergy);
 	}
 	/// <summary>
 	/// Decreases CurrentEnergy by 1 and updates energy display
 	/// </summary>
 	private void DecrementEnergy()
 	{
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+		if (CheatFlags.InfiniteEnergy) return;
+#endif
 		int previousEnergy = CurrentEnergy;
 		CurrentEnergy = Mathf.Clamp(--CurrentEnergy, 0, maxEnergy);
 		if (CurrentEnergy < previousEnergy)
@@ -410,10 +419,11 @@ public class Player : MonoBehaviour
 	/// <summary>
 	/// Restores Player Energy to maxEnergy
 	/// </summary>
-	public void RestoreEnergy() 
+	public void RestoreEnergy()
 	{
 		CurrentEnergy = maxEnergy;
-		StatsDisplayManager.RestoreEnergyDisplay(currentHealth);
+		// Display exactly current energy (independent of health, so cheat-raised max shows right)
+		StatsDisplayManager.SetEnergyDisplay(CurrentEnergy);
 	}
 	/// <summary>
 	/// Spends energy and durability when using a utility-style item (e.g. extinguisher).

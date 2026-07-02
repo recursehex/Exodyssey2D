@@ -106,6 +106,9 @@ public class GameManager : MonoBehaviour
 		InputManager.OnPlayerHover 		+= HandlePlayerHover;
 		Player.OnMovementComplete 		+= OnPlayerMovementComplete;
 		EnemyManager.OnEnemyKilled 		+= UpdateTileAreas;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+		gameObject.AddComponent<CheatMenu>();
+#endif
 	}
 	private void Start()
 	{
@@ -127,7 +130,14 @@ public class GameManager : MonoBehaviour
 			|| Player.IsInVehicle && Player.Vehicle.IsInMovement)
 			return;
 		if (TurnManager.IsPlayersTurn)
-			InputManager.ProcessInput();
+		{
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+			// Cheat menu/placement suppress only manual input; console commands still run,
+			// and the enemy turn below still processes so commands like endturn complete.
+			if (!CheatMenu.IsOpen && !CheatMenu.IsPlacing)
+#endif
+				InputManager.ProcessInput();
+		}
 		// Process enemy movement if it is not Player's turn
 		if (!TurnManager.IsPlayersTurn && EnemyManager.IsProcessingEnemyMovement)
 			EnemyManager.ProcessEnemyMovement(() => TurnManager.EndEnemyTurn());
@@ -408,6 +418,7 @@ public class GameManager : MonoBehaviour
 					|| HasFireAtPosition(Cell)
 					|| HasExitTileAtPosition(Cell)
 					|| HasStructureAtCell(Cell)
+					|| IsPlayerOnCell(Cell)
 					|| (x <= GameConfig.Grid.SafeZoneMaxX
 						&& y <= GameConfig.Grid.SafeZoneMaxY
 						&& y >= GameConfig.Grid.SafeZoneMinY))
@@ -471,6 +482,7 @@ public class GameManager : MonoBehaviour
 		UpdateTileAreas();
 	}
 	public bool HasVehicleAtPosition(Vector3 Position) 		=> VehicleManager.HasVehicleAtPosition(Position);
+	public bool IsPlayerOnCell(Vector3Int Cell) 			=> Vector3Int.FloorToInt(Player.transform.position) == Cell;
 	public Vehicle GetVehicleAtPosition(Vector3Int Position) => VehicleManager.GetVehicleAtPosition(Position);
 	public bool HasStructureAtCell(Vector3Int Cell) 		=> StructureManager.HasStructureAtCell(Cell);
 	public Structure GetStructureAtCell(Vector3Int Cell) 	=> StructureManager.GetStructureAtCell(Cell);
@@ -487,6 +499,19 @@ public class GameManager : MonoBehaviour
 	public bool TryExtinguishFire(Vector3Int Position) 		=> FireManager.ExtinguishFire(Position);
 	public int Level 										=> LevelManager.Level;
 	public RegionManager GetRegionManager() 				=> RegionManager;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+	// Guarded accessors/passthroughs for the cheat menu (stripped from release builds)
+	public Player DebugPlayer 				=> Player;
+	public void DebugCleanupWorldEntities() => CleanupWorldEntities();
+	public void DebugAdvanceLevel() 		=> ResetForNextLevel();
+	public void DebugForceChronoclasmUsable() => ChronoclasmManager.Debug_ForceChronoclasmUsable();
+	public void DebugRegenerateLevel()
+	{
+		CleanupWorldEntities();
+		LevelManager.Debug_ClearTilemaps();
+		InitGame();
+	}
+#endif
     public void StopTurnTimer() 							=> TurnManager.StopTurnTimer();
 	public bool IsCellVisible(Vector3Int Cell) 				=> VisibilityManager == null || VisibilityManager.IsCellVisible(Cell);
 	public void RefreshVisibility() 						=> VisibilityManager?.RefreshVisibility();

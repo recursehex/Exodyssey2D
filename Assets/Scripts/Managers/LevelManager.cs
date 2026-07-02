@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.Tilemaps;
 using UnityEngine.UI;
 
-public class LevelManager : MonoBehaviour
+public partial class LevelManager : MonoBehaviour
 {
     public enum TimeOfDay
     {
