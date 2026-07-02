@@ -145,6 +145,10 @@ public class Enemy : MonoBehaviour
 				&& Path.Count == AdjacentNodeCount
 				&& !isUsingRandomPath)
 		{
+			// A burning enemy prioritizes survival: flee to an unoccupied tile if it can,
+			// and only attacks the Player when it has nowhere to escape to
+			if (IsOnFire && TryStartFleePath())
+				return;
 			// Stop attacking if the vehicle is destroyed, so leftover attacks do not hit the ejected player
 			while (HasEnergy && AttackPlayer()) { }
 		}
@@ -157,6 +161,127 @@ public class Enemy : MonoBehaviour
 			// Mark as blocked if enemy has energy but couldn't move
 			if (HasEnergy && Path == null)
 				WasBlockedThisTurn = true;
+		}
+	}
+	/// <summary>
+	/// True when the enemy is standing on a fire tile
+	/// </summary>
+	private bool IsOnFire => GameManager.Instance.HasFireAtWorld(transform.position);
+	/// <summary>
+	/// Starts a flee: the enemy steps off the fire onto the safe tile nearest the player, then re-targets
+	/// the player with any remaining energy. Returns false (so the caller can fall back to attacking) if
+	/// the enemy has no energy or no safe adjacent tile to escape to.
+	/// </summary>
+	private bool TryStartFleePath()
+	{
+		if (!HasEnergy || !TryFindSafeFleeCell(out Vector3Int FleeCell))
+			return false;
+		IsInMovement = true;
+		isUsingRandomPath = false;
+		if (MoveRoutine != null)
+			StopCoroutine(MoveRoutine);
+		MoveRoutine = StartCoroutine(FleeStepThenPursue(FleeCell));
+		return true;
+	}
+	/// <summary>
+	/// Finds the adjacent tile nearest the player that the enemy can safely step onto: in bounds and free
+	/// of walls, fire, structures, other entities, and the player. Returns false if no such tile exists.
+	/// </summary>
+	private bool TryFindSafeFleeCell(out Vector3Int Best)
+	{
+		Best = default;
+		Vector3Int EnemyCell = TilemapGround.WorldToCell(transform.position);
+		Vector3Int PlayerCell = TilemapGround.WorldToCell(Player.transform.position);
+		BoundsInt Size = TilemapGround.cellBounds;
+		int bestDistance = int.MaxValue;
+		bool found = false;
+		foreach (Vector3Int Direction in new[] { Vector3Int.up, Vector3Int.down, Vector3Int.left, Vector3Int.right })
+		{
+			Vector3Int Cell = EnemyCell + Direction;
+			Vector3 World = Cell + new Vector3(0.5f, 0.5f);
+			if (Cell.x < Size.min.x || Cell.x >= Size.max.x || Cell.y < Size.min.y || Cell.y >= Size.max.y)
+				continue;
+			if (TilemapWalls.HasTile(Cell)
+				|| Cell == PlayerCell
+				|| GameManager.Instance.HasFireAtPosition(Cell)
+				|| GameManager.Instance.HasStructureAtCell(Cell)
+				|| GameManager.Instance.HasEnemyAtPosition(World)
+				|| GameManager.Instance.HasVehicleAtPosition(World))
+				continue;
+			// Prefer the safe tile closest to the player so the enemy stays engaged after escaping the fire
+			int distance = Mathf.Max(Mathf.Abs(Cell.x - PlayerCell.x), Mathf.Abs(Cell.y - PlayerCell.y));
+			if (distance < bestDistance)
+			{
+				bestDistance = distance;
+				Best = Cell;
+				found = true;
+			}
+		}
+		return found;
+	}
+	/// <summary>
+	/// Steps off the fire onto the chosen safe tile, then spends any remaining energy pursuing the player
+	/// </summary>
+	private IEnumerator FleeStepThenPursue(Vector3Int FleeCell)
+	{
+		Info.DecrementEnergy();
+		yield return MoveToCell(FleeCell);
+		// The enemy is off the fire now (fire tiles are already obstacles in A*), so re-target the player
+		if (HasEnergy)
+			yield return PursuePlayer();
+		Path = null;
+		IsInMovement = false;
+		StunIcon.transform.position = transform.position;
+		MoveRoutine = null;
+		isUsingRandomPath = false;
+	}
+	/// <summary>
+	/// Moves toward the player one tile at a time while energy remains, attacking once adjacent
+	/// </summary>
+	private IEnumerator PursuePlayer()
+	{
+		AStar.Initialize();
+		AStar.SetAllowDiagonal(false);
+		Stack<Vector3Int> PursuitPath = AStar.ComputePath(transform.position, Player.transform.position);
+		PursuitPath ??= AStar.ComputePath(transform.position, Player.transform.position, true);
+		if (PursuitPath == null || PursuitPath.Count < AdjacentNodeCount)
+			yield break;
+		Vector3Int PlayerCell = TilemapGround.WorldToCell(Player.transform.position);
+		// Remove the tile the enemy is currently on
+		PursuitPath.Pop();
+		while (PursuitPath.Count > 0 && HasEnergy)
+		{
+			// Only the player's tile is left: the enemy is adjacent, so attack instead of stepping onto it
+			if (PursuitPath.Count == 1)
+			{
+				if (PursuitPath.Peek() == PlayerCell)
+					while (HasEnergy && AttackPlayer()) { }
+				yield break;
+			}
+			Vector3Int Next = PursuitPath.Peek();
+			Vector3 NextShifted = Next + new Vector3(0.5f, 0.5f);
+			// Stop if the next tile is now occupied
+			if (GameManager.Instance.HasEnemyAtPosition(NextShifted)
+				|| GameManager.Instance.HasVehicleAtPosition(NextShifted))
+				yield break;
+			Info.DecrementEnergy();
+			PursuitPath.Pop();
+			yield return MoveToCell(Next);
+		}
+	}
+	/// <summary>
+	/// Smoothly moves the enemy onto the center of the given cell
+	/// </summary>
+	private IEnumerator MoveToCell(Vector3Int Cell)
+	{
+		SoundManager.Instance.PlaySound(Move);
+		Vector3 ShiftedDistance = Cell + new Vector3(0.5f, 0.5f);
+		while (Vector3.Distance(transform.position, ShiftedDistance) > 0f)
+		{
+			transform.position = Vector3.MoveTowards(transform.position,
+													 ShiftedDistance,
+													 Info.Speed * Time.deltaTime);
+			yield return null;
 		}
 	}
 	/// <summary>
