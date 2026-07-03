@@ -35,7 +35,7 @@ Transform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &2742986994626467021
 SpriteRenderer:
-  serializedVersion: 2
+  serializedVersion: 3
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -92,6 +92,7 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+  m_BlendShapeWeights: []
 --- !u!114 &2576940189252508582
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -104,3 +105,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f77b79a927169a84eab89c7182254cdf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ItemTag: 22
+  ItemType: 4
+  ItemName: 
+  ItemStats: 
+  currentUses: 0
