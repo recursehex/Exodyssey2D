@@ -7,6 +7,7 @@ public class VisibilityManager : MonoBehaviour
 {
 	private const int maxLightSources = 32;
 	private const int flareRadius = 2;
+	private const int lightrodRadius = 2;
 	private const int overlaySortingOrder = 32000;
 	private const int fireSortingOrderOffset = 1;
 	[Header("Overlay")]
@@ -33,6 +34,7 @@ public class VisibilityManager : MonoBehaviour
 	private static readonly List<MeshRenderer> MeshRendererBuffer = new();
 	private readonly Vector4[] ShaderLightData = new Vector4[maxLightSources];
 	private int PlayerLightIndex = -1;
+	private int LightrodLightIndex = -1;
 	private readonly List<int> InventoryFlareLightIndices = new();
 	private readonly List<int> VehicleLightIndices = new();
 	private GameManager GameManager;
@@ -191,6 +193,7 @@ public class VisibilityManager : MonoBehaviour
 		TargetLightCount = 0;
 		AppliedLights.Clear();
 		PlayerLightIndex = -1;
+		LightrodLightIndex = -1;
 		InventoryFlareLightIndices.Clear();
 		VehicleLightIndices.Clear();
 		TargetAmbient = 1f;
@@ -348,6 +351,7 @@ public class VisibilityManager : MonoBehaviour
 		TargetLightKeys.Clear();
 		TargetLightCount = 0;
 		PlayerLightIndex = -1;
+		LightrodLightIndex = -1;
 		InventoryFlareLightIndices.Clear();
 		VehicleLightIndices.Clear();
 		ConfigureOverlaySorting();
@@ -391,6 +395,7 @@ public class VisibilityManager : MonoBehaviour
 			AddPlayerLocalLight();
 		}
 		AddActiveFlares(restricted);
+		AddLightrodLight(restricted);
 		AddFireLights(restricted);
 		TargetAmbient = 1f;
 		TargetNightVision = 0f;
@@ -540,6 +545,30 @@ public class VisibilityManager : MonoBehaviour
 			}
 		}
 	}
+	// A selected Lightrod illuminates a 5x5 area centred on the player until it is deselected or dropped
+	private void AddLightrodLight(bool addVisibilityFootprint)
+	{
+		if (Player == null
+			|| TilemapGround == null
+			|| Player.SelectedItemInfo == null
+			|| Player.SelectedItemInfo.Tag != ItemInfo.Tags.Lightrod)
+		{
+			return;
+		}
+		Vector3Int PlayerCell = TilemapGround.WorldToCell(Player.transform.position);
+		if (addVisibilityFootprint)
+			AddLightrodArea(PlayerCell);
+		LightrodLightIndex = TargetLightData.Count;
+		AddLightAtCell(PlayerCell, lightrodRadius + 0.8f, 1f, LightKeyLightrod());
+	}
+	private void AddLightrodArea(Vector3Int SourceCell)
+	{
+		for (int x = -lightrodRadius; x <= lightrodRadius; x++)
+		{
+			for (int y = -lightrodRadius; y <= lightrodRadius; y++)
+				AddCellIfInsideBounds(SourceCell + new Vector3Int(x, y, 0));
+		}
+	}
 	private void UpdateTrackedLightPositions()
 	{
 		if (Player == null)
@@ -555,6 +584,17 @@ public class VisibilityManager : MonoBehaviour
 			Light.x = TrackedPos.x;
 			Light.y = TrackedPos.y;
 			TargetLightData[PlayerLightIndex] = Light;
+		}
+		// Selected lightrod light follows the player (or vehicle if in one)
+		if (LightrodLightIndex >= 0 && LightrodLightIndex < TargetLightData.Count)
+		{
+			Vector3 TrackedPos = isInVehicle
+				? Player.Vehicle.transform.position
+				: Player.transform.position;
+			Vector4 Light = TargetLightData[LightrodLightIndex];
+			Light.x = TrackedPos.x;
+			Light.y = TrackedPos.y;
+			TargetLightData[LightrodLightIndex] = Light;
 		}
 		// Inventory flare lights follow the player (or vehicle if in one)
 		if (InventoryFlareLightIndices.Count > 0)
@@ -600,6 +640,7 @@ public class VisibilityManager : MonoBehaviour
 		VisibleCells.Add(Cell);
 	}
 	private static int LightKeyPlayer() => 1;
+	private static int LightKeyLightrod() => 500;
 	private static int LightKeyVehicleBeam(int offset) => 100 + offset;
 	private static int LightKeyInventoryFlare(int slot) => 1000 + slot;
 	private static int LightKeyGroundFlare(Vector3Int Cell) => 10000 + (Cell.x + 128) * 512 + (Cell.y + 128);

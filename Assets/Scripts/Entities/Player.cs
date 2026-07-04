@@ -467,6 +467,9 @@ public partial class Player : MonoBehaviour
 		InventoryUI.RemoveItem(InventoryUI.SelectedIndex);
 		InventoryUI.SetNoneSelected();
 		SelectedItemInfo = null;
+		// Refresh lighting first so tile areas use up-to-date visibility
+		// (e.g. losing lightrod illumination when the item is removed)
+		GameManager.Instance.RefreshVisibility();
 		GameManager.Instance.ClearTargets();
 		GameManager.Instance.UpdateTileAreas();
 	}
@@ -509,6 +512,9 @@ public partial class Player : MonoBehaviour
 			InventoryUI.SetCurrentSelected(itemIndex);
 			SelectedItemInfo = ClickedItem;
 			SoundManager.Instance.PlaySound(Select);
+			// Refresh lighting first so targeting and tile areas use up-to-date
+			// visibility (e.g. losing lightrod illumination when swapping to a weapon)
+			GameManager.Instance.RefreshVisibility();
 			// Only update targets if ranged weapon is selected
 			if (ClickedItem.HasRange && !IsInVehicle)
 				GameManager.Instance.UpdateTargets();
@@ -522,6 +528,9 @@ public partial class Player : MonoBehaviour
 		{
 			InventoryUI.SetNoneSelected();
 			SelectedItemInfo = null;
+			// Refresh lighting first so tile areas use up-to-date visibility
+			// (e.g. losing lightrod illumination on deselect)
+			GameManager.Instance.RefreshVisibility();
 			GameManager.Instance.ClearTargets();
 			GameManager.Instance.UpdateTileAreas();
 		}

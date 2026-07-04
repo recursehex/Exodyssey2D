@@ -47,7 +47,7 @@ public class ItemInfo
 		// UTILITY
 		//Battery,
 		Flare,
-		//Lightrod,
+		Lightrod,
 		Extinguisher,
 		//Spotlight,
 		//ThermalImager,
