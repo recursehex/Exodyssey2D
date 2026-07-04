@@ -67,6 +67,13 @@ public class StructureManager : MonoBehaviour
 			0);
 		return HasStructureAtCell(Cell);
 	}
+	public void RemoveStructure(Structure Structure)
+	{
+		if (Structure == null)
+			return;
+		Structures.Remove(Structure);
+		Destroy(Structure.gameObject);
+	}
 	public void DestroyAllStructures()
 	{
 		Structures.ForEach(s => { if (s != null) Destroy(s.gameObject); });

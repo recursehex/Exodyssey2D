@@ -491,6 +491,7 @@ public class GameManager : MonoBehaviour
 	public Vehicle GetVehicleAtPosition(Vector3Int Position) => VehicleManager.GetVehicleAtPosition(Position);
 	public bool HasStructureAtCell(Vector3Int Cell) 		=> StructureManager.HasStructureAtCell(Cell);
 	public Structure GetStructureAtCell(Vector3Int Cell) 	=> StructureManager.GetStructureAtCell(Cell);
+	public void RemoveStructure(Structure Structure) 		=> StructureManager.RemoveStructure(Structure);
 	public bool HasWallAtPosition(Vector3Int Position) 		=> LevelManager.HasWallAtPosition(Position);
 	public bool DamageVehicle(Vehicle Vehicle, int damage) 	=> VehicleManager.DamageVehicle(Vehicle, damage);
 	public void DestroyVehicle(Vehicle Vehicle) 			=> VehicleManager.DestroyVehicle(Vehicle);
@@ -1528,6 +1529,9 @@ public class GameManager : MonoBehaviour
 				if (Vehicle != null)
 					DamageVehicle(Vehicle, damage);
 				ItemManager.DestroyAllItemsAtPosition(WorldPos);
+				Structure Structure = GetStructureAtCell(Cell);
+				if (Structure != null && Structure.Info.Width == 1 && Structure.Info.Height == 1)
+					RemoveStructure(Structure);
 				if (HasWallAtPosition(Cell))
 				{
 					Sprite WallSprite = TilemapWalls.GetSprite(Cell);
