@@ -80,6 +80,35 @@ public class LootTablesTests
     }
 
     [Test]
+    public void KnownArchetypes_Exist()
+    {
+        foreach (string name in new[] { "TriageCorridor", "CacheCrucible", "ObeliskClearing", "MemorySite", "FuelLineYard", "AlienNest", "BossFinality" })
+        {
+            LootProfileInfo profile = LootProfileInfo.GetProfile(name);
+            Assert.AreEqual(name, profile.Name, $"archetype {name} should be authored in LootTables.json");
+        }
+    }
+
+    [Test]
+    public void FuelArchetypes_GuaranteeFuel()
+    {
+        foreach (string name in new[] { "FuelLineYard", "GarageYard", "MaintenanceYard", "LaunchpadDebris" })
+        {
+            LootProfileInfo profile = LootProfileInfo.GetProfile(name);
+            bool hasFuelSlot = profile.Guaranteed.Exists(slot => slot.Category == LootCategory.Fuel);
+            Assert.IsTrue(hasFuelSlot, $"fuel archetype {name} must have a guaranteed Fuel slot");
+        }
+    }
+
+    [Test]
+    public void RarityShiftedArchetypes_MatchTheDesign()
+    {
+        Assert.AreEqual(1, LootProfileInfo.GetProfile("ObeliskClearing").RarityShift);
+        Assert.AreEqual(1, LootProfileInfo.GetProfile("CacheCrucible").RarityShift);
+        Assert.AreEqual(-1, LootProfileInfo.GetProfile("MemorySite").RarityShift);
+    }
+
+    [Test]
     public void GetMultiplierFor_UndeclaredCategory_Returns1()
     {
         LootProfileInfo profile = LootProfileInfo.GetProfile(LootProfileInfo.DefaultProfileName);

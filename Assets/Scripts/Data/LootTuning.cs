@@ -27,10 +27,12 @@ public class LootTuning
 	// Out-of-depth escape valve
 	public float oodEscalationChance = 0.03f;	// Chance a Scarce roll escalates one tier to Rare
 	public string OodEscalationMinRegion = "RainforestRavines";	// Earliest region escalation can occur
-	// Fuel meter (Power Cell pacing)
-	public int fuelMeterGainPerDryGrid = 35;	// Meter gained per grid generated without fuel
+	// Fuel meter (Power Cell pacing). With gain 40 and floor -5 the meter
+	// passes 100 by the third dry grid, so a fuel drought can never exceed
+	// 3 grids while fuel still averages one drop per 2-3 grids
+	public int fuelMeterGainPerDryGrid = 40;	// Meter gained per grid generated without fuel
 	public int fuelMeterCostOnSpawn = 80;		// Meter spent when a fuel item generates
-	public int fuelMeterFloor = -40;			// Lowest the meter can go after a spawn
+	public int fuelMeterFloor = -5;				// Lowest the meter can go after a spawn
 	public int minFuelItemsPerRegion = 2;		// Region fuel budget backstop
 	public int fuelSurvivalFloorGrids = 2;		// Grids stranded with a vehicle and no fuel before a guaranteed drop
 	// Grid flavor

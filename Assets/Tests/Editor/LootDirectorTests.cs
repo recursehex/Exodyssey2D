@@ -418,6 +418,177 @@ public class LootDirectorTests
         Assert.Greater(aCount, 100, "history decay should suppress, not eliminate");
     }
 
+    // --- Profiles: rarity shift, guarantees, category bias ---
+
+    private static LootDirector.Context MakeProfileContext(string profileName, int[] weights, int gridsCompleted = 0, int gridsRequired = 5)
+    {
+        LootDirector.Context context = MakeContext(weights, gridsCompleted: gridsCompleted, gridsRequired: gridsRequired);
+        context.Profile = LootProfileInfo.GetProfile(profileName);
+        return context;
+    }
+
+    [Test]
+    public void RarityShiftPlus1_ShiftsRollsUpOneTier()
+    {
+        LootDirector director = MakeDirector(OnePerTier());
+        LootDirector.Context context = MakeProfileContext("CacheCrucible", new[] { 100, 0, 0, 0, 0 });
+        List<int> plan = director.PlanGridLoot(context, new Random(4));
+        Assert.Greater(plan.Count, 0);
+        foreach (int index in plan)
+            Assert.AreEqual(limitedIndex, index, "a +1 shift should turn Common rolls into Limited");
+    }
+
+    [Test]
+    public void RarityShiftPlus1_NeverBypassesAnomalousGate()
+    {
+        LootDirector director = MakeDirector(OnePerTier());
+        // Anomalous weight is 0 (gated region): Rare rolls must stay Rare
+        LootDirector.Context context = MakeProfileContext("CacheCrucible", new[] { 0, 0, 0, 100, 0 });
+        Random rng = new Random(6);
+        for (int grid = 0; grid < 20; grid++)
+        {
+            foreach (int index in director.PlanGridLoot(context, rng))
+                Assert.AreNotEqual(anomalousIndex, index, "+1 shift bypassed the Anomalous gate");
+        }
+    }
+
+    [Test]
+    public void RarityShiftMinus1_ShiftsRollsDownOneTier()
+    {
+        LootDirector director = MakeDirector(OnePerTier());
+        LootDirector.Context context = MakeProfileContext("MemorySite", new[] { 0, 100, 0, 0, 0 });
+        List<int> plan = director.PlanGridLoot(context, new Random(4));
+        Assert.Greater(plan.Count, 0);
+        foreach (int index in plan)
+            Assert.AreEqual(commonIndex, index, "a -1 shift should turn Limited rolls into Common");
+    }
+
+    [Test]
+    public void GuaranteedSlot_IsAlwaysInThePlan()
+    {
+        const int medicalIndex = 30;
+        List<LootDirector.Candidate> candidates = OnePerTier();
+        LootDirector.Candidate medical = MakeCandidate(medicalIndex, Rarity.Common);
+        medical.Categories.Add(LootCategory.Medical);
+        candidates.Add(medical);
+        LootDirector director = MakeDirector(candidates);
+        LootDirector.Context context = MakeProfileContext("TriageCorridor", new[] { 100, 0, 0, 0, 0 });
+        Random rng = new Random(12);
+        for (int grid = 0; grid < 20; grid++)
+            Assert.Contains(medicalIndex, director.PlanGridLoot(context, rng),
+                "Triage Corridor must always contain a Medical item");
+    }
+
+    [Test]
+    public void CategoryMultiplier_BiasesPickWithinTier()
+    {
+        const int medicalIndex = 30, plainIndex = 31;
+        int medicalCount = 0;
+        for (int i = 0; i < 1000; i++)
+        {
+            List<LootDirector.Candidate> candidates = new()
+            {
+                MakeCandidate(plainIndex, Rarity.Common),
+            };
+            LootDirector.Candidate medical = MakeCandidate(medicalIndex, Rarity.Common);
+            medical.Categories.Add(LootCategory.Medical);
+            candidates.Add(medical);
+            LootDirector director = MakeDirector(candidates);
+            // Quarantine Line has Medical x2.0 and no guaranteed slots
+            LootDirector.Context context = MakeProfileContext("QuarantineLine", new[] { 100, 0, 0, 0, 0 });
+            if (director.RollItem(context, new Random(i)) == medicalIndex)
+                medicalCount++;
+        }
+        // x2.0 vs x1.0 means the medical item should take about 2/3 of picks
+        Assert.Greater(medicalCount, 550);
+        Assert.Less(medicalCount, 780);
+    }
+
+    // --- Fuel meter ---
+
+    private const int fuelIndex = 40;
+
+    private static List<LootDirector.Candidate> OnePerTierPlusFuel()
+    {
+        List<LootDirector.Candidate> candidates = OnePerTier();
+        LootDirector.Candidate fuel = MakeCandidate(fuelIndex, Rarity.Scarce);
+        fuel.Categories.Add(LootCategory.Fuel);
+        candidates.Add(fuel);
+        return candidates;
+    }
+
+    [Test]
+    public void Fuel_SpawnsAtMostOncePerGrid_AndAtMeterCadence()
+    {
+        LootDirector director = MakeDirector(OnePerTierPlusFuel());
+        // gridsRequired is huge so the region fuel budget never interferes
+        LootDirector.Context context = MakeContext(new[] { 50, 36, 12, 2, 0 }, gridsRequired: 1000);
+        Random rng = new Random(17);
+        int totalFuel = 0;
+        for (int grid = 0; grid < 100; grid++)
+        {
+            int fuelInGrid = director.PlanGridLoot(context, rng).FindAll(index => index == fuelIndex).Count;
+            Assert.LessOrEqual(fuelInGrid, 1, "more than one fuel item in a single generic grid");
+            totalFuel += fuelInGrid;
+        }
+        Assert.Greater(totalFuel, 24, "fuel should average about one drop per 2-3 grids");
+        Assert.Less(totalFuel, 51, "fuel should stay scarce, not appear most grids");
+    }
+
+    [Test]
+    public void FuelMeter_NeverAllowsDroughtLongerThan3Grids()
+    {
+        LootDirector director = MakeDirector(OnePerTierPlusFuel());
+        LootDirector.Context context = MakeContext(new[] { 50, 36, 12, 2, 0 }, gridsRequired: 1000);
+        Random rng = new Random(23);
+        int dryStreak = 0;
+        for (int grid = 0; grid < 300; grid++)
+        {
+            if (director.PlanGridLoot(context, rng).Contains(fuelIndex))
+                dryStreak = 0;
+            else
+                dryStreak++;
+            Assert.LessOrEqual(dryStreak, 3, "a fuel drought exceeded 3 consecutive grids");
+        }
+    }
+
+    [Test]
+    public void RegionFuelBudget_GuaranteesMinimumPerRegion()
+    {
+        LootTuning tuning = new LootTuning();
+        for (int seed = 0; seed < 10; seed++)
+        {
+            LootDirector director = MakeDirector(OnePerTierPlusFuel());
+            Random rng = new Random(seed);
+            for (int grid = 0; grid < 5; grid++)
+                director.PlanGridLoot(MakeContext(new[] { 50, 36, 12, 2, 0 }, gridsCompleted: grid, gridsRequired: 5), rng);
+            Assert.GreaterOrEqual(director.State.fuelSpawnedThisRegion, tuning.minFuelItemsPerRegion,
+                $"seed {seed}: a region ended below its minimum fuel budget");
+        }
+    }
+
+    [Test]
+    public void Fuel_NeverComesFromTheRarityRoll()
+    {
+        // Scarce-only weights with the fuel item as the only Scarce candidate:
+        // every rarity roll must downgrade to something else rather than pick fuel
+        List<LootDirector.Candidate> candidates = new()
+        {
+            MakeCandidate(commonIndex, Rarity.Common),
+        };
+        LootDirector.Candidate fuel = MakeCandidate(fuelIndex, Rarity.Scarce);
+        fuel.Categories.Add(LootCategory.Fuel);
+        candidates.Add(fuel);
+        LootDirector director = MakeDirector(candidates);
+        LootDirector.Context context = MakeContext(new[] { 0, 0, 100, 0, 0 }, gridsRequired: 1000);
+        Random rng = new Random(29);
+        for (int grid = 0; grid < 30; grid++)
+        {
+            int fuelInGrid = director.PlanGridLoot(context, rng).FindAll(index => index == fuelIndex).Count;
+            Assert.LessOrEqual(fuelInGrid, 1, "fuel leaked into the rarity roll");
+        }
+    }
+
     [Test]
     public void UniquePerRun_SpawnsAtMostOnce()
     {

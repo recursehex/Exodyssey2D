@@ -44,12 +44,21 @@ public class LootDirector
 	private const int tierCount = 5;
 	private readonly List<Candidate> Candidates;
 	private readonly LootTuning Tuning;
+	private readonly List<LootCategory> FlavorableCategories;
+	private LootCategory? FlavorCategory;	// Hidden per-grid bias rolled while planning
 	public LootState State { get; }
 	public LootDirector(List<Candidate> Candidates, LootTuning Tuning, LootState State = null)
 	{
 		this.Candidates = Candidates;
 		this.Tuning = Tuning;
 		this.State = State ?? new LootState();
+		// Flavor only ever biases toward categories that exist in the pool
+		HashSet<LootCategory> Present = new();
+		foreach (Candidate Candidate in Candidates)
+			foreach (LootCategory Category in Candidate.Categories)
+				Present.Add(Category);
+		FlavorableCategories = new List<LootCategory>(Present);
+		FlavorableCategories.Sort();
 	}
 	/// <summary>
 	/// Plans all ground-scatter items for one grid, advancing run state as
@@ -62,6 +71,7 @@ public class LootDirector
 		State.globalGridNumber++;
 		if (State.gridsSinceAnomalous < LootState.neverSpawned)
 			State.gridsSinceAnomalous++;
+		RollFlavorCategory(Ctx, Rng);
 		int itemCount = Rng.Next(Ctx.Profile.MinItems, Ctx.Profile.MaxItems + 1);
 		List<int> Plan = new();
 		HashSet<int> PlacedThisGrid = new();
@@ -70,14 +80,22 @@ public class LootDirector
 			int forcedIndex = PickFromTier(rareTier, Ctx, Rng, PlacedThisGrid, Candidate => Candidate.isWeapon);
 			if (forcedIndex < 0)
 				forcedIndex = PickFromTier(rareTier, Ctx, Rng, PlacedThisGrid);
-			if (forcedIndex >= 0)
-			{
-				Plan.Add(forcedIndex);
-				PlacedThisGrid.Add(forcedIndex);
-				RecordSpawn(forcedIndex, Ctx);
-				itemCount--;
-			}
+			PlanForced(forcedIndex, Ctx, Plan, PlacedThisGrid, ref itemCount);
 		}
+		// The profile's guaranteed category slots are planned before random
+		// rolls (this is how Fuel Line Yard always has fuel, Triage Corridor
+		// always has a medkit, etc.)
+		foreach (LootProfileInfo.GuaranteedSlot Slot in Ctx.Profile.Guaranteed)
+		{
+			for (int i = 0; i < Slot.count; i++)
+				PlanForced(PickByCategory(Slot.Category, Ctx, Rng, PlacedThisGrid), Ctx, Plan, PlacedThisGrid, ref itemCount);
+		}
+		// Fuel meter: ground-scatter fuel comes off the rarity ramp entirely.
+		// The meter converts one slot when it wins its roll (guaranteed by the
+		// third dry grid), and the region fuel budget forces conversion when
+		// the region is about to end short of fuel
+		if (!PlanContainsFuel(Plan) && (IsRegionFuelBudgetDue(Ctx) || Rng.Next(100) < State.fuelMeter))
+			PlanForced(PickByCategory(LootCategory.Fuel, Ctx, Rng, PlacedThisGrid), Ctx, Plan, PlacedThisGrid, ref itemCount);
 		for (int i = 0; i < itemCount; i++)
 		{
 			int index = RollItem(Ctx, Rng, PlacedThisGrid);
@@ -87,7 +105,103 @@ public class LootDirector
 				PlacedThisGrid.Add(index);
 			}
 		}
+		UpdateFuelMeter(Plan);
+		FlavorCategory = null;
 		return Plan;
+	}
+	/// <summary>
+	/// Adds a forced pick (backstop, guaranteed slot, or fuel conversion) to
+	/// the plan, consuming one of the grid's item slots when any remain
+	/// </summary>
+	private void PlanForced(int index, Context Ctx, List<int> Plan, HashSet<int> PlacedThisGrid, ref int itemCount)
+	{
+		if (index < 0)
+			return;
+		Plan.Add(index);
+		PlacedThisGrid.Add(index);
+		RecordSpawn(index, Ctx);
+		if (itemCount > 0)
+			itemCount--;
+	}
+	/// <summary>
+	/// Generic grids roll one hidden bias category so two plain grids in a
+	/// row still feel different; the multiplier applies for this plan only
+	/// </summary>
+	private void RollFlavorCategory(Context Ctx, Random Rng)
+	{
+		FlavorCategory = null;
+		if (Ctx.Profile.RollFlavorCategory && FlavorableCategories.Count > 0)
+			FlavorCategory = FlavorableCategories[Rng.Next(FlavorableCategories.Count)];
+	}
+	private bool PlanContainsFuel(List<int> Plan)
+	{
+		foreach (int index in Plan)
+		{
+			Candidate Candidate = Candidates.Find(Candidate => Candidate.index == index);
+			if (Candidate != null && Candidate.Categories.Contains(LootCategory.Fuel))
+				return true;
+		}
+		return false;
+	}
+	/// <summary>
+	/// True when the grids left in the region are exactly enough to still hit
+	/// the region's minimum fuel budget, so each of them must carry fuel
+	/// </summary>
+	private bool IsRegionFuelBudgetDue(Context Ctx)
+	{
+		int gridsRemaining = Math.Max(1, Ctx.gridsRequired - Ctx.gridsCompleted);
+		int fuelStillNeeded = Tuning.minFuelItemsPerRegion - State.fuelSpawnedThisRegion;
+		return fuelStillNeeded >= gridsRemaining;
+	}
+	private void UpdateFuelMeter(List<int> Plan)
+	{
+		if (PlanContainsFuel(Plan))
+			State.fuelMeter = Math.Max(Tuning.fuelMeterFloor, State.fuelMeter - Tuning.fuelMeterCostOnSpawn);
+		else
+			State.fuelMeter += Tuning.fuelMeterGainPerDryGrid;
+	}
+	/// <summary>
+	/// Weighted pick across all tiers among candidates with the category,
+	/// used for guaranteed slots and fuel conversions. Anomalous candidates
+	/// still respect the gate, cap, and anti-chain window
+	/// </summary>
+	private int PickByCategory(LootCategory Category, Context Ctx, Random Rng, HashSet<int> PlacedThisGrid)
+	{
+		float[] EffectiveWeights = GetEffectiveWeights(Ctx);
+		List<Candidate> Pool = new();
+		List<double> PoolWeights = new();
+		double totalWeight = 0;
+		foreach (Candidate Candidate in Candidates)
+		{
+			if (!Candidate.Categories.Contains(Category))
+				continue;
+			if (Candidate.minRegionIndex > Ctx.regionIndex)
+				continue;
+			if (Candidate.uniquePerRun && State.UniqueItemsSpawned.Contains(Candidate.index))
+				continue;
+			int tier = TierIndexOf(Candidate.Rarity);
+			if (tier == anomalousTier && EffectiveWeights[anomalousTier] <= 0f)
+				continue;
+			double weight = Candidate.lootWeight;
+			weight *= WithinGridMultiplier(tier, Candidate.index, PlacedThisGrid);
+			weight *= HistoryMultiplier(tier, Candidate.index);
+			if (weight <= 0)
+				continue;
+			Pool.Add(Candidate);
+			PoolWeights.Add(weight);
+			totalWeight += weight;
+		}
+		if (totalWeight <= 0)
+			return -1;
+		double roll = Rng.NextDouble() * totalWeight;
+		double cumulative = 0;
+		for (int i = 0; i < Pool.Count; i++)
+		{
+			cumulative += PoolWeights[i];
+			if (roll < cumulative)
+				return Pool[i].index;
+		}
+		return Pool[Pool.Count - 1].index;
 	}
 	/// <summary>
 	/// The backstop is due once the run reaches the configured grid of the
@@ -165,6 +279,15 @@ public class LootDirector
 				break;
 			}
 		}
+		// Special archetypes nudge the roll one tier, but a +1 shift can
+		// never force its way past the Anomalous gate, cap, or anti-chain
+		if (Ctx.Profile != null && Ctx.Profile.RarityShift != 0)
+		{
+			int shifted = Math.Clamp(tier + Ctx.Profile.RarityShift, commonTier, anomalousTier);
+			if (shifted == anomalousTier && tier != anomalousTier && Weights[anomalousTier] <= 0f)
+				shifted = rareTier;
+			tier = shifted;
+		}
 		// Out-of-depth escape valve: a Scarce roll can climb exactly one tier
 		// to Rare in late regions; escalation never produces Anomalous
 		if (tier == scarceTier
@@ -196,6 +319,10 @@ public class LootDirector
 		{
 			if (TierIndexOf(Candidate.Rarity) != tier)
 				continue;
+			// Fuel never enters the rarity roll; the fuel meter and the
+			// profile's guaranteed slots are its only sources
+			if (Candidate.Categories.Contains(LootCategory.Fuel))
+				continue;
 			if (Candidate.minRegionIndex > Ctx.regionIndex)
 				continue;
 			if (Candidate.uniquePerRun && State.UniqueItemsSpawned.Contains(Candidate.index))
@@ -205,6 +332,10 @@ public class LootDirector
 			double weight = Candidate.lootWeight;
 			weight *= WithinGridMultiplier(tier, Candidate.index, PlacedThisGrid);
 			weight *= HistoryMultiplier(tier, Candidate.index);
+			if (Ctx.Profile != null)
+				weight *= Ctx.Profile.GetMultiplierFor(Candidate.Categories);
+			if (FlavorCategory.HasValue && Candidate.Categories.Contains(FlavorCategory.Value))
+				weight *= Tuning.flavorCategoryMultiplier;
 			if (weight <= 0)
 				continue;
 			Pool.Add(Candidate);
@@ -275,6 +406,8 @@ public class LootDirector
 			State.PushHistory(index, Tuning.historySize);
 		if (Candidate.uniquePerRun)
 			State.UniqueItemsSpawned.Add(index);
+		if (Candidate.Categories.Contains(LootCategory.Fuel))
+			State.fuelSpawnedThisRegion++;
 	}
 	/// <summary>
 	/// Pity only accumulates where Rare drops are structurally possible, so

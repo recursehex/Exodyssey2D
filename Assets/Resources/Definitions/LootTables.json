@@ -15,9 +15,9 @@
     "withinGridMultiplierLimited": 0.25,
     "oodEscalationChance": 0.03,
     "OodEscalationMinRegion": "RainforestRavines",
-    "fuelMeterGainPerDryGrid": 35,
+    "fuelMeterGainPerDryGrid": 40,
     "fuelMeterCostOnSpawn": 80,
-    "fuelMeterFloor": -40,
+    "fuelMeterFloor": -5,
     "minFuelItemsPerRegion": 2,
     "fuelSurvivalFloorGrids": 2,
     "flavorCategoryMultiplier": 1.75
@@ -32,6 +32,516 @@
       "rollFlavorCategory": true,
       "Guaranteed": [],
       "CategoryMultipliers": [],
+      "MapHints": []
+    },
+    {
+      "Name": "AlienNest",
+      "GridType": "Nature",
+      "MinItems": 3,
+      "MaxItems": 5,
+      "CategoryMultipliers": [
+        { "Category": "Throwable", "Multiplier": 1.5 },
+        { "Category": "MeleeWeapon", "Multiplier": 1.5 },
+        { "Category": "RangedWeapon", "Multiplier": 0.75 }
+      ],
+      "MapHints": ["MeleeWeapon"]
+    },
+    {
+      "Name": "CapturedExplorer",
+      "GridType": "Nature",
+      "MinItems": 3,
+      "MaxItems": 5,
+      "CategoryMultipliers": [
+        { "Category": "Medical", "Multiplier": 1.5 },
+        { "Category": "Repair", "Multiplier": 1.5 },
+        { "Category": "Storage", "Multiplier": 2.0 },
+        { "Category": "Armor", "Multiplier": 1.25 }
+      ],
+      "MapHints": ["Medical", "Repair"]
+    },
+    {
+      "Name": "ASEVCrashSite",
+      "GridType": "Nature",
+      "MinItems": 3,
+      "MaxItems": 5,
+      "CategoryMultipliers": [
+        { "Category": "Repair", "Multiplier": 2.0 },
+        { "Category": "FireTool", "Multiplier": 2.0 },
+        { "Category": "RangedWeapon", "Multiplier": 1.25 }
+      ],
+      "MapHints": ["Repair", "FireTool"]
+    },
+    {
+      "Name": "FruitingGrove",
+      "GridType": "Nature",
+      "MinItems": 3,
+      "MaxItems": 5,
+      "CategoryMultipliers": [
+        { "Category": "Light", "Multiplier": 1.75 },
+        { "Category": "Medical", "Multiplier": 1.25 }
+      ],
+      "MapHints": ["Light"]
+    },
+    {
+      "Name": "CaveMouth",
+      "GridType": "Nature",
+      "MinItems": 3,
+      "MaxItems": 5,
+      "CategoryMultipliers": [
+        { "Category": "MeleeWeapon", "Multiplier": 2.0 },
+        { "Category": "Throwable", "Multiplier": 1.5 },
+        { "Category": "Light", "Multiplier": 1.5 }
+      ],
+      "MapHints": ["MeleeWeapon", "Light"]
+    },
+    {
+      "Name": "TwinHills",
+      "GridType": "Nature",
+      "MinItems": 3,
+      "MaxItems": 5,
+      "rollFlavorCategory": true,
+      "MapHints": []
+    },
+    {
+      "Name": "BoulderField",
+      "GridType": "Nature",
+      "MinItems": 3,
+      "MaxItems": 5,
+      "CategoryMultipliers": [
+        { "Category": "Throwable", "Multiplier": 2.0 },
+        { "Category": "RangedWeapon", "Multiplier": 1.5 }
+      ],
+      "MapHints": ["Throwable", "RangedWeapon"]
+    },
+    {
+      "Name": "ObeliskClearing",
+      "GridType": "Nature",
+      "MinItems": 3,
+      "MaxItems": 5,
+      "RarityShift": 1,
+      "CategoryMultipliers": [
+        { "Category": "RangedWeapon", "Multiplier": 1.25 },
+        { "Category": "Recon", "Multiplier": 1.5 }
+      ],
+      "MapHints": ["Recon"]
+    },
+    {
+      "Name": "SpireRing",
+      "GridType": "Supply",
+      "MinItems": 4,
+      "MaxItems": 7,
+      "CategoryMultipliers": [
+        { "Category": "RangedWeapon", "Multiplier": 1.75 },
+        { "Category": "Armor", "Multiplier": 1.5 }
+      ],
+      "MapHints": ["RangedWeapon", "Armor"]
+    },
+    {
+      "Name": "InterferometerField",
+      "GridType": "Supply",
+      "MinItems": 4,
+      "MaxItems": 7,
+      "CategoryMultipliers": [
+        { "Category": "Recon", "Multiplier": 2.5 },
+        { "Category": "Light", "Multiplier": 1.5 },
+        { "Category": "RangedWeapon", "Multiplier": 1.25 }
+      ],
+      "MapHints": ["Recon"]
+    },
+    {
+      "Name": "ForgeScar",
+      "GridType": "Supply",
+      "MinItems": 4,
+      "MaxItems": 7,
+      "CategoryMultipliers": [
+        { "Category": "FireTool", "Multiplier": 2.5 },
+        { "Category": "MeleeWeapon", "Multiplier": 1.75 },
+        { "Category": "Repair", "Multiplier": 1.5 }
+      ],
+      "MapHints": ["FireTool", "MeleeWeapon"]
+    },
+    {
+      "Name": "HijackedRelay",
+      "GridType": "Supply",
+      "MinItems": 4,
+      "MaxItems": 7,
+      "CategoryMultipliers": [
+        { "Category": "Recon", "Multiplier": 2.0 },
+        { "Category": "RangedWeapon", "Multiplier": 1.5 }
+      ],
+      "MapHints": ["Recon", "RangedWeapon"]
+    },
+    {
+      "Name": "CacheCrucible",
+      "GridType": "Supply",
+      "MinItems": 4,
+      "MaxItems": 7,
+      "RarityShift": 1,
+      "CategoryMultipliers": [
+        { "Category": "Armor", "Multiplier": 1.5 },
+        { "Category": "RangedWeapon", "Multiplier": 1.5 }
+      ],
+      "MapHints": ["Armor", "RangedWeapon"]
+    },
+    {
+      "Name": "BiostasisGarden",
+      "GridType": "Supply",
+      "MinItems": 4,
+      "MaxItems": 7,
+      "Guaranteed": [{ "Category": "Medical", "Count": 1 }],
+      "CategoryMultipliers": [
+        { "Category": "Medical", "Multiplier": 2.0 },
+        { "Category": "Armor", "Multiplier": 1.25 }
+      ],
+      "MapHints": ["Medical"]
+    },
+    {
+      "Name": "ConduitSink",
+      "GridType": "Supply",
+      "MinItems": 4,
+      "MaxItems": 7,
+      "CategoryMultipliers": [
+        { "Category": "Light", "Multiplier": 2.5 },
+        { "Category": "Recon", "Multiplier": 1.75 },
+        { "Category": "Armor", "Multiplier": 1.25 }
+      ],
+      "MapHints": ["Light", "Recon"]
+    },
+    {
+      "Name": "MemorySite",
+      "GridType": "Supply",
+      "MinItems": 4,
+      "MaxItems": 6,
+      "RarityShift": -1,
+      "CategoryMultipliers": [
+        { "Category": "Recon", "Multiplier": 1.5 },
+        { "Category": "Light", "Multiplier": 1.5 },
+        { "Category": "Storage", "Multiplier": 1.5 }
+      ],
+      "MapHints": ["Recon"]
+    },
+    {
+      "Name": "GarageYard",
+      "GridType": "Outpost",
+      "MinItems": 5,
+      "MaxItems": 8,
+      "Guaranteed": [{ "Category": "Fuel", "Count": 1 }],
+      "CategoryMultipliers": [
+        { "Category": "Repair", "Multiplier": 2.5 }
+      ],
+      "MapHints": ["Repair", "Fuel"]
+    },
+    {
+      "Name": "FuelLineYard",
+      "GridType": "Outpost",
+      "MinItems": 5,
+      "MaxItems": 8,
+      "Guaranteed": [{ "Category": "Fuel", "Count": 1 }],
+      "CategoryMultipliers": [
+        { "Category": "FireTool", "Multiplier": 1.5 },
+        { "Category": "Repair", "Multiplier": 1.5 }
+      ],
+      "MapHints": ["Fuel"]
+    },
+    {
+      "Name": "GatehouseChokepoint",
+      "GridType": "Outpost",
+      "MinItems": 5,
+      "MaxItems": 8,
+      "CategoryMultipliers": [
+        { "Category": "Armor", "Multiplier": 1.75 },
+        { "Category": "RangedWeapon", "Multiplier": 1.5 }
+      ],
+      "MapHints": ["Armor", "RangedWeapon"]
+    },
+    {
+      "Name": "ConduitJunction",
+      "GridType": "Outpost",
+      "MinItems": 5,
+      "MaxItems": 8,
+      "CategoryMultipliers": [
+        { "Category": "Light", "Multiplier": 1.75 },
+        { "Category": "Repair", "Multiplier": 1.5 },
+        { "Category": "FireTool", "Multiplier": 1.5 }
+      ],
+      "MapHints": ["Light", "Repair"]
+    },
+    {
+      "Name": "CommandAnnex",
+      "GridType": "Outpost",
+      "MinItems": 5,
+      "MaxItems": 8,
+      "CategoryMultipliers": [
+        { "Category": "Recon", "Multiplier": 1.5 },
+        { "Category": "RangedWeapon", "Multiplier": 1.5 },
+        { "Category": "Armor", "Multiplier": 1.5 },
+        { "Category": "Storage", "Multiplier": 1.5 }
+      ],
+      "MapHints": ["RangedWeapon", "Armor"]
+    },
+    {
+      "Name": "AssemblyFloor",
+      "GridType": "Outpost",
+      "MinItems": 5,
+      "MaxItems": 8,
+      "CategoryMultipliers": [
+        { "Category": "Repair", "Multiplier": 2.0 },
+        { "Category": "MeleeWeapon", "Multiplier": 1.5 }
+      ],
+      "MapHints": ["Repair", "MeleeWeapon"]
+    },
+    {
+      "Name": "TriageCorridor",
+      "GridType": "Outpost",
+      "MinItems": 5,
+      "MaxItems": 8,
+      "Guaranteed": [{ "Category": "Medical", "Count": 1 }],
+      "CategoryMultipliers": [
+        { "Category": "Medical", "Multiplier": 3.0 },
+        { "Category": "Armor", "Multiplier": 1.5 },
+        { "Category": "RangedWeapon", "Multiplier": 0.5 }
+      ],
+      "MapHints": ["Medical", "Armor"]
+    },
+    {
+      "Name": "MaintenanceYard",
+      "GridType": "Outpost",
+      "MinItems": 5,
+      "MaxItems": 8,
+      "Guaranteed": [
+        { "Category": "Repair", "Count": 1 },
+        { "Category": "Fuel", "Count": 1 }
+      ],
+      "CategoryMultipliers": [
+        { "Category": "Repair", "Multiplier": 2.0 }
+      ],
+      "MapHints": ["Repair", "Fuel"]
+    },
+    {
+      "Name": "InspectionLanes",
+      "GridType": "Outpost",
+      "MinItems": 5,
+      "MaxItems": 8,
+      "CategoryMultipliers": [
+        { "Category": "Storage", "Multiplier": 2.0 },
+        { "Category": "Recon", "Multiplier": 1.5 },
+        { "Category": "Armor", "Multiplier": 1.25 }
+      ],
+      "MapHints": ["Storage"]
+    },
+    {
+      "Name": "PadControlRing",
+      "GridType": "Outpost",
+      "MinItems": 5,
+      "MaxItems": 8,
+      "CategoryMultipliers": [
+        { "Category": "Recon", "Multiplier": 1.75 },
+        { "Category": "Light", "Multiplier": 1.5 },
+        { "Category": "RangedWeapon", "Multiplier": 1.25 }
+      ],
+      "MapHints": ["Recon", "Light"]
+    },
+    {
+      "Name": "ReclaimerChannels",
+      "GridType": "Outpost",
+      "MinItems": 5,
+      "MaxItems": 8,
+      "CategoryMultipliers": [
+        { "Category": "FireTool", "Multiplier": 1.75 },
+        { "Category": "Light", "Multiplier": 1.5 },
+        { "Category": "Repair", "Multiplier": 1.5 }
+      ],
+      "MapHints": ["FireTool"]
+    },
+    {
+      "Name": "TransmissionCourtyard",
+      "GridType": "Outpost",
+      "MinItems": 5,
+      "MaxItems": 8,
+      "CategoryMultipliers": [
+        { "Category": "Light", "Multiplier": 1.75 },
+        { "Category": "Recon", "Multiplier": 1.75 }
+      ],
+      "MapHints": ["Light", "Recon"]
+    },
+    {
+      "Name": "HabitatBlock",
+      "GridType": "Outpost",
+      "MinItems": 5,
+      "MaxItems": 8,
+      "CategoryMultipliers": [
+        { "Category": "Medical", "Multiplier": 1.5 },
+        { "Category": "Storage", "Multiplier": 1.75 },
+        { "Category": "MeleeWeapon", "Multiplier": 1.25 }
+      ],
+      "MapHints": ["Medical", "Storage"]
+    },
+    {
+      "Name": "BunkerApproach",
+      "GridType": "Outpost",
+      "MinItems": 5,
+      "MaxItems": 8,
+      "CategoryMultipliers": [
+        { "Category": "Armor", "Multiplier": 2.0 },
+        { "Category": "RangedWeapon", "Multiplier": 1.5 }
+      ],
+      "MapHints": ["Armor"]
+    },
+    {
+      "Name": "SiloBreach",
+      "GridType": "Outpost",
+      "MinItems": 5,
+      "MaxItems": 8,
+      "CategoryMultipliers": [
+        { "Category": "Throwable", "Multiplier": 2.0 },
+        { "Category": "FireTool", "Multiplier": 1.75 },
+        { "Category": "Repair", "Multiplier": 1.25 }
+      ],
+      "MapHints": ["Throwable", "FireTool"]
+    },
+    {
+      "Name": "PodEncampment",
+      "GridType": "Outpost",
+      "MinItems": 5,
+      "MaxItems": 8,
+      "CategoryMultipliers": [
+        { "Category": "Medical", "Multiplier": 1.75 },
+        { "Category": "Storage", "Multiplier": 1.5 },
+        { "Category": "Light", "Multiplier": 1.25 }
+      ],
+      "MapHints": ["Medical"]
+    },
+    {
+      "Name": "BeaconApproach",
+      "GridType": "Outpost",
+      "MinItems": 5,
+      "MaxItems": 8,
+      "CategoryMultipliers": [
+        { "Category": "Light", "Multiplier": 2.0 },
+        { "Category": "Recon", "Multiplier": 1.5 },
+        { "Category": "Repair", "Multiplier": 1.25 }
+      ],
+      "MapHints": ["Light"]
+    },
+    {
+      "Name": "LaunchpadDebris",
+      "GridType": "Outpost",
+      "MinItems": 5,
+      "MaxItems": 8,
+      "Guaranteed": [{ "Category": "Fuel", "Count": 1 }],
+      "CategoryMultipliers": [
+        { "Category": "RangedWeapon", "Multiplier": 1.5 },
+        { "Category": "Throwable", "Multiplier": 1.5 }
+      ],
+      "MapHints": ["Fuel", "RangedWeapon"]
+    },
+    {
+      "Name": "QuarantineLine",
+      "GridType": "Outpost",
+      "MinItems": 5,
+      "MaxItems": 8,
+      "CategoryMultipliers": [
+        { "Category": "Medical", "Multiplier": 2.0 },
+        { "Category": "FireTool", "Multiplier": 1.5 },
+        { "Category": "Recon", "Multiplier": 1.25 }
+      ],
+      "MapHints": ["Medical"]
+    },
+    {
+      "Name": "CargoLiftRow",
+      "GridType": "Outpost",
+      "MinItems": 5,
+      "MaxItems": 8,
+      "CategoryMultipliers": [
+        { "Category": "Storage", "Multiplier": 2.0 },
+        { "Category": "Repair", "Multiplier": 1.5 }
+      ],
+      "MapHints": ["Storage", "Repair"]
+    },
+    {
+      "Name": "DroneBay",
+      "GridType": "Outpost",
+      "MinItems": 5,
+      "MaxItems": 8,
+      "CategoryMultipliers": [
+        { "Category": "Recon", "Multiplier": 2.0 },
+        { "Category": "RangedWeapon", "Multiplier": 1.5 }
+      ],
+      "MapHints": ["Recon"]
+    },
+    {
+      "Name": "FieldLabPerimeter",
+      "GridType": "Outpost",
+      "MinItems": 5,
+      "MaxItems": 8,
+      "CategoryMultipliers": [
+        { "Category": "Recon", "Multiplier": 1.75 },
+        { "Category": "Medical", "Multiplier": 1.5 },
+        { "Category": "Armor", "Multiplier": 1.25 }
+      ],
+      "MapHints": ["Recon", "Medical"]
+    },
+    {
+      "Name": "BossPillars",
+      "GridType": "Boss",
+      "MinItems": 1,
+      "MaxItems": 3,
+      "CategoryMultipliers": [{ "Category": "Medical", "Multiplier": 1.5 }],
+      "MapHints": []
+    },
+    {
+      "Name": "BossIceberg",
+      "GridType": "Boss",
+      "MinItems": 1,
+      "MaxItems": 3,
+      "CategoryMultipliers": [{ "Category": "Medical", "Multiplier": 1.5 }],
+      "MapHints": []
+    },
+    {
+      "Name": "BossRidge",
+      "GridType": "Boss",
+      "MinItems": 1,
+      "MaxItems": 3,
+      "CategoryMultipliers": [{ "Category": "Medical", "Multiplier": 1.5 }],
+      "MapHints": []
+    },
+    {
+      "Name": "BossCliffside",
+      "GridType": "Boss",
+      "MinItems": 1,
+      "MaxItems": 3,
+      "CategoryMultipliers": [{ "Category": "Medical", "Multiplier": 1.5 }],
+      "MapHints": []
+    },
+    {
+      "Name": "BossCaldera",
+      "GridType": "Boss",
+      "MinItems": 1,
+      "MaxItems": 3,
+      "CategoryMultipliers": [
+        { "Category": "Medical", "Multiplier": 1.5 },
+        { "Category": "FireTool", "Multiplier": 1.5 }
+      ],
+      "MapHints": []
+    },
+    {
+      "Name": "BossMarsh",
+      "GridType": "Boss",
+      "MinItems": 1,
+      "MaxItems": 3,
+      "CategoryMultipliers": [
+        { "Category": "Medical", "Multiplier": 1.5 },
+        { "Category": "Light", "Multiplier": 1.5 }
+      ],
+      "MapHints": []
+    },
+    {
+      "Name": "BossFinality",
+      "GridType": "Boss",
+      "MinItems": 1,
+      "MaxItems": 3,
+      "RarityShift": 1,
+      "CategoryMultipliers": [{ "Category": "Medical", "Multiplier": 1.5 }],
       "MapHints": []
     }
   ]
