@@ -173,6 +173,8 @@ public class LootDirector
 		double totalWeight = 0;
 		foreach (Candidate Candidate in Candidates)
 		{
+			if (Candidate.Rarity.Tag == Rarity.Tags.Tsurath)
+				continue;
 			if (!Candidate.Categories.Contains(Category))
 				continue;
 			if (Candidate.minRegionIndex > Ctx.regionIndex)
@@ -202,6 +204,70 @@ public class LootDirector
 				return Pool[i].index;
 		}
 		return Pool[Pool.Count - 1].index;
+	}
+	/// <summary>
+	/// Rolls a container's contents (Reserve Crate, Weapon Safe, ...) using
+	/// the container's profile for counts, rarity shift, category filter,
+	/// and guaranteed slots. Container rolls advance the same pity, history,
+	/// and Anomalous state as ground scatter, but never grid pacing or the
+	/// fuel meter. Call at grid generation so contents are fixed up front
+	/// </summary>
+	public List<int> RollContainerLoot(Context Ctx, Random Rng)
+	{
+		int rollCount = Rng.Next(Ctx.Profile.MinItems, Ctx.Profile.MaxItems + 1);
+		List<int> Loot = new();
+		HashSet<int> PlacedThisContainer = new();
+		foreach (LootProfileInfo.GuaranteedSlot Slot in Ctx.Profile.Guaranteed)
+		{
+			for (int i = 0; i < Slot.count; i++)
+				PlanForced(PickByCategory(Slot.Category, Ctx, Rng, PlacedThisContainer), Ctx, Loot, PlacedThisContainer, ref rollCount);
+		}
+		for (int i = 0; i < rollCount; i++)
+		{
+			int index = RollItem(Ctx, Rng, PlacedThisContainer);
+			if (index >= 0)
+			{
+				Loot.Add(index);
+				PlacedThisContainer.Add(index);
+			}
+		}
+		return Loot;
+	}
+	/// <summary>
+	/// Rolls a Ts'urath-tier drop for Ts'urath kills and caches — the only
+	/// two sources of that tier; the weighted paths can never select it.
+	/// Returns -1 while no Ts'urath items exist in the database
+	/// </summary>
+	public int RollTsurathDrop(Random Rng)
+	{
+		List<Candidate> Pool = new();
+		double totalWeight = 0;
+		foreach (Candidate Candidate in Candidates)
+		{
+			if (Candidate.Rarity.Tag != Rarity.Tags.Tsurath)
+				continue;
+			if (Candidate.uniquePerRun && State.UniqueItemsSpawned.Contains(Candidate.index))
+				continue;
+			if (Candidate.lootWeight <= 0)
+				continue;
+			Pool.Add(Candidate);
+			totalWeight += Candidate.lootWeight;
+		}
+		if (totalWeight <= 0)
+			return -1;
+		double roll = Rng.NextDouble() * totalWeight;
+		double cumulative = 0;
+		foreach (Candidate Candidate in Pool)
+		{
+			cumulative += Candidate.lootWeight;
+			if (roll < cumulative || Candidate == Pool[Pool.Count - 1])
+			{
+				if (Candidate.uniquePerRun)
+					State.UniqueItemsSpawned.Add(Candidate.index);
+				return Candidate.index;
+			}
+		}
+		return -1;
 	}
 	/// <summary>
 	/// The backstop is due once the run reaches the configured grid of the
@@ -317,11 +383,16 @@ public class LootDirector
 		double totalWeight = 0;
 		foreach (Candidate Candidate in Candidates)
 		{
+			if (Candidate.Rarity.Tag == Rarity.Tags.Tsurath)
+				continue;
 			if (TierIndexOf(Candidate.Rarity) != tier)
 				continue;
 			// Fuel never enters the rarity roll; the fuel meter and the
 			// profile's guaranteed slots are its only sources
 			if (Candidate.Categories.Contains(LootCategory.Fuel))
+				continue;
+			if (Ctx.Profile != null && Ctx.Profile.IncludeCategories.Count > 0
+				&& !HasAnyCategory(Candidate, Ctx.Profile.IncludeCategories))
 				continue;
 			if (Candidate.minRegionIndex > Ctx.regionIndex)
 				continue;
@@ -415,6 +486,15 @@ public class LootDirector
 	/// </summary>
 	private static bool RareIsPossible(Context Ctx) =>
 		Ctx.RarityWeightsStart[rareTier] > 0 || Ctx.RarityWeightsEnd[rareTier] > 0;
+	private static bool HasAnyCategory(Candidate Candidate, List<LootCategory> Categories)
+	{
+		foreach (LootCategory Category in Categories)
+		{
+			if (Candidate.Categories.Contains(Category))
+				return true;
+		}
+		return false;
+	}
 	public static int TierIndexOf(Rarity Rarity) => Rarity.Tag switch
 	{
 		Rarity.Tags.Common => commonTier,

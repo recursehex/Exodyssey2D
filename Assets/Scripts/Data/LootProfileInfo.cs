@@ -18,6 +18,7 @@ public class LootProfileInfo
 	public bool RollFlavorCategory { get; private set; } = false;	// If a hidden per-grid bias category is rolled
 	public List<GuaranteedSlot> Guaranteed { get; private set; } = new();	// Category slots planned before random rolls
 	public Dictionary<LootCategory, float> CategoryMultipliers { get; private set; } = new();
+	public List<LootCategory> IncludeCategories { get; private set; } = new();	// When non-empty, rolls only produce these categories
 	public List<LootCategory> MapHints { get; private set; } = new();		// Honest icons for the future map view
 	public class GuaranteedSlot
 	{
@@ -31,6 +32,7 @@ public class LootProfileInfo
 		public bool rollFlavorCategory = false;
 		public List<GuaranteedEntry> Guaranteed = new();
 		public List<MultiplierEntry> CategoryMultipliers = new();
+		public List<string> IncludeCategories = new();
 		public List<string> MapHints = new();
 	}
 	[Serializable] private class GuaranteedEntry
@@ -114,6 +116,11 @@ public class LootProfileInfo
 		{
 			if (TryParseCategory(Multiplier.Category, Source.Name, out LootCategory Category))
 				Profile.CategoryMultipliers[Category] = Mathf.Max(0f, Multiplier.Multiplier);
+		}
+		foreach (string IncludeName in Source.IncludeCategories)
+		{
+			if (TryParseCategory(IncludeName, Source.Name, out LootCategory Category))
+				Profile.IncludeCategories.Add(Category);
 		}
 		foreach (string HintName in Source.MapHints)
 		{

@@ -34,11 +34,30 @@ public partial class LootManager : MonoBehaviour
 	/// System.Random seeded per grid (runSeed XOR grid number), never from
 	/// UnityEngine.Random, so map generation and combat cannot steer loot
 	/// </summary>
+	private System.Random GridRng;
 	public List<int> PlanGridLoot()
 	{
-		System.Random Rng = new(Director.State.runSeed ^ Director.State.globalGridNumber);
-		return Director.PlanGridLoot(BuildContext(), Rng);
+		GridRng = new System.Random(Director.State.runSeed ^ Director.State.globalGridNumber);
+		return Director.PlanGridLoot(BuildContext(), GridRng);
 	}
+	/// <summary>
+	/// Rolls a container's contents by source name (ReserveCrate, WeaponSafe,
+	/// RocketWreck, CarrierWreck). Call during grid generation so contents
+	/// are decided before the player can interact with anything
+	/// </summary>
+	public List<int> RollContainerLoot(string sourceName)
+	{
+		LootDirector.Context Ctx = BuildContext();
+		Ctx.Profile = LootProfileInfo.GetProfile(sourceName);
+		return Director.RollContainerLoot(Ctx, GetGridRng());
+	}
+	/// <summary>
+	/// Rolls a Ts'urath-tier drop for Ts'urath kills and cache structures.
+	/// Returns -1 while no Ts'urath items exist in the database
+	/// </summary>
+	public int RollTsurathDrop() => Director.RollTsurathDrop(GetGridRng());
+	private System.Random GetGridRng() =>
+		GridRng ??= new System.Random(Director.State.runSeed ^ Director.State.globalGridNumber);
 	private LootDirector.Context BuildContext()
 	{
 		RegionInfo Region = RegionManager.CurrentRegion;

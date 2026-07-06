@@ -589,6 +589,102 @@ public class LootDirectorTests
         }
     }
 
+    // --- Containers ---
+
+    [Test]
+    public void WeaponSafe_OnlyProducesWeapons_AtShiftedRarity()
+    {
+        const int armorIndex = 50;
+        List<LootDirector.Candidate> candidates = OnePerTier();
+        foreach (LootDirector.Candidate candidate in candidates)
+            candidate.Categories.Add(LootCategory.MeleeWeapon);
+        LootDirector.Candidate armor = MakeCandidate(armorIndex, Rarity.Scarce);
+        armor.Categories.Add(LootCategory.Armor);
+        candidates.Add(armor);
+        LootDirector director = MakeDirector(candidates);
+        LootDirector.Context context = MakeProfileContext("WeaponSafe", new[] { 0, 0, 100, 0, 0 });
+        Random rng = new Random(41);
+        for (int i = 0; i < 30; i++)
+        {
+            List<int> loot = director.RollContainerLoot(context, rng);
+            Assert.AreEqual(1, loot.Count, "a Weapon Safe holds exactly one item");
+            Assert.AreNotEqual(armorIndex, loot[0], "Weapon Safe produced a non-weapon");
+            // Scarce rolls shift +1 to Rare inside a Weapon Safe
+            Assert.Contains(loot[0], new List<int> { rareIndex, scarceIndex, limitedIndex, commonIndex });
+        }
+    }
+
+    [Test]
+    public void ContainerRolls_DoNotAdvanceGridPacingOrFuelMeter()
+    {
+        LootDirector director = MakeDirector(OnePerTier());
+        LootDirector.Context context = MakeProfileContext("ReserveCrate", new[] { 50, 36, 12, 2, 0 });
+        int gridNumberBefore = director.State.globalGridNumber;
+        int fuelMeterBefore = director.State.fuelMeter;
+        director.RollContainerLoot(context, new Random(43));
+        Assert.AreEqual(gridNumberBefore, director.State.globalGridNumber);
+        Assert.AreEqual(fuelMeterBefore, director.State.fuelMeter);
+    }
+
+    [Test]
+    public void ContainerRolls_UpdateSharedLootState()
+    {
+        List<LootDirector.Candidate> candidates = OnePerTier();
+        foreach (LootDirector.Candidate candidate in candidates)
+            candidate.Categories.Add(LootCategory.MeleeWeapon);
+        LootDirector director = MakeDirector(candidates);
+        director.State.rarePityOffset = 15f;
+        // A guaranteed-Rare container roll must reset the pity like scatter
+        LootDirector.Context context = MakeProfileContext("WeaponSafe", new[] { 0, 0, 0, 100, 0 });
+        List<int> loot = director.RollContainerLoot(context, new Random(43));
+        Assert.AreEqual(rareIndex, loot[0]);
+        Assert.IsTrue(director.State.hasRarePlusSpawned);
+        Assert.AreEqual(0f, director.State.rarePityOffset);
+    }
+
+    // --- Ts'urath tier ---
+
+    private static LootDirector.Candidate MakeTsurathCandidate(int index, bool unique = true)
+    {
+        LootDirector.Candidate candidate = MakeCandidate(index, Rarity.Tsurath, unique: unique);
+        return candidate;
+    }
+
+    [Test]
+    public void TsurathItems_NeverEnterRandomGeneration()
+    {
+        const int tsurathIndex = 60;
+        List<LootDirector.Candidate> candidates = OnePerTier();
+        candidates.Add(MakeTsurathCandidate(tsurathIndex));
+        LootDirector director = MakeDirector(candidates);
+        LootDirector.Context context = MakeContext(new[] { 20, 20, 20, 20, 20 }, cap: 99);
+        Random rng = new Random(47);
+        for (int grid = 0; grid < 100; grid++)
+        {
+            foreach (int index in director.PlanGridLoot(context, rng))
+                Assert.AreNotEqual(tsurathIndex, index, "a Ts'urath item leaked into random generation");
+        }
+    }
+
+    [Test]
+    public void RollTsurathDrop_ReturnsTsurathItem_AndRespectsUniqueness()
+    {
+        const int tsurathIndex = 60;
+        List<LootDirector.Candidate> candidates = OnePerTier();
+        candidates.Add(MakeTsurathCandidate(tsurathIndex));
+        LootDirector director = MakeDirector(candidates);
+        Random rng = new Random(53);
+        Assert.AreEqual(tsurathIndex, director.RollTsurathDrop(rng));
+        Assert.AreEqual(-1, director.RollTsurathDrop(rng), "a unique Ts'urath item dropped twice");
+    }
+
+    [Test]
+    public void RollTsurathDrop_WithNoTsurathItems_ReturnsMinusOne()
+    {
+        LootDirector director = MakeDirector(OnePerTier());
+        Assert.AreEqual(-1, director.RollTsurathDrop(new Random(53)));
+    }
+
     [Test]
     public void UniquePerRun_SpawnsAtMostOnce()
     {

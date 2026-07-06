@@ -543,6 +543,42 @@
       "RarityShift": 1,
       "CategoryMultipliers": [{ "Category": "Medical", "Multiplier": 1.5 }],
       "MapHints": []
+    },
+    {
+      "Name": "ReserveCrate",
+      "GridType": "Container",
+      "MinItems": 1,
+      "MaxItems": 2,
+      "RarityShift": 0,
+      "MapHints": []
+    },
+    {
+      "Name": "RocketWreck",
+      "GridType": "Container",
+      "MinItems": 2,
+      "MaxItems": 4,
+      "RarityShift": 0,
+      "Guaranteed": [{ "Category": "Repair", "Count": 1 }],
+      "MapHints": []
+    },
+    {
+      "Name": "WeaponSafe",
+      "GridType": "Container",
+      "MinItems": 1,
+      "MaxItems": 1,
+      "RarityShift": 1,
+      "IncludeCategories": ["MeleeWeapon", "RangedWeapon"],
+      "MapHints": []
+    },
+    {
+      "Name": "CarrierWreck",
+      "GridType": "Container",
+      "MinItems": 1,
+      "MaxItems": 1,
+      "RarityShift": 1,
+      "IncludeCategories": ["MeleeWeapon", "RangedWeapon"],
+      "Guaranteed": [{ "Category": "Fuel", "Count": 1 }],
+      "MapHints": []
     }
   ]
 }

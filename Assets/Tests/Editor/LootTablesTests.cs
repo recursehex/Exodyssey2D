@@ -116,6 +116,29 @@ public class LootTablesTests
         Assert.AreEqual(1f, multiplier);
     }
 
+    // --- Ts'urath tier ---
+
+    [Test]
+    public void TsurathRarity_HasZeroDropRate_AndStaysOutOfTheWeightedPool()
+    {
+        Assert.AreEqual(0, Rarity.Tsurath.GetDropRate());
+        Assert.IsFalse(Rarity.RarityList.Contains(Rarity.Tsurath),
+            "Ts'urath must never be part of the weighted rarity pool");
+        Assert.AreEqual(Rarity.Tsurath, Rarity.Parse("Tsurath"));
+        Assert.AreEqual(Rarity.Tsurath, Rarity.Parse("Ts'urath"));
+    }
+
+    [Test]
+    public void ContainerProfiles_Exist()
+    {
+        foreach (string name in new[] { "ReserveCrate", "RocketWreck", "WeaponSafe", "CarrierWreck" })
+        {
+            LootProfileInfo profile = LootProfileInfo.GetProfile(name);
+            Assert.AreEqual(name, profile.Name, $"container source {name} should be authored in LootTables.json");
+            Assert.AreEqual("Container", profile.GridType);
+        }
+    }
+
     // --- LootState ---
 
     [Test]
