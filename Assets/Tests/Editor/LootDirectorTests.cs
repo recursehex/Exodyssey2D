@@ -15,7 +15,7 @@ public class LootDirectorTests
     private const int rareIndex = 3;
     private const int anomalousIndex = 4;
 
-    private static LootDirector.Candidate MakeCandidate(int index, Rarity rarity, int minRegion = 0, int lootWeight = 100)
+    private static LootDirector.Candidate MakeCandidate(int index, Rarity rarity, int minRegion = 0, int lootWeight = 100, bool unique = false)
     {
         return new LootDirector.Candidate
         {
@@ -23,6 +23,7 @@ public class LootDirectorTests
             Rarity = rarity,
             lootWeight = lootWeight,
             minRegionIndex = minRegion,
+            uniquePerRun = unique,
             isWeapon = true,
         };
     }
@@ -251,5 +252,186 @@ public class LootDirectorTests
             return all;
         }
         CollectionAssert.AreEqual(RunPlans(777), RunPlans(777));
+    }
+
+    // --- Rare pity ---
+
+    [Test]
+    public void Pity_AccumulatesOnNonRareDrops_WhereRareIsPossible()
+    {
+        LootDirector director = MakeDirector(OnePerTier());
+        director.State.ResetForNewRun(0, -2f);
+        // Rare weight is 0 at region start but positive at the end, so pity
+        // accumulates even though nothing but Common can roll right now
+        LootDirector.Context context = MakeContext(new[] { 100, 0, 0, 0, 0 }, new[] { 96, 0, 0, 4, 0 });
+        Random rng = new Random(1);
+        for (int i = 0; i < 5; i++)
+            director.RollItem(context, rng);
+        Assert.AreEqual(-2f + 5 * 1.2f, director.State.rarePityOffset, 0.001f);
+    }
+
+    [Test]
+    public void Pity_DoesNotAccumulateWhereRareIsImpossible()
+    {
+        LootDirector director = MakeDirector(OnePerTier());
+        director.State.ResetForNewRun(0, -2f);
+        LootDirector.Context context = MakeContext(new[] { 55, 35, 10, 0, 0 });
+        Random rng = new Random(1);
+        for (int i = 0; i < 10; i++)
+            director.RollItem(context, rng);
+        Assert.AreEqual(-2f, director.State.rarePityOffset, 0.001f,
+            "tutorial-region drops must not pre-charge the pity meter");
+    }
+
+    [Test]
+    public void Pity_ResetsToZeroOnRareDrop()
+    {
+        LootDirector director = MakeDirector(OnePerTier());
+        director.State.ResetForNewRun(0, -2f);
+        director.State.rarePityOffset = 15f;
+        LootDirector.Context context = MakeContext(new[] { 0, 0, 0, 100, 0 });
+        director.RollItem(context, new Random(1));
+        Assert.AreEqual(0f, director.State.rarePityOffset);
+        Assert.IsTrue(director.State.hasRarePlusSpawned);
+    }
+
+    [Test]
+    public void Pity_CapsAtTuningCap()
+    {
+        LootTuning tuning = new LootTuning();
+        LootDirector director = MakeDirector(OnePerTier());
+        director.State.ResetForNewRun(0, 0f);
+        LootDirector.Context context = MakeContext(new[] { 100, 0, 0, 0, 0 }, new[] { 96, 0, 0, 4, 0 });
+        Random rng = new Random(1);
+        for (int i = 0; i < 50; i++)
+            director.RollItem(context, rng);
+        Assert.AreEqual(tuning.rarePityCap, director.State.rarePityOffset, 0.001f);
+    }
+
+    [Test]
+    public void Pity_NeverUnlocksRareWhereTableSaysZero()
+    {
+        LootDirector director = MakeDirector(OnePerTier());
+        director.State.rarePityOffset = 20f;
+        float[] weights = director.GetEffectiveWeights(MakeContext(new[] { 55, 35, 10, 0, 0 }));
+        Assert.AreEqual(0f, weights[LootDirector.rareTier]);
+    }
+
+    // --- Backstop ---
+
+    [Test]
+    public void Backstop_ForcesRareWeaponWhenDue()
+    {
+        LootDirector director = MakeDirector(OnePerTier());
+        // All-Common weights: only the backstop can produce the Rare item.
+        // Region index 1 is the default backstop region (Fragmented Coast)
+        // and gridsCompleted 3 means grid 4 is being generated
+        LootDirector.Context context = MakeContext(new[] { 100, 0, 0, 0, 0 }, regionIndex: 1, gridsCompleted: 3);
+        List<int> plan = director.PlanGridLoot(context, new Random(8));
+        Assert.Contains(rareIndex, plan, "the backstop grid must contain a guaranteed Rare weapon");
+    }
+
+    [Test]
+    public void Backstop_NotDueOnEarlierGrids()
+    {
+        LootDirector director = MakeDirector(OnePerTier());
+        LootDirector.Context context = MakeContext(new[] { 100, 0, 0, 0, 0 }, regionIndex: 1, gridsCompleted: 2);
+        for (int grid = 0; grid < 20; grid++)
+        {
+            List<int> plan = director.PlanGridLoot(context, new Random(grid));
+            Assert.IsFalse(plan.Contains(rareIndex), "backstop fired before its configured grid");
+        }
+    }
+
+    [Test]
+    public void Backstop_DoesNotFireOnceRareHasSpawned()
+    {
+        LootDirector director = MakeDirector(OnePerTier());
+        LootDirector.Context context = MakeContext(new[] { 100, 0, 0, 0, 0 }, regionIndex: 1, gridsCompleted: 3);
+        List<int> firstPlan = director.PlanGridLoot(context, new Random(8));
+        Assert.Contains(rareIndex, firstPlan);
+        for (int grid = 0; grid < 20; grid++)
+        {
+            List<int> plan = director.PlanGridLoot(context, new Random(grid));
+            Assert.IsFalse(plan.Contains(rareIndex), "backstop must fire at most once per run");
+        }
+    }
+
+    [Test]
+    public void Backstop_CoversLaterRegionsToo()
+    {
+        LootDirector director = MakeDirector(OnePerTier());
+        LootDirector.Context context = MakeContext(new[] { 100, 0, 0, 0, 0 }, regionIndex: 2, gridsCompleted: 0);
+        List<int> plan = director.PlanGridLoot(context, new Random(8));
+        Assert.Contains(rareIndex, plan, "a run that somehow reaches region 3 with no Rare must still be caught");
+    }
+
+    // --- Duplicate suppression ---
+
+    [Test]
+    public void WithinGrid_ScarcePlusNeverRepeats()
+    {
+        LootDirector director = MakeDirector(OnePerTier());
+        LootDirector.Context context = MakeContext(new[] { 0, 0, 100, 0, 0 });
+        Random rng = new Random(21);
+        for (int grid = 0; grid < 30; grid++)
+        {
+            List<int> plan = director.PlanGridLoot(context, rng);
+            int scarceCount = plan.FindAll(index => index == scarceIndex).Count;
+            Assert.LessOrEqual(scarceCount, 1, "the same Scarce item generated twice in one grid");
+        }
+    }
+
+    [Test]
+    public void WithinGrid_CommonCanRepeat()
+    {
+        List<LootDirector.Candidate> candidates = new() { MakeCandidate(commonIndex, Rarity.Common) };
+        LootDirector director = MakeDirector(candidates);
+        LootDirector.Context context = MakeContext(new[] { 100, 0, 0, 0, 0 });
+        List<int> plan = director.PlanGridLoot(context, new Random(2));
+        Assert.GreaterOrEqual(plan.Count, 3, "Common junk must still be able to repeat within a grid");
+        foreach (int index in plan)
+            Assert.AreEqual(commonIndex, index);
+    }
+
+    [Test]
+    public void History_ReducesRepeatChanceAcrossGrids()
+    {
+        const int itemA = 10, itemB = 11;
+        int aCount = 0;
+        for (int i = 0; i < 1000; i++)
+        {
+            List<LootDirector.Candidate> candidates = new()
+            {
+                MakeCandidate(itemA, Rarity.Scarce),
+                MakeCandidate(itemB, Rarity.Scarce),
+            };
+            LootDirector director = MakeDirector(candidates);
+            director.State.PushHistory(itemA, 10);
+            LootDirector.Context context = MakeContext(new[] { 0, 0, 100, 0, 0 });
+            if (director.RollItem(context, new Random(i)) == itemA)
+                aCount++;
+        }
+        // itemA is weighted x0.35 against itemB's x1, so its share should be
+        // near 0.35 / 1.35 = 26%
+        Assert.Less(aCount, 400, "recently seen Scarce item was not suppressed");
+        Assert.Greater(aCount, 100, "history decay should suppress, not eliminate");
+    }
+
+    [Test]
+    public void UniquePerRun_SpawnsAtMostOnce()
+    {
+        List<LootDirector.Candidate> candidates = new()
+        {
+            MakeCandidate(commonIndex, Rarity.Common),
+            MakeCandidate(anomalousIndex, Rarity.Anomalous, unique: true),
+        };
+        LootDirector director = MakeDirector(candidates);
+        LootDirector.Context context = MakeContext(new[] { 50, 0, 0, 0, 50 }, cap: 99);
+        Random rng = new Random(31);
+        int totalAnomalous = 0;
+        for (int grid = 0; grid < 50; grid++)
+            totalAnomalous += director.PlanGridLoot(context, rng).FindAll(index => index == anomalousIndex).Count;
+        Assert.AreEqual(1, totalAnomalous, "a uniquePerRun item must generate exactly once given ample chances");
     }
 }

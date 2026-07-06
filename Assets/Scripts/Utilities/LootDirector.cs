@@ -53,7 +53,9 @@ public class LootDirector
 	}
 	/// <summary>
 	/// Plans all ground-scatter items for one grid, advancing run state as
-	/// each item is decided. Item count comes from the grid's loot profile
+	/// each item is decided. Item count comes from the grid's loot profile.
+	/// If the run's first Rare+ item is overdue, one slot is converted into
+	/// a guaranteed Rare weapon (the "taste" backstop)
 	/// </summary>
 	public List<int> PlanGridLoot(Context Ctx, Random Rng)
 	{
@@ -62,29 +64,58 @@ public class LootDirector
 			State.gridsSinceAnomalous++;
 		int itemCount = Rng.Next(Ctx.Profile.MinItems, Ctx.Profile.MaxItems + 1);
 		List<int> Plan = new();
+		HashSet<int> PlacedThisGrid = new();
+		if (!State.hasRarePlusSpawned && IsBackstopDue(Ctx))
+		{
+			int forcedIndex = PickFromTier(rareTier, Ctx, Rng, PlacedThisGrid, Candidate => Candidate.isWeapon);
+			if (forcedIndex < 0)
+				forcedIndex = PickFromTier(rareTier, Ctx, Rng, PlacedThisGrid);
+			if (forcedIndex >= 0)
+			{
+				Plan.Add(forcedIndex);
+				PlacedThisGrid.Add(forcedIndex);
+				RecordSpawn(forcedIndex, Ctx);
+				itemCount--;
+			}
+		}
 		for (int i = 0; i < itemCount; i++)
 		{
-			int index = RollItem(Ctx, Rng);
+			int index = RollItem(Ctx, Rng, PlacedThisGrid);
 			if (index >= 0)
+			{
 				Plan.Add(index);
+				PlacedThisGrid.Add(index);
+			}
 		}
 		return Plan;
+	}
+	/// <summary>
+	/// The backstop is due once the run reaches the configured grid of the
+	/// backstop region (or any later region) without a single Rare+ drop
+	/// </summary>
+	private bool IsBackstopDue(Context Ctx)
+	{
+		int backstopRegionIndex = (int)Tuning.GetBackstopRegionTag();
+		if (Ctx.regionIndex > backstopRegionIndex)
+			return true;
+		return Ctx.regionIndex == backstopRegionIndex && Ctx.gridsCompleted >= Tuning.backstopGrid - 1;
 	}
 	/// <summary>
 	/// Rolls one item (rarity tier first, then an item within the tier) and
 	/// records it into run state. Returns -1 when no candidate fits
 	/// </summary>
-	public int RollItem(Context Ctx, Random Rng)
+	public int RollItem(Context Ctx, Random Rng, HashSet<int> PlacedThisGrid = null)
 	{
 		int tier = RollRarityTier(Ctx, Rng);
-		int index = RollItemWithinTier(tier, Ctx, Rng);
+		int index = RollItemWithinTier(tier, Ctx, Rng, PlacedThisGrid);
 		if (index >= 0)
-			RecordSpawn(index);
+			RecordSpawn(index, Ctx);
 		return index;
 	}
 	/// <summary>
 	/// Returns the region's interpolated rarity weights with run-state
-	/// modifiers applied: the Anomalous anti-chain window and region cap
+	/// modifiers applied: the Rare pity offset, the Anomalous anti-chain
+	/// window, and the Anomalous region cap
 	/// </summary>
 	public float[] GetEffectiveWeights(Context Ctx)
 	{
@@ -93,6 +124,10 @@ public class LootDirector
 		float[] Weights = new float[tierCount];
 		for (int i = 0; i < tierCount; i++)
 			Weights[i] = Ctx.RarityWeightsStart[i] + (Ctx.RarityWeightsEnd[i] - Ctx.RarityWeightsStart[i]) * t;
+		// Pity only nudges regions where Rare is structurally possible; it
+		// never unlocks Rare where the table says 0 (e.g. Ruined Outpost)
+		if (Weights[rareTier] > 0f)
+			Weights[rareTier] = Math.Max(0f, Weights[rareTier] + State.rarePityOffset);
 		Weights[anomalousTier] *= AnomalousRecencyMultiplier();
 		if (State.anomalousSpawnedThisRegion >= Ctx.anomalousCap)
 			Weights[anomalousTier] = 0f;
@@ -142,17 +177,17 @@ public class LootDirector
 	/// Picks an item from the tier; when a tier has no eligible candidates
 	/// the roll downgrades one tier at a time instead of failing outright
 	/// </summary>
-	private int RollItemWithinTier(int startTier, Context Ctx, Random Rng)
+	private int RollItemWithinTier(int startTier, Context Ctx, Random Rng, HashSet<int> PlacedThisGrid)
 	{
 		for (int tier = startTier; tier >= commonTier; tier--)
 		{
-			int index = PickFromTier(tier, Ctx, Rng);
+			int index = PickFromTier(tier, Ctx, Rng, PlacedThisGrid);
 			if (index >= 0)
 				return index;
 		}
 		return -1;
 	}
-	private int PickFromTier(int tier, Context Ctx, Random Rng)
+	private int PickFromTier(int tier, Context Ctx, Random Rng, HashSet<int> PlacedThisGrid, Predicate<Candidate> Filter = null)
 	{
 		List<Candidate> Pool = new();
 		List<double> PoolWeights = new();
@@ -163,7 +198,13 @@ public class LootDirector
 				continue;
 			if (Candidate.minRegionIndex > Ctx.regionIndex)
 				continue;
+			if (Candidate.uniquePerRun && State.UniqueItemsSpawned.Contains(Candidate.index))
+				continue;
+			if (Filter != null && !Filter(Candidate))
+				continue;
 			double weight = Candidate.lootWeight;
+			weight *= WithinGridMultiplier(tier, Candidate.index, PlacedThisGrid);
+			weight *= HistoryMultiplier(tier, Candidate.index);
 			if (weight <= 0)
 				continue;
 			Pool.Add(Candidate);
@@ -183,23 +224,64 @@ public class LootDirector
 		return Pool[Pool.Count - 1].index;
 	}
 	/// <summary>
+	/// Suppresses repeats of an item already placed in the grid being
+	/// planned: impossible for Scarce+, heavily discouraged for Limited,
+	/// lightly discouraged for Common junk like Rock and Branch
+	/// </summary>
+	private float WithinGridMultiplier(int tier, int index, HashSet<int> PlacedThisGrid)
+	{
+		if (PlacedThisGrid == null || !PlacedThisGrid.Contains(index))
+			return 1f;
+		return tier switch
+		{
+			commonTier => Tuning.withinGridMultiplierCommon,
+			limitedTier => Tuning.withinGridMultiplierLimited,
+			_ => 0f,
+		};
+	}
+	/// <summary>
+	/// Suppresses items that generated recently in earlier grids so notable
+	/// drops stay varied; Common and Limited items are exempt
+	/// </summary>
+	private float HistoryMultiplier(int tier, int index)
+	{
+		if (tier < scarceTier || !State.RecentItemHistory.Contains(index))
+			return 1f;
+		return tier == scarceTier ? Tuning.historyMultiplierScarce : Tuning.historyMultiplierRarePlus;
+	}
+	/// <summary>
 	/// Advances run state for a generated item. Keyed off generation, never
 	/// player actions, so pickups and drops cannot charge any meter
 	/// </summary>
-	private void RecordSpawn(int index)
+	private void RecordSpawn(int index, Context Ctx)
 	{
 		Candidate Candidate = Candidates.Find(Candidate => Candidate.index == index);
 		if (Candidate == null)
 			return;
 		int tier = TierIndexOf(Candidate.Rarity);
 		if (tier >= rareTier)
+		{
 			State.hasRarePlusSpawned = true;
+			State.rarePityOffset = 0f;
+		}
+		else if (RareIsPossible(Ctx))
+			State.rarePityOffset = Math.Min(Tuning.rarePityCap, State.rarePityOffset + Tuning.rarePityPerItem);
 		if (tier == anomalousTier)
 		{
 			State.anomalousSpawnedThisRegion++;
 			State.gridsSinceAnomalous = 0;
 		}
+		if (tier > commonTier)
+			State.PushHistory(index, Tuning.historySize);
+		if (Candidate.uniquePerRun)
+			State.UniqueItemsSpawned.Add(index);
 	}
+	/// <summary>
+	/// Pity only accumulates where Rare drops are structurally possible, so
+	/// tutorial-region items cannot pre-charge the first region's excitement
+	/// </summary>
+	private static bool RareIsPossible(Context Ctx) =>
+		Ctx.RarityWeightsStart[rareTier] > 0 || Ctx.RarityWeightsEnd[rareTier] > 0;
 	public static int TierIndexOf(Rarity Rarity) => Rarity.Tag switch
 	{
 		Rarity.Tags.Common => commonTier,
