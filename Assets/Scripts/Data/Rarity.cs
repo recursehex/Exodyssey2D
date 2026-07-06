@@ -10,7 +10,8 @@ public struct Rarity
         Limited = 35,
         Scarce = 15,
         Rare = 4,
-        Anomalous = 1
+        Anomalous = 1,
+        Tsurath = 0,    // Never randomly generated: Ts'urath kills and caches only
     }
     public Tags Tag;
     public Color Color;
@@ -24,6 +25,9 @@ public struct Rarity
     public static readonly Rarity Scarce 	= new(Tags.Scarce, 		new(222/255f, 161/255f, 18/255f));
     public static readonly Rarity Rare 		= new(Tags.Rare, 		new(34/255f,  113/255f, 191/255f));
     public static readonly Rarity Anomalous = new(Tags.Anomalous, 	new(117/255f, 33/255f,  202/255f));
+    public static readonly Rarity Tsurath 	= new(Tags.Tsurath, 	new(196/255f, 30/255f,  30/255f));
+	// Tsurath is deliberately absent: RarityList feeds the weighted spawn
+	// paths and Ts'urath items must never enter random generation
 	public static readonly List<Rarity> RarityList = new() { Common, Limited, Scarce, Rare, Anomalous };
     public readonly int GetDropRate() => (int)Tag;
 	public override bool Equals(object obj) => obj is Rarity rarity && Equals(rarity);
@@ -45,6 +49,9 @@ public struct Rarity
                 return Rare;
             case "Anomalous":
                 return Anomalous;
+            case "Tsurath":
+            case "Ts'urath":
+                return Tsurath;
             default:
                 Debug.LogWarning($"Unknown rarity: {RarityString}, defaulting to Common");
                 return Common;

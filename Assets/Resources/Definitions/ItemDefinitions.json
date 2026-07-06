@@ -7,7 +7,8 @@
       "Name": "MEDKIT",
       "Description": "Fully heals injuries",
       "maxUses": 1,
-      "isFlammable": true
+      "isFlammable": true,
+      "Categories": ["Medical"]
     },
     {
       "Tag": "ToolKit",
@@ -15,7 +16,8 @@
       "Type": "Consumable",
       "Name": "TOOLKIT",
       "Description": "Fully repairs vehicles",
-      "maxUses": 1
+      "maxUses": 1,
+      "Categories": ["Repair"]
     },
     {
       "Tag": "PowerCell",
@@ -24,7 +26,8 @@
       "Name": "POWER CELL",
       "Description": "Powers vehicles",
       "maxUses": 5,
-      "isFlammable": true
+      "isFlammable": true,
+      "Categories": ["Fuel"]
     },
     {
       "Tag": "Branch",
@@ -35,7 +38,8 @@
       "maxUses": 1,
       "damagePoints": 1,
       "armorDamage": 0,
-      "isFlammable": true
+      "isFlammable": true,
+      "Categories": ["MeleeWeapon"]
     },
     {
       "Tag": "Knife",
@@ -45,7 +49,8 @@
       "Description": "Can stab through armor",
       "maxUses": 2,
       "damagePoints": 2,
-      "armorDamage": 1
+      "armorDamage": 1,
+      "Categories": ["MeleeWeapon"]
     },
     {
       "Tag": "Wrench",
@@ -55,7 +60,8 @@
       "Description": "Weak against armor",
       "maxUses": 4,
       "damagePoints": 2,
-      "armorDamage": 1
+      "armorDamage": 1,
+      "Categories": ["MeleeWeapon", "Repair"]
     },
     {
       "Tag": "Mallet",
@@ -67,7 +73,8 @@
       "damagePoints": 3,
       "armorDamage": 0,
       "isStunning": true,
-      "isFlammable": true
+      "isFlammable": true,
+      "Categories": ["MeleeWeapon"]
     },
     {
       "Tag": "FireAxe",
@@ -77,7 +84,8 @@
       "Description": "Cuts through armor",
       "maxUses": 4,
       "damagePoints": 4,
-      "armorDamage": 2
+      "armorDamage": 2,
+      "Categories": ["MeleeWeapon"]
     },
     {
       "Tag": "Chainsaw",
@@ -86,7 +94,9 @@
       "Name": "CHAINSAW",
       "Description": "Handheld rock saw",
       "maxUses": 8,
-      "damagePoints": 5
+      "damagePoints": 5,
+      "Categories": ["MeleeWeapon"],
+      "uniquePerRun": true
     },
     {
       "Tag": "Tranquilizer",
@@ -97,7 +107,8 @@
       "maxUses": 2,
       "damagePoints": 0,
       "range": 4,
-      "isStunning": true
+      "isStunning": true,
+      "Categories": ["RangedWeapon"]
     },
     {
       "Tag": "Carbine",
@@ -107,7 +118,8 @@
       "Description": "Fires rifle bullets",
       "maxUses": 4,
       "damagePoints": 3,
-      "range": 4
+      "range": 4,
+      "Categories": ["RangedWeapon"]
     },
     {
       "Tag": "Flamethrower",
@@ -118,7 +130,8 @@
       "maxUses": 4,
       "damagePoints": 1,
       "range": 3,
-      "isFlammable": true
+      "isFlammable": true,
+      "Categories": ["RangedWeapon", "FireTool"]
     },
     {
       "Tag": "HuntingRifle",
@@ -128,7 +141,8 @@
       "Description": "Fires armor piercing rounds",
       "maxUses": 3,
       "damagePoints": 5,
-      "range": 8
+      "range": 8,
+      "Categories": ["RangedWeapon"]
     },
     {
       "Tag": "PlasmaRailgun",
@@ -138,7 +152,10 @@
       "Description": "Fires a voltaic bolt of plasma",
       "maxUses": 5,
       "damagePoints": 10,
-      "range": 5
+      "range": 5,
+      "Categories": ["RangedWeapon"],
+      "uniquePerRun": true,
+      "MinRegion": "RainforestRavines"
     },
     {
       "Tag": "Rock",
@@ -148,7 +165,8 @@
       "Description": "Can be thrown again",
       "maxUses": 1,
       "damagePoints": 1,
-      "range": 3
+      "range": 3,
+      "Categories": ["Throwable"]
     },
     {
       "disabled": true,
@@ -160,7 +178,8 @@
       "maxUses": 1,
       "damagePoints": 0,
       "range": 3,
-      "isStunning": true
+      "isStunning": true,
+      "Categories": ["Throwable"]
     },
     {
       "Tag": "Dynamite",
@@ -171,7 +190,8 @@
       "maxUses": 1,
       "damagePoints": 5,
       "range": 3,
-      "isFlammable": true
+      "isFlammable": true,
+      "Categories": ["Throwable"]
     },
     {
       "disabled": true,
@@ -183,7 +203,8 @@
       "maxUses": 1,
       "damagePoints": 3,
       "range": 5,
-      "isFlammable": true
+      "isFlammable": true,
+      "Categories": ["Throwable"]
     },
     {
       "Tag": "Helmet",
@@ -192,7 +213,8 @@
       "Name": "HELMET",
       "Description": "Absorbs 2 melee DP",
       "maxUses": 2,
-      "isEquipable": true
+      "isEquipable": true,
+      "Categories": ["Armor"]
     },
     {
       "Tag": "Vest",
@@ -202,7 +224,8 @@
       "Description": "Absorbs 3 ranged DP",
       "maxUses": 3,
       "isEquipable": true,
-      "isFlammable": true
+      "isFlammable": true,
+      "Categories": ["Armor"]
     },
     {
       "disabled": true,
@@ -211,7 +234,9 @@
       "Type": "Armor",
       "Name": "GRAPHENE SHIELD",
       "Description": "Blocks all DP except boss DP",
-      "maxUses": 1
+      "maxUses": 1,
+      "Categories": ["Armor"],
+      "uniquePerRun": true
     },
     {
       "disabled": true,
@@ -222,7 +247,8 @@
       "Description": "Adds 5 power charges",
       "maxUses": 5,
       "isAttachable": true,
-      "isFlammable": true
+      "isFlammable": true,
+      "Categories": ["Fuel"]
     },
     {
       "Tag": "Flare",
@@ -231,7 +257,8 @@
       "Name": "FLARE",
       "Description": "Temporary light",
       "maxUses": 1,
-      "isFlammable": true
+      "isFlammable": true,
+      "Categories": ["Light"]
     },
     {
       "Tag": "Lightrod",
@@ -240,7 +267,8 @@
       "Name": "LIGHTROD",
       "Description": "Illuminates surroundings",
       "maxUses": 1,
-      "isFlammable": true
+      "isFlammable": true,
+      "Categories": ["Light"]
     },
     {
       "Tag": "Extinguisher",
@@ -249,7 +277,8 @@
       "Name": "EXTINGUISHER",
       "Description": "Extinguishes fires",
       "maxUses": 4,
-      "isFlammable": true
+      "isFlammable": true,
+      "Categories": ["FireTool"]
     },
     {
       "disabled": true,
@@ -259,7 +288,8 @@
       "Name": "SPOTLIGHT",
       "Description": "Outputs directional light",
       "maxUses": 1,
-      "isAttachable": true
+      "isAttachable": true,
+      "Categories": ["Light"]
     },
     {
       "disabled": true,
@@ -269,7 +299,8 @@
       "Name": "BLOWTORCH",
       "Description": "Sets objects on fire",
       "maxUses": 4,
-      "isFlammable": true
+      "isFlammable": true,
+      "Categories": ["FireTool"]
     },
     {
       "disabled": true,
@@ -278,7 +309,8 @@
       "Type": "Utility",
       "Name": "THERMAL IMAGER",
       "Description": "Reveals heat signatures",
-      "maxUses": 4
+      "maxUses": 4,
+      "Categories": ["Recon"]
     },
     {
       "Tag": "NightVision",
@@ -287,7 +319,9 @@
       "Name": "NIGHT VISION",
       "Description": "Enables nighttime visibility",
       "maxUses": 1,
-      "isEquipable": true
+      "isEquipable": true,
+      "Categories": ["Recon"],
+      "uniquePerRun": true
     }
   ]
 }

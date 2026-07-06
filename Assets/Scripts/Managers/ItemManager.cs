@@ -6,18 +6,20 @@ public class ItemManager : MonoBehaviour
     [SerializeField] private GameObject[] ItemTemplates;
     public List<Item> Items { get; private set; } = new();
     [SerializeField] private int spawnItemCount;
-    [Header("Spawning")]
-    [SerializeField] private int minSpawnCount = 3;
-    [SerializeField] private int maxSpawnCountExclusive = 7;
-    public void Initialize(GameObject[] Templates) => ItemTemplates = Templates;
+    private LootManager LootManager;
+    public void Initialize(GameObject[] Templates, LootManager LootManager)
+    {
+        ItemTemplates = Templates;
+        this.LootManager = LootManager;
+    }
     /// <summary>
-    /// Generates random number of items for the level, guaranteeing at least
-    /// minSpawnCount whenever enough empty tiles exist
+    /// Plans this grid's loot through the loot director and spawns it into
+    /// the grid's empty tiles
     /// </summary>
     public void GenerateItems()
     {
-        int target = Random.Range(minSpawnCount, maxSpawnCountExclusive);
-        spawnItemCount = WeightedRarityGeneration.GenerateBatch<Item>(minSpawnCount, target);
+        List<int> Plan = LootManager.PlanGridLoot();
+        spawnItemCount = WeightedRarityGeneration.SpawnPlannedItems(Plan);
     }
     /// <summary>
     /// Spawns an item at a given position from an index in ItemTemplates (e.g. item generation)

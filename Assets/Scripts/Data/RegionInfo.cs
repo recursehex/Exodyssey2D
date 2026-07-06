@@ -26,18 +26,23 @@ public class RegionInfo
     public Tile[] GroundTiles       { get; set; }                           // Ground tiles for this region
     public Tile[] WallTiles         { get; set; }                           // Wall tiles for this region
     public List<string> EnemyPool   { get; private set; } = new();          // Allowed enemy types for this region
-    public List<string> ItemPool    { get; private set; } = new();          // Allowed item tags for this region
     public List<string> VehiclePool { get; private set; } = new();          // Allowed vehicle tags for this region
     public Dictionary<string, int> WallWeights { get; private set; } = new(); // Per-region wall spawn weights by sprite name
     public int ForcedWildfires      { get; private set; } = 0;              // Guaranteed wildfires spawned per grid
     public bool AllowNaturalWildfire { get; private set; } = true;          // Whether the natural wildfire chance roll can occur
+    public IReadOnlyList<int> ItemRarityWeightsStart { get; private set; } = DefaultItemRarityWeights; // C/L/S/R/A weights at region start
+    public IReadOnlyList<int> ItemRarityWeightsEnd { get; private set; } = DefaultItemRarityWeights;   // C/L/S/R/A weights at region end
+    public int AnomalousCap         { get; private set; } = 0;              // Max Anomalous items generated in this region
+    private static readonly int[] DefaultItemRarityWeights = { 45, 35, 15, 4, 1 };
     [Serializable] private class Entry
     {
         public string Tag, Name, Description;
         public int GridsRequired = 3;
         public int MinEnemySpawn = 0;
         public string GroundTileSetName, WallTileSetName;
-        public List<string> EnemyPool = new(), ItemPool = new(), VehiclePool = new();
+        public List<string> EnemyPool = new(), VehiclePool = new();
+        public List<int> ItemRarityWeightsStart = new(), ItemRarityWeightsEnd = new();
+        public int AnomalousCap = 0;
         public List<WallWeight> WallWeights = new();
         public int ForcedWildfires = 0;
         public bool AllowNaturalWildfire = true;
@@ -93,10 +98,14 @@ public class RegionInfo
         MinEnemySpawn   = Source.MinEnemySpawn;
         Description     = Source.Description;
         EnemyPool       = new(Source.EnemyPool);
-        ItemPool        = new(Source.ItemPool);
         VehiclePool     = new(Source.VehiclePool);
         ForcedWildfires = Source.ForcedWildfires;
         AllowNaturalWildfire = Source.AllowNaturalWildfire;
+        ItemRarityWeightsStart = ValidateWeights(Source.ItemRarityWeightsStart, Source.Tag, "ItemRarityWeightsStart");
+        ItemRarityWeightsEnd = Source.ItemRarityWeightsEnd.Count == 0
+            ? ItemRarityWeightsStart
+            : ValidateWeights(Source.ItemRarityWeightsEnd, Source.Tag, "ItemRarityWeightsEnd");
+        AnomalousCap    = Mathf.Max(0, Source.AnomalousCap);
         WallWeights     = new();
         foreach (WallWeight Weight in Source.WallWeights)
         {
@@ -106,13 +115,50 @@ public class RegionInfo
         Tag = Enum.TryParse(Source.Tag, out Tags ParsedTag) ? ParsedTag : Tags.Unknown;
     }
     /// <summary>
+    /// Falls back to the canonical global weights when a region's table is
+    /// missing, has the wrong number of tiers, or does not sum to 100
+    /// </summary>
+    private static IReadOnlyList<int> ValidateWeights(List<int> Weights, string regionTag, string fieldName)
+    {
+        if (Weights.Count != DefaultItemRarityWeights.Length)
+        {
+            Debug.LogWarning($"{fieldName} for region {regionTag} must have {DefaultItemRarityWeights.Length} entries, using defaults");
+            return DefaultItemRarityWeights;
+        }
+        int sum = 0;
+        foreach (int weight in Weights)
+        {
+            if (weight < 0)
+            {
+                Debug.LogWarning($"{fieldName} for region {regionTag} contains a negative weight, using defaults");
+                return DefaultItemRarityWeights;
+            }
+            sum += weight;
+        }
+        if (sum != 100)
+        {
+            Debug.LogWarning($"{fieldName} for region {regionTag} sums to {sum}, expected 100, using defaults");
+            return DefaultItemRarityWeights;
+        }
+        return Weights;
+    }
+    /// <summary>
+    /// Returns item rarity weights (C/L/S/R/A order, matching Rarity.RarityList)
+    /// interpolated between the region's start and end tables by progress t,
+    /// clamped to [0, 1]
+    /// </summary>
+    public float[] GetItemRarityWeightsAt(float t)
+    {
+        t = Mathf.Clamp01(t);
+        float[] Weights = new float[DefaultItemRarityWeights.Length];
+        for (int i = 0; i < Weights.Length; i++)
+            Weights[i] = Mathf.Lerp(ItemRarityWeightsStart[i], ItemRarityWeightsEnd[i], t);
+        return Weights;
+    }
+    /// <summary>
     /// Checks if an enemy type is allowed in this region's spawn pool
     /// </summary>
     public bool IsEnemyAllowed(string enemyType) => EnemyPool.Contains(enemyType);
-    /// <summary>
-    /// Checks if an item tag is allowed in this region's spawn pool
-    /// </summary>
-    public bool IsItemAllowed(string itemTag) => ItemPool.Contains(itemTag);
     /// <summary>
     /// Checks if a vehicle tag is allowed in this region's spawn pool
     /// </summary>
