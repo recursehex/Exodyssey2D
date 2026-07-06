@@ -187,4 +187,84 @@ public class RegionInfoTests
             Assert.Greater(region.VehiclePool.Count, 0, $"Region {region.Tag} should have vehicle pool entries");
         }
     }
+
+    // --- Item Rarity Weight Tables ---
+
+    private const int anomalousIndex = 4;
+    private const int rareIndex = 3;
+
+    [Test]
+    public void AllRegions_ItemRarityWeights_SumTo100()
+    {
+        for (int i = 0; i < (int)RegionInfo.Tags.Unknown; i++)
+        {
+            RegionInfo region = new RegionInfo(i);
+            int startSum = 0, endSum = 0;
+            for (int j = 0; j < 5; j++)
+            {
+                startSum += region.ItemRarityWeightsStart[j];
+                endSum += region.ItemRarityWeightsEnd[j];
+            }
+            Assert.AreEqual(100, startSum, $"Region {region.Tag} start weights should sum to 100");
+            Assert.AreEqual(100, endSum, $"Region {region.Tag} end weights should sum to 100");
+        }
+    }
+
+    [Test]
+    public void RegionsBeforeScorchedPlateau_HaveZeroAnomalousWeight()
+    {
+        for (int i = 0; i < (int)RegionInfo.Tags.ScorchedPlateau; i++)
+        {
+            RegionInfo region = new RegionInfo(i);
+            Assert.AreEqual(0, region.ItemRarityWeightsStart[anomalousIndex], $"Region {region.Tag} should gate Anomalous at start");
+            Assert.AreEqual(0, region.ItemRarityWeightsEnd[anomalousIndex], $"Region {region.Tag} should gate Anomalous at end");
+            Assert.AreEqual(0, region.AnomalousCap, $"Region {region.Tag} should have a zero Anomalous cap");
+        }
+    }
+
+    [Test]
+    public void RegionsFromScorchedPlateau_HaveAnomalousWeightAndCap()
+    {
+        for (int i = (int)RegionInfo.Tags.ScorchedPlateau; i < (int)RegionInfo.Tags.Unknown; i++)
+        {
+            RegionInfo region = new RegionInfo(i);
+            Assert.Greater(region.ItemRarityWeightsStart[anomalousIndex], 0, $"Region {region.Tag} should allow Anomalous");
+            Assert.Greater(region.AnomalousCap, 0, $"Region {region.Tag} should have a positive Anomalous cap");
+        }
+    }
+
+    [Test]
+    public void RuinedOutpost_HasFlatWeights_AndNoRare()
+    {
+        RegionInfo region = new RegionInfo((int)RegionInfo.Tags.RuinedOutpost);
+        for (int j = 0; j < 5; j++)
+            Assert.AreEqual(region.ItemRarityWeightsStart[j], region.ItemRarityWeightsEnd[j], "Ruined Outpost weights should be flat");
+        Assert.AreEqual(0, region.ItemRarityWeightsStart[rareIndex]);
+    }
+
+    [Test]
+    public void GetItemRarityWeightsAt_Interpolates_AndClamps()
+    {
+        RegionInfo region = new RegionInfo((int)RegionInfo.Tags.FragmentedCoast);
+        float[] atStart = region.GetItemRarityWeightsAt(0f);
+        float[] atMid = region.GetItemRarityWeightsAt(0.5f);
+        float[] atEnd = region.GetItemRarityWeightsAt(1f);
+        float[] pastEnd = region.GetItemRarityWeightsAt(2f);
+        Assert.AreEqual(region.ItemRarityWeightsStart[rareIndex], atStart[rareIndex], 0.001f);
+        Assert.AreEqual((region.ItemRarityWeightsStart[rareIndex] + region.ItemRarityWeightsEnd[rareIndex]) / 2f, atMid[rareIndex], 0.001f);
+        Assert.AreEqual(region.ItemRarityWeightsEnd[rareIndex], atEnd[rareIndex], 0.001f);
+        Assert.AreEqual(atEnd[rareIndex], pastEnd[rareIndex], 0.001f, "t past 1 should clamp to end weights");
+    }
+
+    [Test]
+    public void RareWeight_NeverDecreasesAcrossRegions()
+    {
+        int previousEnd = 0;
+        for (int i = 0; i < (int)RegionInfo.Tags.Unknown; i++)
+        {
+            RegionInfo region = new RegionInfo(i);
+            Assert.GreaterOrEqual(region.ItemRarityWeightsStart[rareIndex], previousEnd, $"Region {region.Tag} should not drop Rare below the previous region");
+            previousEnd = region.ItemRarityWeightsEnd[rareIndex];
+        }
+    }
 }

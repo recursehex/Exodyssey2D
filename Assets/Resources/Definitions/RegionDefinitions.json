@@ -10,6 +10,9 @@
       "EnemyPool": ["Weak"],
       "ItemPool": ["Common", "Limited"],
       "VehiclePool": ["Common", "Limited"],
+      "ItemRarityWeightsStart": [55, 35, 10, 0, 0],
+      "ItemRarityWeightsEnd": [55, 35, 10, 0, 0],
+      "AnomalousCap": 0,
       "ForcedWildfires": 2,
       "AllowNaturalWildfire": false,
       "WallWeights": [
@@ -27,6 +30,9 @@
       "EnemyPool": ["Weak"],
       "ItemPool": ["Common", "Limited", "Scarce"],
       "VehiclePool": ["Common", "Limited"],
+      "ItemRarityWeightsStart": [50, 36, 12, 2, 0],
+      "ItemRarityWeightsEnd": [46, 35, 15, 4, 0],
+      "AnomalousCap": 0,
       "WallWeights": [
         { "Name": "bush", "weight": 40 },
         { "Name": "rocks", "weight": 50 },
@@ -42,6 +48,9 @@
       "EnemyPool": ["Weak", "Mediocre"],
       "ItemPool": ["Common", "Limited", "Scarce"],
       "VehiclePool": ["Common", "Limited", "Scarce"],
+      "ItemRarityWeightsStart": [44, 35, 16, 5, 0],
+      "ItemRarityWeightsEnd": [41, 34, 18, 7, 0],
+      "AnomalousCap": 0,
       "AllowNaturalWildfire": false
     },
     {
@@ -52,7 +61,10 @@
       "WallTileSetName": "SP_Walls",
       "EnemyPool": ["Weak", "Mediocre"],
       "ItemPool": ["Common", "Limited", "Scarce", "Rare"],
-      "VehiclePool": ["Common", "Limited", "Scarce"]
+      "VehiclePool": ["Common", "Limited", "Scarce"],
+      "ItemRarityWeightsStart": [38, 34, 19, 8, 1],
+      "ItemRarityWeightsEnd": [36, 33, 20, 10, 1],
+      "AnomalousCap": 1
     },
     {
       "Tag": "RainforestRavines",
@@ -63,6 +75,9 @@
       "EnemyPool": ["Weak", "Mediocre", "Exotic"],
       "ItemPool": ["Common", "Limited", "Scarce", "Rare", "Anomalous"],
       "VehiclePool": ["Common", "Limited", "Scarce", "Anomalous"],
+      "ItemRarityWeightsStart": [34, 32, 21, 11, 2],
+      "ItemRarityWeightsEnd": [32, 31, 22, 13, 2],
+      "AnomalousCap": 2,
       "AllowNaturalWildfire": false
     },
     {
@@ -73,7 +88,10 @@
       "WallTileSetName": "VV_Walls",
       "EnemyPool": ["Weak", "Mediocre", "Strong"],
       "ItemPool": ["Common", "Limited", "Scarce", "Rare", "Anomalous"],
-      "VehiclePool": ["Common", "Limited", "Scarce", "Rare"]
+      "VehiclePool": ["Common", "Limited", "Scarce", "Rare"],
+      "ItemRarityWeightsStart": [30, 31, 23, 14, 2],
+      "ItemRarityWeightsEnd": [28, 30, 24, 15, 3],
+      "AnomalousCap": 2
     },
     {
       "Tag": "LuminousSwamp",
@@ -84,6 +102,9 @@
       "EnemyPool": ["Weak", "Exotic"],
       "ItemPool": ["Common", "Limited", "Scarce", "Rare", "Anomalous"],
       "VehiclePool": ["Common", "Limited", "Scarce", "Rare", "Anomalous"],
+      "ItemRarityWeightsStart": [26, 29, 25, 16, 4],
+      "ItemRarityWeightsEnd": [24, 28, 26, 17, 5],
+      "AnomalousCap": 3,
       "AllowNaturalWildfire": false
     },
     {
@@ -95,6 +116,9 @@
       "EnemyPool": ["Strong", "Exotic"],
       "ItemPool": ["Common", "Limited", "Scarce", "Rare", "Anomalous"],
       "VehiclePool": ["Common", "Limited", "Scarce", "Rare", "Anomalous"],
+      "ItemRarityWeightsStart": [22, 27, 26, 19, 6],
+      "ItemRarityWeightsEnd": [20, 25, 27, 21, 7],
+      "AnomalousCap": 4,
       "AllowNaturalWildfire": false
     }
   ]
