@@ -6,6 +6,7 @@ public static class WeightedRarityGeneration
 	/// <summary>
 	/// Rolls a weighted-random rarity for the given entity type based on the
 	/// current region's allowed rarities. Returns false if none are available.
+	/// Items are planned by LootManager instead and never roll here.
 	/// </summary>
 	private static bool TryRollRarity<T>(out Rarity Chosen)
 	{
@@ -13,7 +14,6 @@ public static class WeightedRarityGeneration
 		// Get allowed rarities based on entity type
 		List<Rarity> AllowedRarities = typeof(T).Name switch
 		{
-			nameof(Item) => ItemInfo.GetAllowedRarities(),
 			nameof(Enemy) => EnemyInfo.GetAllowedRarities(),
 			nameof(Vehicle) => VehicleInfo.GetAllowedRarities(),
 			_ => Rarity.RarityList
@@ -41,7 +41,7 @@ public static class WeightedRarityGeneration
 		return false;
 	}
 	/// <summary>
-	/// Spawns a single item, enemy, or vehicle of a random rarity/type at the
+	/// Spawns a single enemy or vehicle of a random rarity/type at the
 	/// given (already-empty) shifted world position. Returns true if spawned.
 	/// </summary>
 	private static bool GenerateAt<T>(Vector3 Position)
@@ -51,11 +51,6 @@ public static class WeightedRarityGeneration
 		int index = -1;
 		switch (typeof(T).Name)
 		{
-			case nameof(Item):
-				index = ItemInfo.GetRandomIndexFrom(ChosenRarity);
-				if (index != -1)
-					GameManager.Instance.SpawnItem(index, Position);
-				break;
 			case nameof(Enemy):
 				index = EnemyInfo.GetRandomIndexFrom(ChosenRarity);
 				if (index != -1)
@@ -79,6 +74,18 @@ public static class WeightedRarityGeneration
 		return index != -1;
 	}
 	/// <summary>
+	/// Shuffles empty cells in place so distinct tiles are drawn without
+	/// positional bias
+	/// </summary>
+	private static void ShuffleCells(List<Vector3Int> Cells)
+	{
+		for (int i = 0; i < Cells.Count; i++)
+		{
+			int swapIndex = Random.Range(i, Cells.Count);
+			(Cells[i], Cells[swapIndex]) = (Cells[swapIndex], Cells[i]);
+		}
+	}
+	/// <summary>
 	/// Spawns up to <paramref name="targetCount"/> entities of type T into the
 	/// grid's currently-empty tiles. Because placement draws from the known list
 	/// of empty tiles, at least <paramref name="targetCount"/> (which is always
@@ -94,12 +101,7 @@ public static class WeightedRarityGeneration
 			Debug.LogWarning($"Only {EmptyCells.Count} empty tiles available, cannot guarantee " +
 							$"minimum {guaranteedMin} {typeof(T).Name} spawns this level");
 		int toSpawn = Mathf.Min(targetCount, EmptyCells.Count);
-		// Shuffle empty cells so distinct tiles are drawn without positional bias
-		for (int i = 0; i < EmptyCells.Count; i++)
-		{
-			int swapIndex = Random.Range(i, EmptyCells.Count);
-			(EmptyCells[i], EmptyCells[swapIndex]) = (EmptyCells[swapIndex], EmptyCells[i]);
-		}
+		ShuffleCells(EmptyCells);
 		int spawned = 0;
 		int cellIndex = 0;
 		// Each empty cell is used at most once; advance past cells where the
@@ -112,5 +114,26 @@ public static class WeightedRarityGeneration
 			cellIndex++;
 		}
 		return spawned;
+	}
+	/// <summary>
+	/// Spawns items already planned by the loot director into the grid's
+	/// currently-empty tiles, one item per tile. Only placement is random
+	/// here; what spawns was decided at grid generation. Returns the number
+	/// actually spawned.
+	/// </summary>
+	public static int SpawnPlannedItems(IReadOnlyList<int> PlannedIndices)
+	{
+		List<Vector3Int> EmptyCells = GameManager.Instance.GetEmptyCells();
+		if (EmptyCells.Count < PlannedIndices.Count)
+			Debug.LogWarning($"Only {EmptyCells.Count} empty tiles available for " +
+							$"{PlannedIndices.Count} planned items this level");
+		ShuffleCells(EmptyCells);
+		int toSpawn = Mathf.Min(PlannedIndices.Count, EmptyCells.Count);
+		for (int i = 0; i < toSpawn; i++)
+		{
+			Vector3 Position = EmptyCells[i] + new Vector3(0.5f, 0.5f);
+			GameManager.Instance.SpawnItem(PlannedIndices[i], Position);
+		}
+		return toSpawn;
 	}
 }

@@ -143,10 +143,6 @@ public partial class RegionManager : MonoBehaviour
     /// </summary>
     public bool IsEnemyAllowedInRegion(string EnemyType) => CurrentRegion?.IsEnemyAllowed(EnemyType) ?? false;
     /// <summary>
-    /// Checks if an item is allowed in the current region
-    /// </summary>
-    public bool IsItemAllowedInRegion(string itemTag) => CurrentRegion?.IsItemAllowed(itemTag) ?? false;
-    /// <summary>
     /// Checks if a vehicle is allowed in the current region
     /// </summary>
     public bool IsVehicleAllowedInRegion(string vehicleTag) => CurrentRegion?.IsVehicleAllowed(vehicleTag) ?? false;

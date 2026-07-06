@@ -100,38 +100,6 @@ public class RegionInfoTests
     }
 
     [Test]
-    public void RuinedOutpost_AllowsCommonItems()
-    {
-        RegionInfo region = new RegionInfo((int)RegionInfo.Tags.RuinedOutpost);
-        Assert.IsTrue(region.IsItemAllowed("Common"));
-    }
-
-    [Test]
-    public void RuinedOutpost_AllowsLimitedItems()
-    {
-        RegionInfo region = new RegionInfo((int)RegionInfo.Tags.RuinedOutpost);
-        Assert.IsTrue(region.IsItemAllowed("Limited"));
-    }
-
-    [Test]
-    public void RuinedOutpost_DoesNotAllowRareItems()
-    {
-        RegionInfo region = new RegionInfo((int)RegionInfo.Tags.RuinedOutpost);
-        Assert.IsFalse(region.IsItemAllowed("Rare"));
-    }
-
-    [Test]
-    public void RadiantCascades_AllowsAllItemRarities()
-    {
-        RegionInfo region = new RegionInfo((int)RegionInfo.Tags.RadiantCascades);
-        Assert.IsTrue(region.IsItemAllowed("Common"));
-        Assert.IsTrue(region.IsItemAllowed("Limited"));
-        Assert.IsTrue(region.IsItemAllowed("Scarce"));
-        Assert.IsTrue(region.IsItemAllowed("Rare"));
-        Assert.IsTrue(region.IsItemAllowed("Anomalous"));
-    }
-
-    [Test]
     public void IsVehicleAllowed_InvalidTag_ReturnsFalse()
     {
         RegionInfo region = new RegionInfo((int)RegionInfo.Tags.RuinedOutpost);
@@ -165,16 +133,6 @@ public class RegionInfoTests
         {
             RegionInfo region = new RegionInfo(i);
             Assert.Greater(region.EnemyPool.Count, 0, $"Region {region.Tag} should have enemy pool entries");
-        }
-    }
-
-    [Test]
-    public void AllRegions_HaveNonEmptyItemPools()
-    {
-        for (int i = 0; i < (int)RegionInfo.Tags.Unknown; i++)
-        {
-            RegionInfo region = new RegionInfo(i);
-            Assert.Greater(region.ItemPool.Count, 0, $"Region {region.Tag} should have item pool entries");
         }
     }
 

@@ -16,7 +16,8 @@ public class LootTuning
 	public int backstopGrid = 4;				// 1-based grid within BackstopRegion that forces the guarantee
 	// Anomalous pacing after one generates
 	public int anomalousBlockedGrids = 2;		// Grids with Anomalous weight x0 after a drop (plus the drop's own grid)
-	public int anomalousHalvedGrids = 2;		// Grids with Anomalous weight x0.5 after the blocked window
+	public int anomalousHalvedGrids = 2;		// Grids at reduced Anomalous weight after the blocked window
+	public float anomalousHalvedMultiplier = 0.5f;	// Anomalous weight multiplier during the halved window
 	// Duplicate suppression
 	public int historySize = 10;				// Recent non-Common items remembered across grids
 	public float historyMultiplierScarce = 0.35f;		// Weight multiplier for a Scarce item in recent history

@@ -24,6 +24,7 @@ public class GameManager : MonoBehaviour
 	[SerializeField] private RegionManager RegionManager;
 	private EnemyManager EnemyManager;
 	private ItemManager ItemManager;
+	private LootManager LootManager;
 	private VehicleManager VehicleManager;
 	private StructureManager StructureManager;
 	private FireManager FireManager;
@@ -75,6 +76,7 @@ public class GameManager : MonoBehaviour
 		// Instantiate managers
 		EnemyManager 	= gameObject.AddComponent<EnemyManager>();
 		ItemManager 	= gameObject.AddComponent<ItemManager>();
+		LootManager 	= gameObject.AddComponent<LootManager>();
 		VehicleManager 	= gameObject.AddComponent<VehicleManager>();
 		StructureManager = gameObject.AddComponent<StructureManager>();
 		FireManager 	= gameObject.AddComponent<FireManager>();
@@ -87,8 +89,9 @@ public class GameManager : MonoBehaviour
 		VisibilityManager = gameObject.AddComponent<VisibilityManager>();
 		// Initialize managers
 		RegionManager	.Initialize();
+		LootManager		.Initialize(RegionManager);
 		EnemyManager	.Initialize(TilemapGround, TilemapWalls, EnemyTemplates);
-		ItemManager		.Initialize(ItemTemplates);
+		ItemManager		.Initialize(ItemTemplates, LootManager);
 		VehicleManager	.Initialize(TilemapGround, TilemapWalls, VehicleTemplates, Player);
 		FireManager		.Initialize(TilemapGround, TilemapWalls, Player, EnemyManager, VehicleManager, FireTemplate);
 		TileManager		.Initialize(TileDot, TileArea, TargetTemplate);
@@ -304,6 +307,7 @@ public class GameManager : MonoBehaviour
 		StopAllCoroutines();
 		NewGameButton.gameObject.SetActive(false);
 		RegionManager.ResetRegionProgress();
+		LootManager.ResetForNewRun();
 		LevelManager.ResetLevelProgress();
 		TurnManager.ResetTurnState();
 		ChronoclasmManager.ResetForNewRun();

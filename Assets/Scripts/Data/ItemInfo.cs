@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 /// <summary>
@@ -99,7 +98,6 @@ public class ItemInfo
 	}
 	[Serializable] private class EntryList { public List<Entry> Items; }
 	private static readonly int lastItemIndex = (int)Tags.Unknown;
-	private static readonly List<Rarity> ItemRarityList = GenerateAllRarities();
 	private static List<Entry> Database;
 	/// <summary>
 	/// Loads item definitions from JSON file in Resources folder
@@ -113,29 +111,6 @@ public class ItemInfo
 			Database = JsonUtility.FromJson<EntryList>(JsonFile.text).Items;
 		else
 			Debug.LogError("ItemDefinitions.json not found in Resources folder!");
-	}
-	/// <summary>
-	/// Generates list of all rarities based on database
-	/// </summary>
-	private static List<Rarity> GenerateAllRarities()
-	{
-		LoadDatabase();
-		if (Database == null)
-		{
-			Debug.LogWarning("Database failed to load, returning empty list");
-			return new();
-		}
-		List<Rarity> Rarities = new();
-		for (int i = 0; i < lastItemIndex; i++)
-		{
-			string TagName = ((Tags)i).ToString();
-			Entry Entry = Database.Find(Entry => Entry.Tag == TagName);
-			if (Entry != null && !Entry.disabled)
-				Rarities.Add(Rarity.Parse(Entry.Rarity));
-			else if (Entry == null)
-				Rarities.Add(new ItemInfo(i).Rarity);
-		}
-		return Rarities;
 	}
 	/// <summary>
 	/// Returns indices of all enabled items in the database, in Tags order
@@ -154,39 +129,6 @@ public class ItemInfo
 				Indices.Add(i);
 		}
 		return Indices;
-	}
-	/// <summary>
-	/// Gets list of allowed rarities based on current region's item pool
-	/// </summary>
-	public static List<Rarity> GetAllowedRarities()
-	{
-		RegionManager RegionManager = GameManager.Instance.GetRegionManager();
-		List<string> AllowedRarityNames = RegionManager.CurrentRegion?.ItemPool;
-		// No region filtering, return all rarities
-		if (AllowedRarityNames == null || AllowedRarityNames.Count == 0)
-		{
-			return new List<Rarity>(Rarity.RarityList);
-		}
-		// Convert rarity names to Rarity objects
-		HashSet<Rarity> AllowedRarities = new();
-		foreach (string RarityName in AllowedRarityNames)
-		{
-			Rarity Rarity = Rarity.Parse(RarityName);
-			AllowedRarities.Add(Rarity);
-		}
-		return new List<Rarity>(AllowedRarities);
-	}
-	/// <summary>
-	/// Returns a random index of an item within the specified rarity
-	/// </summary>
-	public static int GetRandomIndexFrom(Rarity Rarity)
-	{
-		List<int> Indices = Enumerable.Range(0, ItemRarityList.Count)
-									  .Where(i => ItemRarityList[i] == Rarity)
-									  .ToList();
-		if (Indices.Count == 0)
-			return -1;
-		return Indices[UnityEngine.Random.Range(0, Indices.Count)];
 	}
 	/// <summary>
 	/// Decreases item durability by amount and updates description

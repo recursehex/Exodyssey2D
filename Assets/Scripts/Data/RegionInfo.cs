@@ -26,7 +26,6 @@ public class RegionInfo
     public Tile[] GroundTiles       { get; set; }                           // Ground tiles for this region
     public Tile[] WallTiles         { get; set; }                           // Wall tiles for this region
     public List<string> EnemyPool   { get; private set; } = new();          // Allowed enemy types for this region
-    public List<string> ItemPool    { get; private set; } = new();          // Allowed item tags for this region
     public List<string> VehiclePool { get; private set; } = new();          // Allowed vehicle tags for this region
     public Dictionary<string, int> WallWeights { get; private set; } = new(); // Per-region wall spawn weights by sprite name
     public int ForcedWildfires      { get; private set; } = 0;              // Guaranteed wildfires spawned per grid
@@ -41,7 +40,7 @@ public class RegionInfo
         public int GridsRequired = 3;
         public int MinEnemySpawn = 0;
         public string GroundTileSetName, WallTileSetName;
-        public List<string> EnemyPool = new(), ItemPool = new(), VehiclePool = new();
+        public List<string> EnemyPool = new(), VehiclePool = new();
         public List<int> ItemRarityWeightsStart = new(), ItemRarityWeightsEnd = new();
         public int AnomalousCap = 0;
         public List<WallWeight> WallWeights = new();
@@ -99,7 +98,6 @@ public class RegionInfo
         MinEnemySpawn   = Source.MinEnemySpawn;
         Description     = Source.Description;
         EnemyPool       = new(Source.EnemyPool);
-        ItemPool        = new(Source.ItemPool);
         VehiclePool     = new(Source.VehiclePool);
         ForcedWildfires = Source.ForcedWildfires;
         AllowNaturalWildfire = Source.AllowNaturalWildfire;
@@ -161,10 +159,6 @@ public class RegionInfo
     /// Checks if an enemy type is allowed in this region's spawn pool
     /// </summary>
     public bool IsEnemyAllowed(string enemyType) => EnemyPool.Contains(enemyType);
-    /// <summary>
-    /// Checks if an item tag is allowed in this region's spawn pool
-    /// </summary>
-    public bool IsItemAllowed(string itemTag) => ItemPool.Contains(itemTag);
     /// <summary>
     /// Checks if a vehicle tag is allowed in this region's spawn pool
     /// </summary>
