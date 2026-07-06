@@ -31,6 +31,7 @@ public class CheatActions
 	private readonly FireManager FireManager;
 	private readonly LevelManager LevelManager;
 	private readonly RegionManager RegionManager;
+	private readonly LootManager LootManager;
 
 	public static readonly int ItemCount    = (int)ItemInfo.Tags.Unknown;
 	public static readonly int EnemyCount   = (int)EnemyInfo.Tags.Unknown;
@@ -46,6 +47,7 @@ public class CheatActions
 		FireManager     = GameManager.GetComponent<FireManager>();
 		LevelManager    = GameManager.GetComponent<LevelManager>();
 		RegionManager   = GameManager.GetRegionManager();
+		LootManager     = GameManager.GetComponent<LootManager>();
 	}
 
 	private bool Ready => GameManager != null && Player != null;
@@ -483,6 +485,42 @@ public class CheatActions
 			if (Fire != null) Builder.AppendLine($"Fire: {Fire.transform.position}");
 		Debug.Log(Builder.ToString());
 		return CheatResult.Pass("Logged entity positions to console");
+	}
+
+	/// <summary>
+	/// Live loot-state readout for the `loot` command.
+	/// </summary>
+	public string GetLootStatus() =>
+		LootManager != null ? LootManager.Debug_GetStatus() : "LootManager not available";
+
+	/// <summary>
+	/// Overrides the Rare pity offset.
+	/// </summary>
+	public CheatResult SetLootPity(int value)
+	{
+		if (LootManager == null) return CheatResult.Fail("LootManager not available");
+		LootManager.Debug_SetPity(value);
+		return CheatResult.Pass($"Rare pity offset set to {value}");
+	}
+
+	/// <summary>
+	/// Clears loot duplicate-suppression memory (history + unique flags).
+	/// </summary>
+	public CheatResult ClearLootHistory()
+	{
+		if (LootManager == null) return CheatResult.Fail("LootManager not available");
+		LootManager.Debug_ClearHistory();
+		return CheatResult.Pass("Loot history and unique flags cleared");
+	}
+
+	/// <summary>
+	/// Resets all run-scoped loot state and reseeds the loot RNG stream.
+	/// </summary>
+	public CheatResult ResetLootState()
+	{
+		if (LootManager == null) return CheatResult.Fail("LootManager not available");
+		LootManager.ResetForNewRun();
+		return CheatResult.Pass("Loot state reset for a fresh run");
 	}
 
 	/// <summary>

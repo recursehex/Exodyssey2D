@@ -51,6 +51,10 @@ public class CheatCommandParser
 			case "nextlevel": return Actions.AdvanceLevel();
 			case "regen":   return Actions.RegenerateLevel();
 			case "logpos":  return Actions.LogEntityPositions();
+			case "loot":      return CheatResult.Pass("\n" + Actions.GetLootStatus());
+			case "lootpity":  return ParseIntArg(t, Actions.SetLootPity, "lootpity <n>");
+			case "lootclear": return Actions.ClearLootHistory();
+			case "lootreset": return Actions.ResetLootState();
 			case "list":    return ParseList(t);
 			case "status":  return CheatResult.Pass("\n" + Actions.GetStatus());
 			case "help":    return ParseHelp(t);
@@ -235,7 +239,8 @@ public class CheatCommandParser
 			"\nSpawn: spawn item|enemy <tag> [x y] | spawn vehicle <tag> [fuel] [x y] | spawn fire|wildfire [x y]\n" +
 			"Player: set health|energy|maxhealth|maxenergy <n> | give <tag> | equip helmet|vest|nightvision|all | unequip | heal | restore | god | noclip | tp <x> <y>\n" +
 			"World: time <name> | level <n> | day <n> | region <n> | advance | regen | killall | clearitems|clearvehicles|clearfires|clearall | endturn | chrono | reveal\n" +
-			"Debug: gameover | restart | invenemy | freeze | logpos | list items|enemies|vehicles | status | help");
+			"Debug: gameover | restart | invenemy | freeze | logpos | list items|enemies|vehicles | status | help\n" +
+			"Loot: loot | lootpity <n> | lootclear | lootreset");
 	}
 	#endregion
 }
