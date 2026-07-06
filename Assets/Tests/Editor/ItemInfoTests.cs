@@ -306,4 +306,78 @@ public class ItemInfoTests
         ItemInfo item = new ItemInfo((int)ItemInfo.Tags.Carbine);
         Assert.IsTrue(item.Stats.Contains("RP:"));
     }
+
+    // --- Loot Metadata ---
+
+    [Test]
+    public void EnabledItemIndices_AreNonEmpty_AndExcludeDisabledItems()
+    {
+        var indices = ItemInfo.GetEnabledItemIndices();
+        Assert.Greater(indices.Count, 0);
+        Assert.IsFalse(indices.Contains((int)ItemInfo.Tags.Blowtorch), "Blowtorch is disabled in JSON");
+        Assert.IsTrue(indices.Contains((int)ItemInfo.Tags.Branch));
+    }
+
+    [Test]
+    public void AllEnabledItems_HaveAtLeastOneCategory()
+    {
+        foreach (int i in ItemInfo.GetEnabledItemIndices())
+        {
+            ItemInfo item = new ItemInfo(i);
+            Assert.Greater(item.Categories.Count, 0, $"Item {item.Tag} should declare at least one loot category");
+        }
+    }
+
+    [Test]
+    public void AllEnabledItems_HavePositiveLootWeight()
+    {
+        foreach (int i in ItemInfo.GetEnabledItemIndices())
+        {
+            ItemInfo item = new ItemInfo(i);
+            Assert.Greater(item.LootWeight, 0, $"Item {item.Tag} should have a positive loot weight");
+        }
+    }
+
+    [Test]
+    public void MedKit_HasMedicalCategory()
+    {
+        ItemInfo item = new ItemInfo((int)ItemInfo.Tags.MedKit);
+        Assert.Contains(LootCategory.Medical, item.Categories);
+    }
+
+    [Test]
+    public void Wrench_HasRepairAndMeleeCategories()
+    {
+        ItemInfo item = new ItemInfo((int)ItemInfo.Tags.Wrench);
+        Assert.Contains(LootCategory.Repair, item.Categories);
+        Assert.Contains(LootCategory.MeleeWeapon, item.Categories);
+    }
+
+    [Test]
+    public void DefaultItem_IsNotUniquePerRun_AndHasNoRegionGate()
+    {
+        ItemInfo item = new ItemInfo((int)ItemInfo.Tags.Branch);
+        Assert.IsFalse(item.UniquePerRun);
+        Assert.AreEqual(RegionInfo.Tags.RuinedOutpost, item.MinRegion);
+        Assert.AreEqual(100, item.LootWeight);
+    }
+
+    [Test]
+    public void PlasmaRailgun_IsUniquePerRun_AndGatedToRainforestRavines()
+    {
+        ItemInfo item = new ItemInfo((int)ItemInfo.Tags.PlasmaRailgun);
+        Assert.IsTrue(item.UniquePerRun);
+        Assert.AreEqual(RegionInfo.Tags.RainforestRavines, item.MinRegion);
+    }
+
+    [Test]
+    public void AnomalousItems_AreUniquePerRun()
+    {
+        foreach (int i in ItemInfo.GetEnabledItemIndices())
+        {
+            ItemInfo item = new ItemInfo(i);
+            if (item.Rarity == Rarity.Anomalous)
+                Assert.IsTrue(item.UniquePerRun, $"Anomalous item {item.Tag} should be unique per run");
+        }
+    }
 }

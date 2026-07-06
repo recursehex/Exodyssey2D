@@ -86,11 +86,16 @@ public class ItemInfo
 	public bool IsAttachable 	{ get; private set; } = false;			// If item can be attached to vehicles, enabling and removing from inventory
 	public bool IsFlammable 	{ get; private set; } = false;			// If item is flammable, can be destroyed by fire and helps it spread
 	public bool IsStunning 		{ get; private set; } = false;			// If item stuns enemies when used
+	public List<LootCategory> Categories { get; private set; } = new();	// Functional categories for loot profile biasing
+	public int LootWeight 		{ get; private set; } = 100;			// Relative pick weight within its rarity tier
+	public bool UniquePerRun 	{ get; private set; } = false;			// If item can generate at most once per run
+	public RegionInfo.Tags MinRegion { get; private set; } = RegionInfo.Tags.RuinedOutpost; // Earliest region item can generate in
 	[Serializable] private class Entry
 	{
-		public string Tag, Rarity, Type, Name, Description;
-		public int maxUses = 1, damagePoints = -1, armorDamage = -1, range = -1;
-		public bool isEquipable = false, isAttachable = false, isFlammable = false, isStunning = false, disabled = false;
+		public string Tag, Rarity, Type, Name, Description, MinRegion;
+		public int maxUses = 1, damagePoints = -1, armorDamage = -1, range = -1, lootWeight = 100;
+		public bool isEquipable = false, isAttachable = false, isFlammable = false, isStunning = false, uniquePerRun = false, disabled = false;
+		public List<string> Categories = new();
 	}
 	[Serializable] private class EntryList { public List<Entry> Items; }
 	private static readonly int lastItemIndex = (int)Tags.Unknown;
@@ -131,6 +136,24 @@ public class ItemInfo
 				Rarities.Add(new ItemInfo(i).Rarity);
 		}
 		return Rarities;
+	}
+	/// <summary>
+	/// Returns indices of all enabled items in the database, in Tags order
+	/// </summary>
+	public static List<int> GetEnabledItemIndices()
+	{
+		LoadDatabase();
+		List<int> Indices = new();
+		if (Database == null)
+			return Indices;
+		for (int i = 0; i < lastItemIndex; i++)
+		{
+			string TagName = ((Tags)i).ToString();
+			Entry Entry = Database.Find(Entry => Entry.Tag == TagName);
+			if (Entry != null && !Entry.disabled)
+				Indices.Add(i);
+		}
+		return Indices;
 	}
 	/// <summary>
 	/// Gets list of allowed rarities based on current region's item pool
@@ -302,6 +325,17 @@ public class ItemInfo
 		IsAttachable 	= Source.isAttachable;
 		IsFlammable 	= Source.isFlammable;
 		IsStunning 		= Source.isStunning;
+		LootWeight 		= Mathf.Max(0, Source.lootWeight);
+		UniquePerRun 	= Source.uniquePerRun;
+		Categories 		= new();
+		foreach (string CategoryName in Source.Categories)
+		{
+			if (Enum.TryParse(CategoryName, out LootCategory ParsedCategory))
+				Categories.Add(ParsedCategory);
+			else
+				Debug.LogWarning($"Unknown loot category '{CategoryName}' on item {Source.Tag}");
+		}
+		MinRegion = Enum.TryParse(Source.MinRegion, out RegionInfo.Tags ParsedRegion) ? ParsedRegion : RegionInfo.Tags.RuinedOutpost;
 		Tag 	= Enum.TryParse(Source.Tag, out Tags ParsedTag) ? ParsedTag : Tags.Unknown;
 		Rarity 	= Rarity.Parse(Source.Rarity);
 		Type 	= Enum.TryParse(Source.Type, out Types ParsedType) ? ParsedType : Types.Unknown;
