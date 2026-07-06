@@ -1,0 +1,37 @@
+{
+  "Tuning": {
+    "rarePityStart": -2.0,
+    "rarePityPerItem": 1.2,
+    "rarePityCap": 20.0,
+    "BackstopRegion": "FragmentedCoast",
+    "backstopGrid": 4,
+    "anomalousBlockedGrids": 2,
+    "anomalousHalvedGrids": 2,
+    "historySize": 10,
+    "historyMultiplierScarce": 0.35,
+    "historyMultiplierRarePlus": 0.25,
+    "withinGridMultiplierCommon": 0.6,
+    "withinGridMultiplierLimited": 0.25,
+    "oodEscalationChance": 0.03,
+    "OodEscalationMinRegion": "RainforestRavines",
+    "fuelMeterGainPerDryGrid": 35,
+    "fuelMeterCostOnSpawn": 80,
+    "fuelMeterFloor": -40,
+    "minFuelItemsPerRegion": 2,
+    "fuelSurvivalFloorGrids": 2,
+    "flavorCategoryMultiplier": 1.75
+  },
+  "Profiles": [
+    {
+      "Name": "Default",
+      "GridType": "Nature",
+      "MinItems": 3,
+      "MaxItems": 6,
+      "RarityShift": 0,
+      "rollFlavorCategory": true,
+      "Guaranteed": [],
+      "CategoryMultipliers": [],
+      "MapHints": []
+    }
+  ]
+}
