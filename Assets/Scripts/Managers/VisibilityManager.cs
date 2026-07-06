@@ -54,6 +54,8 @@ public class VisibilityManager : MonoBehaviour
 	private bool IsInitialized;
 	private bool NeedsVisibilityRefresh = true;
 	private bool TargetOverlayEnabled;
+	// Forces one overlay material apply after targets change, even if no lerp moved
+	private bool OverlayNeedsApply = true;
 	// True during the first-grid "wake up" effect: the grid starts dark and quickly recedes to daylight,
 	// with every light source suppressed (no glow, nothing visible through the darkness) until it clears
 	private bool IsWakingUp;
@@ -118,11 +120,24 @@ public class VisibilityManager : MonoBehaviour
 		if (!IsInitialized)
 			return;
 		TrackDynamicState();
-		if (NeedsVisibilityRefresh)
+		bool rebuilt = NeedsVisibilityRefresh;
+		if (rebuilt)
 			RebuildVisibilityState();
 		UpdateTrackedLightPositions();
 		UpdateOverlay();
-		ApplyEntityVisibility();
+		// RebuildVisibilityState already applied entity visibility; outside a rebuild,
+		// cell occupancy only changes while something is moving between cells, so the
+		// per-entity renderer sweep is skipped on idle frames
+		if (!rebuilt && IsAnyEntityMoving())
+			ApplyEntityVisibility();
+	}
+	private bool IsAnyEntityMoving()
+	{
+		if (Player != null && Player.IsInMovement)
+			return true;
+		if (Player != null && Player.IsInVehicle && Player.Vehicle != null && Player.Vehicle.IsInMovement)
+			return true;
+		return EnemyManager != null && EnemyManager.IsProcessingEnemyMovement;
 	}
 	private void FlushIfNeeded()
 	{
@@ -346,6 +361,7 @@ public class VisibilityManager : MonoBehaviour
 	private void RebuildVisibilityState()
 	{
 		NeedsVisibilityRefresh = false;
+		OverlayNeedsApply = true;
 		VisibleCells.Clear();
 		TargetLightData.Clear();
 		TargetLightKeys.Clear();
@@ -863,8 +879,20 @@ public class VisibilityManager : MonoBehaviour
 		float ambientInterpolation = IsWakingUp
 			? Mathf.Clamp01(Time.deltaTime * wakeUpTransitionSpeed)
 			: interpolation;
-		AppliedAmbient = Mathf.Lerp(AppliedAmbient, TargetAmbient, ambientInterpolation);
-		AppliedNightVision = Mathf.Lerp(AppliedNightVision, TargetNightVision, interpolation);
+		bool overlayChanged = OverlayNeedsApply;
+		OverlayNeedsApply = false;
+		float newAmbient = LerpWithSnap(AppliedAmbient, TargetAmbient, ambientInterpolation);
+		if (newAmbient != AppliedAmbient)
+		{
+			AppliedAmbient = newAmbient;
+			overlayChanged = true;
+		}
+		float newNightVision = LerpWithSnap(AppliedNightVision, TargetNightVision, interpolation);
+		if (newNightVision != AppliedNightVision)
+		{
+			AppliedNightVision = newNightVision;
+			overlayChanged = true;
+		}
 		// End the wake-up once the grid has brightened back to daylight, then resume normal lighting rules
 		if (IsWakingUp && AppliedAmbient >= 0.995f)
 		{
@@ -892,6 +920,7 @@ public class VisibilityManager : MonoBehaviour
 				AppliedLights.Remove(key);
 			else
 				AppliedLights[key] = new Vector4(current.x, current.y, newRadius, newIntensity);
+			overlayChanged = true;
 		}
 		// Update existing lights and grow in new lights (glow expand)
 		for (int i = 0; i < TargetLightCount; i++)
@@ -901,22 +930,38 @@ public class VisibilityManager : MonoBehaviour
 			if (AppliedLights.TryGetValue(key, out Vector4 current))
 			{
 				// Existing light: snap position, lerp radius/intensity
-				AppliedLights[key] = new Vector4(target.x, target.y,
-					Mathf.Lerp(current.z, target.z, interpolation),
-					Mathf.Lerp(current.w, target.w, interpolation));
+				Vector4 updated = new(target.x, target.y,
+					LerpWithSnap(current.z, target.z, interpolation),
+					LerpWithSnap(current.w, target.w, interpolation));
+				if (updated != current)
+				{
+					AppliedLights[key] = updated;
+					overlayChanged = true;
+				}
 			}
 			else
 			{
 				// New light: correct position, zero radius, will grow over subsequent frames
 				AppliedLights[key] = new Vector4(target.x, target.y, 0f, 0f);
+				overlayChanged = true;
 			}
 		}
+		// Once every lerp has converged there is nothing new to push to the material
+		if (!overlayChanged)
+			return;
 		bool shouldDisplayOverlay = TargetOverlayEnabled
 			|| AppliedAmbient < 0.995f
 			|| AppliedNightVision > 0.005f
 			|| AppliedLights.Count > 0;
 		SetOverlayActive(shouldDisplayOverlay);
 		ApplyOverlayProperties();
+	}
+	// Lerps asymptote and never land, so values within a hair of the target snap to it,
+	// letting the overlay reach a converged state where material writes stop
+	private static float LerpWithSnap(float current, float target, float interpolation)
+	{
+		float value = Mathf.Lerp(current, target, interpolation);
+		return Mathf.Abs(value - target) < 0.002f ? target : value;
 	}
 	private void ApplyOverlayProperties()
 	{

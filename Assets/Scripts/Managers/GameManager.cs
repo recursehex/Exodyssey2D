@@ -67,6 +67,8 @@ public class GameManager : MonoBehaviour
 			return;
 		}
 		DontDestroyOnLoad(gameObject);
+		QualitySettings.vSyncCount = 0;
+		Application.targetFrameRate = 60;
 		InitializeManagers();
 		InitGame();
 	}
