@@ -23,7 +23,7 @@ public class LootTuning
 	public float historyMultiplierScarce = 0.35f;		// Weight multiplier for a Scarce item in recent history
 	public float historyMultiplierRarePlus = 0.25f;		// Weight multiplier for a Rare+ item in recent history
 	public float withinGridMultiplierCommon = 0.6f;		// Weight multiplier for a Common repeat within one grid
-	public float withinGridMultiplierLimited = 0.25f;	// Weight multiplier for a Limited repeat within one grid
+	public float withinGridMultiplierLimited = 0.1f;	// Weight multiplier for a Limited repeat within one grid
 	// Out-of-depth escape valve
 	public float oodEscalationChance = 0.03f;	// Chance a Scarce roll escalates one tier to Rare
 	public string OodEscalationMinRegion = "RainforestRavines";	// Earliest region escalation can occur

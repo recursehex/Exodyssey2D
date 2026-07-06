@@ -12,7 +12,7 @@
     "historyMultiplierScarce": 0.35,
     "historyMultiplierRarePlus": 0.25,
     "withinGridMultiplierCommon": 0.6,
-    "withinGridMultiplierLimited": 0.25,
+    "withinGridMultiplierLimited": 0.1,
     "oodEscalationChance": 0.03,
     "OodEscalationMinRegion": "RainforestRavines",
     "fuelMeterGainPerDryGrid": 40,

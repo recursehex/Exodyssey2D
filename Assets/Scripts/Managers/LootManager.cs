@@ -73,9 +73,11 @@ public partial class LootManager : MonoBehaviour
 		};
 	}
 	/// <summary>
-	/// Builds the director's candidate list from every enabled item
+	/// Builds the director's candidate list from every enabled item.
+	/// Public and static so editor tests and simulations can run the
+	/// director against the real database without a scene
 	/// </summary>
-	private static List<LootDirector.Candidate> BuildCandidates()
+	public static List<LootDirector.Candidate> BuildCandidates()
 	{
 		List<LootDirector.Candidate> Candidates = new();
 		foreach (int index in ItemInfo.GetEnabledItemIndices())

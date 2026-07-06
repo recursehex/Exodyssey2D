@@ -460,6 +460,16 @@ public class LootDirector
 		Candidate Candidate = Candidates.Find(Candidate => Candidate.index == index);
 		if (Candidate == null)
 			return;
+		if (Candidate.uniquePerRun)
+			State.UniqueItemsSpawned.Add(index);
+		// Fuel is metered, not part of the rarity economy: whatever display
+		// rarity a fuel item has, its spawns never count as the run's Rare+
+		// "taste", never charge or reset pity, and never enter history
+		if (Candidate.Categories.Contains(LootCategory.Fuel))
+		{
+			State.fuelSpawnedThisRegion++;
+			return;
+		}
 		int tier = TierIndexOf(Candidate.Rarity);
 		if (tier >= rareTier)
 		{
@@ -475,10 +485,6 @@ public class LootDirector
 		}
 		if (tier > commonTier)
 			State.PushHistory(index, Tuning.historySize);
-		if (Candidate.uniquePerRun)
-			State.UniqueItemsSpawned.Add(index);
-		if (Candidate.Categories.Contains(LootCategory.Fuel))
-			State.fuelSpawnedThisRegion++;
 	}
 	/// <summary>
 	/// Pity only accumulates where Rare drops are structurally possible, so

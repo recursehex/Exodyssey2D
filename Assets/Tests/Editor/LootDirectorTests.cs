@@ -568,6 +568,25 @@ public class LootDirectorTests
     }
 
     [Test]
+    public void FuelSpawns_DoNotCountAsTheRarePlusTaste()
+    {
+        // PowerCell keeps a display rarity (currently Rare) for UI color, but
+        // a fuel drop must never satisfy the run's Rare+ "taste" or touch pity
+        List<LootDirector.Candidate> candidates = new() { MakeCandidate(commonIndex, Rarity.Common) };
+        LootDirector.Candidate fuel = MakeCandidate(fuelIndex, Rarity.Rare);
+        fuel.Categories.Add(LootCategory.Fuel);
+        candidates.Add(fuel);
+        LootDirector director = MakeDirector(candidates);
+        LootDirector.Context context = MakeContext(new[] { 100, 0, 0, 0, 0 }, gridsRequired: 1000);
+        Random rng = new Random(3);
+        bool fuelSeen = false;
+        for (int grid = 0; grid < 10; grid++)
+            fuelSeen |= director.PlanGridLoot(context, rng).Contains(fuelIndex);
+        Assert.IsTrue(fuelSeen, "the meter should have spawned fuel within 10 grids");
+        Assert.IsFalse(director.State.hasRarePlusSpawned, "a fuel drop counted as the run's first Rare+");
+    }
+
+    [Test]
     public void Fuel_NeverComesFromTheRarityRoll()
     {
         // Scarce-only weights with the fuel item as the only Scarce candidate:
