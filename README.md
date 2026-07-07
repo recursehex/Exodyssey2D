@@ -7,10 +7,10 @@ Exodyssey 2D is a sci-fi turn-based strategy roguelike by Axiomatic Systems.
 1. Open the link for the desired release in the [Releases table below](https://github.com/recursehex/Exodyssey2D?tab=readme-ov-file#releases)
 2. Download the compressed `Exodyssey2D` file
 	- Mac: Download `Exodyssey2D.zip`
-	- Windows: Download `Exodyssey2DWindows.zip`
+	- Windows: Download `Exodyssey2D_win.zip`
 3. Unzip the downloaded file
 	- Mac: Only file will be `Exodyssey2D.app`
-	- Windows: Open the `Exodyssey2DWindows` folder, then find `Exodyssey2D.exe`
+	- Windows: Open the `Exodyssey2D_win` folder, then find `Exodyssey2D.exe`
 		- Do not delete any other files in that folder, or the game will not run
 4. Launch the game
 	- Mac: Open `Exodyssey2D.app`
@@ -27,7 +27,7 @@ Exodyssey 2D is a sci-fi turn-based strategy roguelike by Axiomatic Systems.
 | Update| Tag | Status |
 | :---: | :---: | :---: |
 | Generation | [v1.5.0-alpha](https://github.com/recursehex/Exodyssey2D/releases/tag/v1.5.0-alpha) | Latest release |
-| Regions | [v1.4.0-alpha](https://github.com/recursehex/Exodyssey2D/releases/tag/v1.4.0-alpha) | Latest release |
+| Regions | [v1.4.0-alpha](https://github.com/recursehex/Exodyssey2D/releases/tag/v1.4.0-alpha) | Outdated |
 | Vehicles | [v1.3.0-alpha](https://github.com/recursehex/Exodyssey2D/releases/tag/v1.3.0-alpha) | Outdated |
 | Player | [v1.2.1-alpha](https://github.com/recursehex/Exodyssey2D/releases/tag/v1.2.1-alpha) | Outdated |
 | ^ | [v1.2.0-alpha](https://github.com/recursehex/Exodyssey2D/releases/tag/v1.2.0-alpha) | Outdated |
