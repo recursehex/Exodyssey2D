@@ -65,6 +65,12 @@ public class VisibilityManager : MonoBehaviour
 	private float AppliedNightVision = 0f;
 	private int TargetLightCount;
 	private int CurrentFireSortingOrder = overlaySortingOrder + fireSortingOrderOffset;
+	// Entity-set signature from the last overlay sorting pass; sorting layers are per-prefab
+	// constants, so the expensive recompute is skipped until the entity set changes
+	private int lastSortingSignature = int.MinValue;
+	// True while any entity renderers may be disabled by restricted visibility, so the
+	// unrestricted (daylight) pass can skip re-enabling renderers that were never hidden
+	private bool anyEntityHidden;
 	private Vector3Int LastPlayerCell;
 	private Vector3Int LastVehicleCell;
 	private bool LastVehicleIgnitionState;
@@ -695,6 +701,12 @@ public class VisibilityManager : MonoBehaviour
 	{
 		if (OverlayRenderer == null)
 			return;
+		// Rebuilds fire on every player move at night; the renderer sweeps and scene-wide
+		// canvas search below only change result when entities spawn or despawn
+		int signature = ComputeSortingSignature();
+		if (signature == lastSortingSignature)
+			return;
+		lastSortingSignature = signature;
 		int topLayerId = OverlayRenderer.sortingLayerID;
 		int topLayerValue = int.MinValue;
 		TryConsumeRendererLayer(TilemapGround, ref topLayerId, ref topLayerValue);
@@ -760,6 +772,15 @@ public class VisibilityManager : MonoBehaviour
 		OverlayRenderer.sortingLayerID = topLayerId;
 		OverlayRenderer.sortingOrder = desiredOverlayOrder;
 		CurrentFireSortingOrder = desiredOverlayOrder + fireSortingOrderOffset;
+	}
+	private int ComputeSortingSignature()
+	{
+		int signature = 17;
+		signature = signature * 31 + (EnemyManager != null ? EnemyManager.Enemies.Count : -1);
+		signature = signature * 31 + (ItemManager != null ? ItemManager.Items.Count : -1);
+		signature = signature * 31 + (VehicleManager != null ? VehicleManager.Vehicles.Count : -1);
+		signature = signature * 31 + (StructureManager != null ? StructureManager.Structures.Count : -1);
+		return signature;
 	}
 	private void TryConsumeRendererLayer(Component RendererComponent, ref int topLayerId, ref int topLayerValue)
 	{
@@ -990,17 +1011,24 @@ public class VisibilityManager : MonoBehaviour
 			return;
 		if (!IsVisibilityRestricted)
 		{
-			SetEntityListVisibility(EnemyManager.Enemies, true);
-			foreach (Enemy Enemy in EnemyManager.Enemies)
+			// Only re-enable renderers if a restricted pass may have hidden some;
+			// otherwise this runs every frame during daylight movement for nothing
+			if (anyEntityHidden)
 			{
-				if (Enemy != null && Enemy.StunIcon != null)
-					SetRenderersVisible(Enemy.StunIcon, true);
+				SetEntityListVisibility(EnemyManager.Enemies, true);
+				foreach (Enemy Enemy in EnemyManager.Enemies)
+				{
+					if (Enemy != null && Enemy.StunIcon != null)
+						SetRenderersVisible(Enemy.StunIcon, true);
+				}
+				SetEntityListVisibility(ItemManager.Items, true);
+				SetEntityListVisibility(VehicleManager.Vehicles, true);
+				if (StructureManager != null)
+					SetEntityListVisibility(StructureManager.Structures, true);
+				SetEntityListVisibility(FireManager.Fires, true);
+				anyEntityHidden = false;
 			}
-			SetEntityListVisibility(ItemManager.Items, true);
-			SetEntityListVisibility(VehicleManager.Vehicles, true);
-			if (StructureManager != null)
-				SetEntityListVisibility(StructureManager.Structures, true);
-			SetEntityListVisibility(FireManager.Fires, true);
+			// Fires still need promoting so newly spawned ones sort above the overlay
 			foreach (Fire Fire in FireManager.Fires)
 			{
 				if (Fire != null)
@@ -1056,6 +1084,7 @@ public class VisibilityManager : MonoBehaviour
 				if (isVisible)
 					PromoteFireRenderers(Fire);
 			}
+			anyEntityHidden = true;
 		}
 	private void PromoteFireRenderers(Fire Fire)
 	{
