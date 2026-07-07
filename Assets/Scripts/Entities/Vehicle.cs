@@ -192,14 +192,16 @@ public class Vehicle : MonoBehaviour
 		{
 			SoundManager.Instance.PlaySound(Move);
 			Vector3 ShiftedDistance = Destination + new Vector3(0.5f, 0.5f);
-			// Move vehicle smoothly to next tile
-			while (Vector3.Distance(transform.position, ShiftedDistance) > 0f)
+			// Move vehicle smoothly to next tile; comparing positions avoids the
+			// square root Vector3.Distance takes every frame
+			while (transform.position != ShiftedDistance)
 			{
 				transform.position = Vector3.MoveTowards(transform.position,
 														 ShiftedDistance,
 														 Info.Speed * Time.deltaTime);
 				yield return null;
 			}
+			transform.position = ShiftedDistance;
 			// Crush any run-over-able enemy on the tile just reached
 			RunOverEnemyAt(ShiftedDistance);
 			// Pop next tile in path

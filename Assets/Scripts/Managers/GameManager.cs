@@ -144,9 +144,11 @@ public class GameManager : MonoBehaviour
 				InputManager.ProcessInput();
 		}
 		// Process enemy movement if it is not Player's turn
+		// The delegate is cached since this runs every frame for the whole enemy turn
 		if (!TurnManager.IsPlayersTurn && EnemyManager.IsProcessingEnemyMovement)
-			EnemyManager.ProcessEnemyMovement(() => TurnManager.EndEnemyTurn());
+			EnemyManager.ProcessEnemyMovement(EndEnemyTurnAction ??= () => TurnManager.EndEnemyTurn());
 	}
+	private System.Action EndEnemyTurnAction;
 	private void OnDestroy()
 	{
 		TurnManager.OnPlayerTurnEnded 	-= OnPlayerTurnEnded;

@@ -188,14 +188,16 @@ public partial class Player : MonoBehaviour
 			DecrementEnergy();
 			SoundManager.Instance.PlaySound(Move);
 			Vector3 ShiftedDistance = Destination + new Vector3(0.5f, 0.5f);
-			// Move Player smoothly to next tile
-			while (Vector3.Distance(transform.position, ShiftedDistance) > 0f)
+			// Move Player smoothly to next tile; comparing positions avoids the
+			// square root Vector3.Distance takes every frame
+			while (transform.position != ShiftedDistance)
 			{
-				transform.position = Vector3.MoveTowards(transform.position, 
-														 ShiftedDistance, 
+				transform.position = Vector3.MoveTowards(transform.position,
+														 ShiftedDistance,
 														 walkSpeed * Time.deltaTime);
 				yield return null;
 			}
+			transform.position = ShiftedDistance;
 			// Pop next tile in path
 			if (Path != null && Path.Count > 0)
 				Destination = Path.Pop();

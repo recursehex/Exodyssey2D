@@ -18,6 +18,12 @@ public class InventoryUI : MonoBehaviour
 	private string CachedName;
 	private string CachedDesc;
 	private Color CachedColor;
+	// Cache of the hovered item's combined description so the per-frame hover pass
+	// does not concatenate a new string every frame; invalidated when the hovered
+	// slot or the item's stats text changes
+	private int lastHoverIndex = -1;
+	private string LastHoverStats;
+	private string CachedHoverDesc;
 	private static Color DefaultColor = new(115/255f, 119/255f, 160/255f);
 	private readonly float sensitivityDistance = 0.5f;
 	private readonly Dictionary<int, Image> InventoryIconLookup = new();
@@ -286,7 +292,15 @@ public class InventoryUI : MonoBehaviour
 					NameText.color 	= Item.Rarity.Color;
 				}
 				if (DescText != null)
-					DescText.text = Item.Description + Item.Stats;
+				{
+					if (itemIndex != lastHoverIndex || !ReferenceEquals(Item.Stats, LastHoverStats))
+					{
+						lastHoverIndex = itemIndex;
+						LastHoverStats = Item.Stats;
+						CachedHoverDesc = Item.Description + Item.Stats;
+					}
+					DescText.text = CachedHoverDesc;
+				}
 				break;
 			}
 		}

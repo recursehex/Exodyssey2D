@@ -276,13 +276,15 @@ public class Enemy : MonoBehaviour
 	{
 		SoundManager.Instance.PlaySound(Move);
 		Vector3 ShiftedDistance = Cell + new Vector3(0.5f, 0.5f);
-		while (Vector3.Distance(transform.position, ShiftedDistance) > 0f)
+		// Comparing positions avoids the square root Vector3.Distance takes every frame
+		while (transform.position != ShiftedDistance)
 		{
 			transform.position = Vector3.MoveTowards(transform.position,
 													 ShiftedDistance,
 													 Info.Speed * Time.deltaTime);
 			yield return null;
 		}
+		transform.position = ShiftedDistance;
 	}
 	/// <summary>
 	/// Moves Enemy along A* path
@@ -294,14 +296,16 @@ public class Enemy : MonoBehaviour
 		{
 			SoundManager.Instance.PlaySound(Move);
 			Vector3 ShiftedDistance = Destination + new Vector3(0.5f, 0.5f);
-			// Move to the destination
-			while (Vector3.Distance(transform.position, ShiftedDistance) > 0f)
+			// Move to the destination; comparing positions avoids the square root
+			// Vector3.Distance takes every frame
+			while (transform.position != ShiftedDistance)
 			{
-				transform.position = Vector3.MoveTowards(transform.position, 
-														 ShiftedDistance, 
+				transform.position = Vector3.MoveTowards(transform.position,
+														 ShiftedDistance,
 														 Info.Speed * Time.deltaTime);
 				yield return null;
 			}
+			transform.position = ShiftedDistance;
 		}
 		// Then continue with remaining path if any
 		while (Path != null && Path.Count > 0)
@@ -319,15 +323,17 @@ public class Enemy : MonoBehaviour
 					Destination = Path.Pop();
 					SoundManager.Instance.PlaySound(Move);
 					Vector3 ShiftedDistance = Destination + new Vector3(0.5f, 0.5f);
-					// Move to next tile
-					while (Vector3.Distance(transform.position, ShiftedDistance) > 0f)
+					// Move to next tile; comparing positions avoids the square root
+					// Vector3.Distance takes every frame
+					while (transform.position != ShiftedDistance)
 					{
 						transform.position = Vector3.MoveTowards(
-							transform.position, 
-							ShiftedDistance, 
+							transform.position,
+							ShiftedDistance,
 							Info.Speed * Time.deltaTime);
 						yield return null;
 					}
+					transform.position = ShiftedDistance;
 				}
 				// Stop moving if next position is now occupied
 				else break;
