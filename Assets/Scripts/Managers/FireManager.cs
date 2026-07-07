@@ -320,6 +320,10 @@ public class FireManager : MonoBehaviour
     /// </summary>
     private void ApplyStandingDamage()
     {
+        // Captured before vehicle damage: a player whose vehicle burns down this tick
+        // is ejected onto the burning tile and gets one tick of grace before standing
+        // damage applies, instead of losing the vehicle and health at once
+        bool playerWasInVehicle = Player.IsInVehicle;
         // Damage enemies on fire
         for (int i = EnemyManager.Enemies.Count - 1; i >= 0; i--)
         {
@@ -341,7 +345,9 @@ public class FireManager : MonoBehaviour
                 VehicleManager.DamageVehicle(Vehicle, fireDamage);
         }
         // Damage player on fire if not in vehicle
-        if (!Player.IsInVehicle && HasFireAtWorld(Player.transform.position))
+        if (!playerWasInVehicle
+            && !Player.IsInVehicle
+            && HasFireAtWorld(Player.transform.position))
             Player.DecreaseHealthBy(fireDamage, Player.DamageType.Environmental);
     }
     /// <summary>
