@@ -64,15 +64,18 @@ public class LootDirector
 	/// Plans all ground-scatter items for one grid, advancing run state as
 	/// each item is decided. Item count comes from the grid's loot profile.
 	/// If the run's first Rare+ item is overdue, one slot is converted into
-	/// a guaranteed Rare weapon (the "taste" backstop)
+	/// a guaranteed Rare weapon (the "taste" backstop).
+	/// maxItems caps the plan at the grid's free tiles so run state (pity,
+	/// history, fuel meter) never advances for an item that cannot spawn
 	/// </summary>
-	public List<int> PlanGridLoot(Context Ctx, Random Rng)
+	public List<int> PlanGridLoot(Context Ctx, Random Rng, int maxItems = int.MaxValue)
 	{
 		State.globalGridNumber++;
 		if (State.gridsSinceAnomalous < LootState.neverSpawned)
 			State.gridsSinceAnomalous++;
 		RollFlavorCategory(Ctx, Rng);
 		int itemCount = Rng.Next(Ctx.Profile.MinItems, Ctx.Profile.MaxItems + 1);
+		itemCount = Math.Min(itemCount, maxItems);
 		List<int> Plan = new();
 		HashSet<int> PlacedThisGrid = new();
 		if (!State.hasRarePlusSpawned && IsBackstopDue(Ctx))
@@ -80,7 +83,7 @@ public class LootDirector
 			int forcedIndex = PickFromTier(rareTier, Ctx, Rng, PlacedThisGrid, Candidate => Candidate.isWeapon);
 			if (forcedIndex < 0)
 				forcedIndex = PickFromTier(rareTier, Ctx, Rng, PlacedThisGrid);
-			PlanForced(forcedIndex, Ctx, Plan, PlacedThisGrid, ref itemCount);
+			PlanForced(forcedIndex, Ctx, Plan, PlacedThisGrid, ref itemCount, maxItems);
 		}
 		// The profile's guaranteed category slots are planned before random
 		// rolls (this is how Fuel Line Yard always has fuel, Triage Corridor
@@ -88,15 +91,15 @@ public class LootDirector
 		foreach (LootProfileInfo.GuaranteedSlot Slot in Ctx.Profile.Guaranteed)
 		{
 			for (int i = 0; i < Slot.count; i++)
-				PlanForced(PickByCategory(Slot.Category, Ctx, Rng, PlacedThisGrid), Ctx, Plan, PlacedThisGrid, ref itemCount);
+				PlanForced(PickByCategory(Slot.Category, Ctx, Rng, PlacedThisGrid), Ctx, Plan, PlacedThisGrid, ref itemCount, maxItems);
 		}
 		// Fuel meter: ground-scatter fuel comes off the rarity ramp entirely.
 		// The meter converts one slot when it wins its roll (guaranteed by the
 		// third dry grid), and the region fuel budget forces conversion when
 		// the region is about to end short of fuel
 		if (!PlanContainsFuel(Plan) && (IsRegionFuelBudgetDue(Ctx) || Rng.Next(100) < State.fuelMeter))
-			PlanForced(PickByCategory(LootCategory.Fuel, Ctx, Rng, PlacedThisGrid), Ctx, Plan, PlacedThisGrid, ref itemCount);
-		for (int i = 0; i < itemCount; i++)
+			PlanForced(PickByCategory(LootCategory.Fuel, Ctx, Rng, PlacedThisGrid), Ctx, Plan, PlacedThisGrid, ref itemCount, maxItems);
+		for (int i = 0; i < itemCount && Plan.Count < maxItems; i++)
 		{
 			int index = RollItem(Ctx, Rng, PlacedThisGrid);
 			if (index >= 0)
@@ -113,9 +116,9 @@ public class LootDirector
 	/// Adds a forced pick (backstop, guaranteed slot, or fuel conversion) to
 	/// the plan, consuming one of the grid's item slots when any remain
 	/// </summary>
-	private void PlanForced(int index, Context Ctx, List<int> Plan, HashSet<int> PlacedThisGrid, ref int itemCount)
+	private void PlanForced(int index, Context Ctx, List<int> Plan, HashSet<int> PlacedThisGrid, ref int itemCount, int maxItems)
 	{
-		if (index < 0)
+		if (index < 0 || Plan.Count >= maxItems)
 			return;
 		Plan.Add(index);
 		PlacedThisGrid.Add(index);
@@ -220,7 +223,8 @@ public class LootDirector
 		foreach (LootProfileInfo.GuaranteedSlot Slot in Ctx.Profile.Guaranteed)
 		{
 			for (int i = 0; i < Slot.count; i++)
-				PlanForced(PickByCategory(Slot.Category, Ctx, Rng, PlacedThisContainer), Ctx, Loot, PlacedThisContainer, ref rollCount);
+				// Container contents are not tile-limited, so no plan cap applies
+				PlanForced(PickByCategory(Slot.Category, Ctx, Rng, PlacedThisContainer), Ctx, Loot, PlacedThisContainer, ref rollCount, int.MaxValue);
 		}
 		for (int i = 0; i < rollCount; i++)
 		{

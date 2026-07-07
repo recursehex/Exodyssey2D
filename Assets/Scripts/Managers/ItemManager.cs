@@ -18,7 +18,10 @@ public class ItemManager : MonoBehaviour
     /// </summary>
     public void GenerateItems()
     {
-        List<int> Plan = LootManager.PlanGridLoot();
+        // Cap the plan at the grid's free tiles so the loot director never
+        // advances run state (pity, fuel meter) for items that cannot spawn
+        int emptyCellCount = GameManager.Instance.GetEmptyCells().Count;
+        List<int> Plan = LootManager.PlanGridLoot(emptyCellCount);
         spawnItemCount = WeightedRarityGeneration.SpawnPlannedItems(Plan);
     }
     /// <summary>

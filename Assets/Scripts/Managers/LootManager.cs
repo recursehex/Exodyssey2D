@@ -35,10 +35,10 @@ public partial class LootManager : MonoBehaviour
 	/// UnityEngine.Random, so map generation and combat cannot steer loot
 	/// </summary>
 	private System.Random GridRng;
-	public List<int> PlanGridLoot()
+	public List<int> PlanGridLoot(int maxItems = int.MaxValue)
 	{
 		GridRng = new System.Random(Director.State.runSeed ^ Director.State.globalGridNumber);
-		return Director.PlanGridLoot(BuildContext(), GridRng);
+		return Director.PlanGridLoot(BuildContext(), GridRng, maxItems);
 	}
 	/// <summary>
 	/// Rolls a container's contents by source name (ReserveCrate, WeaponSafe,
