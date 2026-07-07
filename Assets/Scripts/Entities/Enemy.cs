@@ -116,16 +116,18 @@ public class Enemy : MonoBehaviour
 			&& HasEnergy
 			&& (Path.Count > AdjacentNodeCount || (Path.Count == AdjacentNodeCount && isUsingRandomPath)))
 		{
-			Info.DecrementEnergy();
 			IsInMovement = true;
 			// Remove first tile in path
 			Path.Pop();
 			// Move one tile closer to destination
 			Vector3Int TryDistance = Path.Pop();
 			Vector3 ShiftedTryDistance = TryDistance + new Vector3(0.5f, 0.5f);
-			if (!GameManager.Instance.HasEnemyAtPosition(ShiftedTryDistance) 
+			if (!GameManager.Instance.HasEnemyAtPosition(ShiftedTryDistance)
 				&& !GameManager.Instance.HasVehicleAtPosition(ShiftedTryDistance))
 			{
+				// Energy is only spent once the step is confirmed free, so a blocked
+				// enemy keeps its energy for the retry pass
+				Info.DecrementEnergy();
 				Destination = TryDistance;
 				// Stop movement if game ends
 				if (MoveRoutine != null)
