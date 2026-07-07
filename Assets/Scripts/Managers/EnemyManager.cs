@@ -165,23 +165,28 @@ public class EnemyManager : MonoBehaviour
             // During the retry pass indexOfMovingEnemy indexes BlockedEnemies, so the
             // wait-for-movement gate must poll that list, not Enemies — otherwise the
             // turn can end (restoring energy) while a retried enemy is still moving
-            Enemy CurrentEnemy = IsRetryingBlockedEnemies ? BlockedEnemies[indexOfMovingEnemy] : Enemies[indexOfMovingEnemy];
-            if (CurrentEnemy.IsInMovement)
+            List<Enemy> ActiveList = IsRetryingBlockedEnemies ? BlockedEnemies : Enemies;
+            // An enemy destroyed mid-pass can shrink the list; end the turn cleanly
+            // instead of indexing out of range
+            if (indexOfMovingEnemy >= ActiveList.Count)
+            {
+                EndEnemyTurn(OnMovementComplete);
+                return;
+            }
+            Enemy CurrentEnemy = ActiveList[indexOfMovingEnemy];
+            if (CurrentEnemy != null && CurrentEnemy.IsInMovement)
                 return;
             // Add to blocked list if not already retrying blocked enemies
-            if (!IsRetryingBlockedEnemies && CurrentEnemy.WasBlockedThisTurn)
+            if (!IsRetryingBlockedEnemies && CurrentEnemy != null && CurrentEnemy.WasBlockedThisTurn)
                 BlockedEnemies.Add(CurrentEnemy);
             // Continue with next enemy in current list
-            int maxIndex = IsRetryingBlockedEnemies
-                            ? BlockedEnemies.Count - 1
-                            : Enemies.Count - 1;
-            if (indexOfMovingEnemy < maxIndex)
+            if (indexOfMovingEnemy < ActiveList.Count - 1)
             {
                 indexOfMovingEnemy++;
-                if (IsRetryingBlockedEnemies)
-                    BlockedEnemies[indexOfMovingEnemy].ComputePathAndStartMovement();
-                else
-                    Enemies[indexOfMovingEnemy].ComputePathAndStartMovement();
+                Enemy NextEnemy = ActiveList[indexOfMovingEnemy];
+                // A destroyed entry is skipped on the next frame by the gate above
+                if (NextEnemy != null)
+                    NextEnemy.ComputePathAndStartMovement();
                 return;
             }
             // If finished first pass and have blocked enemies, retry them
@@ -189,7 +194,9 @@ public class EnemyManager : MonoBehaviour
             {
                 IsRetryingBlockedEnemies = true;
                 indexOfMovingEnemy = 0;
-                BlockedEnemies[0].ComputePathAndStartMovement();
+                Enemy FirstBlocked = BlockedEnemies[0];
+                if (FirstBlocked != null)
+                    FirstBlocked.ComputePathAndStartMovement();
                 return;
             }
             EndEnemyTurn(OnMovementComplete);

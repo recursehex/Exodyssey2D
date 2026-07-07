@@ -74,14 +74,16 @@ public class ItemManager : MonoBehaviour
     /// </summary>
     public void DestroyItemAtPosition(Vector3 Position)
     {
-        Item Item = Items.Find(Item => Item.transform.position == Position);
+        Item Item = GetItemAtPosition(Position);
+        if (Item == null)
+            return;
         Items.Remove(Item);
         Destroy(Item.gameObject);
     }
     public void DestroyAllItemsAtPosition(Vector3 Position)
     {
-        List<Item> ItemsAtPosition = Items.FindAll(Item => Item.transform.position == Position);
-        ItemsAtPosition.ForEach(Item => DestroyItemAtPosition(Position));
+        while (HasItemAtPosition(Position))
+            DestroyItemAtPosition(Position);
     }
     /// <summary>
     /// Destroys all items in the scene

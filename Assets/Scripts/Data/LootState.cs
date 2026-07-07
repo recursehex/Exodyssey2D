@@ -16,7 +16,6 @@ public class LootState
 	public int anomalousSpawnedThisRegion;			// Counts toward the region's AnomalousCap
 	public int gridsSinceAnomalous = neverSpawned;	// 0 = this grid, drives the anti-chain multiplier
 	public int fuelMeter;							// Percent chance to convert a slot into fuel this grid
-	public int gridsWithVehicleAndNoFuel;			// Consecutive grids stranded, drives the survival floor
 	public int fuelSpawnedThisRegion;				// Fuel items generated this region (budget backstop)
 	public int globalGridNumber;					// Grids generated across the whole run
 	public int runSeed;								// XORed with globalGridNumber to seed each grid's RNG
@@ -39,7 +38,6 @@ public class LootState
 		hasRarePlusSpawned = false;
 		gridsSinceAnomalous = neverSpawned;
 		fuelMeter = 0;
-		gridsWithVehicleAndNoFuel = 0;
 		globalGridNumber = 0;
 		runSeed = newRunSeed;
 		RecentItemHistory.Clear();

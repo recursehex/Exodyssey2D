@@ -209,6 +209,9 @@ public class VisibilityManager : MonoBehaviour
 	}
 	public void ClearAllLights()
 	{
+		// Grid transition: force the next rebuild to recompute overlay sorting even
+		// if the new grid happens to spawn the same entity counts
+		lastSortingSignature = int.MinValue;
 		TargetLightData.Clear();
 		TargetLightKeys.Clear();
 		TargetLightCount = 0;
