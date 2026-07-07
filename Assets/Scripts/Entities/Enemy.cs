@@ -388,9 +388,9 @@ public class Enemy : MonoBehaviour
 			bool vehicleDestroyed = GameManager.Instance.DamageVehicle(Player.Vehicle, Info.DamagePoints);
 			return !vehicleDestroyed;
 		}
-		// If Player is not in Vehicle, damage Player
+		// If Player is not in Vehicle, damage Player; stop attacking on the killing blow
 		Player.DecreaseHealthBy(Info.DamagePoints, Info.Range == 0);
-		return true;
+		return !GameManager.Instance.IsGameOver;
 	}
 	#endregion
 }

@@ -321,6 +321,9 @@ public partial class Player : MonoBehaviour
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
 		if (CheatFlags.Invincibility) return;
 #endif
+		// Already dead; don't re-trigger game over
+		if (currentHealth <= 0)
+			return;
 		// Handle armor
 		if (isMeleeDamage && hasHelmet)
 		{

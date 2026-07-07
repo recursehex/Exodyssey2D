@@ -291,8 +291,13 @@ public class GameManager : MonoBehaviour
 	/// <summary>
 	/// Called when Player dies, cleans up scene and show Game Over screen
 	/// </summary>
+	public bool IsGameOver { get; private set; }
 	public void GameOver()
 	{
+		// Enemy attack loops and the turn coroutines can re-enter this on the killing blow
+		if (IsGameOver)
+			return;
+		IsGameOver = true;
 		CleanupWorldEntities();
 		ChronoclasmManager.ResetForNewRun();
 		SoundManager.Instance.PlayGameOver(GameOverClip);
@@ -307,6 +312,7 @@ public class GameManager : MonoBehaviour
 	public void StartNewGame()
 	{
 		CleanupWorldEntities();
+		IsGameOver = false;
 		enabled = true;
 		StopAllCoroutines();
 		NewGameButton.gameObject.SetActive(false);
@@ -642,6 +648,13 @@ public class GameManager : MonoBehaviour
 			yield return new WaitForSecondsRealtime(turnPhaseDelay);
 		VisibilityManager?.TickActiveFlaresOnRoundStart();
 		FireManager.HandleTurnStart(false);
+		// Fire damage may have killed the player; stop instead of setting up a
+		// phantom turn behind the game-over screen
+		if (IsGameOver)
+		{
+			FireTurnRoutine = null;
+			yield break;
+		}
 		RefreshVisibility();
 		if (EnemyManager.Enemies.Count == 0)
 		{
@@ -665,6 +678,13 @@ public class GameManager : MonoBehaviour
 			yield return new WaitForSecondsRealtime(turnPhaseDelay);
 		FireManager.HandleTurnStart(true);
 		ProcessDynamiteExplosions();
+		// Fire or dynamite may have killed the player; stop instead of re-enabling
+		// the turn UI behind the game-over screen
+		if (IsGameOver)
+		{
+			PlayerTurnDelayRoutine = null;
+			yield break;
+		}
 		RefreshVisibility();
 		// Hide TileDot if player is in vehicle with no charge, otherwise show it
 		bool hideForDepletedVehicle = Player.IsInVehicle
