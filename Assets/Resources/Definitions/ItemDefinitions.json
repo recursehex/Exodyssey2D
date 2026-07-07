@@ -174,7 +174,7 @@
       "Rarity": "Scarce",
       "Type": "Weapon",
       "Name": "SMOKE GRENADE",
-      "Description": "Stuns nearby enemies for 1 turn",
+      "Description": "Stuns enemies for 1 turn",
       "maxUses": 1,
       "damagePoints": 0,
       "range": 3,
@@ -265,7 +265,7 @@
       "Rarity": "Scarce",
       "Type": "Utility",
       "Name": "LIGHTROD",
-      "Description": "Illuminates surroundings",
+      "Description": "Illuminates surroundings while selected",
       "maxUses": 1,
       "isFlammable": true,
       "Categories": ["Light"]
