@@ -240,6 +240,10 @@ public class Vehicle : MonoBehaviour
 	}
 	#endregion
 	#region HEALTH METHODS
+	/// <summary>
+	/// Returns true if the vehicle can currently be repaired (not at full health)
+	/// </summary>
+	public bool CanRepair() => Info.CanRestoreHealth;
 	public bool Repair()
 	{
 		if (Info.TryRestoreHealth())
@@ -269,6 +273,10 @@ public class Vehicle : MonoBehaviour
 	}
 	#endregion
 	#region CHARGE METHODS
+	/// <summary>
+	/// Returns true if the vehicle can currently be recharged (not at full charge)
+	/// </summary>
+	public bool CanRecharge() => Info.CanRecharge;
 	/// <summary>
 	/// Uses a Power Cell from inventory to recharge vehicle, returns false if Vehicle is already fully charged
 	/// </summary>

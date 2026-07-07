@@ -129,6 +129,14 @@ public class VehicleInfo
 	/// </summary>
 	public void DecreaseHealthBy(int amount) => CurrentHealth -= amount;
 	/// <summary>
+	/// Returns true if the vehicle's health is below maximum and so can be repaired
+	/// </summary>
+	public bool CanRestoreHealth => CurrentHealth < maxHealth;
+	/// <summary>
+	/// Returns true if the vehicle's charge is below maximum and so can be recharged
+	/// </summary>
+	public bool CanRecharge => CurrentCharge < maxCharge;
+	/// <summary>
 	/// Resets vehicle's CurrentHealth to maxHealth, returns false if already at max
 	/// </summary>
 	public bool TryRestoreHealth()

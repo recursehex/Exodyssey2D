@@ -1131,7 +1131,7 @@ public class GameManager : MonoBehaviour
 			|| Vehicle == Player.Vehicle
 			|| (Player.IsInVehicle && Player.Vehicle.Info.IsOn)
 			|| !Player.HasEnergy
-			|| IsVehicleEntrySuppressedBySelectedItem()
+			|| IsVehicleEntrySuppressedBySelectedItem(Vehicle)
 			|| HasFireAtPosition(TilemapGround.WorldToCell(Vehicle.transform.position)))
 			return false;
 		return IsPlayerAdjacentTo(Vehicle.transform.position)
@@ -1213,17 +1213,38 @@ public class GameManager : MonoBehaviour
 		return bestMoves != int.MaxValue;
 	}
 	/// <summary>
-	/// Returns true if the selected item should take priority over entering a vehicle
+	/// Returns true if the selected item should take priority over entering the given vehicle. Offensive/tile
+	/// items always suppress entry, while repair/recharge items (Wrench, ToolKit, PowerCell) only suppress it
+	/// when they can actually be used on this vehicle. When the vehicle is already at full health/charge the
+	/// item cannot be used, so the player enters instead of the click doing nothing.
 	/// </summary>
-	private bool IsVehicleEntrySuppressedBySelectedItem()
-		=> Player.SelectedItemInfo?.Tag is
-			ItemInfo.Tags.Flamethrower
+	private bool IsVehicleEntrySuppressedBySelectedItem(Vehicle Vehicle)
+	{
+		ItemInfo.Tags? Tag = Player.SelectedItemInfo?.Tag;
+		if (Tag is ItemInfo.Tags.Flamethrower
 			or ItemInfo.Tags.Blowtorch
 			or ItemInfo.Tags.Dynamite
-			or ItemInfo.Tags.Extinguisher
-			or ItemInfo.Tags.Wrench
-			or ItemInfo.Tags.ToolKit
-			or ItemInfo.Tags.PowerCell;
+			or ItemInfo.Tags.Extinguisher)
+			return true;
+		if (Tag is ItemInfo.Tags.Wrench or ItemInfo.Tags.ToolKit or ItemInfo.Tags.PowerCell)
+			return CanUseSelectedItemOnVehicle(Vehicle);
+		return false;
+	}
+	/// <summary>
+	/// Returns true if the currently selected repair/recharge item could be used on the given vehicle right now
+	/// (Wrench/ToolKit repair when below full health, PowerCell recharges when below full charge)
+	/// </summary>
+	private bool CanUseSelectedItemOnVehicle(Vehicle Vehicle)
+	{
+		if (Vehicle == null)
+			return false;
+		return Player.SelectedItemInfo?.Tag switch
+		{
+			ItemInfo.Tags.Wrench or ItemInfo.Tags.ToolKit => Vehicle.CanRepair(),
+			ItemInfo.Tags.PowerCell => Vehicle.CanRecharge(),
+			_ => false
+		};
+	}
 	private bool TryInteractWithStructure(Vector3Int TilePoint)
 	{
 		Structure Structure = StructureManager.GetStructureAtCell(TilePoint);
