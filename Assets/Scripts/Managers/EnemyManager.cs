@@ -157,10 +157,14 @@ public class EnemyManager : MonoBehaviour
             return;
         }
         // Handle blocked enemies
-        if (EnemiesAreMoving && !Enemies[indexOfMovingEnemy].IsInMovement)
+        if (EnemiesAreMoving)
         {
-            // Check if current enemy was blocked
+            // During the retry pass indexOfMovingEnemy indexes BlockedEnemies, so the
+            // wait-for-movement gate must poll that list, not Enemies — otherwise the
+            // turn can end (restoring energy) while a retried enemy is still moving
             Enemy CurrentEnemy = IsRetryingBlockedEnemies ? BlockedEnemies[indexOfMovingEnemy] : Enemies[indexOfMovingEnemy];
+            if (CurrentEnemy.IsInMovement)
+                return;
             // Add to blocked list if not already retrying blocked enemies
             if (!IsRetryingBlockedEnemies && CurrentEnemy.WasBlockedThisTurn)
                 BlockedEnemies.Add(CurrentEnemy);
