@@ -53,18 +53,21 @@ public class EnemyManager : MonoBehaviour
     /// <summary>
     /// Returns true if an enemy is at the specified position
     /// </summary>
-    public bool HasEnemyAtPosition(Vector3 Position)
-    {
-        CleanupDestroyedEnemies();
-        return Enemies.Find(Enemy => Enemy != null && Enemy.transform.position == Position) != null;
-    }
+    public bool HasEnemyAtPosition(Vector3 Position) => GetEnemyAtPosition(Position) != null;
     /// <summary>
     /// Returns enemy at the specified position, or null if no enemy is found
     /// </summary>
     public Enemy GetEnemyAtPosition(Vector3 Position)
     {
-        CleanupDestroyedEnemies();
-        return Enemies.Find(Enemy => Enemy.transform.position == Position);
+        // Plain loop: this is queried heavily from pathfinding, so avoid closure
+        // allocations and per-query cleanup scans (cleanup runs once per turn instead)
+        for (int i = 0; i < Enemies.Count; i++)
+        {
+            Enemy Enemy = Enemies[i];
+            if (Enemy != null && Enemy.transform.position == Position)
+                return Enemy;
+        }
+        return null;
     }
     /// <summary>
     /// Destroys the specified enemy

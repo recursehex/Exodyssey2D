@@ -57,8 +57,17 @@ public class StructureManager : MonoBehaviour
 		return true;
 	}
 	public bool HasStructureAtCell(Vector3Int Cell) => GetStructureAtCell(Cell) != null;
-	public Structure GetStructureAtCell(Vector3Int Cell) =>
-		Structures.Find(s => s != null && s.OccupiesCell(Cell));
+	public Structure GetStructureAtCell(Vector3Int Cell)
+	{
+		// Plain loop: queried heavily from pathfinding, so avoid closure allocations
+		for (int i = 0; i < Structures.Count; i++)
+		{
+			Structure Structure = Structures[i];
+			if (Structure != null && Structure.OccupiesCell(Cell))
+				return Structure;
+		}
+		return null;
+	}
 	public bool HasStructureAtPosition(Vector3 Position)
 	{
 		Vector3Int Cell = new(

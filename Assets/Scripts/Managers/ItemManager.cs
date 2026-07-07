@@ -51,7 +51,17 @@ public class ItemManager : MonoBehaviour
     /// <summary>
     /// Returns the item at the given position, or null if no item exists
     /// summary>
-    public Item GetItemAtPosition(Vector3 Position) => Items.Find(Item => Item.transform.position == Position);
+    public Item GetItemAtPosition(Vector3 Position)
+    {
+        // Plain loop: queried per burning cell each turn, so avoid closure allocations
+        for (int i = 0; i < Items.Count; i++)
+        {
+            Item Item = Items[i];
+            if (Item != null && Item.transform.position == Position)
+                return Item;
+        }
+        return null;
+    }
     /// <summary>
     /// Removes an item at the given position from Items list
     /// </summary>

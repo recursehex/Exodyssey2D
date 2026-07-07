@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
-using System.Linq;
 
 /// <summary>
 /// A* pathfinding algorithm utilizing tilemaps
@@ -13,8 +12,9 @@ public class AStar
 	private readonly Tilemap TilemapWalls;
 	private Node Current;
 	private Stack<Vector3Int> Path;
-	private HashSet<Node> OpenList;
-	private HashSet<Node> ClosedList;
+	private readonly HashSet<Node> OpenList = new();
+	private readonly HashSet<Node> ClosedList = new();
+	private readonly List<Node> NeighborScratch = new(8);
 	private Dictionary<Vector3Int, Node> AllNodes;
 	private Vector3Int StartPosition;
 	private Vector3Int GoalPosition;
@@ -112,9 +112,9 @@ public class AStar
 		AllNodes.Clear();
 		Current = GetNode(StartPosition);
 		// For nodes to be looked at later
-		OpenList = new();
+		OpenList.Clear();
 		// For examined nodes
-		ClosedList = new();
+		ClosedList.Clear();
 		// Adds the current node to OpenList (has been examined)
 		OpenList.Add(Current);
 		Path = null;
@@ -132,13 +132,29 @@ public class AStar
 	/// </summary>
 	private List<Node> FindNeighbors(Vector3Int ParentPosition, bool allowPartialPath = false)
 	{
-		List<Node> Neighbors = new();
+		// Reused across calls; consumers finish with the list before the next call
+		List<Node> Neighbors = NeighborScratch;
+		Neighbors.Clear();
+		BoundsInt Size = TilemapGround.cellBounds;
 		// These two for loops ensure all nodes are created around current node
 		for (int x = -1; x <= 1; x++)
 		{
 			for (int y = -1; y <= 1; y++)
 			{
+				if (x == 0 && y == 0)
+					continue;
+				if (!allowDiagonal && x != 0 && y != 0)
+					continue;
 				Vector3Int Position = ParentPosition - new Vector3Int(x, y);
+				// Cheap tile checks first so entity scans only run for candidate cells
+				if (Position.x < Size.min.x
+					|| Position.x >= Size.max.x
+					|| Position.y < Size.min.y
+					|| Position.y >= Size.max.y
+					|| TilemapWalls.HasTile(Position)
+					|| GameManager.Instance.HasFireAtPosition(Position)
+					|| GameManager.Instance.HasStructureAtCell(Position))
+					continue;
 				Vector3 EntityPosition = ParentPosition - new Vector3(x - 0.5f, y - 0.5f);
 				bool HasEnemy = GameManager.Instance.HasEnemyAtPosition(EntityPosition);
 				bool HasVehicle = GameManager.Instance.HasVehicleAtPosition(EntityPosition);
@@ -146,30 +162,13 @@ public class AStar
 				bool EnemyBlocks = HasEnemy
 								&& (IsEnemyPassable == null || !IsEnemyPassable(EntityPosition));
 				bool IsEntityAtPosition = EnemyBlocks || HasVehicle;
-				bool HasFireAtPosition = GameManager.Instance.HasFireAtPosition(Position);
-				if ((y != 0 || x != 0)
-					&& (allowDiagonal || (!allowDiagonal && (y == 0 || x == 0))))
-				{
-					BoundsInt Size = TilemapGround.cellBounds;
-					// If node is within bounds of the grid and if there is no wall tile, then add it to the neighbors list
-					// For partial paths, allow movement through enemy positions but mark them for stopping before
-					bool HasStructureAtPosition = GameManager.Instance.HasStructureAtCell(Position);
-					if (Position.x >= Size.min.x
-						&& Position.x < Size.max.x
-						&& Position.y >= Size.min.y
-						&& Position.y < Size.max.y
-						&& !TilemapWalls.HasTile(Position)
-						&& !HasFireAtPosition
-						&& !HasStructureAtPosition
-						&& (!IsEntityAtPosition || allowPartialPath))
-					{
-						Node Neighbor = GetNode(Position);
-						// Mark if this node has an entity for partial path logic
-						if (allowPartialPath && IsEntityAtPosition)
-							Neighbor.HasEntity = true;
-						Neighbors.Add(Neighbor);
-					}
-				}
+				// For partial paths, allow movement through entity positions but mark them for stopping before
+				if (IsEntityAtPosition && !allowPartialPath)
+					continue;
+				Node Neighbor = GetNode(Position);
+				if (allowPartialPath && IsEntityAtPosition)
+					Neighbor.HasEntity = true;
+				Neighbors.Add(Neighbor);
 			}
 		}
 		return Neighbors;
@@ -229,14 +228,24 @@ public class AStar
 		OpenList.Remove(Current);
 		// The current node is added to ClosedList
 		ClosedList.Add(Current);
-		// If the OpenList has nodes in it, then sort them by F value
+		// If the OpenList has nodes in it, pick the one with the lowest cost,
+		// breaking ties by alignment, turn count, then heuristic
 		if (OpenList.Count > 0)
-			Current = OpenList
-				.OrderBy(Node => Node.F)
-				.ThenBy(Node => Node.AlignmentCost)
-				.ThenBy(Node => Node.Turns)
-				.ThenBy(Node => Node.H)
-				.First();
+		{
+			Node Best = null;
+			foreach (Node Node in OpenList)
+			{
+				if (Best == null
+					|| Node.F < Best.F
+					|| (Node.F == Best.F
+						&& (Node.AlignmentCost < Best.AlignmentCost
+							|| (Node.AlignmentCost == Best.AlignmentCost
+								&& (Node.Turns < Best.Turns
+									|| (Node.Turns == Best.Turns && Node.H < Best.H))))))
+					Best = Node;
+			}
+			Current = Best;
+		}
 	}
 	/// <summary>
 	/// Generates path from current node to the goal position
@@ -341,14 +350,11 @@ public class AStar
 	/// </summary>
 	private Node GetNode(Vector3Int Position)
 	{
-		if (AllNodes.ContainsKey(Position))
-			return AllNodes[Position];
-		else
-		{
-			Node Node = new(Position);
-			AllNodes.Add(Position, Node);
+		if (AllNodes.TryGetValue(Position, out Node Node))
 			return Node;
-		}
+		Node = new(Position);
+		AllNodes.Add(Position, Node);
+		return Node;
 	}
 }
 public class Node

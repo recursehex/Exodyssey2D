@@ -39,14 +39,30 @@ public class VehicleManager : MonoBehaviour
     /// <summary>
     /// Returns true if a vehicle is at specified position
     /// </summary>
-    public bool HasVehicleAtPosition(Vector3 Position) => Vehicles.Find(vehicle => vehicle.transform.position == Position) != null;
+    public bool HasVehicleAtPosition(Vector3 Position)
+    {
+        // Plain loop: queried heavily from pathfinding, so avoid closure allocations
+        for (int i = 0; i < Vehicles.Count; i++)
+        {
+            Vehicle Vehicle = Vehicles[i];
+            if (Vehicle != null && Vehicle.transform.position == Position)
+                return true;
+        }
+        return false;
+    }
     /// <summary>
     /// Returns vehicle at specified position, or null if no vehicle is found
     /// </summary>
     public Vehicle GetVehicleAtPosition(Vector3Int Position)
     {
         Vector3 ShiftedPosition = Position + new Vector3(0.5f, 0.5f);
-        return Vehicles.Find(Vehicle => Vehicle.transform.position == ShiftedPosition);
+        for (int i = 0; i < Vehicles.Count; i++)
+        {
+            Vehicle Vehicle = Vehicles[i];
+            if (Vehicle != null && Vehicle.transform.position == ShiftedPosition)
+                return Vehicle;
+        }
+        return null;
     }
     /// <summary>
     /// Destroys specified vehicle
