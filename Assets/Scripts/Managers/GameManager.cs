@@ -1572,10 +1572,11 @@ public class GameManager : MonoBehaviour
 					if (Player.IsInVehicle)
 						DamageVehicle(Player.Vehicle, damage);
 					else
-						Player.DecreaseHealthBy(damage, false);
+						Player.DecreaseHealthBy(damage, Player.DamageType.Environmental);
 				}
 				Vehicle Vehicle = GetVehicleAtPosition(Cell);
-				if (Vehicle != null)
+				// The player's vehicle was already damaged above; don't hit it twice
+				if (Vehicle != null && !(Player.IsInVehicle && Vehicle == Player.Vehicle))
 					DamageVehicle(Vehicle, damage);
 				ItemManager.DestroyAllItemsAtPosition(WorldPos);
 				Structure Structure = GetStructureAtCell(Cell);

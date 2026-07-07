@@ -313,10 +313,18 @@ public partial class Player : MonoBehaviour
 	}
 	#endregion
 	#region HEALTH METHODS
+	// How incoming damage interacts with armor: the helmet absorbs melee hits, the
+	// vest absorbs ranged hits, and environmental damage (fire, explosions) bypasses both
+	public enum DamageType
+	{
+		Melee,
+		Ranged,
+		Environmental,
+	}
 	/// <summary>
 	/// Decreases currentHealth by damage and updates Health display
 	/// </summary>
-	public void DecreaseHealthBy(int damage, bool isMeleeDamage)
+	public void DecreaseHealthBy(int damage, DamageType Type)
 	{
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
 		if (CheatFlags.Invincibility) return;
@@ -325,14 +333,14 @@ public partial class Player : MonoBehaviour
 		if (currentHealth <= 0)
 			return;
 		// Handle armor
-		if (isMeleeDamage && hasHelmet)
+		if (Type == DamageType.Melee && hasHelmet)
 		{
 			int absorbed = Mathf.Min(damage, helmetHealth);
 			helmetHealth -= absorbed;
 			damage 		 -= absorbed;
 			if (helmetHealth <= 0) hasHelmet = false;
 		}
-		else if (!isMeleeDamage && hasVest)
+		else if (Type == DamageType.Ranged && hasVest)
 		{
 			int absorbed = Mathf.Min(damage, vestHealth);
 			vestHealth 	-= absorbed;

@@ -389,7 +389,8 @@ public class Enemy : MonoBehaviour
 			return !vehicleDestroyed;
 		}
 		// If Player is not in Vehicle, damage Player; stop attacking on the killing blow
-		Player.DecreaseHealthBy(Info.DamagePoints, Info.Range == 0);
+		Player.DecreaseHealthBy(Info.DamagePoints,
+			Info.Range == 0 ? Player.DamageType.Melee : Player.DamageType.Ranged);
 		return !GameManager.Instance.IsGameOver;
 	}
 	#endregion

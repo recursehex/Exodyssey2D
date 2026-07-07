@@ -342,7 +342,7 @@ public class FireManager : MonoBehaviour
         }
         // Damage player on fire if not in vehicle
         if (!Player.IsInVehicle && HasFireAtWorld(Player.transform.position))
-            Player.DecreaseHealthBy(fireDamage, false);
+            Player.DecreaseHealthBy(fireDamage, Player.DamageType.Environmental);
     }
     /// <summary>
     /// Handles fire spread and burnout for all active fires
