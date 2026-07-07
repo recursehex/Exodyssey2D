@@ -99,6 +99,7 @@ public class ItemInfo
 	[Serializable] private class EntryList { public List<Entry> Items; }
 	private static readonly int lastItemIndex = (int)Tags.Unknown;
 	private static List<Entry> Database;
+	private static Dictionary<Tags, Entry> EntryByTag;
 	/// <summary>
 	/// Loads item definitions from JSON file in Resources folder
 	/// </summary>
@@ -107,10 +108,20 @@ public class ItemInfo
 		if (Database != null)
 			return;
 		TextAsset JsonFile = Resources.Load<TextAsset>("Definitions/ItemDefinitions");
-		if (JsonFile != null)
-			Database = JsonUtility.FromJson<EntryList>(JsonFile.text).Items;
-		else
+		if (JsonFile == null)
+		{
 			Debug.LogError("ItemDefinitions.json not found in Resources folder!");
+			return;
+		}
+		Database = JsonUtility.FromJson<EntryList>(JsonFile.text).Items;
+		// Index entries by tag so per-construction lookups (items are cloned on
+		// pickup and drop) avoid a linear scan with enum-to-string conversion
+		EntryByTag = new();
+		foreach (Entry Entry in Database)
+		{
+			if (Enum.TryParse(Entry.Tag, out Tags Tag))
+				EntryByTag[Tag] = Entry;
+		}
 	}
 	/// <summary>
 	/// Returns indices of all enabled items in the database, in Tags order
@@ -119,13 +130,11 @@ public class ItemInfo
 	{
 		LoadDatabase();
 		List<int> Indices = new();
-		if (Database == null)
+		if (EntryByTag == null)
 			return Indices;
 		for (int i = 0; i < lastItemIndex; i++)
 		{
-			string TagName = ((Tags)i).ToString();
-			Entry Entry = Database.Find(Entry => Entry.Tag == TagName);
-			if (Entry != null && !Entry.disabled)
+			if (EntryByTag.TryGetValue((Tags)i, out Entry Entry) && !Entry.disabled)
 				Indices.Add(i);
 		}
 		return Indices;
@@ -228,12 +237,10 @@ public class ItemInfo
 	{
 		LoadDatabase();
 		Tags TagData	= (Tags)n;
-		string TagName 	= TagData.ToString();
 		// Try to load from JSON first
-		if (Database != null)
+		if (EntryByTag != null && EntryByTag.TryGetValue(TagData, out Entry Entry))
 		{
-			Entry Entry = Database.Find(Entry => Entry.Tag == TagName);
-			if (Entry != null && !Entry.disabled)
+			if (!Entry.disabled)
 			{
 				LoadFrom(Entry);
 				CurrentUses = MaxUses;
@@ -242,12 +249,10 @@ public class ItemInfo
 				RefreshStats();
 				return;
 			}
-			else if (Entry != null && Entry.disabled)
-			{
-				Debug.LogWarning($"Item {n} {TagName} is disabled in JSON");
-			}
+			Debug.LogWarning($"Item {n} {TagData} is disabled in JSON");
 		}
 		// Fallback to hardcoded values if JSON loading fails
+		string TagName = TagData.ToString();
 		Debug.LogWarning($"Item {n} {TagName} not found in JSON, using default values");
 		Tag 			= TagData;
 		Name 			= TagName.ToUpper();

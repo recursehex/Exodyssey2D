@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 public class VehicleInfo
@@ -64,15 +63,26 @@ public class VehicleInfo
 	private static readonly int lastVehicleIndex = (int)Tags.Unknown;
 	private static readonly List<Rarity> VehicleRarityList = GenerateAllRarities();
 	private static List<Entry> Database;
+	private static Dictionary<Tags, Entry> EntryByTag;
 	private static void LoadDatabase()
 	{
 		if (Database != null)
 			return;
 		TextAsset JsonFile = Resources.Load<TextAsset>("Definitions/VehicleDefinitions");
-		if (JsonFile != null)
-			Database = JsonUtility.FromJson<EntryList>(JsonFile.text).Vehicles;
-		else
+		if (JsonFile == null)
+		{
 			Debug.LogError("VehicleDefinitions.json not found in Resources folder!");
+			return;
+		}
+		Database = JsonUtility.FromJson<EntryList>(JsonFile.text).Vehicles;
+		// Index entries by tag so per-spawn lookups avoid a linear scan with
+		// enum-to-string conversion
+		EntryByTag = new();
+		foreach (Entry Entry in Database)
+		{
+			if (Enum.TryParse(Entry.Tag, out Tags Tag))
+				EntryByTag[Tag] = Entry;
+		}
 	}
 	private static List<Rarity> GenerateAllRarities()
 	{
@@ -117,12 +127,26 @@ public class VehicleInfo
 	}
 	public static int GetRandomIndexFrom(Rarity Rarity)
 	{
-		List<int> Indices = Enumerable.Range(0, VehicleRarityList.Count)
-									  .Where(i => VehicleRarityList[i] == Rarity)
-									  .ToList();
-		if (Indices.Count == 0)
+		// Count the matches, roll one, then walk to it — avoids building an index list per spawn
+		int matchCount = 0;
+		for (int i = 0; i < VehicleRarityList.Count; i++)
+		{
+			if (VehicleRarityList[i] == Rarity)
+				matchCount++;
+		}
+		if (matchCount == 0)
 			return -1;
-		return Indices[UnityEngine.Random.Range(0, Indices.Count)];
+		int pick = UnityEngine.Random.Range(0, matchCount);
+		for (int i = 0; i < VehicleRarityList.Count; i++)
+		{
+			if (VehicleRarityList[i] == Rarity)
+			{
+				if (pick == 0)
+					return i;
+				pick--;
+			}
+		}
+		return -1;
 	}
 	/// <summary>
 	/// Decreases vehicle's CurrentHealth by amount
@@ -194,11 +218,9 @@ public class VehicleInfo
 	{
 		LoadDatabase();
 		Tags TagData = (Tags)n;
-		string TagName = TagData.ToString();
-		if (Database != null)
+		if (EntryByTag != null && EntryByTag.TryGetValue(TagData, out Entry Entry))
 		{
-			Entry Entry = Database.Find(e => e.Tag == TagName);
-			if (Entry != null && !Entry.disabled)
+			if (!Entry.disabled)
 			{
 				LoadFrom(Entry);
 				CurrentCharge = maxCharge;
@@ -207,12 +229,10 @@ public class VehicleInfo
 					SetCharge(startingFuel);
 				return;
 			}
-			else if (Entry != null && Entry.disabled)
-			{
-				Debug.LogWarning($"Vehicle {n} {TagName} is disabled in JSON");
-			}
+			Debug.LogWarning($"Vehicle {n} {TagData} is disabled in JSON");
 		}
 		// Fallback to hardcoded values if JSON loading fails
+		string TagName = TagData.ToString();
 		Debug.LogWarning($"Vehicle {TagName} not found in JSON, using default values");
 		Tag 			= TagData;
 		Name 			= TagName.ToUpper();

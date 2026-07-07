@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 public class EnemyInfo
@@ -60,16 +59,27 @@ public class EnemyInfo
 	private static readonly List<Types> EnemyTypeList = GenerateAll(
 		Entry => Enum.TryParse(Entry.Type, out Types Type) ? Type : Types.Unknown, i => new EnemyInfo(i).Type);
 	private static List<Entry> Database;
+	private static Dictionary<Tags, Entry> EntryByTag;
 	private static string LastMissingTypeLogKey;
 	private static void LoadDatabase()
 	{
 		if (Database != null)
 			return;
 		TextAsset JsonFile = Resources.Load<TextAsset>("Definitions/EnemyDefinitions");
-		if (JsonFile != null)
-			Database = JsonUtility.FromJson<EntryList>(JsonFile.text).Enemies;
-		else
+		if (JsonFile == null)
+		{
 			Debug.LogError("EnemyDefinitions.json not found in Resources folder!");
+			return;
+		}
+		Database = JsonUtility.FromJson<EntryList>(JsonFile.text).Enemies;
+		// Index entries by tag so per-spawn lookups avoid a linear scan with
+		// enum-to-string conversion
+		EntryByTag = new();
+		foreach (Entry Entry in Database)
+		{
+			if (Enum.TryParse(Entry.Tag, out Tags Tag))
+				EntryByTag[Tag] = Entry;
+		}
 	}
 	private static List<T> GenerateAll<T>(Func<Entry, T> Extract, Func<int, T> Fallback)
 	{
@@ -132,15 +142,19 @@ public class EnemyInfo
 				eligibleEnemyCount++;
 			}
 		}
-		List<Types> OrderedTypes = new(AllowedTypes);
-		OrderedTypes.Sort();
-		string allowedTypesString = string.Join(", ", OrderedTypes);
-		string logKey = $"{RegionTag}:{allowedTypesString}";
-		// Log if no eligible enemies found for the region
-		if (eligibleEnemyCount == 0 && logKey != LastMissingTypeLogKey)
+		// Log if no eligible enemies found for the region; the log strings are only
+		// built in that rare case since this runs on every spawn roll
+		if (eligibleEnemyCount == 0)
 		{
-			Debug.Log($"No enemy definitions match region {RegionTag} allowed types [{allowedTypesString}].");
-			LastMissingTypeLogKey = logKey;
+			List<Types> OrderedTypes = new(AllowedTypes);
+			OrderedTypes.Sort();
+			string allowedTypesString = string.Join(", ", OrderedTypes);
+			string logKey = $"{RegionTag}:{allowedTypesString}";
+			if (logKey != LastMissingTypeLogKey)
+			{
+				Debug.Log($"No enemy definitions match region {RegionTag} allowed types [{allowedTypesString}].");
+				LastMissingTypeLogKey = logKey;
+			}
 		}
 		return new List<Rarity>(AllowedRarities);
 	}
@@ -151,14 +165,28 @@ public class EnemyInfo
 			? null
 			: new(AllowedTypes);
 		int Count = Mathf.Min(EnemyRarityList.Count, EnemyTypeList.Count);
-		List<int> Indices = Enumerable.Range(0, Count)
-									  .Where(i => EnemyRarityList[i] == Rarity
-											&& (AllowedTypeSet == null
-											|| AllowedTypeSet.Contains(EnemyTypeList[i])))
-									  .ToList();
-		if (Indices.Count == 0)
+		// Count the matches, roll one, then walk to it — avoids building an index list per spawn
+		int matchCount = 0;
+		for (int i = 0; i < Count; i++)
+		{
+			if (EnemyRarityList[i] == Rarity
+				&& (AllowedTypeSet == null || AllowedTypeSet.Contains(EnemyTypeList[i])))
+				matchCount++;
+		}
+		if (matchCount == 0)
 			return -1;
-		return Indices[UnityEngine.Random.Range(0, Indices.Count)];
+		int pick = UnityEngine.Random.Range(0, matchCount);
+		for (int i = 0; i < Count; i++)
+		{
+			if (EnemyRarityList[i] == Rarity
+				&& (AllowedTypeSet == null || AllowedTypeSet.Contains(EnemyTypeList[i])))
+			{
+				if (pick == 0)
+					return i;
+				pick--;
+			}
+		}
+		return -1;
 	}
 	/// <summary>
 	/// Decreases CurrentHealth by 1
@@ -180,21 +208,19 @@ public class EnemyInfo
 	{
 		LoadDatabase();
 		Tags TagData = (Tags)index;
-		string TagName = TagData.ToString();
-		if (Database != null)
+		if (EntryByTag != null && EntryByTag.TryGetValue(TagData, out Entry Entry))
 		{
-			Entry Entry = Database.Find(Entry => Entry.Tag == TagName);
-			if (Entry != null && !Entry.disabled)
+			if (!Entry.disabled)
 			{
 				LoadFrom(Entry);
 				CurrentHealth = maxHealth;
 				CurrentEnergy = maxEnergy;
 				return;
 			}
-			else if (Entry != null && Entry.disabled)
-				Debug.LogWarning($"Enemy {index} {TagName} is disabled in JSON");
+			Debug.LogWarning($"Enemy {index} {TagData} is disabled in JSON");
 		}
 		// Fallback to hardcoded values if JSON loading fails
+		string TagName = TagData.ToString();
 		Debug.LogWarning($"Enemy {TagName} not found in JSON, using default values");
 		Tag 			= TagData;
 		Name 			= TagName.ToUpper();
