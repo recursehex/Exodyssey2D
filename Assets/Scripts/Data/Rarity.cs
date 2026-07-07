@@ -25,7 +25,7 @@ public struct Rarity
     public static readonly Rarity Scarce 	= new(Tags.Scarce, 		new(222/255f, 161/255f, 18/255f));
     public static readonly Rarity Rare 		= new(Tags.Rare, 		new(34/255f,  113/255f, 191/255f));
     public static readonly Rarity Anomalous = new(Tags.Anomalous, 	new(117/255f, 33/255f,  202/255f));
-    public static readonly Rarity Tsurath 	= new(Tags.Tsurath, 	new(196/255f, 30/255f,  30/255f));
+    public static readonly Rarity Tsurath 	= new(Tags.Tsurath, 	new(211/255f, 18/255f,  18/255f));
 	// Tsurath is deliberately absent: RarityList feeds the weighted spawn
 	// paths and Ts'urath items must never enter random generation
 	public static readonly List<Rarity> RarityList = new() { Common, Limited, Scarce, Rare, Anomalous };
