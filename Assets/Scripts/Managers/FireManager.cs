@@ -18,6 +18,7 @@ public class FireManager : MonoBehaviour
     private Tile BurnedTile;
     [Header("Behavior")]
     [SerializeField] private int lifetime = 3;
+    [SerializeField] private int wildfireLifetime = 7;
     [SerializeField] private int fireDamage = 1;
     [SerializeField] private int naturalWildfireSeeds = 2;
     [SerializeField, Range(0f, 1f)] private float naturalWildfireChance = 0.15f;
@@ -123,7 +124,7 @@ public class FireManager : MonoBehaviour
     public bool TrySpawnFire(Vector3Int Cell, bool isWildfire = false, bool allowBurnedCell = false)
     {
         if (FireCells.Contains(Cell)
-            || (!isWildfire && !allowBurnedCell && BurnedCells.Contains(Cell))
+            || (!allowBurnedCell && BurnedCells.Contains(Cell))
             || !TilemapGround.cellBounds.Contains(Cell)
             || IsBlockingWall(Cell))
         {
@@ -135,13 +136,12 @@ public class FireManager : MonoBehaviour
             : new GameObject("Fire");
         if (!Instance.TryGetComponent(out Fire Fire))
             Fire = Instance.AddComponent<Fire>();
-        Fire.Initialize(Cell, isWildfire, lifetime, WorldPosition);
+        Fire.Initialize(Cell, isWildfire, isWildfire ? wildfireLifetime : lifetime, WorldPosition);
         ActiveFires.Add(Fire);
         FireCells.Add(Cell);
         if (isWildfire)
             GameManager.Instance.RegisterObjectForTileReveal(WorldPosition, Fire.transform);
-        // Wildfire reclaiming a burned cell should clear the burned marker to allow full takeover
-        if (isWildfire || allowBurnedCell)
+        if (allowBurnedCell)
             BurnedCells.Remove(Cell);
         QueueEnvironmentBurn(Cell);
         return true;
@@ -383,7 +383,7 @@ public class FireManager : MonoBehaviour
         Candidates.RemoveAll(Neighbor =>
             IsBlockingWall(Neighbor)
             || FireCells.Contains(Neighbor)
-            || (!Fire.IsWildfire && BurnedCells.Contains(Neighbor)));
+            || BurnedCells.Contains(Neighbor));
         if (Candidates.Count == 0)
             return 0;
         // Shuffle candidates to avoid directional bias

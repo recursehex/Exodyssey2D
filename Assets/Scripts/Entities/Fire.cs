@@ -21,12 +21,11 @@ public class Fire : MonoBehaviour
     }
     /// <summary>
     /// Returns true if this fire should expire after this tick.
-    /// Wildfire tiles never expire naturally
+    /// Every tile counts down from the moment it is lit, so a wildfire burns out
+    /// from its oldest tiles to its newest rather than all at once
     /// </summary>
     public bool ShouldExtinguishAfterTurn()
     {
-        if (IsWildfire)
-            return false;
         remainingLifetime--;
         return remainingLifetime <= 0;
     }
