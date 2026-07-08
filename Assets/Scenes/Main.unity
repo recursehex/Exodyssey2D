@@ -863,7 +863,7 @@ MonoBehaviour:
   MainCamera: {fileID: 519420031}
   Player: {fileID: 569674968}
   doingSetup: 0
-  turnPhaseDelay: 0.25
+  turnPhaseDelay: 0.5
   RegionManager: {fileID: 429070325}
   EnemyTemplates:
   - {fileID: 8301553589233551289, guid: 3a66190a890058e44bc0653995faf798, type: 3}
