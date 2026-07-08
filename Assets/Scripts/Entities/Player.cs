@@ -624,6 +624,7 @@ public partial class Player : MonoBehaviour
 		if (SelectedItemInfo.Tag is ItemInfo.Tags.ToolKit
 			&& Vehicle.Repair())
 		{
+			DecrementEnergy();
 			DecrementItemDurability();
 			return true;
 		}
@@ -643,6 +644,7 @@ public partial class Player : MonoBehaviour
 		if (SelectedItemInfo.Tag is ItemInfo.Tags.PowerCell
 			&& Vehicle.ClickOnToRecharge(SelectedItemInfo))
 		{
+			DecrementEnergy();
 			InventoryUI.SetCurrentSelected(InventoryUI.SelectedIndex);
 			TryRemoveSelectedItem();
 			return true;
