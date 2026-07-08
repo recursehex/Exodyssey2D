@@ -570,11 +570,13 @@ public class VisibilityManager : MonoBehaviour
 			}
 		}
 	}
-	// A selected Lightrod illuminates a 5x5 area centred on the player until it is deselected or dropped
+	// A selected Lightrod illuminates a 5x5 area centred on the player until it is deselected or dropped.
+	// It gives off no light while the player is in a vehicle (only once they exit).
 	private void AddLightrodLight(bool addVisibilityFootprint)
 	{
 		if (Player == null
 			|| TilemapGround == null
+			|| Player.IsInVehicle
 			|| Player.SelectedItemInfo == null
 			|| Player.SelectedItemInfo.Tag != ItemInfo.Tags.Lightrod)
 		{

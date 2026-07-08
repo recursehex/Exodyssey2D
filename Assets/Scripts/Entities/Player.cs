@@ -603,6 +603,7 @@ public partial class Player : MonoBehaviour
 			return true;
 		}
 		else if (SelectedItemInfo.Tag is ItemInfo.Tags.Flare
+			&& !IsInVehicle
 			&& HasEnergy
 			&& SelectedItemInfo.ActivateFlare())
 		{
@@ -658,6 +659,9 @@ public partial class Player : MonoBehaviour
 	{
 		// Returns if called when inventory is empty
 		if (!Inventory.HasItemAt(itemIndex))
+			return;
+		// Cannot drop items while in a vehicle (also blocks dropping a lit flare)
+		if (IsInVehicle)
 			return;
 		GameManager.Instance.RecordUndoSnapshot(true);
 		// Put dropped item in temp slot out of inventory
