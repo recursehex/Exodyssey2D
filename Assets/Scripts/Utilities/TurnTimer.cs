@@ -38,18 +38,14 @@ public class TurnTimer : MonoBehaviour
 	{
 		if (!timerIsRunning)
 			return;
-		float dt = Time.deltaTime;
-		if (timeRemaining - dt > 1)
-		{
-			timeRemaining -= dt;
-			DisplayTime(timeRemaining);
-		}
-		else
+		timeRemaining = Mathf.Max(0f, timeRemaining - Time.deltaTime);
+		DisplayTime(timeRemaining);
+		if (timeRemaining <= 0f)
 			StopTimer();
 	}
 	private void DisplayTime(float timeToDisplay)
 	{
-		int seconds = Mathf.FloorToInt(timeToDisplay % 60);
+		int seconds = Mathf.CeilToInt(Mathf.Max(0f, timeToDisplay) % 60);
 		if (seconds == lastDisplayedSeconds)
 			return;
 		lastDisplayedSeconds = seconds;

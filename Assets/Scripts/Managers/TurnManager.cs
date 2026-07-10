@@ -25,13 +25,8 @@ public class TurnManager : MonoBehaviour
         SetEndTurnButtonInteractable(false);
         TurnTimer.timerIsRunning = false;
         TurnTimer.ResetTimer();
-        // Check if there are enemies before changing turns
-        if (GameManager.Instance.HasEnemies())
-            IsPlayersTurn = false;
-        // No enemies, stay on player's turn and re-enable button
-        else
-            SetEndTurnButtonInteractable(true);
-        OnPlayerTurnEnded?.Invoke();
+		IsPlayersTurn = false;
+		OnPlayerTurnEnded?.Invoke();
     }
     /// <summary>
     /// Sets EndTurnButton interactable

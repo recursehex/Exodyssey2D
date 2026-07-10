@@ -166,6 +166,8 @@ public class GameManager : MonoBehaviour
 	private void ResetForNextLevel()
 	{
 		LevelManager.PrepareNextLevel();
+		if (IsGameOver)
+			return;
 		ChronoclasmManager.HandleGridExit();
 		TurnManager.TurnTimer.timerIsRunning = false;
 		TurnManager.TurnTimer.ResetTimer();
