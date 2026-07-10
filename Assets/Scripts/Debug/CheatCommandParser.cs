@@ -29,6 +29,9 @@ public class CheatCommandParser
 			case "heal":    return Actions.RestoreFullHealth();
 			case "restore": return Actions.RestoreFullEnergy();
 			case "god":     return Actions.ToggleInvincibility();
+			case "prof":
+			case "profession": return ParseProfession(t);
+			case "master":  return Actions.ToggleProfessionMastery();
 			case "noclip":  return Actions.ToggleInfiniteEnergy();
 			case "invenemy":return Actions.ToggleInvincibleEnemies();
 			case "freeze":  return Actions.ToggleFreezeEnemies();
@@ -195,6 +198,15 @@ public class CheatCommandParser
 		}
 	}
 
+	private CheatResult ParseProfession(string[] t)
+	{
+		if (t.Length < 2)
+			return CheatResult.Fail("Usage: profession <name>");
+		if (!CheatActions.TryParseEnum(t[1], out Profession.Tags Tag))
+			return CheatResult.Fail($"Unknown profession '{t[1]}' (try: list professions)");
+		return Actions.SetProfession((int)Tag);
+	}
+
 	private CheatResult ParseTeleport(string[] t)
 	{
 		if (t.Length < 3 || !int.TryParse(t[1], out int x) || !int.TryParse(t[2], out int y))
@@ -229,6 +241,7 @@ public class CheatCommandParser
 			case "items":    case "item":    return CheatResult.Pass("Items: " + string.Join(", ", CheatActions.EnumOptions<ItemInfo.Tags>()));
 			case "enemies":  case "enemy":   return CheatResult.Pass("Enemies: " + string.Join(", ", CheatActions.EnumOptions<EnemyInfo.Tags>()));
 			case "vehicles": case "vehicle": return CheatResult.Pass("Vehicles: " + string.Join(", ", CheatActions.EnumOptions<VehicleInfo.Tags>()));
+			case "professions": case "profession": return CheatResult.Pass("Professions: " + string.Join(", ", CheatActions.EnumOptions<Profession.Tags>()));
 			default: return CheatResult.Fail($"Unknown list '{t[1]}'");
 		}
 	}
@@ -237,9 +250,9 @@ public class CheatCommandParser
 	{
 		return CheatResult.Pass(
 			"\nSpawn: spawn item|enemy <tag> [x y] | spawn vehicle <tag> [fuel] [x y] | spawn fire|wildfire [x y]\n" +
-			"Player: set health|energy|maxhealth|maxenergy <n> | give <tag> | equip helmet|vest|nightvision|all | unequip | heal | restore | god | noclip | tp <x> <y>\n" +
+			"Player: set health|energy|maxhealth|maxenergy <n> | give <tag> | equip helmet|vest|nightvision|all | unequip | heal | restore | god | noclip | tp <x> <y> | profession <name> | master\n" +
 			"World: time <name> | level <n> | day <n> | region <n> | advance | regen | killall | clearitems|clearvehicles|clearfires|clearall | endturn | chrono | reveal\n" +
-			"Debug: gameover | restart | invenemy | freeze | logpos | list items|enemies|vehicles | status | help\n" +
+			"Debug: gameover | restart | invenemy | freeze | logpos | list items|enemies|vehicles|professions | status | help\n" +
 			"Loot: loot | lootpity <n> | lootclear | lootreset");
 	}
 	#endregion

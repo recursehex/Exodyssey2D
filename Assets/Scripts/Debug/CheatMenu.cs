@@ -37,9 +37,10 @@ public class CheatMenu : MonoBehaviour
 	private string[] vehicleNames;
 	private string[] timeNames;
 	private string[] regionNames;
+	private string[] professionNames;
 
 	// Tab selection state
-	private int spawnItemSel, spawnEnemySel, spawnVehicleSel, addItemSel, timeSel, regionSel;
+	private int spawnItemSel, spawnEnemySel, spawnVehicleSel, addItemSel, timeSel, regionSel, professionSel;
 	private bool vehicleFullFuel = true;
 	private int vehicleFuel = 4;
 
@@ -76,6 +77,7 @@ public class CheatMenu : MonoBehaviour
 		vehicleNames= CheatActions.EnumOptions<VehicleInfo.Tags>().ToArray();
 		timeNames   = CheatActions.EnumOptions<LevelManager.TimeOfDay>().ToArray();
 		regionNames = CheatActions.EnumOptions<RegionInfo.Tags>().ToArray();
+		professionNames = CheatActions.EnumOptions<Profession.Tags>().ToArray();
 		whiteTex = new Texture2D(1, 1);
 		whiteTex.SetPixel(0, 0, Color.white);
 		whiteTex.Apply();
@@ -341,6 +343,14 @@ public class CheatMenu : MonoBehaviour
 		bool nn = GUILayout.Toggle(hasNvg, " Night Vision");
 		if (nn != hasNvg) PushLog(Actions.EquipNightVision(nn));
 		if (GUILayout.Button("Remove All Equipment")) PushLog(Actions.RemoveAllEquipment());
+
+		GUILayout.Space(8);
+		string masterSuffix = Player.Profession.IsMaster ? " (Master)" : "";
+		GUILayout.Label($"<b>Profession: {Player.Profession.Tag}{masterSuffix}</b>", RichLabel());
+		professionSel = GUILayout.SelectionGrid(professionSel, professionNames, GridColumns);
+		if (GUILayout.Button("Set Profession"))
+			PushLog(Actions.SetProfession(professionSel));
+		ToggleFlag("Master Profession", Player.Profession.IsMaster, Actions.ToggleProfessionMastery);
 	}
 
 	private void DrawWorldTab()

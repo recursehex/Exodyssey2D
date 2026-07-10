@@ -465,6 +465,7 @@ public class GameManager : MonoBehaviour
 	public void ForceChronoclasmReady() 					=> ChronoclasmManager.ForceChronoclasmReady();
 	public void ClearChronoclasmReadyOverride() 			=> ChronoclasmManager.ClearChronoclasmReadyOverride();
 	public void OnPlayerActionPointSpent() 				=> ChronoclasmManager.MarkActionPointSpentThisTurn();
+	public void OnRegionSurvived() 							=> Player.RecordRegionSurvived();
 	public void ClearUndoHistory(string Reason) 			=> ChronoclasmManager.ClearUndoHistory(Reason);
 	public void RecordUndoSnapshot(bool recordGroundItem = false) => ChronoclasmManager.RecordUndoSnapshot(recordGroundItem);
 	public bool HasItemAtPosition(Vector3 Position) 		=> ItemManager.HasItemAtPosition(Position);
@@ -753,8 +754,9 @@ public class GameManager : MonoBehaviour
 			TileManager.TileDot.SetActive(false);
 			if (ExitTransitionRoutine != null)
 				return;
-			// Return if Player's vehicle has insufficient charge to move to next grid
-			if (Player.IsInVehicle && !Player.Vehicle.DecreaseChargeBy(Player.Vehicle.Info.Efficiency))
+			// Return if Player's vehicle has insufficient charge to move to next grid;
+			// master navigators travel for 1 less charge
+			if (Player.IsInVehicle && !Player.Vehicle.DecreaseChargeBy(ProfessionPerks.GetGridTravelCharge(Player.Profession, Player.Vehicle.Info.Efficiency)))
 				return;
 			ExitTransitionRoutine = StartCoroutine(RunExitTransition());
 		}

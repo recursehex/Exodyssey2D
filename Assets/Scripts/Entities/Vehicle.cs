@@ -9,6 +9,8 @@ public class Vehicle : MonoBehaviour
 	#region DATA
 	[NonSerialized] public VehicleInfo Info;
 	[NonSerialized] public Inventory Inventory;
+	// Set by the driver on entry; navigators drive twice as fast on the grid
+	public float DriverSpeedMultiplier { get; set; } = 1f;
 	#endregion
 	[Header("Debug")]
 	[SerializeField] private VehicleInfo.Tags VehicleTag = VehicleInfo.Tags.Unknown;
@@ -198,7 +200,7 @@ public class Vehicle : MonoBehaviour
 			{
 				transform.position = Vector3.MoveTowards(transform.position,
 														 ShiftedDistance,
-														 Info.Speed * Time.deltaTime);
+														 Info.Speed * DriverSpeedMultiplier * Time.deltaTime);
 				yield return null;
 			}
 			transform.position = ShiftedDistance;

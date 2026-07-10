@@ -88,9 +88,10 @@ public partial class LevelManager : MonoBehaviour
         if (Level % timeOfDayNames.Length == 0) Day++;
         DayText.text = $"DAY {Day}";
         UpdateTimeOfDay(emitEvent: true);
-        // Track region progression
+        // Track region progression; surviving a region advances profession mastery
         RegionManager.CompleteGrid();
-        RegionManager.TryAdvanceRegion();
+        if (RegionManager.TryAdvanceRegion())
+            GameManager.Instance.OnRegionSurvived();
         ClearTilemaps();
     }
     /// <summary>

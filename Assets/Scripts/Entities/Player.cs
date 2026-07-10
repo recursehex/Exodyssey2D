@@ -20,7 +20,7 @@ public partial class Player : MonoBehaviour
 	public int CurrentEnergy { get; private set; } = 3;
 	private readonly int walkSpeed 		= 2;
 	private readonly int inventorySize 	= 2;
-	public int DamagePoints => HasUses ? SelectedItemInfo?.DamagePoints ?? 0 : 0;
+	public int DamagePoints => HasUses ? ProfessionPerks.GetAttackDamage(Profession, SelectedItemInfo?.DamagePoints ?? 0) : 0;
 	[Header("Vehicle")]
 	public Vehicle Vehicle;
 	public bool IsInVehicle => Vehicle != null;
@@ -32,6 +32,10 @@ public partial class Player : MonoBehaviour
 	private bool hasNightVision = false;
 	public bool HasNightVision => hasNightVision;
 	[NonSerialized] public Profession Profession;
+	private int regionsSurvived = 0;
+	// Tracks the master hiker free step, reset each turn
+	private bool hasUsedFreeStepThisTurn = false;
+	private Coroutine AttackAnimationRoutine;
 	#endregion
 	#region EVENTS
 	public Action OnMovementComplete;
@@ -56,6 +60,8 @@ public partial class Player : MonoBehaviour
 	[SerializeField] private ItemInfo.Tags SelectedItemTag = ItemInfo.Tags.Unknown;
 	[SerializeField] private int selectedItemUses = 0;
 	[SerializeField] private bool isInVehicle = false;
+	[SerializeField] private Profession.Tags ProfessionTag = Profession.Tags.Medic;
+	[SerializeField] private bool isProfessionMaster = false;
 	[SerializeField] private List<ItemInfo.Tags> InventoryItemTags = new();
 	[SerializeField] private List<string> InventoryItemNames = new();
 	[SerializeField] private List<int> InventoryItemUses = new();
@@ -97,6 +103,8 @@ public partial class Player : MonoBehaviour
 			selectedItemUses = 0;
 		}
 		isInVehicle = IsInVehicle;
+		ProfessionTag = Profession.Tag;
+		isProfessionMaster = Profession.IsMaster;
 		SyncInventoryDebugFields();
 	}
 	private void SyncInventoryDebugFields()
@@ -122,8 +130,16 @@ public partial class Player : MonoBehaviour
 		}
 	}
 #endif
-	private void OnDisable() => StopMoveRoutineIfRunning();
-	private void OnDestroy() => StopMoveRoutineIfRunning();
+	private void OnDisable()
+	{
+		StopMoveRoutineIfRunning();
+		StopAttackAnimationRoutineIfRunning();
+	}
+	private void OnDestroy()
+	{
+		StopMoveRoutineIfRunning();
+		StopAttackAnimationRoutineIfRunning();
+	}
 	private void StopMoveRoutineIfRunning()
 	{
 		if (MoveRoutine == null)
@@ -153,6 +169,9 @@ public partial class Player : MonoBehaviour
 		InventoryUI.RefreshInventoryIcons();
 		InventoryUI.RefreshText();
 		Profession = Profession.GetRandomProfession();
+		regionsSurvived = 0;
+		hasUsedFreeStepThisTurn = false;
+		StopAttackAnimationRoutineIfRunning();
 		maxEnergy = fixedMaxEnergy;
 		currentHealth = maxHealth;
 		CurrentEnergy = maxEnergy;
@@ -185,7 +204,7 @@ public partial class Player : MonoBehaviour
 		// While path has remaining tiles
 		while (Path != null && Path.Count >= 0)
 		{
-			DecrementEnergy();
+			SpendStepEnergy();
 			SoundManager.Instance.PlaySound(Move);
 			Vector3 ShiftedDistance = Destination + new Vector3(0.5f, 0.5f);
 			// Move Player smoothly to next tile; comparing positions avoids the
@@ -194,7 +213,7 @@ public partial class Player : MonoBehaviour
 			{
 				transform.position = Vector3.MoveTowards(transform.position,
 														 ShiftedDistance,
-														 walkSpeed * Time.deltaTime);
+														 ProfessionPerks.GetWalkSpeed(Profession, walkSpeed) * Time.deltaTime);
 				yield return null;
 			}
 			transform.position = ShiftedDistance;
@@ -239,6 +258,7 @@ public partial class Player : MonoBehaviour
 	{
 		SoundManager.Instance.PlaySound(Move);
 		Vehicle = EnteredVehicle;
+		Vehicle.DriverSpeedMultiplier = ProfessionPerks.GetDriveSpeedMultiplier(Profession);
 		transform.position = Vehicle.transform.position;
 		// Hide player when entering vehicle
 		SetPlayerVisibility(false);
@@ -248,6 +268,8 @@ public partial class Player : MonoBehaviour
     {
 		// Show player when exiting vehicle
 		SetPlayerVisibility(true);
+		if (Vehicle != null)
+			Vehicle.DriverSpeedMultiplier = 1f;
 		Vehicle = null;
     }
 	public void SetVehicleState(Vehicle Vehicle, bool isInVehicle, Vector3 PlayerPosition)
@@ -260,6 +282,8 @@ public partial class Player : MonoBehaviour
 			return;
 		}
 		this.Vehicle = isInVehicle ? Vehicle : null;
+		if (Vehicle != null)
+			Vehicle.DriverSpeedMultiplier = isInVehicle ? ProfessionPerks.GetDriveSpeedMultiplier(Profession) : 1f;
 		transform.position = PlayerPosition;
 		SetPlayerVisibility(!isInVehicle);
 	}
@@ -405,6 +429,18 @@ public partial class Player : MonoBehaviour
 		StatsDisplayManager.SetEnergyDisplay(CurrentEnergy);
 	}
 	/// <summary>
+	/// Spends energy for one movement step; a master hiker's first step each turn is free
+	/// </summary>
+	private void SpendStepEnergy()
+	{
+		if (ProfessionPerks.HasFreeFirstStep(Profession) && !hasUsedFreeStepThisTurn)
+		{
+			hasUsedFreeStepThisTurn = true;
+			return;
+		}
+		DecrementEnergy();
+	}
+	/// <summary>
 	/// Decreases CurrentEnergy by 1 and updates energy display
 	/// </summary>
 	private void DecrementEnergy()
@@ -435,6 +471,7 @@ public partial class Player : MonoBehaviour
 	public void RestoreEnergy()
 	{
 		CurrentEnergy = maxEnergy;
+		hasUsedFreeStepThisTurn = false;
 		// Display exactly current energy (independent of health, so cheat-raised max shows right)
 		StatsDisplayManager.SetEnergyDisplay(CurrentEnergy);
 	}
@@ -454,8 +491,47 @@ public partial class Player : MonoBehaviour
 	public void AttackEntity()
 	{
 		SoundManager.Instance.PlaySound(Attack);
-		Animator.SetTrigger("playerAttack");
+		StartAttackAnimation();
 		UseItem();
+	}
+	/// <summary>
+	/// Plays the attack animation, sped up for hunters
+	/// </summary>
+	private void StartAttackAnimation()
+	{
+		float animationSpeed = ProfessionPerks.GetAttackAnimationSpeed(Profession);
+		if (animationSpeed == 1f)
+		{
+			Animator.SetTrigger("playerAttack");
+			return;
+		}
+		StopAttackAnimationRoutineIfRunning();
+		AttackAnimationRoutine = StartCoroutine(PlayAttackAnimationAtSpeed(animationSpeed));
+	}
+	private IEnumerator PlayAttackAnimationAtSpeed(float animationSpeed)
+	{
+		Animator.speed = animationSpeed;
+		Animator.SetTrigger("playerAttack");
+		// Wait for the sped-up attack state to start (bounded, in case the trigger is swallowed) and finish
+		float startTimeout = 0.5f;
+		while (startTimeout > 0f && !Animator.GetCurrentAnimatorStateInfo(0).IsName("PlayerAttack"))
+		{
+			startTimeout -= Time.deltaTime;
+			yield return null;
+		}
+		while (Animator.GetCurrentAnimatorStateInfo(0).IsName("PlayerAttack"))
+			yield return null;
+		Animator.speed = 1f;
+		AttackAnimationRoutine = null;
+	}
+	private void StopAttackAnimationRoutineIfRunning()
+	{
+		if (AttackAnimationRoutine == null)
+			return;
+		StopCoroutine(AttackAnimationRoutine);
+		AttackAnimationRoutine = null;
+		if (Animator != null)
+			Animator.speed = 1f;
 	}
 	/// <summary>
 	/// Decreases item durability by 1, removes item if uses run out (except unbreakable items)
@@ -493,9 +569,10 @@ public partial class Player : MonoBehaviour
 	/// </summary>
 	public bool HasRange => (SelectedItemInfo?.HasRange ?? false) && HasUses;
 	/// <summary>
-	/// Returns weapon range of selected item, 0 if no item is selected or item is not a weapon
+	/// Returns weapon range of selected item, 0 if no item is selected or item is not a weapon;
+	/// rangers throw to anywhere on the grid and master rangers gain 1 RP on ranged weapons
 	/// </summary>
-	public int WeaponRange => HasRange ? SelectedItemInfo.Range : 0;
+	public int WeaponRange => HasRange ? ProfessionPerks.GetWeaponRange(Profession, SelectedItemInfo) : 0;
 	#endregion
 	#region ITEM METHODS
 	/// <summary>
@@ -569,10 +646,10 @@ public partial class Player : MonoBehaviour
 		{
 			RestoreHealth();
 			// Uses energy if profession is not medic
-			if (Profession.Tag is not Profession.Tags.Medic)
+			if (ProfessionPerks.HealCostsEnergy(Profession))
 				DecrementEnergy();
 			// Uses MedKit if profession is not master medic
-			if (!(Profession.IsMaster && Profession.Tag is Profession.Tags.Medic))
+			if (ProfessionPerks.HealConsumesDurability(Profession))
 				DecrementItemDurability();
 			return true;
 		}
@@ -625,8 +702,12 @@ public partial class Player : MonoBehaviour
 		if (SelectedItemInfo.Tag is ItemInfo.Tags.ToolKit
 			&& Vehicle.Repair())
 		{
-			DecrementEnergy();
-			DecrementItemDurability();
+			// Uses energy if profession is not mechanic, otherwise toolkit can be used for free
+			if (ProfessionPerks.RepairCostsEnergy(Profession))
+				DecrementEnergy();
+			// ToolKit does not lose durability if user is master mechanic, otherwise it loses durability on use
+			if (ProfessionPerks.RepairConsumesDurability(Profession))
+				DecrementItemDurability();
 			return true;
 		}
 		// Try to use Wrench on vehicle
@@ -634,10 +715,10 @@ public partial class Player : MonoBehaviour
 			&& Vehicle.RepairBy(1))
 		{
 			// Uses energy if profession is not mechanic, otherwise wrench can be used for free
-			if (Profession.Tag is not Profession.Tags.Mechanic)
+			if (ProfessionPerks.RepairCostsEnergy(Profession))
 				DecrementEnergy();
 			// Wrench does not lose durability if user is master mechanic, otherwise it loses durability on use
-			if (Profession.Tag is not Profession.Tags.Mechanic && !Profession.IsMaster)
+			if (ProfessionPerks.RepairConsumesDurability(Profession))
 				DecrementItemDurability();
 			return true;
 		}
@@ -694,6 +775,17 @@ public partial class Player : MonoBehaviour
 		GameManager.Instance.RefreshVisibility();
 		// Removes item from inventory and plays corresponding sound
 		SoundManager.Instance.PlaySound(Move);
+	}
+	/// <summary>
+	/// Counts a survived region; the profession masters automatically after enough regions
+	/// </summary>
+	public void RecordRegionSurvived()
+	{
+		regionsSurvived++;
+		if (Profession.IsMaster || !ProfessionPerks.ShouldMaster(regionsSurvived))
+			return;
+		Profession.IsMaster = true;
+		Debug.Log($"Profession {Profession.Tag} mastered after surviving {regionsSurvived} regions");
 	}
 	public void RechargePlasmaRailgun()
 	{

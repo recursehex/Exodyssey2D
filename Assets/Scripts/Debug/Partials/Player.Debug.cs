@@ -116,6 +116,31 @@ public partial class Player
 			GameManager.Instance.RefreshVisibility();
 	}
 
+	/// <summary>
+	/// Sets the profession, keeping mastery and refreshing the perk-driven vehicle speed.
+	/// </summary>
+	public void Debug_SetProfession(Profession.Tags Tag)
+	{
+		Profession = new Profession(Tag, Profession.IsMaster);
+		SyncVehicleDriverSpeed();
+	}
+
+	/// <summary>
+	/// Flips profession mastery and returns the new state.
+	/// </summary>
+	public bool Debug_ToggleProfessionMastery()
+	{
+		Profession.IsMaster = !Profession.IsMaster;
+		SyncVehicleDriverSpeed();
+		return Profession.IsMaster;
+	}
+
+	private void SyncVehicleDriverSpeed()
+	{
+		if (Vehicle != null)
+			Vehicle.DriverSpeedMultiplier = ProfessionPerks.GetDriveSpeedMultiplier(Profession);
+	}
+
 	public void Debug_RemoveAllEquipment()
 	{
 		hasHelmet = false;

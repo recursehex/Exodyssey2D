@@ -245,6 +245,28 @@ public class CheatActions
 		return CheatResult.Pass("Energy restored to full");
 	}
 
+	public CheatResult SetProfession(int index)
+	{
+		if (!Ready) return CheatResult.Fail("Game not ready");
+		if (!Enum.IsDefined(typeof(Profession.Tags), index))
+			return CheatResult.Fail($"Invalid profession index {index}");
+		Player.Debug_SetProfession((Profession.Tags)index);
+		// Ranger perks change ranges, so redraw targets and areas
+		GameManager.UpdateTargets();
+		GameManager.UpdateTileAreas();
+		return CheatResult.Pass($"Profession set to {(Profession.Tags)index}");
+	}
+
+	public CheatResult ToggleProfessionMastery()
+	{
+		if (!Ready) return CheatResult.Fail("Game not ready");
+		bool isMaster = Player.Debug_ToggleProfessionMastery();
+		// Master ranger perks change ranges, so redraw targets and areas
+		GameManager.UpdateTargets();
+		GameManager.UpdateTileAreas();
+		return CheatResult.Pass($"Profession mastery {OnOff(isMaster)}");
+	}
+
 	public CheatResult ToggleInvincibility()
 	{
 		CheatFlags.Invincibility = !CheatFlags.Invincibility;
@@ -539,6 +561,7 @@ public class CheatActions
 			$"Region: {RegionManager.CurrentRegionIndex} ({RegionManager.GetRegionName()})\n" +
 			$"Player cell: ({Cell.x},{Cell.y})   HP: {Player.Debug_CurrentHealth}/{Player.Debug_MaxHealth}   EN: {Player.CurrentEnergy}/{Player.Debug_MaxEnergy}\n" +
 			$"In vehicle: {Player.IsInVehicle}   Helmet: {Player.Debug_HasHelmet}   Vest: {Player.Debug_HasVest}   NV: {Player.HasNightVision}\n" +
+			$"Profession: {Player.Profession.Tag}   Master: {Player.Profession.IsMaster}\n" +
 			$"Enemies: {enemies}   Items: {items}   Vehicles: {vehicles}   Fires: {fires}\n" +
 			$"Flags  God:{CheatFlags.Invincibility} InfEN:{CheatFlags.InfiniteEnergy} InvEnemy:{CheatFlags.InvincibleEnemies} Freeze:{CheatFlags.FreezeEnemies} Reveal:{CheatFlags.RevealAll}";
 	}

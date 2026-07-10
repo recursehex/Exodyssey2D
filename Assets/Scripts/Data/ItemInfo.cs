@@ -86,6 +86,7 @@ public class ItemInfo
 	public bool IsFlammable 	{ get; private set; } = false;			// If item is flammable, can be destroyed by fire and helps it spread
 	public bool IsStunning 		{ get; private set; } = false;			// If item stuns enemies when used
 	public List<LootCategory> Categories { get; private set; } = new();	// Functional categories for loot profile biasing
+	public bool IsThrowable 	=> Categories.Contains(LootCategory.Throwable);
 	public int LootWeight 		{ get; private set; } = 100;			// Relative pick weight within its rarity tier
 	public bool UniquePerRun 	{ get; private set; } = false;			// If item can generate at most once per run
 	public RegionInfo.Tags MinRegion { get; private set; } = RegionInfo.Tags.RuinedOutpost; // Earliest region item can generate in
