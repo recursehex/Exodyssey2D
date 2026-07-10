@@ -11,7 +11,8 @@ using UnityEngine.Tilemaps;
 /// </summary>
 public partial class Player : MonoBehaviour
 {
-	[Header("Player Stats")]
+    private static readonly int PlayerAttackHash = Animator.StringToHash("playerAttack");
+    [Header("Player Stats")]
 	#region DATA
 	private static readonly int fixedMaxEnergy = 3; // To restore energy to original value
 	[SerializeField] private int maxHealth 	   	= 3;
@@ -527,7 +528,7 @@ public partial class Player : MonoBehaviour
 	private IEnumerator PlayAttackAnimationAtSpeed(float animationSpeed)
 	{
 		Animator.speed = animationSpeed;
-		Animator.SetTrigger("playerAttack");
+		Animator.SetTrigger(PlayerAttackHash);
 		// Wait for the sped-up attack state to start (bounded, in case the trigger is swallowed) and finish
 		float startTimeout = 0.5f;
 		while (startTimeout > 0f && !Animator.GetCurrentAnimatorStateInfo(0).IsName("PlayerAttack"))
@@ -589,6 +590,13 @@ public partial class Player : MonoBehaviour
 	/// rangers throw to anywhere on the grid and master rangers gain 1 RP on ranged weapons
 	/// </summary>
 	public int WeaponRange => HasRange ? ProfessionPerks.GetWeaponRange(Profession, SelectedItemInfo) : 0;
+	public int GetDamagePointsAgainst(Enemy Enemy)
+	{
+		if (!HasUses || SelectedItemInfo == null)
+			return 0;
+		int baseDamage = SelectedItemInfo.GetDamageAgainst(Enemy?.Info?.IsArmored ?? false);
+		return ProfessionPerks.GetAttackDamage(Profession, baseDamage);
+	}
 	#endregion
 	#region ITEM METHODS
 	/// <summary>

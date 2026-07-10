@@ -1410,7 +1410,7 @@ public class GameManager : MonoBehaviour
 			SpawnItem((int)Player.SelectedItemInfo.Tag, ShiftedClickPoint);
 		// Handle damage to enemy
 		Enemy Enemy = GetEnemyAtPosition(ShiftedClickPoint);
-		EnemyManager.HandleDamageToEnemy(Enemy, Player.DamagePoints, Player.SelectedItemInfo.IsStunning);
+		EnemyManager.HandleDamageToEnemy(Enemy, Player.GetDamagePointsAgainst(Enemy), Player.SelectedItemInfo.IsStunning);
 		Player.AttackEntity();
 		TurnManager.TurnTimer.StartTimer();
 		TileManager.TileDot.SetActive(false);

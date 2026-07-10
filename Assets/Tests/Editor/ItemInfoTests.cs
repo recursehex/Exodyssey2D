@@ -5,7 +5,7 @@ public class ItemInfoTests
     [Test]
     public void Constructor_Branch_HasCorrectProperties()
     {
-        ItemInfo item = new ItemInfo((int)ItemInfo.Tags.Branch);
+        ItemInfo item = new((int)ItemInfo.Tags.Branch);
         Assert.AreEqual(ItemInfo.Tags.Branch, item.Tag);
         Assert.AreEqual(ItemInfo.Types.Weapon, item.Type);
         Assert.IsTrue(item.CurrentUses > 0);
@@ -16,7 +16,7 @@ public class ItemInfoTests
     [Test]
     public void Constructor_Carbine_IsRanged()
     {
-        ItemInfo item = new ItemInfo((int)ItemInfo.Tags.Carbine);
+        ItemInfo item = new((int)ItemInfo.Tags.Carbine);
         Assert.AreEqual(ItemInfo.Tags.Carbine, item.Tag);
         Assert.AreEqual(ItemInfo.Types.Weapon, item.Type);
         Assert.IsTrue(item.HasRange);
@@ -26,7 +26,7 @@ public class ItemInfoTests
     [Test]
     public void Constructor_MedKit_IsConsumable()
     {
-        ItemInfo item = new ItemInfo((int)ItemInfo.Tags.MedKit);
+        ItemInfo item = new((int)ItemInfo.Tags.MedKit);
         Assert.AreEqual(ItemInfo.Tags.MedKit, item.Tag);
         Assert.AreEqual(ItemInfo.Types.Consumable, item.Type);
     }
@@ -34,7 +34,7 @@ public class ItemInfoTests
     [Test]
     public void Constructor_Helmet_IsEquipable()
     {
-        ItemInfo item = new ItemInfo((int)ItemInfo.Tags.Helmet);
+        ItemInfo item = new((int)ItemInfo.Tags.Helmet);
         Assert.AreEqual(ItemInfo.Types.Armor, item.Type);
         Assert.IsTrue(item.IsEquipable);
     }
@@ -42,7 +42,7 @@ public class ItemInfoTests
     [Test]
     public void Constructor_Flare_IsUtility()
     {
-        ItemInfo item = new ItemInfo((int)ItemInfo.Tags.Flare);
+        ItemInfo item = new((int)ItemInfo.Tags.Flare);
         Assert.AreEqual(ItemInfo.Tags.Flare, item.Tag);
         Assert.AreEqual(ItemInfo.Types.Utility, item.Type);
     }
@@ -52,7 +52,7 @@ public class ItemInfoTests
     [Test]
     public void DecreaseDurability_ByOne_ReducesUses()
     {
-        ItemInfo item = new ItemInfo((int)ItemInfo.Tags.Branch);
+        ItemInfo item = new((int)ItemInfo.Tags.Branch);
         int initial = item.CurrentUses;
         item.DecreaseDurability();
         Assert.AreEqual(initial - 1, item.CurrentUses);
@@ -61,7 +61,7 @@ public class ItemInfoTests
     [Test]
     public void DecreaseDurability_ByMultiple_ReducesCorrectly()
     {
-        ItemInfo item = new ItemInfo((int)ItemInfo.Tags.Carbine);
+        ItemInfo item = new((int)ItemInfo.Tags.Carbine);
         int initial = item.CurrentUses;
         item.DecreaseDurability(3);
         Assert.AreEqual(initial - 3, item.CurrentUses);
@@ -70,7 +70,7 @@ public class ItemInfoTests
     [Test]
     public void DecreaseDurability_ClampsToZero()
     {
-        ItemInfo item = new ItemInfo((int)ItemInfo.Tags.Branch);
+        ItemInfo item = new((int)ItemInfo.Tags.Branch);
         item.DecreaseDurability(999);
         Assert.AreEqual(0, item.CurrentUses);
     }
@@ -78,7 +78,7 @@ public class ItemInfoTests
     [Test]
     public void DecreaseDurability_ZeroAmount_DoesNothing()
     {
-        ItemInfo item = new ItemInfo((int)ItemInfo.Tags.Branch);
+        ItemInfo item = new((int)ItemInfo.Tags.Branch);
         int initial = item.CurrentUses;
         item.DecreaseDurability(0);
         Assert.AreEqual(initial, item.CurrentUses);
@@ -87,7 +87,7 @@ public class ItemInfoTests
     [Test]
     public void DecreaseDurability_NegativeAmount_DoesNothing()
     {
-        ItemInfo item = new ItemInfo((int)ItemInfo.Tags.Branch);
+        ItemInfo item = new((int)ItemInfo.Tags.Branch);
         int initial = item.CurrentUses;
         item.DecreaseDurability(-5);
         Assert.AreEqual(initial, item.CurrentUses);
@@ -96,7 +96,7 @@ public class ItemInfoTests
     [Test]
     public void RestoreDurabilityToMax_RestoresFullUses()
     {
-        ItemInfo item = new ItemInfo((int)ItemInfo.Tags.Carbine);
+        ItemInfo item = new((int)ItemInfo.Tags.Carbine);
         int max = item.CurrentUses;
         item.DecreaseDurability(2);
         Assert.Less(item.CurrentUses, max);
@@ -110,14 +110,14 @@ public class ItemInfoTests
     [Test]
     public void PlasmaRailgun_IsUnbreakable()
     {
-        ItemInfo railgun = new ItemInfo((int)ItemInfo.Tags.PlasmaRailgun);
+        ItemInfo railgun = new((int)ItemInfo.Tags.PlasmaRailgun);
         Assert.IsTrue(railgun.IsUnbreakable);
     }
 
     [Test]
     public void NonRailgun_IsNotUnbreakable()
     {
-        ItemInfo branch = new ItemInfo((int)ItemInfo.Tags.Branch);
+        ItemInfo branch = new((int)ItemInfo.Tags.Branch);
         Assert.IsFalse(branch.IsUnbreakable);
     }
 
@@ -126,7 +126,7 @@ public class ItemInfoTests
     [Test]
     public void ActivateFlare_OnFlare_ReturnsTrue()
     {
-        ItemInfo flare = new ItemInfo((int)ItemInfo.Tags.Flare);
+        ItemInfo flare = new((int)ItemInfo.Tags.Flare);
         Assert.IsFalse(flare.IsActiveFlare);
         Assert.IsTrue(flare.ActivateFlare());
         Assert.IsTrue(flare.IsActiveFlare);
@@ -136,7 +136,7 @@ public class ItemInfoTests
     [Test]
     public void ActivateFlare_OnNonFlare_ReturnsFalse()
     {
-        ItemInfo branch = new ItemInfo((int)ItemInfo.Tags.Branch);
+        ItemInfo branch = new((int)ItemInfo.Tags.Branch);
         Assert.IsFalse(branch.ActivateFlare());
         Assert.IsFalse(branch.IsActiveFlare);
     }
@@ -144,7 +144,7 @@ public class ItemInfoTests
     [Test]
     public void ActivateFlare_AlreadyActive_ReturnsFalse()
     {
-        ItemInfo flare = new ItemInfo((int)ItemInfo.Tags.Flare);
+        ItemInfo flare = new((int)ItemInfo.Tags.Flare);
         flare.ActivateFlare();
         Assert.IsFalse(flare.ActivateFlare());
     }
@@ -152,7 +152,7 @@ public class ItemInfoTests
     [Test]
     public void TickActiveFlare_DecrementsTurnsRemaining()
     {
-        ItemInfo flare = new ItemInfo((int)ItemInfo.Tags.Flare);
+        ItemInfo flare = new((int)ItemInfo.Tags.Flare);
         flare.ActivateFlare();
 
         bool burnedOut = flare.TickActiveFlare();
@@ -163,7 +163,7 @@ public class ItemInfoTests
     [Test]
     public void TickActiveFlare_BurnsOutAfterThreeTicks()
     {
-        ItemInfo flare = new ItemInfo((int)ItemInfo.Tags.Flare);
+        ItemInfo flare = new((int)ItemInfo.Tags.Flare);
         flare.ActivateFlare();
 
         Assert.IsFalse(flare.TickActiveFlare()); // 2 remaining
@@ -177,14 +177,14 @@ public class ItemInfoTests
     [Test]
     public void TickActiveFlare_OnInactiveFlare_ReturnsFalse()
     {
-        ItemInfo flare = new ItemInfo((int)ItemInfo.Tags.Flare);
+        ItemInfo flare = new((int)ItemInfo.Tags.Flare);
         Assert.IsFalse(flare.TickActiveFlare());
     }
 
     [Test]
     public void ExtinguishFlare_ResetsState()
     {
-        ItemInfo flare = new ItemInfo((int)ItemInfo.Tags.Flare);
+        ItemInfo flare = new((int)ItemInfo.Tags.Flare);
         flare.ActivateFlare();
         Assert.IsTrue(flare.IsActiveFlare);
 
@@ -198,7 +198,7 @@ public class ItemInfoTests
     [Test]
     public void Clone_PreservesTag()
     {
-        ItemInfo original = new ItemInfo((int)ItemInfo.Tags.Knife);
+        ItemInfo original = new((int)ItemInfo.Tags.Knife);
         ItemInfo clone = original.Clone();
         Assert.AreEqual(original.Tag, clone.Tag);
     }
@@ -206,7 +206,7 @@ public class ItemInfoTests
     [Test]
     public void Clone_PreservesDurability()
     {
-        ItemInfo original = new ItemInfo((int)ItemInfo.Tags.Knife);
+        ItemInfo original = new((int)ItemInfo.Tags.Knife);
         original.DecreaseDurability(1);
         ItemInfo clone = original.Clone();
         Assert.AreEqual(original.CurrentUses, clone.CurrentUses);
@@ -215,7 +215,7 @@ public class ItemInfoTests
     [Test]
     public void Clone_PreservesFlareState()
     {
-        ItemInfo original = new ItemInfo((int)ItemInfo.Tags.Flare);
+        ItemInfo original = new((int)ItemInfo.Tags.Flare);
         original.ActivateFlare();
         original.TickActiveFlare();
 
@@ -227,7 +227,7 @@ public class ItemInfoTests
     [Test]
     public void Clone_IsIndependentCopy()
     {
-        ItemInfo original = new ItemInfo((int)ItemInfo.Tags.Carbine);
+        ItemInfo original = new((int)ItemInfo.Tags.Carbine);
         ItemInfo clone = original.Clone();
 
         clone.DecreaseDurability(1);
@@ -237,9 +237,32 @@ public class ItemInfoTests
     // --- Weapon Properties ---
 
     [Test]
+    public void GetDamageAgainst_ArmoredEnemy_UsesArmorDamage()
+    {
+        ItemInfo knife = new((int)ItemInfo.Tags.Knife);
+        Assert.AreEqual(knife.ArmorDamage, knife.GetDamageAgainst(true));
+        Assert.AreNotEqual(knife.DamagePoints, knife.GetDamageAgainst(true));
+    }
+
+    [Test]
+    public void GetDamageAgainst_UnarmoredEnemy_UsesNormalDamage()
+    {
+        ItemInfo knife = new((int)ItemInfo.Tags.Knife);
+        Assert.AreEqual(knife.DamagePoints, knife.GetDamageAgainst(false));
+    }
+
+    [Test]
+    public void GetDamageAgainst_WeaponWithoutArmorOverride_UsesNormalDamage()
+    {
+        ItemInfo carbine = new((int)ItemInfo.Tags.Carbine);
+        Assert.Less(carbine.ArmorDamage, 0);
+        Assert.AreEqual(carbine.DamagePoints, carbine.GetDamageAgainst(true));
+    }
+
+    [Test]
     public void MeleeWeapon_HasNegativeRange()
     {
-        ItemInfo branch = new ItemInfo((int)ItemInfo.Tags.Branch);
+        ItemInfo branch = new((int)ItemInfo.Tags.Branch);
         Assert.IsFalse(branch.HasRange);
         Assert.Less(branch.Range, 1);
     }
@@ -247,7 +270,7 @@ public class ItemInfoTests
     [Test]
     public void RangedWeapon_HasPositiveRange()
     {
-        ItemInfo rifle = new ItemInfo((int)ItemInfo.Tags.HuntingRifle);
+        ItemInfo rifle = new((int)ItemInfo.Tags.HuntingRifle);
         Assert.IsTrue(rifle.HasRange);
         Assert.Greater(rifle.Range, 0);
     }
@@ -255,7 +278,7 @@ public class ItemInfoTests
     [Test]
     public void Consumable_HasNoDamage()
     {
-        ItemInfo medkit = new ItemInfo((int)ItemInfo.Tags.MedKit);
+        ItemInfo medkit = new((int)ItemInfo.Tags.MedKit);
         Assert.AreEqual(-1, medkit.DamagePoints);
     }
 
@@ -264,7 +287,7 @@ public class ItemInfoTests
     [Test]
     public void Branch_IsFlammable()
     {
-        ItemInfo branch = new ItemInfo((int)ItemInfo.Tags.Branch);
+        ItemInfo branch = new((int)ItemInfo.Tags.Branch);
         Assert.IsTrue(branch.IsFlammable);
     }
 
@@ -273,14 +296,14 @@ public class ItemInfoTests
     [Test]
     public void Tranquilizer_IsStunning()
     {
-        ItemInfo tranq = new ItemInfo((int)ItemInfo.Tags.Tranquilizer);
+        ItemInfo tranq = new((int)ItemInfo.Tags.Tranquilizer);
         Assert.IsTrue(tranq.IsStunning);
     }
 
     [Test]
     public void Branch_IsNotStunning()
     {
-        ItemInfo branch = new ItemInfo((int)ItemInfo.Tags.Branch);
+        ItemInfo branch = new((int)ItemInfo.Tags.Branch);
         Assert.IsFalse(branch.IsStunning);
     }
 
@@ -289,21 +312,21 @@ public class ItemInfoTests
     [Test]
     public void Stats_ContainsDurabilityInfo()
     {
-        ItemInfo item = new ItemInfo((int)ItemInfo.Tags.Branch);
+        ItemInfo item = new((int)ItemInfo.Tags.Branch);
         Assert.IsTrue(item.Stats.Contains("UP:"));
     }
 
     [Test]
     public void Stats_ForWeapon_ContainsDamagePoints()
     {
-        ItemInfo item = new ItemInfo((int)ItemInfo.Tags.Knife);
+        ItemInfo item = new((int)ItemInfo.Tags.Knife);
         Assert.IsTrue(item.Stats.Contains("DP:"));
     }
 
     [Test]
     public void Stats_ForRangedWeapon_ContainsRange()
     {
-        ItemInfo item = new ItemInfo((int)ItemInfo.Tags.Carbine);
+        ItemInfo item = new((int)ItemInfo.Tags.Carbine);
         Assert.IsTrue(item.Stats.Contains("RP:"));
     }
 
@@ -323,7 +346,7 @@ public class ItemInfoTests
     {
         foreach (int i in ItemInfo.GetEnabledItemIndices())
         {
-            ItemInfo item = new ItemInfo(i);
+            ItemInfo item = new(i);
             Assert.Greater(item.Categories.Count, 0, $"Item {item.Tag} should declare at least one loot category");
         }
     }
@@ -333,7 +356,7 @@ public class ItemInfoTests
     {
         foreach (int i in ItemInfo.GetEnabledItemIndices())
         {
-            ItemInfo item = new ItemInfo(i);
+            ItemInfo item = new(i);
             Assert.Greater(item.LootWeight, 0, $"Item {item.Tag} should have a positive loot weight");
         }
     }
@@ -341,14 +364,14 @@ public class ItemInfoTests
     [Test]
     public void MedKit_HasMedicalCategory()
     {
-        ItemInfo item = new ItemInfo((int)ItemInfo.Tags.MedKit);
+        ItemInfo item = new((int)ItemInfo.Tags.MedKit);
         Assert.Contains(LootCategory.Medical, item.Categories);
     }
 
     [Test]
     public void Wrench_HasRepairAndMeleeCategories()
     {
-        ItemInfo item = new ItemInfo((int)ItemInfo.Tags.Wrench);
+        ItemInfo item = new((int)ItemInfo.Tags.Wrench);
         Assert.Contains(LootCategory.Repair, item.Categories);
         Assert.Contains(LootCategory.MeleeWeapon, item.Categories);
     }
@@ -356,7 +379,7 @@ public class ItemInfoTests
     [Test]
     public void DefaultItem_IsNotUniquePerRun_AndHasNoRegionGate()
     {
-        ItemInfo item = new ItemInfo((int)ItemInfo.Tags.Branch);
+        ItemInfo item = new((int)ItemInfo.Tags.Branch);
         Assert.IsFalse(item.UniquePerRun);
         Assert.AreEqual(RegionInfo.Tags.RuinedOutpost, item.MinRegion);
         Assert.AreEqual(100, item.LootWeight);
@@ -365,7 +388,7 @@ public class ItemInfoTests
     [Test]
     public void PlasmaRailgun_IsUniquePerRun_AndGatedToRainforestRavines()
     {
-        ItemInfo item = new ItemInfo((int)ItemInfo.Tags.PlasmaRailgun);
+        ItemInfo item = new((int)ItemInfo.Tags.PlasmaRailgun);
         Assert.IsTrue(item.UniquePerRun);
         Assert.AreEqual(RegionInfo.Tags.RainforestRavines, item.MinRegion);
     }
@@ -375,7 +398,7 @@ public class ItemInfoTests
     {
         foreach (int i in ItemInfo.GetEnabledItemIndices())
         {
-            ItemInfo item = new ItemInfo(i);
+            ItemInfo item = new(i);
             if (item.Rarity == Rarity.Anomalous)
                 Assert.IsTrue(item.UniquePerRun, $"Anomalous item {item.Tag} should be unique per run");
         }
