@@ -112,12 +112,16 @@ public class Vehicle : MonoBehaviour
 	/// <summary>
 	/// Vehicle can only move on roads unless canOffroad is true
 	/// </summary>
-	public void ComputePathAndStartMovement(Vector3 Goal)
+	public bool ComputePathAndStartMovement(Vector3 Goal)
 	{
 		AStar.Initialize();
 		Path = AStar.ComputePath(transform.position, Goal);
-		if (Path == null)
-			return;
+		if (Path == null || Path.Count < 2)
+		{
+			Path = null;
+			IsInMovement = false;
+			return false;
+		}
 		RamTarget = null;
 		Path.Pop();
 		Destination = Path.Pop();
@@ -126,6 +130,7 @@ public class Vehicle : MonoBehaviour
 		if (MoveRoutine != null)
 			StopCoroutine(MoveRoutine);
 		MoveRoutine = StartCoroutine(MoveAlongPath());
+		return true;
 	}
 	/// <summary>
 	/// Computes a path that stops on the tile directly to the left of a rammable enemy, so the vehicle

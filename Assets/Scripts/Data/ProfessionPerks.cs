@@ -52,6 +52,10 @@ public static class ProfessionPerks
 	/// </summary>
 	public static bool HasFreeFirstStep(Profession Profession) =>
 		Profession.Tag is Profession.Tags.Hiker && Profession.IsMaster;
+	public static int GetWalkDistance(Profession Profession, int currentEnergy, bool hasUsedFreeStep) =>
+		Mathf.Max(0, currentEnergy) + (HasFreeFirstStep(Profession) && !hasUsedFreeStep ? 1 : 0);
+	public static int GetWalkEnergyCost(Profession Profession, int moveCount, bool hasUsedFreeStep) =>
+		Mathf.Max(0, moveCount - (HasFreeFirstStep(Profession) && !hasUsedFreeStep ? 1 : 0));
 	/// <summary>
 	/// Master hunter attacks gain 1 DP; stun-only weapons stay damageless
 	/// </summary>

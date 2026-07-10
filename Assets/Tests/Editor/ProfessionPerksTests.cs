@@ -125,6 +125,21 @@ public class ProfessionPerksTests
         Assert.IsFalse(ProfessionPerks.HasFreeFirstStep(Master(Profession.Tags.Hunter)));
     }
 
+    [Test]
+    public void GetWalkDistance_UnusedMasterHikerStep_ExtendsReach()
+    {
+        Assert.AreEqual(4, ProfessionPerks.GetWalkDistance(Master(Profession.Tags.Hiker), 3, false));
+        Assert.AreEqual(3, ProfessionPerks.GetWalkDistance(Master(Profession.Tags.Hiker), 3, true));
+    }
+
+    [Test]
+    public void GetWalkEnergyCost_UnusedMasterHikerStep_IsFree()
+    {
+        Assert.AreEqual(3, ProfessionPerks.GetWalkEnergyCost(Master(Profession.Tags.Hiker), 4, false));
+        Assert.AreEqual(4, ProfessionPerks.GetWalkEnergyCost(Master(Profession.Tags.Hiker), 4, true));
+        Assert.AreEqual(4, ProfessionPerks.GetWalkEnergyCost(Base(Profession.Tags.Hiker), 4, false));
+    }
+
     // BONUS DAMAGE (MASTER HUNTER)
     [Test]
     public void GetAttackDamage_MasterHunter_GainsOneDamage()

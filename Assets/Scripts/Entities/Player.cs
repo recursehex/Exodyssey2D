@@ -182,12 +182,16 @@ public partial class Player : MonoBehaviour
 	/// <summary>
 	/// Calculates path for Player to travel to destination for point clicked on
 	/// </summary>
-	public void ComputePathAndStartMovement(Vector3 Goal)
+	public bool ComputePathAndStartMovement(Vector3 Goal)
 	{
 		AStar.Initialize();
 		Path = AStar.ComputePath(transform.position, Goal);
-		if (Path == null)
-			return;
+		if (Path == null || Path.Count < 2)
+		{
+			Path = null;
+			IsInMovement = false;
+			return false;
+		}
 		Path.Pop();
 		Destination = Path.Pop();
 		IsInMovement = true;
@@ -195,6 +199,7 @@ public partial class Player : MonoBehaviour
 		if (MoveRoutine != null)
 			StopCoroutine(MoveRoutine);
 		MoveRoutine = StartCoroutine(MoveAlongPath());
+		return true;
 	}
 	/// <summary>
 	/// Moves Player along A* path
@@ -225,6 +230,7 @@ public partial class Player : MonoBehaviour
 		// When Player stops moving
 		Path = null;
 		IsInMovement = false;
+		MoveRoutine = null;
 		// Update targets if a ranged weapon is selected
 		if (HasRange && !IsInVehicle)
 			GameManager.Instance.UpdateTargets();
@@ -237,7 +243,8 @@ public partial class Player : MonoBehaviour
 	public Dictionary<Vector3Int, Node> CalculateArea()
 	{
 		AStar.Initialize();
-		Dictionary<Vector3Int, Node> ReachableArea = AStar.GetReachableAreaByDistance(transform.position, CurrentEnergy);
+		int maxDistance = ProfessionPerks.GetWalkDistance(Profession, CurrentEnergy, hasUsedFreeStepThisTurn);
+		Dictionary<Vector3Int, Node> ReachableArea = AStar.GetReachableAreaByDistance(transform.position, maxDistance);
 		Vector3Int StartCell = TilemapGround.WorldToCell(transform.position);
 		ReachableArea.Remove(StartCell);
 		return ReachableArea;
@@ -287,10 +294,10 @@ public partial class Player : MonoBehaviour
 		transform.position = PlayerPosition;
 		SetPlayerVisibility(!isInVehicle);
 	}
-	public void VehicleMovement(Vector3 WorldPoint)
+	public bool VehicleMovement(Vector3 WorldPoint)
 	{
 		if (Vehicle == null)
-			return;
+			return false;
 		// Subscribe to vehicle movement complete event
 		Vehicle.OnVehicleMovementComplete = () => {
 			IsInMovement = false;
@@ -299,8 +306,15 @@ public partial class Player : MonoBehaviour
 			// Unsubscribe to prevent memory leaks
 			Vehicle.OnVehicleMovementComplete = null;
 		};
-		Vehicle.ComputePathAndStartMovement(WorldPoint);
+		if (!Vehicle.ComputePathAndStartMovement(WorldPoint))
+		{
+			Vehicle.OnVehicleMovementComplete = null;
+			IsInMovement = false;
+			return false;
+		}
+		IsInMovement = true;
 		DecrementEnergy();
+		return true;
 	}
 	/// <summary>
 	/// Begins a ram prepared by Vehicle.PrepareRam: drives up to the enemy and rams it
@@ -440,6 +454,8 @@ public partial class Player : MonoBehaviour
 		}
 		DecrementEnergy();
 	}
+	public int GetWalkEnergyCost(int moveCount) =>
+		ProfessionPerks.GetWalkEnergyCost(Profession, moveCount, hasUsedFreeStepThisTurn);
 	/// <summary>
 	/// Decreases CurrentEnergy by 1 and updates energy display
 	/// </summary>

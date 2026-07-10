@@ -119,6 +119,7 @@ public class GameManager : MonoBehaviour
 	{
 		MainCamera = Camera.main;
 		CursorController = FindAnyObjectByType<CursorController>();
+		CursorController.Initialize(MainCamera, TileManager, LevelManager, Player);
 		InputManager.Initialize(MainCamera, TilemapGround, Player, CursorController);
 		SoundManager.Instance.PlayMusic();
 		NewGameButton.gameObject.SetActive(false);
@@ -876,10 +877,18 @@ public class GameManager : MonoBehaviour
 		// Player exits vehicle
 		TurnManager.SetEndTurnButtonInteractable(false);
 		ChronoclasmManager.RecordUndoSnapshot();
-		Player.IsInMovement = true;
+		Vehicle ExitedVehicle = Player.Vehicle;
+		Vector3 VehiclePosition = ExitedVehicle.transform.position;
 		Player.ExitVehicle();
 		RefreshVisibility();
-		Player.ComputePathAndStartMovement(WorldPoint);
+		if (!Player.ComputePathAndStartMovement(WorldPoint))
+		{
+			Player.SetVehicleState(ExitedVehicle, true, VehiclePosition);
+			TurnManager.SetEndTurnButtonInteractable(true);
+			RefreshVisibility();
+			UpdateTileAreas();
+			return;
+		}
 		TileManager.ClearTileAreas();
 		UpdateTargets();
 		TurnManager.TurnTimer.StartTimer();
@@ -900,6 +909,8 @@ public class GameManager : MonoBehaviour
 		TurnManager.SetEndTurnButtonInteractable(false);
 		ChronoclasmManager.RecordUndoSnapshot();
 		// Leave the current (off) vehicle; the player is now on foot at the same tile
+		Vehicle PreviousVehicle = Player.Vehicle;
+		Vector3 PreviousVehiclePosition = PreviousVehicle.transform.position;
 		Player.ExitVehicle();
 		RefreshVisibility();
 		// Enter immediately if already adjacent, otherwise walk over and enter on arrival
@@ -914,8 +925,15 @@ public class GameManager : MonoBehaviour
 		{
 			TryGetVehicleApproach(Target, out Vector3 ApproachWorld);
 			PendingEnterVehicle = Target;
-			Player.IsInMovement = true;
-			Player.ComputePathAndStartMovement(ApproachWorld);
+			if (!Player.ComputePathAndStartMovement(ApproachWorld))
+			{
+				PendingEnterVehicle = null;
+				Player.SetVehicleState(PreviousVehicle, true, PreviousVehiclePosition);
+				TurnManager.SetEndTurnButtonInteractable(true);
+				RefreshVisibility();
+				UpdateTileAreas();
+				return true;
+			}
 			TileManager.ClearTileAreas();
 			TileManager.ClearTargets();
 		}
@@ -942,8 +960,12 @@ public class GameManager : MonoBehaviour
 		// Start Player's vehicle movement
 		TurnManager.SetEndTurnButtonInteractable(false);
 		ChronoclasmManager.RecordUndoSnapshot();
-		Player.IsInMovement = true;
-		Player.VehicleMovement(WorldPoint);
+		if (!Player.VehicleMovement(WorldPoint))
+		{
+			TurnManager.SetEndTurnButtonInteractable(true);
+			UpdateTileAreas();
+			return;
+		}
 		TileManager.ClearTileAreas();
 		TurnManager.TurnTimer.StartTimer();
 	}
@@ -1202,8 +1224,13 @@ public class GameManager : MonoBehaviour
 		TurnManager.SetEndTurnButtonInteractable(false);
 		ChronoclasmManager.RecordUndoSnapshot();
 		PendingEnterVehicle = Vehicle;
-		Player.IsInMovement = true;
-		Player.ComputePathAndStartMovement(ApproachWorld);
+		if (!Player.ComputePathAndStartMovement(ApproachWorld))
+		{
+			PendingEnterVehicle = null;
+			TurnManager.SetEndTurnButtonInteractable(true);
+			UpdateTileAreas();
+			return false;
+		}
 		TileManager.ClearTileAreas();
 		TileManager.ClearTargets();
 		TurnManager.TurnTimer.StartTimer();
@@ -1228,7 +1255,7 @@ public class GameManager : MonoBehaviour
 				continue;
 			int moves = tileCount - 1;
 			// Need energy for every move plus 1 to enter the vehicle
-			if (moves + 1 > Player.CurrentEnergy)
+			if (Player.GetWalkEnergyCost(moves) + 1 > Player.CurrentEnergy)
 				continue;
 			if (moves < bestMoves)
 			{
@@ -1327,8 +1354,12 @@ public class GameManager : MonoBehaviour
 		// Start Player movement
 		TurnManager.SetEndTurnButtonInteractable(false);
 		ChronoclasmManager.RecordUndoSnapshot();
-		Player.IsInMovement = true;
-		Player.ComputePathAndStartMovement(WorldPoint);
+		if (!Player.ComputePathAndStartMovement(WorldPoint))
+		{
+			TurnManager.SetEndTurnButtonInteractable(true);
+			UpdateTileAreas();
+			return false;
+		}
 		TileManager.ClearTileAreas();
 		TurnManager.TurnTimer.StartTimer();
 		return true;

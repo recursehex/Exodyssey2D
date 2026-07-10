@@ -39,18 +39,26 @@ public class CursorController : MonoBehaviour
     private bool TileManagerEventsBound;
     private void Awake()
     {
-        MainCamera      = Camera.main;
         PixelsPerUnit   = PixelPerfectCamera.assetsPPU;
-        TileManager     = FindAnyObjectByType<TileManager>();
-        Player          = FindAnyObjectByType<Player>();
-        InventoryUI     = Player.InventoryUI;
-        Tilemap         = Player.TilemapGround;
-        LevelManager    = FindAnyObjectByType<LevelManager>();
-        LevelManager.OnLoadingScreenVisibilityChanged += HandleLoadingScreenVisibilityChanged;
         CursorSprite.gameObject.SetActive(true);
         SelectSprite.gameObject.SetActive(false);
         EnsureInvisibleCursorTexture();
+    }
+    public void Initialize(Camera MainCamera, TileManager TileManager, LevelManager LevelManager, Player Player)
+    {
+        UnbindTileManagerEvents();
+        if (this.LevelManager != null)
+            this.LevelManager.OnLoadingScreenVisibilityChanged -= HandleLoadingScreenVisibilityChanged;
+        this.MainCamera = MainCamera;
+        this.TileManager = TileManager;
+        this.LevelManager = LevelManager;
+        this.Player = Player;
+        InventoryUI = Player != null ? Player.InventoryUI : null;
+        Tilemap = Player != null ? Player.TilemapGround : null;
+        if (this.LevelManager != null)
+            this.LevelManager.OnLoadingScreenVisibilityChanged += HandleLoadingScreenVisibilityChanged;
         BindTileManagerEvents();
+        NeedsHoverRefresh = true;
     }
     private void Start()
     {
@@ -94,6 +102,8 @@ public class CursorController : MonoBehaviour
     {
         CursorAppliedThisFrame = false;
         if (!Application.isFocused)
+            return;
+        if (MainCamera == null || TileManager == null)
             return;
         ApplyInvisibleSystemCursorOnce();
         if (PointAction == null || MoveAction == null)
