@@ -455,6 +455,33 @@ public class GameManager : MonoBehaviour
 		}
 		return EmptyCells;
 	}
+	public void FillPathOccupancy(HashSet<Vector3Int> EnemyCells, HashSet<Vector3Int> VehicleCells, HashSet<Vector3Int> StructureCells)
+	{
+		EnemyCells.Clear();
+		VehicleCells.Clear();
+		StructureCells.Clear();
+		foreach (Enemy Enemy in EnemyManager.Enemies)
+		{
+			if (Enemy != null)
+				EnemyCells.Add(TilemapGround.WorldToCell(Enemy.transform.position));
+		}
+		foreach (Vehicle Vehicle in VehicleManager.Vehicles)
+		{
+			if (Vehicle != null)
+				VehicleCells.Add(TilemapGround.WorldToCell(Vehicle.transform.position));
+		}
+		foreach (Structure Structure in StructureManager.Structures)
+		{
+			if (Structure == null || Structure.Info == null)
+				continue;
+			Vector3Int BaseCell = TilemapGround.WorldToCell(Structure.transform.position);
+			for (int x = 0; x < Structure.Info.Width; x++)
+			{
+				for (int y = 0; y < Structure.Info.Height; y++)
+					StructureCells.Add(BaseCell + new Vector3Int(x, y));
+			}
+		}
+	}
 	// Public accessor methods
 	public bool IsDoingSetup 								=> doingSetup;
 	public bool IsChronoclasmReady 							=> ChronoclasmManager != null && ChronoclasmManager.IsChronoclasmReady;

@@ -148,14 +148,7 @@ public class TileManager : MonoBehaviour
         // Return if enemy is out of range
         if (distance > weaponRange)
             return false;
-        // Check if there are walls in the line of sight
-        List<Vector3Int> Path = BresenhamsAlgorithm(PlayerPosition, EnemyPosition);
-        foreach (Vector3Int Position in Path)
-        {
-            if (Walls.HasTile(Position))
-                return false;
-        }
-        return true;
+		return !HasBlockingWallOnLine(PlayerPosition, EnemyPosition, Walls, false);
     }
     /// <summary>
     /// Returns true if a wall cell is within range and line of sight from a position,
@@ -166,16 +159,41 @@ public class TileManager : MonoBehaviour
         Vector3 WallCenter = WallCell + new Vector3(0.5f, 0.5f);
         if (Vector3.Distance(FromPosition, WallCenter) > range)
             return false;
-        List<Vector3Int> Path = BresenhamsAlgorithm(FromPosition, WallCenter);
-        foreach (Vector3Int Position in Path)
-        {
-            if (Position == WallCell)
-                continue;
-            if (Walls.HasTile(Position))
-                return false;
-        }
-        return true;
-    }
+		return !HasBlockingWallOnLine(FromPosition, WallCenter, Walls, true);
+	}
+	private static bool HasBlockingWallOnLine(Vector3 Start, Vector3 End, Tilemap Walls, bool ignoreEnd)
+	{
+		Vector3Int StartInt = Vector3Int.FloorToInt(Start);
+		Vector3Int EndInt = Vector3Int.FloorToInt(End);
+		int x0 = StartInt.x;
+		int y0 = StartInt.y;
+		int x1 = EndInt.x;
+		int y1 = EndInt.y;
+		int dx = Mathf.Abs(x1 - x0);
+		int dy = Mathf.Abs(y1 - y0);
+		int sx = x0 < x1 ? 1 : -1;
+		int sy = y0 < y1 ? 1 : -1;
+		int err = dx - dy;
+		while (true)
+		{
+			bool isEnd = x0 == x1 && y0 == y1;
+			if (!(ignoreEnd && isEnd) && Walls.HasTile(new Vector3Int(x0, y0)))
+				return true;
+			if (isEnd)
+				return false;
+			int e2 = 2 * err;
+			if (e2 > -dy)
+			{
+				err -= dy;
+				x0 += sx;
+			}
+			if (e2 < dx)
+			{
+				err += dx;
+				y0 += sy;
+			}
+		}
+	}
     /// <summary>
     /// Bresenham's Line Algorithm to get cells between two positions
     /// </summary>
@@ -222,7 +240,16 @@ public class TileManager : MonoBehaviour
     /// <summary>
     /// Returns true if position is in ranged weapon range
     /// </summary>
-    public bool IsInRangedWeaponRange(Vector3 Position) => Targets.Exists(Target => Target.transform.position == Position);
+	public bool IsInRangedWeaponRange(Vector3 Position)
+	{
+		for (int i = 0; i < Targets.Count; i++)
+		{
+			GameObject Target = Targets[i];
+			if (Target != null && Target.transform.position == Position)
+				return true;
+		}
+		return false;
+	}
     /// <summary>
     /// Destroys all active and pooled markers (tile areas & tracers)
     /// </summary>

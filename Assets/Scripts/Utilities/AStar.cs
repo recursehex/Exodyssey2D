@@ -11,10 +11,13 @@ public class AStar
 	private readonly Tilemap TilemapGround;
 	private readonly Tilemap TilemapWalls;
 	private Node Current;
-	private Stack<Vector3Int> Path;
 	private readonly HashSet<Node> OpenList = new();
 	private readonly HashSet<Node> ClosedList = new();
+	private readonly NodePriorityQueue OpenQueue = new();
 	private readonly List<Node> NeighborScratch = new(8);
+	private readonly HashSet<Vector3Int> EnemyCells = new();
+	private readonly HashSet<Vector3Int> VehicleCells = new();
+	private readonly HashSet<Vector3Int> StructureCells = new();
 	private Dictionary<Vector3Int, Node> AllNodes;
 	private Vector3Int StartPosition;
 	private Vector3Int GoalPosition;
@@ -29,7 +32,11 @@ public class AStar
 	/// <summary>
 	/// Initializes A* algorithm with empty node dictionary
 	/// </summary>
-	public void Initialize() => AllNodes = new();
+	public void Initialize()
+	{
+		AllNodes = new();
+		GameManager.Instance.FillPathOccupancy(EnemyCells, VehicleCells, StructureCells);
+	}
 	/// <summary>
 	/// Sets whether diagonal movement is allowed
 	/// </summary>
@@ -100,32 +107,39 @@ public class AStar
 	/// Continues until OpenList is empty or valid Path is found.
 	/// 1. FindNeighbors: 		Retrieves neighboring nodes of current node
 	/// 2. ExamineNeighbors: 	Evaluates and updates neighbors based on algorithm's criteria
-	/// 3. UpdateCurrentTile: 	Updates current node to next node with lowest cost in OpenList
-	/// 4. GeneratePath: 		Attempts to construct final path if destination is reached or partial path is allowed
+	/// 3. OpenQueue: 		Selects the next lowest-cost node
+	/// 4. BuildPath: 		Constructs the final or closest partial path
 	/// </summary>
     public Stack<Vector3Int> ComputePath(Vector3 Start, Vector3 Goal, bool allowPartialPath = false)
 	{
 		// Convert world positions to tilemap cell positions
 		StartPosition = TilemapGround.WorldToCell(Start);
 		GoalPosition = TilemapGround.WorldToCell(Goal);
+		AllNodes ??= new();
 		// Reset all nodes and lists
 		AllNodes.Clear();
 		Current = GetNode(StartPosition);
-		// For nodes to be looked at later
 		OpenList.Clear();
-		// For examined nodes
 		ClosedList.Clear();
-		// Adds the current node to OpenList (has been examined)
+		OpenQueue.Clear();
+		Current.G = 0;
+		Current.H = GetHeuristicCost(StartPosition, GoalPosition);
+		Current.F = Current.H;
 		OpenList.Add(Current);
-		Path = null;
-		while (OpenList.Count > 0 && Path == null)
+		OpenQueue.Enqueue(Current);
+		Node Closest = Current;
+		while (OpenQueue.TryDequeue(OpenList, ClosedList, out Current))
 		{
+			OpenList.Remove(Current);
+			if (Current.Position == GoalPosition)
+				return BuildPath(Current);
+			if (Current.H < Closest.H || (Current.H == Closest.H && Current.G < Closest.G))
+				Closest = Current;
+			ClosedList.Add(Current);
 			List<Node> Neighbors = FindNeighbors(Current.Position, allowPartialPath);
 			ExamineNeighbors(Neighbors, Current);
-			UpdateCurrentTile(ref Current);
-			Path = GeneratePath(Current, allowPartialPath);
 		}
-		return Path ?? null;
+		return allowPartialPath && Closest.Parent != null ? BuildPath(Closest) : null;
 	}
 	/// <summary>
 	/// Finds all neighbors of current node
@@ -153,11 +167,11 @@ public class AStar
 					|| Position.y >= Size.max.y
 					|| TilemapWalls.HasTile(Position)
 					|| GameManager.Instance.HasFireAtPosition(Position)
-					|| GameManager.Instance.HasStructureAtCell(Position))
+					|| StructureCells.Contains(Position))
 					continue;
 				Vector3 EntityPosition = ParentPosition - new Vector3(x - 0.5f, y - 0.5f);
-				bool HasEnemy = GameManager.Instance.HasEnemyAtPosition(EntityPosition);
-				bool HasVehicle = GameManager.Instance.HasVehicleAtPosition(EntityPosition);
+				bool HasEnemy = EnemyCells.Contains(Position);
+				bool HasVehicle = VehicleCells.Contains(Position);
 				// Enemies the current mover can run over do not block the path
 				bool EnemyBlocks = HasEnemy
 								&& (IsEnemyPassable == null || !IsEnemyPassable(EntityPosition));
@@ -183,18 +197,22 @@ public class AStar
 			Node Neighbor = Neighbors[i];
 			int gScore = MoveCostPerTile;
 			int candidateG = Current.G + gScore;
+			if (ClosedList.Contains(Neighbor))
+				continue;
 			if (OpenList.Contains(Neighbor))
 			{
 				// Prefer straighter/tighter paths when the total move cost is the same
 				if (IsBetterPath(Current, Neighbor, candidateG))
+				{
 					CalculateNodeValues(Current, Neighbor, GoalPosition, gScore);
+					OpenQueue.Enqueue(Neighbor);
+				}
 			}
-			else if (!ClosedList.Contains(Neighbor))
+			else
 			{
 				CalculateNodeValues(Current, Neighbor, GoalPosition, gScore);
-				// An extra check for OpenList containing the neighbor
-				if (!OpenList.Contains(Neighbor))
-					OpenList.Add(Neighbor);
+				OpenList.Add(Neighbor);
+				OpenQueue.Enqueue(Neighbor);
 			}
 		}
 	}
@@ -219,79 +237,15 @@ public class AStar
 			return false;
 		return false;
 	}
-	/// <summary>
-	/// Updates the current tile to next tile with lowest F value
-	/// </summary>
-	private void UpdateCurrentTile(ref Node Current)
+	private static Stack<Vector3Int> BuildPath(Node Current)
 	{
-		// The current node is removed from OpenList
-		OpenList.Remove(Current);
-		// The current node is added to ClosedList
-		ClosedList.Add(Current);
-		// If the OpenList has nodes in it, pick the one with the lowest cost,
-		// breaking ties by alignment, turn count, then heuristic
-		if (OpenList.Count > 0)
+		Stack<Vector3Int> FinalPath = new();
+		while (Current != null)
 		{
-			Node Best = null;
-			foreach (Node Node in OpenList)
-			{
-				if (Best == null
-					|| Node.F < Best.F
-					|| (Node.F == Best.F
-						&& (Node.AlignmentCost < Best.AlignmentCost
-							|| (Node.AlignmentCost == Best.AlignmentCost
-								&& (Node.Turns < Best.Turns
-									|| (Node.Turns == Best.Turns && Node.H < Best.H))))))
-					Best = Node;
-			}
-			Current = Best;
+			FinalPath.Push(Current.Position);
+			Current = Current.Parent;
 		}
-	}
-	/// <summary>
-	/// Generates path from current node to the goal position
-	/// </summary>
-	private Stack<Vector3Int> GeneratePath(Node Current, bool allowPartialPath = false)
-	{
-		// If the current node is goal, then path is found
-		if (Current.Position == GoalPosition)
-		{
-			Stack<Vector3Int> FinalPath = new();
-			// Adds the nodes to the final path
-			while (Current != null)
-			{
-				// Adds the current node to the final path
-				FinalPath.Push(Current.Position);
-				// Find node's parent to retrace the path back to the start, so a complete path is formed
-				Current = Current.Parent;
-			}
-			return FinalPath;
-		}
-		// For partial paths, if no more nodes to explore but found path closer to the goal
-		else if (allowPartialPath && OpenList.Count == 0 && Current.Parent != null)
-		{
-			// Find the node that got closest to the goal
-			Node ClosestNode = Current;
-			Node TempNode = Current;
-			while (TempNode != null)
-			{
-				if (TempNode.H < ClosestNode.H)
-					ClosestNode = TempNode;
-				TempNode = TempNode.Parent;
-			}
-			// Generate partial path to closest reachable point, checking for entities
-			Stack<Vector3Int> PartialPath = new();
-			Node PathNode = ClosestNode;
-			while (PathNode != null)
-			{
-				// Add current node to path, validate movement at execution time
-				PartialPath.Push(PathNode.Position);
-				PathNode = PathNode.Parent;
-			}
-			// Only return partial path if it has meaningful progress
-			if (PartialPath.Count > 1)
-				return PartialPath;
-		}
-		return null;
+		return FinalPath;
 	}
 	/// <summary>
 	/// Calculates G, H, and F values for neighbor node
@@ -355,6 +309,97 @@ public class AStar
 		Node = new(Position);
 		AllNodes.Add(Position, Node);
 		return Node;
+	}
+}
+internal sealed class NodePriorityQueue
+{
+	private readonly struct Entry
+	{
+		public readonly Node Node;
+		public readonly int F;
+		public readonly int AlignmentCost;
+		public readonly int Turns;
+		public readonly int H;
+		public Entry(Node Node)
+		{
+			this.Node = Node;
+			F = Node.F;
+			AlignmentCost = Node.AlignmentCost;
+			Turns = Node.Turns;
+			H = Node.H;
+		}
+	}
+	private readonly List<Entry> Heap = new();
+	public void Clear() => Heap.Clear();
+	public void Enqueue(Node Node)
+	{
+		Entry Added = new(Node);
+		Heap.Add(Added);
+		int index = Heap.Count - 1;
+		while (index > 0)
+		{
+			int parent = (index - 1) / 2;
+			if (Compare(Heap[parent], Added) <= 0)
+				break;
+			Heap[index] = Heap[parent];
+			index = parent;
+		}
+		Heap[index] = Added;
+	}
+	public bool TryDequeue(HashSet<Node> OpenNodes, HashSet<Node> ClosedNodes, out Node Node)
+	{
+		while (Heap.Count > 0)
+		{
+			Entry First = RemoveFirst();
+			Node = First.Node;
+			if (!OpenNodes.Contains(Node) || ClosedNodes.Contains(Node))
+				continue;
+			if (First.F != Node.F
+				|| First.AlignmentCost != Node.AlignmentCost
+				|| First.Turns != Node.Turns
+				|| First.H != Node.H)
+				continue;
+			return true;
+		}
+		Node = null;
+		return false;
+	}
+	private Entry RemoveFirst()
+	{
+		Entry First = Heap[0];
+		int lastIndex = Heap.Count - 1;
+		Entry Last = Heap[lastIndex];
+		Heap.RemoveAt(lastIndex);
+		if (Heap.Count == 0)
+			return First;
+		int index = 0;
+		while (true)
+		{
+			int left = index * 2 + 1;
+			if (left >= Heap.Count)
+				break;
+			int right = left + 1;
+			int child = right < Heap.Count && Compare(Heap[right], Heap[left]) < 0 ? right : left;
+			if (Compare(Last, Heap[child]) <= 0)
+				break;
+			Heap[index] = Heap[child];
+			index = child;
+		}
+		Heap[index] = Last;
+		return First;
+	}
+	private static int Compare(Entry Left, Entry Right)
+	{
+		int comparison = Left.F.CompareTo(Right.F);
+		if (comparison != 0) return comparison;
+		comparison = Left.AlignmentCost.CompareTo(Right.AlignmentCost);
+		if (comparison != 0) return comparison;
+		comparison = Left.Turns.CompareTo(Right.Turns);
+		if (comparison != 0) return comparison;
+		comparison = Left.H.CompareTo(Right.H);
+		if (comparison != 0) return comparison;
+		comparison = Left.Node.Position.x.CompareTo(Right.Node.Position.x);
+		return comparison != 0 ? comparison : Left.Node.Position.y.CompareTo(Right.Node.Position.y);
 	}
 }
 public class Node

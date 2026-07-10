@@ -48,9 +48,7 @@ TilePoint, Vector3 ShiftedClickPoint);
         bool clicked = ClickAction.WasPressedThisFrame() || InteractAction.WasPressedThisFrame();
         if (clicked && CellBounds.Contains(TilePoint))
             OnPlayerClick?.Invoke(WorldPoint, TilePoint, ShiftedClickPoint);
-        else if (CellBounds.Contains(TilePoint))
-            OnPlayerHover?.Invoke(WorldPoint, TilePoint, ShiftedClickPoint);
-        else
-            Player.InventoryUI.ProcessHoverForInventory(WorldPoint);
-    }
+		else if (CellBounds.Contains(TilePoint))
+			OnPlayerHover?.Invoke(WorldPoint, TilePoint, ShiftedClickPoint);
+	}
 }

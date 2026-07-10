@@ -13,7 +13,7 @@ public class TilemapRevealAnimator : MonoBehaviour
     [SerializeField] private float TilePopDuration = 0.20f;
     [SerializeField] private float IntraRingStagger = 0.025f;
     private readonly List<TileTarget> Targets = new();
-    private readonly List<Coroutine> ActiveAnimations = new();
+    private readonly List<TileAnimation> AnimationScratch = new();
     private readonly Dictionary<Vector3Int, List<RevealObject>> RevealObjects = new();
     private bool hasPreparedTiles;
     private bool isRevealing;
@@ -34,6 +34,12 @@ public class TilemapRevealAnimator : MonoBehaviour
     {
         public Transform Transform;
         public Vector3 OriginalScale;
+    }
+    private struct TileAnimation
+    {
+        public TileTarget Target;
+        public float StartTime;
+        public bool Completed;
     }
     public bool HasPreparedTiles => hasPreparedTiles;
     public bool IsRevealing => isRevealing;
@@ -72,7 +78,7 @@ public class TilemapRevealAnimator : MonoBehaviour
                     Object.Transform.localScale = Object.OriginalScale;
             }
         }
-        ActiveAnimations.Clear();
+        AnimationScratch.Clear();
         Targets.Clear();
         RevealObjects.Clear();
         hasPreparedTiles = false;
@@ -114,24 +120,7 @@ public class TilemapRevealAnimator : MonoBehaviour
         if (!hasPreparedTiles || Targets.Count == 0)
             yield break;
         isRevealing = true;
-        ActiveAnimations.Clear();
-        SortedDictionary<int, List<TileTarget>> Buckets = BucketTargetsByRadius();
-        float maxTileDelay = 0f;
-        foreach (var Bucket in Buckets)
-        {
-            foreach (var Target in Bucket.Value)
-            {
-                float tileDelay = IntraRingStagger > 0f ? Random.Range(0f, IntraRingStagger) : 0f;
-                maxTileDelay = Mathf.Max(maxTileDelay, tileDelay);
-                Coroutine Animation = StartCoroutine(AnimateTile(Target, tileDelay, HiddenScale, FullScale, true));
-                ActiveAnimations.Add(Animation);
-            }
-            yield return new WaitForSeconds(RingDelay);
-        }
-        float finalWait = TilePopDuration + maxTileDelay;
-        if (finalWait > 0f)
-            yield return new WaitForSeconds(finalWait);
-        ActiveAnimations.Clear();
+        yield return StartCoroutine(AnimatePreparedTiles(true));
         RevealObjects.Clear();
         hasPreparedTiles = false;
         isRevealing = false;
@@ -141,59 +130,73 @@ public class TilemapRevealAnimator : MonoBehaviour
         if (!hasPreparedTiles || Targets.Count == 0)
             yield break;
         isRevealing = true;
-        ActiveAnimations.Clear();
-        SortedDictionary<int, List<TileTarget>> Buckets = BucketTargetsByRadius();
-        float maxTileDelay = 0f;
-        List<int> BucketKeys = new(Buckets.Keys);
-        for (int i = BucketKeys.Count - 1; i >= 0; i--)
-        {
-            List<TileTarget> Bucket = Buckets[BucketKeys[i]];
-            foreach (var Target in Bucket)
-            {
-                float tileDelay = IntraRingStagger > 0f ? Random.Range(0f, IntraRingStagger) : 0f;
-                maxTileDelay = Mathf.Max(maxTileDelay, tileDelay);
-                Coroutine Animation = StartCoroutine(AnimateTile(Target, tileDelay, FullScale, HiddenScale, false));
-                ActiveAnimations.Add(Animation);
-            }
-            yield return new WaitForSeconds(RingDelay);
-        }
-        float finalWait = TilePopDuration + maxTileDelay;
-        if (finalWait > 0f)
-            yield return new WaitForSeconds(finalWait);
-        ActiveAnimations.Clear();
+        yield return StartCoroutine(AnimatePreparedTiles(false));
         hasPreparedTiles = false;
         isRevealing = false;
     }
-    private IEnumerator AnimateTile(TileTarget Target, float delay, float startScale, float endScale, bool setIdentityAtEnd)
+    private IEnumerator AnimatePreparedTiles(bool isReveal)
     {
-        if (delay > 0f)
-            yield return new WaitForSeconds(delay);
-        RevealObjects.TryGetValue(Target.Position, out List<RevealObject> Objects);
-        float elapsed = 0f;
-        while (elapsed < TilePopDuration)
+        AnimationScratch.Clear();
+        SortedDictionary<int, List<TileTarget>> Buckets = BucketTargetsByRadius();
+        List<int> BucketKeys = new(Buckets.Keys);
+        float ringStart = 0f;
+        for (int keyIndex = 0; keyIndex < BucketKeys.Count; keyIndex++)
         {
-            float t = elapsed / TilePopDuration;
-            float scale = Mathf.Lerp(startScale, endScale, t);
-            Target.Tilemap.SetTransformMatrix(Target.Position, GetScaleMatrix(scale));
-            if (Objects != null)
+            int bucketIndex = isReveal ? keyIndex : BucketKeys.Count - 1 - keyIndex;
+            List<TileTarget> Bucket = Buckets[BucketKeys[bucketIndex]];
+            foreach (TileTarget Target in Bucket)
             {
-                foreach (RevealObject Object in Objects)
+                float stagger = IntraRingStagger > 0f ? Random.Range(0f, IntraRingStagger) : 0f;
+                AnimationScratch.Add(new TileAnimation
                 {
-                    if (Object.Transform != null)
-                        Object.Transform.localScale = Object.OriginalScale * scale;
+                    Target = Target,
+                    StartTime = ringStart + stagger,
+                    Completed = false,
+                });
+            }
+            ringStart += RingDelay;
+        }
+        float elapsed = 0f;
+        int remaining = AnimationScratch.Count;
+        float startScale = isReveal ? HiddenScale : FullScale;
+        float endScale = isReveal ? FullScale : HiddenScale;
+        while (remaining > 0)
+        {
+            for (int i = 0; i < AnimationScratch.Count; i++)
+            {
+                TileAnimation Animation = AnimationScratch[i];
+                if (Animation.Completed || elapsed < Animation.StartTime)
+                    continue;
+                float animationElapsed = elapsed - Animation.StartTime;
+                if (TilePopDuration <= 0f || animationElapsed >= TilePopDuration)
+                {
+                    ApplyTargetScale(Animation.Target, endScale, isReveal);
+                    Animation.Completed = true;
+                    AnimationScratch[i] = Animation;
+                    remaining--;
+                    continue;
                 }
+                float scale = Mathf.Lerp(startScale, endScale, animationElapsed / TilePopDuration);
+                ApplyTargetScale(Animation.Target, scale, false);
             }
             elapsed += Time.deltaTime;
             yield return null;
         }
+        AnimationScratch.Clear();
+    }
+    private void ApplyTargetScale(TileTarget Target, float scale, bool setIdentity)
+    {
         Target.Tilemap.SetTransformMatrix(Target.Position,
-            setIdentityAtEnd ? Matrix4x4.identity : GetScaleMatrix(endScale));
+            setIdentity ? Matrix4x4.identity : GetScaleMatrix(scale));
+        if (Target.Tilemap != TilemapGround)
+            return;
+        RevealObjects.TryGetValue(Target.Position, out List<RevealObject> Objects);
         if (Objects != null)
         {
-            foreach (var Object in Objects)
+            foreach (RevealObject Object in Objects)
             {
                 if (Object.Transform != null)
-                    Object.Transform.localScale = Object.OriginalScale * (setIdentityAtEnd ? FullScale : endScale);
+                    Object.Transform.localScale = Object.OriginalScale * (setIdentity ? FullScale : scale);
             }
         }
     }

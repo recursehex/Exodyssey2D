@@ -29,9 +29,12 @@ public class VisibilityManager : MonoBehaviour
 	private readonly Dictionary<int, Vector4> AppliedLights = new();
 	private readonly List<int> FadingKeys = new();
 	private readonly HashSet<int> ActiveTargetKeys = new();
-	// Reused per-frame buffers to avoid GetComponentsInChildren array garbage every frame
-	private static readonly List<SpriteRenderer> SpriteRendererBuffer = new();
-	private static readonly List<MeshRenderer> MeshRendererBuffer = new();
+	private sealed class RendererSet
+	{
+		public SpriteRenderer[] SpriteRenderers;
+		public MeshRenderer[] MeshRenderers;
+	}
+	private readonly Dictionary<GameObject, RendererSet> RendererCache = new();
 	private readonly Vector4[] ShaderLightData = new Vector4[maxLightSources];
 	private int PlayerLightIndex = -1;
 	private int LightrodLightIndex = -1;
@@ -120,6 +123,7 @@ public class VisibilityManager : MonoBehaviour
 			Destroy(OverlayMaterial);
 		if (OverlayObject != null)
 			Destroy(OverlayObject);
+		RendererCache.Clear();
 	}
 	private void Update()
 	{
@@ -220,6 +224,7 @@ public class VisibilityManager : MonoBehaviour
 		LightrodLightIndex = -1;
 		InventoryFlareLightIndices.Clear();
 		VehicleLightIndices.Clear();
+		RendererCache.Clear();
 		TargetAmbient = 1f;
 		AppliedAmbient = 1f;
 		TargetNightVision = 0f;
@@ -1095,29 +1100,46 @@ public class VisibilityManager : MonoBehaviour
 	{
 		if (Fire == null || OverlayRenderer == null)
 			return;
-		// Fill a reused buffer instead of allocating an array each call
-		Fire.GetComponentsInChildren(true, SpriteRendererBuffer);
+		RendererSet Renderers = GetRendererSet(Fire.gameObject);
 		int fireSortingLayerId = OverlayRenderer.sortingLayerID;
 		int fireOrder = CurrentFireSortingOrder;
-		foreach (SpriteRenderer SpriteRenderer in SpriteRendererBuffer)
+		foreach (SpriteRenderer SpriteRenderer in Renderers.SpriteRenderers)
 		{
+			if (SpriteRenderer == null)
+				continue;
 			SpriteRenderer.sortingLayerID = fireSortingLayerId;
 			SpriteRenderer.sortingOrder = fireOrder;
 		}
 	}
-	private static void SetRenderersVisible(GameObject Object, bool isVisible)
+	private RendererSet GetRendererSet(GameObject Object)
+	{
+		if (RendererCache.TryGetValue(Object, out RendererSet Cached))
+			return Cached;
+		RendererSet Created = new()
+		{
+			SpriteRenderers = Object.GetComponentsInChildren<SpriteRenderer>(true),
+			MeshRenderers = Object.GetComponentsInChildren<MeshRenderer>(true),
+		};
+		RendererCache[Object] = Created;
+		return Created;
+	}
+	private void SetRenderersVisible(GameObject Object, bool isVisible)
 	{
 		if (Object == null)
 			return;
-		// Use the List overloads (on a Component) to avoid per-call array allocation
-		Object.transform.GetComponentsInChildren(true, SpriteRendererBuffer);
-		foreach (SpriteRenderer SpriteRenderer in SpriteRendererBuffer)
-			SpriteRenderer.enabled = isVisible;
-		Object.transform.GetComponentsInChildren(true, MeshRendererBuffer);
-		foreach (MeshRenderer MeshRenderer in MeshRendererBuffer)
-			MeshRenderer.enabled = isVisible;
+		RendererSet Renderers = GetRendererSet(Object);
+		foreach (SpriteRenderer SpriteRenderer in Renderers.SpriteRenderers)
+		{
+			if (SpriteRenderer != null && SpriteRenderer.enabled != isVisible)
+				SpriteRenderer.enabled = isVisible;
+		}
+		foreach (MeshRenderer MeshRenderer in Renderers.MeshRenderers)
+		{
+			if (MeshRenderer != null && MeshRenderer.enabled != isVisible)
+				MeshRenderer.enabled = isVisible;
+		}
 	}
-	private static void SetEntityListVisibility<T>(IEnumerable<T> Entities, bool isVisible) where T : Component
+	private void SetEntityListVisibility<T>(IEnumerable<T> Entities, bool isVisible) where T : Component
 	{
 		if (Entities == null)
 			return;
