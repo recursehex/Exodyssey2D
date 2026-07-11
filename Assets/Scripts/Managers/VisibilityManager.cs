@@ -6,6 +6,7 @@ using UnityEngine.Tilemaps;
 public class VisibilityManager : MonoBehaviour
 {
 	private const int maxLightSources = 32;
+	private const int localLightRadius = 1;
 	private const int flareRadius = 2;
 	private const int lightrodRadius = 2;
 	private const int overlaySortingOrder = 32000;
@@ -21,6 +22,9 @@ public class VisibilityManager : MonoBehaviour
 	[SerializeField] private float nightAmbient = 0.08f;
 	[SerializeField] private float nightVisionAmbient = 0.95f;
 	[SerializeField] private float overlayDarkAlpha = 0.95f;
+	[SerializeField, Range(0.1f, 1.5f)] private float lightEdgeFeather = 1f;
+	[SerializeField, Range(0f, 0.5f)] private float lightCornerRadius = 0.18f;
+	[SerializeField, Range(0.1f, 3f)] private float lightFalloffStrength = 0.9f;
 	[SerializeField] private float nightVisionTintStrength = 0.24f;
 	[SerializeField] private Color nightVisionTint = new(0.33f, 0.82f, 0.35f, 1f);
 	private readonly HashSet<Vector3Int> VisibleCells = new();
@@ -85,6 +89,10 @@ public class VisibilityManager : MonoBehaviour
 	private static readonly int nightVisionStrengthId = Shader.PropertyToID("_NightVisionStrength");
 	private static readonly int lightCountId = Shader.PropertyToID("_LightCount");
 	private static readonly int lightDataId = Shader.PropertyToID("_LightData");
+	private static readonly int lightEdgeFeatherId = Shader.PropertyToID("_LightEdgeFeather");
+	private static readonly int lightCornerRadiusId = Shader.PropertyToID("_LightCornerRadius");
+	private static readonly int lightFalloffStrengthId = Shader.PropertyToID("_LightFalloffStrength");
+	private static readonly int maxIlluminationId = Shader.PropertyToID("_MaxIllumination");
 	public void Initialize(GameManager GameManager,
 		Tilemap TilemapGround,
 		Tilemap TilemapWalls,
@@ -125,7 +133,7 @@ public class VisibilityManager : MonoBehaviour
 			Destroy(OverlayObject);
 		RendererCache.Clear();
 	}
-	private void Update()
+	private void LateUpdate()
 	{
 		if (!IsInitialized)
 			return;
@@ -148,6 +156,16 @@ public class VisibilityManager : MonoBehaviour
 		if (Player != null && Player.IsInVehicle && Player.Vehicle != null && Player.Vehicle.IsInMovement)
 			return true;
 		return EnemyManager != null && EnemyManager.IsProcessingEnemyMovement;
+	}
+	private bool IsPlayerLightSourceMoving()
+	{
+		if (Player == null)
+			return false;
+		if (Player.IsInMovement)
+			return true;
+		return Player.IsInVehicle
+			&& Player.Vehicle != null
+			&& Player.Vehicle.IsInMovement;
 	}
 	private void FlushIfNeeded()
 	{
@@ -191,6 +209,19 @@ public class VisibilityManager : MonoBehaviour
 	public void RefreshVisibility()
 	{
 		NeedsVisibilityRefresh = true;
+	}
+	public void RefreshVisibilityImmediately()
+	{
+		RefreshVisibility();
+		FlushIfNeeded();
+		AppliedAmbient = TargetAmbient;
+		AppliedNightVision = TargetNightVision;
+		AppliedLights.Clear();
+		for (int i = 0; i < TargetLightCount; i++)
+			AppliedLights[TargetLightKeys[i]] = TargetLightData[i];
+		OverlayNeedsApply = false;
+		SetOverlayActive(TargetOverlayEnabled);
+		ApplyOverlayProperties();
 	}
 	/// <summary>
 	/// Starts the first-grid "wake up" effect: the whole grid begins dark like night and quickly recedes
@@ -335,11 +366,15 @@ public class VisibilityManager : MonoBehaviour
 	{
 		if (Player == null || TilemapGround == null)
 			return;
-		Vector3Int PlayerCell = TilemapGround.WorldToCell(Player.transform.position);
-		if (PlayerCell != LastPlayerCell)
+		bool isLightSourceMoving = IsPlayerLightSourceMoving();
+		if (!isLightSourceMoving)
 		{
-			LastPlayerCell = PlayerCell;
-			RefreshVisibility();
+			Vector3Int PlayerCell = TilemapGround.WorldToCell(Player.transform.position);
+			if (PlayerCell != LastPlayerCell)
+			{
+				LastPlayerCell = PlayerCell;
+				RefreshVisibility();
+			}
 		}
 		bool hasNightVision = Player.HasNightVision;
 		if (hasNightVision != LastNightVisionState)
@@ -355,11 +390,14 @@ public class VisibilityManager : MonoBehaviour
 		}
 		if (!isInVehicle)
 			return;
-		Vector3Int VehicleCell = TilemapGround.WorldToCell(Player.Vehicle.transform.position);
-		if (VehicleCell != LastVehicleCell)
+		if (!isLightSourceMoving)
 		{
-			LastVehicleCell = VehicleCell;
-			RefreshVisibility();
+			Vector3Int VehicleCell = TilemapGround.WorldToCell(Player.Vehicle.transform.position);
+			if (VehicleCell != LastVehicleCell)
+			{
+				LastVehicleCell = VehicleCell;
+				RefreshVisibility();
+			}
 		}
 		bool isIgnitionOn = Player.Vehicle.Info != null && Player.Vehicle.Info.IsOn;
 		if (isIgnitionOn != LastVehicleIgnitionState)
@@ -466,20 +504,16 @@ public class VisibilityManager : MonoBehaviour
 	{
 		if (Player == null || TilemapGround == null)
 			return;
-		Vector3Int PlayerCell = TilemapGround.WorldToCell(Player.transform.position);
-		AddCellIfInsideBounds(PlayerCell);
-		AddCellIfInsideBounds(PlayerCell + new Vector3Int(1, 0, 0));
-		AddCellIfInsideBounds(PlayerCell + new Vector3Int(-1, 0, 0));
-		AddCellIfInsideBounds(PlayerCell + new Vector3Int(0, 1, 0));
-		AddCellIfInsideBounds(PlayerCell + new Vector3Int(0, -1, 0));
+		Vector3Int PlayerCell = GetPlayerLightCell();
+		AddSquareArea(PlayerCell, localLightRadius);
 	}
 	private void AddPlayerLocalLight()
 	{
 		if (Player == null || TilemapGround == null)
 			return;
 		PlayerLightIndex = TargetLightData.Count;
-		Vector3Int PlayerCell = TilemapGround.WorldToCell(Player.transform.position);
-		AddLightAtCell(PlayerCell, 1.65f, 0.85f, LightKeyPlayer());
+		Vector3Int PlayerCell = GetPlayerLightCell();
+		AddLightAtCell(PlayerCell, localLightRadius, 0.85f, LightKeyPlayer());
 	}
 	private void AddVehicleBeam()
 	{
@@ -494,13 +528,15 @@ public class VisibilityManager : MonoBehaviour
 			return;
 		}
 		Vector3Int VehicleCell = TilemapGround.WorldToCell(Player.Vehicle.transform.position);
-		for (int i = 1; i <= 3; i++)
+		for (int x = VehicleCell.x + 1; x <= GameConfig.Grid.MaxX; x++)
 		{
-			Vector3Int BeamCell = VehicleCell + new Vector3Int(i, 0, 0);
+			Vector3Int BeamCell = new(x, VehicleCell.y, 0);
 			AddCellIfInsideBounds(BeamCell);
-			VehicleLightIndices.Add(TargetLightData.Count);
-			AddLightAtCell(BeamCell, 1.1f, 0.65f, LightKeyVehicleBeam(i));
 		}
+		if (VehicleCell.x >= GameConfig.Grid.MaxX)
+			return;
+		VehicleLightIndices.Add(TargetLightData.Count);
+		AddVehicleBeamLight(Player.Vehicle.transform.position);
 	}
 	private void AddActiveFlares(bool addVisibilityFootprint)
 	{
@@ -509,7 +545,7 @@ public class VisibilityManager : MonoBehaviour
 			Inventory Inventory = Player.InventoryUI != null ? Player.InventoryUI.Inventory : null;
 			if (Inventory != null)
 			{
-				Vector3Int PlayerCell = TilemapGround.WorldToCell(Player.transform.position);
+				Vector3Int PlayerCell = GetPlayerLightCell();
 				for (int i = 0; i < Inventory.Size; i++)
 				{
 					ItemInfo ItemInfo = Inventory[i];
@@ -522,7 +558,7 @@ public class VisibilityManager : MonoBehaviour
 					if (addVisibilityFootprint)
 						AddFlareArea(PlayerCell);
 					InventoryFlareLightIndices.Add(TargetLightData.Count);
-					AddLightAtCell(PlayerCell, flareRadius + 0.8f, 1f, LightKeyInventoryFlare(i));
+					AddLightAtCell(PlayerCell, flareRadius, 1f, LightKeyInventoryFlare(i));
 				}
 			}
 		}
@@ -540,7 +576,7 @@ public class VisibilityManager : MonoBehaviour
 			Vector3Int FlareCell = TilemapGround.WorldToCell(Item.transform.position);
 			if (addVisibilityFootprint)
 				AddFlareArea(FlareCell);
-			AddLightAtCell(FlareCell, flareRadius + 0.8f, 1f, LightKeyGroundFlare(FlareCell));
+			AddLightAtCell(FlareCell, flareRadius, 1f, LightKeyGroundFlare(FlareCell));
 		}
 	}
 	private void AddFireLights(bool addVisibilityFootprint)
@@ -553,27 +589,13 @@ public class VisibilityManager : MonoBehaviour
 				continue;
 			Vector3Int FireCell = TilemapGround.WorldToCell(Fire.transform.position);
 			if (addVisibilityFootprint)
-			{
-				for (int x = -1; x <= 1; x++)
-				{
-					for (int y = -1; y <= 1; y++)
-						AddCellIfInsideBounds(FireCell + new Vector3Int(x, y, 0));
-				}
-			}
-			AddLightAtCell(FireCell, 1.7f, 1f, LightKeyFire(FireCell));
+				AddSquareArea(FireCell, localLightRadius);
+			AddLightAtCell(FireCell, localLightRadius, 1f, LightKeyFire(FireCell));
 		}
 	}
 	private void AddFlareArea(Vector3Int SourceCell)
 	{
-		for (int x = -flareRadius; x <= flareRadius; x++)
-		{
-			for (int y = -flareRadius; y <= flareRadius; y++)
-			{
-				if (Mathf.Max(Mathf.Abs(x), Mathf.Abs(y)) > flareRadius)
-					continue;
-				AddCellIfInsideBounds(SourceCell + new Vector3Int(x, y, 0));
-			}
-		}
+		AddSquareArea(SourceCell, flareRadius);
 	}
 	// A selected Lightrod illuminates a 5x5 area centred on the player until it is deselected or dropped.
 	// It gives off no light while the player is in a vehicle (only once they exit).
@@ -591,25 +613,36 @@ public class VisibilityManager : MonoBehaviour
 		if (addVisibilityFootprint)
 			AddLightrodArea(PlayerCell);
 		LightrodLightIndex = TargetLightData.Count;
-		AddLightAtCell(PlayerCell, lightrodRadius + 0.8f, 1f, LightKeyLightrod());
+		AddLightAtCell(PlayerCell, lightrodRadius, 1f, LightKeyLightrod());
 	}
 	private void AddLightrodArea(Vector3Int SourceCell)
 	{
-		for (int x = -lightrodRadius; x <= lightrodRadius; x++)
+		AddSquareArea(SourceCell, lightrodRadius);
+	}
+	private void AddSquareArea(Vector3Int SourceCell, int radius)
+	{
+		for (int x = -radius; x <= radius; x++)
 		{
-			for (int y = -lightrodRadius; y <= lightrodRadius; y++)
+			for (int y = -radius; y <= radius; y++)
 				AddCellIfInsideBounds(SourceCell + new Vector3Int(x, y, 0));
 		}
 	}
+	private Vector3Int GetPlayerLightCell()
+	{
+		Vector3 SourcePosition = Player.IsInVehicle && Player.Vehicle != null
+			? Player.Vehicle.transform.position
+			: Player.transform.position;
+		return TilemapGround.WorldToCell(SourcePosition);
+	}
 	private void UpdateTrackedLightPositions()
 	{
-		if (Player == null)
+		if (Player == null || IsPlayerLightSourceMoving())
 			return;
 		bool isInVehicle = Player.IsInVehicle && Player.Vehicle != null;
 		if (PlayerLightIndex >= 0 && PlayerLightIndex < TargetLightData.Count)
 		{
 			Vector4 Light = TargetLightData[PlayerLightIndex];
-			// Use vehicle position during vehicle movement, otherwise player position
+			// Carried lights use the vehicle's final position after movement completes
 			Vector3 TrackedPos = isInVehicle
 				? Player.Vehicle.transform.position
 				: Player.transform.position;
@@ -647,15 +680,17 @@ public class VisibilityManager : MonoBehaviour
 		if (VehicleLightIndices.Count > 0 && isInVehicle)
 		{
 			Vector3 VehicleWorldPos = Player.Vehicle.transform.position;
-			for (int i = 0; i < VehicleLightIndices.Count; i++)
+			foreach (int index in VehicleLightIndices)
 			{
-				int index = VehicleLightIndices[i];
 				if (index < 0 || index >= TargetLightData.Count)
 					continue;
 				Vector4 Light = TargetLightData[index];
-				float offsetX = (i + 1);
-				Light.x = VehicleWorldPos.x + offsetX;
+				float beamLeftEdge = VehicleWorldPos.x + 0.5f;
+				float beamRightEdge = GameConfig.Grid.MaxX + 1f;
+				float beamHalfWidth = Mathf.Max((beamRightEdge - beamLeftEdge) * 0.5f, 0.0001f);
+				Light.x = (beamLeftEdge + beamRightEdge) * 0.5f;
 				Light.y = VehicleWorldPos.y;
+				Light.z = -beamHalfWidth;
 				TargetLightData[index] = Light;
 			}
 		}
@@ -673,17 +708,32 @@ public class VisibilityManager : MonoBehaviour
 	}
 	private static int LightKeyPlayer() => 1;
 	private static int LightKeyLightrod() => 500;
-	private static int LightKeyVehicleBeam(int offset) => 100 + offset;
+	private static int LightKeyVehicleBeam() => 100;
 	private static int LightKeyInventoryFlare(int slot) => 1000 + slot;
 	private static int LightKeyGroundFlare(Vector3Int Cell) => 10000 + (Cell.x + 128) * 512 + (Cell.y + 128);
 	private static int LightKeyFire(Vector3Int Cell) => 300000 + (Cell.x + 128) * 512 + (Cell.y + 128);
-	private void AddLightAtCell(Vector3Int Cell, float radius, float intensity, int key)
+	private void AddLightAtCell(Vector3Int Cell, int radius, float intensity, int key)
 	{
 		if (TargetLightData.Count >= maxLightSources || TilemapGround == null)
 			return;
 		Vector3 WorldCenter = TilemapGround.GetCellCenterWorld(Cell);
-		TargetLightData.Add(new Vector4(WorldCenter.x, WorldCenter.y, radius, intensity));
+		// The shader receives the half-extent to the outside edge of the outer cells.
+		// A cell radius of 1 therefore covers exactly 3x3 cells, while 2 covers 5x5
+		float halfExtent = radius + 0.5f;
+		TargetLightData.Add(new Vector4(WorldCenter.x, WorldCenter.y, halfExtent, intensity));
 		TargetLightKeys.Add(key);
+	}
+	private void AddVehicleBeamLight(Vector3 VehicleWorldPosition)
+	{
+		if (TargetLightData.Count >= maxLightSources || TilemapGround == null)
+			return;
+		float beamLeftEdge = VehicleWorldPosition.x + 0.5f;
+		float beamRightEdge = GameConfig.Grid.MaxX + 1f;
+		float beamHalfWidth = Mathf.Max((beamRightEdge - beamLeftEdge) * 0.5f, 0.0001f);
+		float beamCenterX = (beamLeftEdge + beamRightEdge) * 0.5f;
+		// A negative encoded extent tells the shader to render one continuous beam
+		TargetLightData.Add(new Vector4(beamCenterX, VehicleWorldPosition.y, -beamHalfWidth, 0.65f));
+		TargetLightKeys.Add(LightKeyVehicleBeam());
 	}
 	private void EnsureOverlay()
 	{
@@ -945,12 +995,26 @@ public class VisibilityManager : MonoBehaviour
 		{
 			int key = FadingKeys[i];
 			Vector4 current = AppliedLights[key];
-			float newRadius = Mathf.Lerp(current.z, 0f, interpolation);
+			bool isVehicleBeam = current.z < 0f;
+			float newRadius;
+			float newPositionX = current.x;
+			if (isVehicleBeam)
+			{
+				float currentHalfWidth = -current.z;
+				float newHalfWidth = Mathf.Lerp(currentHalfWidth, 0f, interpolation);
+				float leftEdge = current.x - currentHalfWidth;
+				newPositionX = leftEdge + newHalfWidth;
+				newRadius = -newHalfWidth;
+			}
+			else
+			{
+				newRadius = Mathf.Lerp(current.z, 0f, interpolation);
+			}
 			float newIntensity = Mathf.Lerp(current.w, 0f, interpolation);
-			if (newRadius < 0.01f && newIntensity < 0.01f)
+			if (Mathf.Abs(newRadius) < 0.01f && newIntensity < 0.01f)
 				AppliedLights.Remove(key);
 			else
-				AppliedLights[key] = new Vector4(current.x, current.y, newRadius, newIntensity);
+				AppliedLights[key] = new Vector4(newPositionX, current.y, newRadius, newIntensity);
 			overlayChanged = true;
 		}
 		// Update existing lights and grow in new lights (glow expand)
@@ -960,8 +1024,10 @@ public class VisibilityManager : MonoBehaviour
 			Vector4 target = TargetLightData[i];
 			if (AppliedLights.TryGetValue(key, out Vector4 current))
 			{
-				// Existing light: snap position, lerp radius/intensity
-				Vector4 updated = new(target.x, target.y,
+				// Once movement completes, glide the light from its old cell to the new target
+				Vector4 updated = new(
+					LerpWithSnap(current.x, target.x, interpolation),
+					LerpWithSnap(current.y, target.y, interpolation),
 					LerpWithSnap(current.z, target.z, interpolation),
 					LerpWithSnap(current.w, target.w, interpolation));
 				if (updated != current)
@@ -972,8 +1038,9 @@ public class VisibilityManager : MonoBehaviour
 			}
 			else
 			{
-				// New light: correct position, zero radius, will grow over subsequent frames
-				AppliedLights[key] = new Vector4(target.x, target.y, 0f, 0f);
+				// Vehicle beams grow rightward from their fixed left edge. Other lights grow outward from their source position
+				float startPositionX = target.z < 0f ? target.x + target.z : target.x;
+				AppliedLights[key] = new Vector4(startPositionX, target.y, 0f, 0f);
 				overlayChanged = true;
 			}
 		}
@@ -1012,6 +1079,14 @@ public class VisibilityManager : MonoBehaviour
 		OverlayMaterial.SetColor(baseDarkColorId, new Color(0f, 0f, 0f, overlayDarkAlpha));
 		OverlayMaterial.SetColor(nightVisionTintId, nightVisionTint);
 		OverlayMaterial.SetFloat(nightVisionStrengthId, AppliedNightVision);
+		OverlayMaterial.SetFloat(lightEdgeFeatherId, lightEdgeFeather);
+		OverlayMaterial.SetFloat(lightCornerRadiusId, lightCornerRadius);
+		OverlayMaterial.SetFloat(lightFalloffStrengthId, lightFalloffStrength);
+		bool capNightBrightness = !IsWakingUp
+			&& IsNightTime
+			&& Player != null
+			&& !Player.HasNightVision;
+		OverlayMaterial.SetFloat(maxIlluminationId, capNightBrightness ? duskAmbient : 1f);
 		OverlayMaterial.SetFloat(lightCountId, lightCount);
 		OverlayMaterial.SetVectorArray(lightDataId, ShaderLightData);
 	}

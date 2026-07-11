@@ -566,6 +566,7 @@ public class GameManager : MonoBehaviour
     public void StopTurnTimer() 							=> TurnManager.StopTurnTimer();
 	public bool IsCellVisible(Vector3Int Cell) 				=> VisibilityManager == null || VisibilityManager.IsCellVisible(Cell);
 	public void RefreshVisibility() 						=> VisibilityManager?.RefreshVisibility();
+	public void RefreshVisibilityImmediately() 			=> VisibilityManager?.RefreshVisibilityImmediately();
 	public void ClearAllLights() 							=> VisibilityManager?.ClearAllLights();
 	public void RegisterObjectForTileReveal(Vector3 WorldPosition, Transform ObjectTransform)
 	{

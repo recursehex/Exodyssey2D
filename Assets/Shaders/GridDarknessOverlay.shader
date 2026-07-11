@@ -6,6 +6,10 @@ Shader "Custom/GridDarknessOverlay"
 		_NightVisionTint ("Night Vision Tint", Color) = (0.33,0.82,0.35,1)
 		_Ambient ("Ambient", Range(0,1)) = 1
 		_NightVisionStrength ("Night Vision Strength", Range(0,1)) = 0
+		_LightEdgeFeather ("Light Edge Feather", Range(0.1,1.5)) = 1
+		_LightCornerRadius ("Light Corner Radius", Range(0,0.5)) = 0.18
+		_LightFalloffStrength ("Light Falloff Strength", Range(0.1,3)) = 0.9
+		_MaxIllumination ("Maximum Illumination", Range(0,1)) = 1
 	}
 	SubShader
 	{
@@ -42,6 +46,10 @@ Shader "Custom/GridDarknessOverlay"
 			fixed4 _NightVisionTint;
 			float _Ambient;
 			float _NightVisionStrength;
+			float _LightEdgeFeather;
+			float _LightCornerRadius;
+			float _LightFalloffStrength;
+			float _MaxIllumination;
 			float _LightCount;
 			float4 _LightData[MAX_LIGHT_SOURCES];
 
@@ -57,17 +65,39 @@ Shader "Custom/GridDarknessOverlay"
 			fixed4 frag(v2f i) : SV_Target
 			{
 				float illumination = saturate(_Ambient);
+				float availableLight = max(_MaxIllumination - illumination, 0);
 				for (int index = 0; index < MAX_LIGHT_SOURCES; index++)
 				{
 					if (index >= (int)_LightCount)
 						break;
 					float4 lightData = _LightData[index];
-					float radius = max(lightData.z, 0.0001);
-					float distanceToLight = distance(i.worldPos, lightData.xy);
-					float falloff = smoothstep(radius, 0, distanceToLight);
-					illumination += falloff * lightData.w;
+					bool isVehicleBeam = lightData.z < 0;
+					float squareHalfExtent = max(abs(lightData.z), 0.0001);
+					float2 halfExtents = isVehicleBeam
+						? float2(squareHalfExtent, 0.5)
+						: float2(squareHalfExtent, squareHalfExtent);
+					float cornerRadius = min(_LightCornerRadius, min(halfExtents.x, halfExtents.y));
+					float2 sourceOffset = abs(i.worldPos - lightData.xy);
+					float2 roundedOffset = sourceOffset - (halfExtents - cornerRadius);
+					float signedDistance = length(max(roundedOffset, 0))
+						+ min(max(roundedOffset.x, roundedOffset.y), 0)
+						- cornerRadius;
+					float halfFeather = _LightEdgeFeather * 0.5;
+					float edgeProgress = saturate(
+						(signedDistance + halfFeather) / max(_LightEdgeFeather, 0.0001));
+					float smoothEdgeProgress = edgeProgress * edgeProgress * edgeProgress
+						* (edgeProgress * (edgeProgress * 6.0 - 15.0) + 10.0);
+					float edgeMask = 1.0 - smoothEdgeProgress;
+					float distanceFromSource = isVehicleBeam
+						? saturate((i.worldPos.x - (lightData.x - halfExtents.x)) / (halfExtents.x * 2.0))
+						: saturate(max(
+							sourceOffset.x / halfExtents.x,
+							sourceOffset.y / halfExtents.y));
+					float interiorGradient = exp2(
+						-_LightFalloffStrength * distanceFromSource * distanceFromSource);
+					illumination += edgeMask * interiorGradient * lightData.w * availableLight;
 				}
-				illumination = saturate(illumination);
+				illumination = min(saturate(illumination), _MaxIllumination);
 				float darkness = 1.0 - illumination;
 				float baseAlpha = darkness * _BaseDarkColor.a;
 				float nvStrength = saturate(_NightVisionStrength);

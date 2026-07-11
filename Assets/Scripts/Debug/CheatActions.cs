@@ -359,7 +359,7 @@ public class CheatActions
 	{
 		if (!Ready) return CheatResult.Fail("Game not ready");
 		LevelManager.Debug_SetTimeOfDay(Time);
-		GameManager.RefreshVisibility();
+		GameManager.RefreshVisibilityImmediately();
 		return CheatResult.Pass($"Time set to {Time}");
 	}
 
