@@ -4,13 +4,23 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Tilemaps;
 
+public enum GamePhase
+{
+	Setup,
+	PlayerTurn,
+	FireResolution,
+	EnemyTurn,
+	GridTransition,
+	GameOver,
+}
+
 public class GameManager : MonoBehaviour
 {
 	public static GameManager Instance;
 	[Header("Core References")]
 	[SerializeField] private Camera MainCamera;
 	[SerializeField] private Player Player;
-	[SerializeField] private bool doingSetup;
+	[field: SerializeField] public GamePhase CurrentPhase { get; private set; } = GamePhase.Setup;
 	public Vector3 PlayerStartPosition { get; } = new(-3.5f, 0.5f);
 	[SerializeField] private float turnPhaseDelay = 0.25f;
 	private Coroutine TileRevealRoutine;
@@ -132,12 +142,12 @@ public class GameManager : MonoBehaviour
 		if (Player.FinishedInit)
 			Player.InventoryUI.ProcessHoverForInventory(MainCamera.ScreenToWorldPoint(CursorController.CursorScreenPosition));
 		// Check if game is still setting up or Player is in movement
-		if (doingSetup
+		if (IsDoingSetup
 			|| !Player.FinishedInit
 			|| Player.IsInMovement
 			|| Player.IsInVehicle && Player.Vehicle.IsInMovement)
 			return;
-		if (TurnManager.IsPlayersTurn)
+		if (CurrentPhase == GamePhase.PlayerTurn)
 		{
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
 			// Cheat menu/placement suppress only manual input; console commands still run,
@@ -148,7 +158,7 @@ public class GameManager : MonoBehaviour
 		}
 		// Process enemy movement if it is not Player's turn
 		// The delegate is cached since this runs every frame for the whole enemy turn
-		if (!TurnManager.IsPlayersTurn && EnemyManager.IsProcessingEnemyMovement)
+		if (CurrentPhase == GamePhase.EnemyTurn && EnemyManager.IsProcessingEnemyMovement)
 			EnemyManager.ProcessEnemyMovement(EndEnemyTurnAction ??= () => TurnManager.EndEnemyTurn());
 	}
 	private System.Action EndEnemyTurnAction;
@@ -192,7 +202,7 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	void InitGame()
 	{
-		doingSetup = true;
+		CurrentPhase = GamePhase.Setup;
 		LevelManager.InitializeLevel();
 	}
 	/// <summary>
@@ -236,7 +246,7 @@ public class GameManager : MonoBehaviour
 	}
 	private IEnumerator RunExitTransition()
 	{
-		doingSetup = true;
+		CurrentPhase = GamePhase.GridTransition;
 		TurnManager.StopTurnTimer();
 		TurnManager.SetEndTurnButtonInteractable(false);
 		TileManager.TileDot.SetActive(false);
@@ -260,7 +270,7 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	private void OnLevelLoadComplete()
 	{
-		doingSetup = false;
+		CurrentPhase = GamePhase.PlayerTurn;
 		TurnManager.SetEndTurnButtonInteractable(true);
 		RefreshVisibility();
 		// Update targets if player has ranged weapon
@@ -296,13 +306,13 @@ public class GameManager : MonoBehaviour
 	/// <summary>
 	/// Called when Player dies, cleans up scene and show Game Over screen
 	/// </summary>
-	public bool IsGameOver { get; private set; }
+	public bool IsGameOver => CurrentPhase == GamePhase.GameOver;
 	public void GameOver()
 	{
 		// Enemy attack loops and the turn coroutines can re-enter this on the killing blow
 		if (IsGameOver)
 			return;
-		IsGameOver = true;
+		CurrentPhase = GamePhase.GameOver;
 		CleanupWorldEntities();
 		ChronoclasmManager.ResetForNewRun();
 		SoundManager.Instance.PlayGameOver(GameOverClip);
@@ -317,7 +327,7 @@ public class GameManager : MonoBehaviour
 	public void StartNewGame()
 	{
 		CleanupWorldEntities();
-		IsGameOver = false;
+		CurrentPhase = GamePhase.Setup;
 		enabled = true;
 		StopAllCoroutines();
 		NewGameButton.gameObject.SetActive(false);
@@ -481,7 +491,7 @@ public class GameManager : MonoBehaviour
 		}
 	}
 	// Public accessor methods
-	public bool IsDoingSetup 								=> doingSetup;
+	public bool IsDoingSetup 								=> CurrentPhase is GamePhase.Setup or GamePhase.GridTransition;
 	public bool IsChronoclasmReady 							=> ChronoclasmManager != null && ChronoclasmManager.IsChronoclasmReady;
 	public bool HasChronoclasmSnapshot 						=> ChronoclasmManager != null && ChronoclasmManager.HasChronoclasmSnapshot;
 	public int ChronoclasmGridsRemaining 					=> ChronoclasmManager.ChronoclasmGridsRemaining;
@@ -616,7 +626,7 @@ public class GameManager : MonoBehaviour
 	}
 	public void OnEndTurnPress()
 	{
-		if (Player.IsInMovement || doingSetup)
+		if (Player.IsInMovement || CurrentPhase != GamePhase.PlayerTurn)
 			return;
 		TurnManager.OnEndTurnPress();
 	}
@@ -626,6 +636,7 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	private void OnPlayerTurnEnded()
 	{
+		CurrentPhase = GamePhase.FireResolution;
 		Player.RestoreEnergy();
 		// Hide TileDot during enemy turn
 		TileManager.TileDot.SetActive(false);
@@ -661,6 +672,7 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	private void OnEnemyTurnEnded()
 	{
+		CurrentPhase = GamePhase.FireResolution;
 		TurnManager.SetEndTurnButtonInteractable(false);
 		ChronoclasmManager.OnPlayerTurnStart();
 		RefreshVisibility();
@@ -699,7 +711,10 @@ public class GameManager : MonoBehaviour
 		if (EnemyManager.Enemies.Count == 0)
 			TurnManager.EndEnemyTurn();
 		else
+		{
+			CurrentPhase = GamePhase.EnemyTurn;
 			EnemyManager.NeedToStartEnemyMovement = true;
+		}
 		FireTurnRoutine = null;
 	}
 	private IEnumerator StartPlayerTurnAfterDelay()
@@ -716,6 +731,7 @@ public class GameManager : MonoBehaviour
 			yield break;
 		}
 		RefreshVisibility();
+		CurrentPhase = GamePhase.PlayerTurn;
 		// Hide TileDot if player is in vehicle with no charge, otherwise show it
 		bool hideForDepletedVehicle = Player.IsInVehicle
 			&& Player.Vehicle.Info.IsOn
@@ -742,7 +758,7 @@ public class GameManager : MonoBehaviour
 		RefreshVisibility();
 		// Check if player is on exit tile
 		HandlePlayerExitTile();
-		if (TurnManager.IsPlayersTurn)
+		if (CurrentPhase == GamePhase.PlayerTurn)
 		{
 			TurnManager.SetEndTurnButtonInteractable(true);
 			UpdateTileAreas();
@@ -768,7 +784,7 @@ public class GameManager : MonoBehaviour
 			TileManager.ClearTargets();
 		}
 		RefreshVisibility();
-		if (TurnManager.IsPlayersTurn)
+		if (CurrentPhase == GamePhase.PlayerTurn)
 			TurnManager.SetEndTurnButtonInteractable(true);
 		UpdateTileAreas();
 		return true;
@@ -795,7 +811,7 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	private void HandlePlayerClick(Vector3 WorldPoint, Vector3Int TilePoint, Vector3 ShiftedClickPoint)
 	{
-		if (Player.IsInMovement || !TurnManager.IsPlayersTurn)
+		if (Player.IsInMovement || CurrentPhase != GamePhase.PlayerTurn)
 			return;
 		if (!IsCellVisible(TilePoint))
 		{
@@ -1334,7 +1350,7 @@ public class GameManager : MonoBehaviour
 	public void UpdateTileAreas()
 	{
 		// Only update areas if Player is not in movement and it is Player's turn
-		if (Player.IsInMovement || !TurnManager.IsPlayersTurn)
+		if (Player.IsInMovement || CurrentPhase != GamePhase.PlayerTurn)
 			return;
 		// Clear areas if player has no energy
 		if (!Player.HasEnergy)
@@ -1406,7 +1422,7 @@ public class GameManager : MonoBehaviour
 	{
 		// Only update targets if Player is not in movement, has a ranged weapon, it is Player's turn, and Player has energy
 		if (!Player.HasRange
-			|| !TurnManager.IsPlayersTurn
+			|| CurrentPhase != GamePhase.PlayerTurn
 			|| !Player.HasEnergy)
 		{
 			TileManager.ClearTargets();
