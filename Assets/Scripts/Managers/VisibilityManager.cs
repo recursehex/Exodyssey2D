@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
@@ -10,7 +9,6 @@ public class VisibilityManager : MonoBehaviour
 	private const int flareRadius = 2;
 	private const int lightrodRadius = 2;
 	private const int overlaySortingOrder = 32000;
-	private const int fireSortingOrderOffset = 1;
 	[Header("Overlay")]
 	[SerializeField] private float transitionSpeed = 6f;
 	[SerializeField] private float duskAmbient = 0.62f;
@@ -33,31 +31,19 @@ public class VisibilityManager : MonoBehaviour
 	private readonly Dictionary<int, Vector4> AppliedLights = new();
 	private readonly List<int> FadingKeys = new();
 	private readonly HashSet<int> ActiveTargetKeys = new();
-	private sealed class RendererSet
-	{
-		public SpriteRenderer[] SpriteRenderers;
-		public MeshRenderer[] MeshRenderers;
-	}
-	private readonly Dictionary<GameObject, RendererSet> RendererCache = new();
-	private readonly Vector4[] ShaderLightData = new Vector4[maxLightSources];
+	private readonly DarknessOverlayRenderer DarknessOverlay = new();
+	private readonly EntityVisibilityController EntityVisibility = new();
 	private int PlayerLightIndex = -1;
 	private int LightrodLightIndex = -1;
 	private readonly List<int> InventoryFlareLightIndices = new();
 	private readonly List<int> VehicleLightIndices = new();
 	private GameManager GameManager;
 	private Tilemap TilemapGround;
-	private Tilemap TilemapWalls;
-	private Tilemap TilemapExit;
 	private Player Player;
 	private LevelManager LevelManager;
 	private EnemyManager EnemyManager;
 	private ItemManager ItemManager;
-	private VehicleManager VehicleManager;
-	private StructureManager StructureManager;
 	private FireManager FireManager;
-	private GameObject OverlayObject;
-	private MeshRenderer OverlayRenderer;
-	private Material OverlayMaterial;
 	private bool IsInitialized;
 	private bool NeedsVisibilityRefresh = true;
 	private bool TargetOverlayEnabled;
@@ -71,28 +57,11 @@ public class VisibilityManager : MonoBehaviour
 	private float TargetNightVision = 0f;
 	private float AppliedNightVision = 0f;
 	private int TargetLightCount;
-	private int CurrentFireSortingOrder = overlaySortingOrder + fireSortingOrderOffset;
-	// Entity-set signature from the last overlay sorting pass; sorting layers are per-prefab
-	// constants, so the expensive recompute is skipped until the entity set changes
-	private int lastSortingSignature = int.MinValue;
-	// True while any entity renderers may be disabled by restricted visibility, so the
-	// unrestricted (daylight) pass can skip re-enabling renderers that were never hidden
-	private bool anyEntityHidden;
 	private Vector3Int LastPlayerCell;
 	private Vector3Int LastVehicleCell;
 	private bool LastVehicleIgnitionState;
 	private bool LastWasInVehicle;
 	private bool LastNightVisionState;
-	private static readonly int ambientId = Shader.PropertyToID("_Ambient");
-	private static readonly int baseDarkColorId = Shader.PropertyToID("_BaseDarkColor");
-	private static readonly int nightVisionTintId = Shader.PropertyToID("_NightVisionTint");
-	private static readonly int nightVisionStrengthId = Shader.PropertyToID("_NightVisionStrength");
-	private static readonly int lightCountId = Shader.PropertyToID("_LightCount");
-	private static readonly int lightDataId = Shader.PropertyToID("_LightData");
-	private static readonly int lightEdgeFeatherId = Shader.PropertyToID("_LightEdgeFeather");
-	private static readonly int lightCornerRadiusId = Shader.PropertyToID("_LightCornerRadius");
-	private static readonly int lightFalloffStrengthId = Shader.PropertyToID("_LightFalloffStrength");
-	private static readonly int maxIlluminationId = Shader.PropertyToID("_MaxIllumination");
 	public void Initialize(GameManager GameManager,
 		Tilemap TilemapGround,
 		Tilemap TilemapWalls,
@@ -107,18 +76,17 @@ public class VisibilityManager : MonoBehaviour
 	{
 		this.GameManager = GameManager;
 		this.TilemapGround = TilemapGround;
-		this.TilemapWalls = TilemapWalls;
-		this.TilemapExit = TilemapExit;
 		this.Player = Player;
 		this.LevelManager = LevelManager;
 		this.EnemyManager = EnemyManager;
 		this.ItemManager = ItemManager;
-		this.VehicleManager = VehicleManager;
-		this.StructureManager = StructureManager;
 		this.FireManager = FireManager;
+		EntityVisibility.Initialize(TilemapGround, TilemapWalls, TilemapExit, Player, EnemyManager, ItemManager, VehicleManager, StructureManager, FireManager);
 		if (this.LevelManager != null)
 			this.LevelManager.OnTimeOfDayChanged += HandleTimeOfDayChanged;
-		EnsureOverlay();
+		DarknessOverlay.Initialize(transform, TilemapGround != null ? TilemapGround.gameObject.layer : 0);
+		EntityVisibility.ConfigureOverlaySorting(DarknessOverlay.Renderer, overlaySortingOrder);
+		ApplyOverlayProperties();
 		CacheDynamicState();
 		IsInitialized = true;
 		RefreshVisibility();
@@ -127,11 +95,8 @@ public class VisibilityManager : MonoBehaviour
 	{
 		if (LevelManager != null)
 			LevelManager.OnTimeOfDayChanged -= HandleTimeOfDayChanged;
-		if (OverlayMaterial != null)
-			Destroy(OverlayMaterial);
-		if (OverlayObject != null)
-			Destroy(OverlayObject);
-		RendererCache.Clear();
+		DarknessOverlay.Dispose();
+		EntityVisibility.ClearCache();
 	}
 	private void LateUpdate()
 	{
@@ -147,7 +112,7 @@ public class VisibilityManager : MonoBehaviour
 		// cell occupancy only changes while something is moving between cells, so the
 		// per-entity renderer sweep is skipped on idle frames
 		if (!rebuilt && IsAnyEntityMoving())
-			ApplyEntityVisibility();
+			EntityVisibility.ApplyVisibility(IsVisibilityRestricted, IsCellVisible);
 	}
 	private bool IsAnyEntityMoving()
 	{
@@ -220,7 +185,7 @@ public class VisibilityManager : MonoBehaviour
 		for (int i = 0; i < TargetLightCount; i++)
 			AppliedLights[TargetLightKeys[i]] = TargetLightData[i];
 		OverlayNeedsApply = false;
-		SetOverlayActive(TargetOverlayEnabled);
+		DarknessOverlay.SetActive(TargetOverlayEnabled);
 		ApplyOverlayProperties();
 	}
 	/// <summary>
@@ -239,14 +204,14 @@ public class VisibilityManager : MonoBehaviour
 		AppliedLights.Clear();
 		RefreshVisibility();
 		FlushIfNeeded();
-		SetOverlayActive(true);
+		DarknessOverlay.SetActive(true);
 		ApplyOverlayProperties();
 	}
 	public void ClearAllLights()
 	{
 		// Grid transition: force the next rebuild to recompute overlay sorting even
 		// if the new grid happens to spawn the same entity counts
-		lastSortingSignature = int.MinValue;
+		EntityVisibility.InvalidateSorting();
 		TargetLightData.Clear();
 		TargetLightKeys.Clear();
 		TargetLightCount = 0;
@@ -255,7 +220,7 @@ public class VisibilityManager : MonoBehaviour
 		LightrodLightIndex = -1;
 		InventoryFlareLightIndices.Clear();
 		VehicleLightIndices.Clear();
-		RendererCache.Clear();
+		EntityVisibility.ClearCache();
 		TargetAmbient = 1f;
 		AppliedAmbient = 1f;
 		TargetNightVision = 0f;
@@ -263,7 +228,7 @@ public class VisibilityManager : MonoBehaviour
 		TargetOverlayEnabled = false;
 		NeedsVisibilityRefresh = false;
 		IsWakingUp = false;
-		SetOverlayActive(false);
+		DarknessOverlay.SetActive(false);
 		ApplyOverlayProperties();
 	}
 	public void TickActiveFlaresOnRoundStart()
@@ -422,7 +387,7 @@ public class VisibilityManager : MonoBehaviour
 		LightrodLightIndex = -1;
 		InventoryFlareLightIndices.Clear();
 		VehicleLightIndices.Clear();
-		ConfigureOverlaySorting();
+		EntityVisibility.ConfigureOverlaySorting(DarknessOverlay.Renderer, overlaySortingOrder);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
 		// Reveal-all cheat: full daylight, every cell visible, no darkness overlay
 		if (CheatFlags.RevealAll)
@@ -432,7 +397,7 @@ public class VisibilityManager : MonoBehaviour
 			TargetNightVision = 0f;
 			TargetOverlayEnabled = false;
 			TargetLightCount = 0;
-			ApplyEntityVisibility();
+			EntityVisibility.ApplyVisibility(IsVisibilityRestricted, IsCellVisible);
 			return;
 		}
 #endif
@@ -446,8 +411,8 @@ public class VisibilityManager : MonoBehaviour
 			TargetLightCount = 0;
 			// Let the receding ambient keep the overlay on and turn it off once daylight is reached
 			TargetOverlayEnabled = false;
-			SetOverlayActive(true);
-			ApplyEntityVisibility();
+			DarknessOverlay.SetActive(true);
+			EntityVisibility.ApplyVisibility(IsVisibilityRestricted, IsCellVisible);
 			return;
 		}
 		bool isNight = IsNightTime;
@@ -489,8 +454,8 @@ public class VisibilityManager : MonoBehaviour
 		}
 		TargetLightCount = Mathf.Min(TargetLightData.Count, maxLightSources);
 		if (TargetOverlayEnabled)
-			SetOverlayActive(true);
-		ApplyEntityVisibility();
+			DarknessOverlay.SetActive(true);
+		EntityVisibility.ApplyVisibility(IsVisibilityRestricted, IsCellVisible);
 	}
 	private void FillAllCellsVisible()
 	{
@@ -730,225 +695,9 @@ public class VisibilityManager : MonoBehaviour
 		TargetLightData.Add(new Vector4(beamCenterX, VehicleWorldPosition.y, -beamHalfWidth, 0.65f));
 		TargetLightKeys.Add(LightKeyVehicleBeam());
 	}
-	private void EnsureOverlay()
-	{
-		if (OverlayObject != null)
-			return;
-		Shader OverlayShader = Shader.Find("Custom/GridDarknessOverlay");
-		if (OverlayShader == null)
-		{
-			Debug.LogWarning("GridDarknessOverlay shader not found. Night visibility overlay disabled.");
-			return;
-		}
-		OverlayObject = new GameObject("GridDarknessOverlay");
-		OverlayObject.transform.SetParent(transform, false);
-		OverlayObject.layer = TilemapGround != null ? TilemapGround.gameObject.layer : 0;
-		MeshFilter MeshFilter = OverlayObject.AddComponent<MeshFilter>();
-		OverlayRenderer = OverlayObject.AddComponent<MeshRenderer>();
-		OverlayMaterial = new Material(OverlayShader);
-		OverlayRenderer.sharedMaterial = OverlayMaterial;
-		ConfigureOverlaySorting();
-		MeshFilter.sharedMesh = BuildOverlayMesh();
-		SetOverlayActive(false);
-		ApplyOverlayProperties();
-	}
-	private void ConfigureOverlaySorting()
-	{
-		if (OverlayRenderer == null)
-			return;
-		// Rebuilds fire on every player move at night; the renderer sweeps and scene-wide
-		// canvas search below only change result when entities spawn or despawn
-		int signature = ComputeSortingSignature();
-		if (signature == lastSortingSignature)
-			return;
-		lastSortingSignature = signature;
-		int topLayerId = OverlayRenderer.sortingLayerID;
-		int topLayerValue = int.MinValue;
-		TryConsumeRendererLayer(TilemapGround, ref topLayerId, ref topLayerValue);
-		TryConsumeRendererLayer(TilemapWalls, ref topLayerId, ref topLayerValue);
-		TryConsumeRendererLayer(TilemapExit, ref topLayerId, ref topLayerValue);
-		TryConsumeRendererLayer(Player != null ? Player.GetComponent<SpriteRenderer>() : null, ref topLayerId, ref topLayerValue);
-		foreach (Enemy Enemy in EnemyManager != null ? EnemyManager.Enemies : new List<Enemy>())
-		{
-			TryConsumeRendererLayer(Enemy != null ? Enemy.GetComponent<SpriteRenderer>() : null, ref topLayerId, ref topLayerValue);
-		}
-		foreach (Item Item in ItemManager != null ? ItemManager.Items : new List<Item>())
-		{
-			TryConsumeRendererLayer(Item != null ? Item.GetComponent<SpriteRenderer>() : null, ref topLayerId, ref topLayerValue);
-		}
-		foreach (Vehicle Vehicle in VehicleManager != null ? VehicleManager.Vehicles : new List<Vehicle>())
-		{
-			TryConsumeRendererLayer(Vehicle != null ? Vehicle.GetComponent<SpriteRenderer>() : null, ref topLayerId, ref topLayerValue);
-		}
-		foreach (Structure Structure in StructureManager != null ? StructureManager.Structures : new List<Structure>())
-		{
-			TryConsumeRendererLayer(Structure != null ? Structure.GetComponent<SpriteRenderer>() : null, ref topLayerId, ref topLayerValue);
-		}
-		if (topLayerValue == int.MinValue && TilemapGround != null && TilemapGround.TryGetComponent(out TilemapRenderer GroundRenderer))
-		{
-			topLayerId = GroundRenderer.sortingLayerID;
-		}
-		int maxWorldOrder = int.MinValue;
-		TryConsumeRendererOrder(TilemapGround, topLayerId, ref maxWorldOrder);
-		TryConsumeRendererOrder(TilemapWalls, topLayerId, ref maxWorldOrder);
-		TryConsumeRendererOrder(TilemapExit, topLayerId, ref maxWorldOrder);
-		TryConsumeRendererOrder(Player != null ? Player.GetComponent<SpriteRenderer>() : null, topLayerId, ref maxWorldOrder);
-		foreach (Enemy Enemy in EnemyManager != null ? EnemyManager.Enemies : new List<Enemy>())
-		{
-			TryConsumeRendererOrder(Enemy != null ? Enemy.GetComponent<SpriteRenderer>() : null, topLayerId, ref maxWorldOrder);
-		}
-		foreach (Item Item in ItemManager != null ? ItemManager.Items : new List<Item>())
-		{
-			TryConsumeRendererOrder(Item != null ? Item.GetComponent<SpriteRenderer>() : null, topLayerId, ref maxWorldOrder);
-		}
-		foreach (Vehicle Vehicle in VehicleManager != null ? VehicleManager.Vehicles : new List<Vehicle>())
-		{
-			TryConsumeRendererOrder(Vehicle != null ? Vehicle.GetComponent<SpriteRenderer>() : null, topLayerId, ref maxWorldOrder);
-		}
-		foreach (Structure Structure in StructureManager != null ? StructureManager.Structures : new List<Structure>())
-		{
-			TryConsumeRendererOrder(Structure != null ? Structure.GetComponent<SpriteRenderer>() : null, topLayerId, ref maxWorldOrder);
-		}
-		int desiredOverlayOrder = Mathf.Max(overlaySortingOrder, maxWorldOrder + 1);
-		int minCanvasOrder = int.MaxValue;
-		Canvas[] Canvases = FindObjectsByType<Canvas>(FindObjectsInactive.Exclude);
-		foreach (Canvas Canvas in Canvases)
-		{
-			if (Canvas == null || !Canvas.isActiveAndEnabled)
-				continue;
-			if (Canvas.sortingLayerID != topLayerId)
-				continue;
-			minCanvasOrder = Mathf.Min(minCanvasOrder, Canvas.sortingOrder);
-		}
-		if (minCanvasOrder != int.MaxValue && desiredOverlayOrder >= minCanvasOrder)
-			desiredOverlayOrder = minCanvasOrder - 1;
-		if (desiredOverlayOrder <= maxWorldOrder)
-			desiredOverlayOrder = maxWorldOrder + 1;
-		OverlayRenderer.sortingLayerID = topLayerId;
-		OverlayRenderer.sortingOrder = desiredOverlayOrder;
-		CurrentFireSortingOrder = desiredOverlayOrder + fireSortingOrderOffset;
-	}
-	private int ComputeSortingSignature()
-	{
-		int signature = 17;
-		signature = signature * 31 + (EnemyManager != null ? EnemyManager.Enemies.Count : -1);
-		signature = signature * 31 + (ItemManager != null ? ItemManager.Items.Count : -1);
-		signature = signature * 31 + (VehicleManager != null ? VehicleManager.Vehicles.Count : -1);
-		signature = signature * 31 + (StructureManager != null ? StructureManager.Structures.Count : -1);
-		return signature;
-	}
-	private void TryConsumeRendererLayer(Component RendererComponent, ref int topLayerId, ref int topLayerValue)
-	{
-		if (RendererComponent == null)
-			return;
-		if (!TryGetSortingInfo(RendererComponent, out int layerId, out int layerValue))
-			return;
-		if (layerValue < topLayerValue)
-			return;
-		topLayerValue = layerValue;
-		topLayerId = layerId;
-	}
-	private bool TryGetSortingInfo(Component RendererComponent, out int sortingLayerId, out int sortingLayerValue)
-	{
-		sortingLayerId = 0;
-		sortingLayerValue = 0;
-		int layerId;
-		if (RendererComponent is SpriteRenderer SpriteRenderer)
-			layerId = SpriteRenderer.sortingLayerID;
-		else if (RendererComponent is Tilemap Tilemap && Tilemap.TryGetComponent(out TilemapRenderer TilemapRenderer))
-			layerId = TilemapRenderer.sortingLayerID;
-		else if (RendererComponent is TilemapRenderer TilemapRendererComponent)
-			layerId = TilemapRendererComponent.sortingLayerID;
-		else
-			return false;
-		string LayerName = SortingLayer.IDToName(layerId);
-		if (IsUiSortingLayerName(LayerName))
-			return false;
-		sortingLayerId = layerId;
-		foreach (SortingLayer Layer in SortingLayer.layers)
-		{
-			if (Layer.id != layerId)
-				continue;
-			sortingLayerValue = Layer.value;
-			return true;
-		}
-		return false;
-	}
-	private static bool IsUiSortingLayerName(string LayerName)
-	{
-		if (string.IsNullOrWhiteSpace(LayerName))
-			return false;
-		return LayerName.IndexOf("ui", StringComparison.OrdinalIgnoreCase) >= 0;
-	}
-	private void TryConsumeRendererOrder(Component RendererComponent, int targetLayerId, ref int maxSortingOrder)
-	{
-		if (RendererComponent == null)
-			return;
-		if (!TryGetSortingOrder(RendererComponent, out int layerId, out int sortingOrder))
-			return;
-		if (layerId != targetLayerId)
-			return;
-		if (sortingOrder > maxSortingOrder)
-			maxSortingOrder = sortingOrder;
-	}
-	private bool TryGetSortingOrder(Component RendererComponent, out int sortingLayerId, out int sortingOrder)
-	{
-		sortingLayerId = 0;
-		sortingOrder = 0;
-		if (RendererComponent is SpriteRenderer SpriteRenderer)
-		{
-			sortingLayerId = SpriteRenderer.sortingLayerID;
-			sortingOrder = SpriteRenderer.sortingOrder;
-			return true;
-		}
-		if (RendererComponent is Tilemap Tilemap && Tilemap.TryGetComponent(out TilemapRenderer TilemapRenderer))
-		{
-			sortingLayerId = TilemapRenderer.sortingLayerID;
-			sortingOrder = TilemapRenderer.sortingOrder;
-			return true;
-		}
-		if (RendererComponent is TilemapRenderer TilemapRendererComponent)
-		{
-			sortingLayerId = TilemapRendererComponent.sortingLayerID;
-			sortingOrder = TilemapRendererComponent.sortingOrder;
-			return true;
-		}
-		return false;
-	}
-	private Mesh BuildOverlayMesh()
-	{
-		float MinX = GameConfig.Grid.MinX;
-		float MinY = GameConfig.Grid.MinY;
-		float MaxX = GameConfig.Grid.MaxX + 1f;
-		float MaxY = GameConfig.Grid.MaxY + 1f;
-		Mesh Mesh = new();
-		Mesh.vertices = new Vector3[]
-		{
-			new(MinX, MinY, 0f),
-			new(MaxX, MinY, 0f),
-			new(MaxX, MaxY, 0f),
-			new(MinX, MaxY, 0f),
-		};
-		Mesh.uv = new Vector2[]
-		{
-			new(0f, 0f),
-			new(1f, 0f),
-			new(1f, 1f),
-			new(0f, 1f),
-		};
-		Mesh.triangles = new int[] { 0, 1, 2, 0, 2, 3 };
-		Mesh.RecalculateNormals();
-		Mesh.RecalculateBounds();
-		return Mesh;
-	}
-	private void SetOverlayActive(bool isActive)
-	{
-		if (OverlayRenderer != null)
-			OverlayRenderer.enabled = isActive;
-	}
 	private void UpdateOverlay()
 	{
-		if (OverlayMaterial == null)
+		if (!DarknessOverlay.IsReady)
 			return;
 		float interpolation = Mathf.Clamp01(Time.deltaTime * transitionSpeed);
 		// The wake-up darkness recedes at its own tunable speed so the effect reads as waking up
@@ -1046,7 +795,7 @@ public class VisibilityManager : MonoBehaviour
 			|| AppliedAmbient < 0.995f
 			|| AppliedNightVision > 0.005f
 			|| AppliedLights.Count > 0;
-		SetOverlayActive(shouldDisplayOverlay);
+		DarknessOverlay.SetActive(shouldDisplayOverlay);
 		ApplyOverlayProperties();
 	}
 	// Lerps asymptote and never land, so values within a hair of the target snap to it,
@@ -1058,166 +807,19 @@ public class VisibilityManager : MonoBehaviour
 	}
 	private void ApplyOverlayProperties()
 	{
-		if (OverlayMaterial == null)
-			return;
-		int lightCount = 0;
-		foreach (var kvp in AppliedLights)
-		{
-			if (lightCount >= maxLightSources)
-				break;
-			ShaderLightData[lightCount] = kvp.Value;
-			lightCount++;
-		}
-		for (int i = lightCount; i < maxLightSources; i++)
-			ShaderLightData[i] = Vector4.zero;
-		OverlayMaterial.SetFloat(ambientId, AppliedAmbient);
-		OverlayMaterial.SetColor(baseDarkColorId, new Color(0f, 0f, 0f, overlayDarkAlpha));
-		OverlayMaterial.SetColor(nightVisionTintId, nightVisionTint);
-		OverlayMaterial.SetFloat(nightVisionStrengthId, AppliedNightVision);
-		OverlayMaterial.SetFloat(lightEdgeFeatherId, lightEdgeFeather);
-		OverlayMaterial.SetFloat(lightCornerRadiusId, lightCornerRadius);
-		OverlayMaterial.SetFloat(lightFalloffStrengthId, lightFalloffStrength);
 		bool capNightBrightness = !IsWakingUp
 			&& IsNightTime
 			&& Player != null
 			&& !Player.HasNightVision;
-		OverlayMaterial.SetFloat(maxIlluminationId, capNightBrightness ? duskAmbient : 1f);
-		OverlayMaterial.SetFloat(lightCountId, lightCount);
-		OverlayMaterial.SetVectorArray(lightDataId, ShaderLightData);
-	}
-	private void ApplyEntityVisibility()
-	{
-		if (EnemyManager == null || ItemManager == null || VehicleManager == null || FireManager == null || TilemapGround == null)
-			return;
-		if (!IsVisibilityRestricted)
-		{
-			// Only re-enable renderers if a restricted pass may have hidden some;
-			// otherwise this runs every frame during daylight movement for nothing
-			if (anyEntityHidden)
-			{
-				SetEntityListVisibility(EnemyManager.Enemies, true);
-				foreach (Enemy Enemy in EnemyManager.Enemies)
-				{
-					if (Enemy != null && Enemy.StunIcon != null)
-						SetRenderersVisible(Enemy.StunIcon, true);
-				}
-				SetEntityListVisibility(ItemManager.Items, true);
-				SetEntityListVisibility(VehicleManager.Vehicles, true);
-				if (StructureManager != null)
-					SetEntityListVisibility(StructureManager.Structures, true);
-				SetEntityListVisibility(FireManager.Fires, true);
-				anyEntityHidden = false;
-			}
-			// Fires still need promoting so newly spawned ones sort above the overlay
-			foreach (Fire Fire in FireManager.Fires)
-			{
-				if (Fire != null)
-					PromoteFireRenderers(Fire);
-			}
-			return;
-		}
-		foreach (Enemy Enemy in EnemyManager.Enemies)
-		{
-			if (Enemy == null)
-				continue;
-			bool isVisible = IsCellVisible(TilemapGround.WorldToCell(Enemy.transform.position));
-			SetRenderersVisible(Enemy.gameObject, isVisible);
-			if (Enemy.StunIcon != null)
-				SetRenderersVisible(Enemy.StunIcon, isVisible);
-		}
-		foreach (Item Item in ItemManager.Items)
-		{
-			if (Item == null)
-				continue;
-			bool isVisible = IsCellVisible(TilemapGround.WorldToCell(Item.transform.position));
-			SetRenderersVisible(Item.gameObject, isVisible);
-		}
-		foreach (Vehicle Vehicle in VehicleManager.Vehicles)
-		{
-			if (Vehicle == null)
-				continue;
-			// Player's own vehicle is always visible
-			if (Player != null && Player.IsInVehicle && Player.Vehicle == Vehicle)
-			{
-				SetRenderersVisible(Vehicle.gameObject, true);
-				continue;
-			}
-			bool isVisible = IsCellVisible(TilemapGround.WorldToCell(Vehicle.transform.position));
-			SetRenderersVisible(Vehicle.gameObject, isVisible);
-		}
-		if (StructureManager != null)
-		{
-			foreach (Structure Structure in StructureManager.Structures)
-			{
-				if (Structure == null)
-					continue;
-				bool isVisible = IsCellVisible(TilemapGround.WorldToCell(Structure.transform.position));
-				SetRenderersVisible(Structure.gameObject, isVisible);
-			}
-		}
-			foreach (Fire Fire in FireManager.Fires)
-			{
-				if (Fire == null)
-					continue;
-				bool isVisible = IsCellVisible(TilemapGround.WorldToCell(Fire.transform.position));
-				SetRenderersVisible(Fire.gameObject, isVisible);
-				if (isVisible)
-					PromoteFireRenderers(Fire);
-			}
-			anyEntityHidden = true;
-		}
-	private void PromoteFireRenderers(Fire Fire)
-	{
-		if (Fire == null || OverlayRenderer == null)
-			return;
-		RendererSet Renderers = GetRendererSet(Fire.gameObject);
-		int fireSortingLayerId = OverlayRenderer.sortingLayerID;
-		int fireOrder = CurrentFireSortingOrder;
-		foreach (SpriteRenderer SpriteRenderer in Renderers.SpriteRenderers)
-		{
-			if (SpriteRenderer == null)
-				continue;
-			SpriteRenderer.sortingLayerID = fireSortingLayerId;
-			SpriteRenderer.sortingOrder = fireOrder;
-		}
-	}
-	private RendererSet GetRendererSet(GameObject Object)
-	{
-		if (RendererCache.TryGetValue(Object, out RendererSet Cached))
-			return Cached;
-		RendererSet Created = new()
-		{
-			SpriteRenderers = Object.GetComponentsInChildren<SpriteRenderer>(true),
-			MeshRenderers = Object.GetComponentsInChildren<MeshRenderer>(true),
-		};
-		RendererCache[Object] = Created;
-		return Created;
-	}
-	private void SetRenderersVisible(GameObject Object, bool isVisible)
-	{
-		if (Object == null)
-			return;
-		RendererSet Renderers = GetRendererSet(Object);
-		foreach (SpriteRenderer SpriteRenderer in Renderers.SpriteRenderers)
-		{
-			if (SpriteRenderer != null && SpriteRenderer.enabled != isVisible)
-				SpriteRenderer.enabled = isVisible;
-		}
-		foreach (MeshRenderer MeshRenderer in Renderers.MeshRenderers)
-		{
-			if (MeshRenderer != null && MeshRenderer.enabled != isVisible)
-				MeshRenderer.enabled = isVisible;
-		}
-	}
-	private void SetEntityListVisibility<T>(IEnumerable<T> Entities, bool isVisible) where T : Component
-	{
-		if (Entities == null)
-			return;
-		foreach (T Entity in Entities)
-		{
-			if (Entity == null)
-				continue;
-			SetRenderersVisible(Entity.gameObject, isVisible);
-		}
+		DarknessOverlay.Apply(
+			AppliedAmbient,
+			AppliedNightVision,
+			overlayDarkAlpha,
+			nightVisionTint,
+			lightEdgeFeather,
+			lightCornerRadius,
+			lightFalloffStrength,
+			capNightBrightness ? duskAmbient : 1f,
+			AppliedLights);
 	}
 }
