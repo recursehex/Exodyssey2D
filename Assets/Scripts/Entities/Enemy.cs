@@ -102,9 +102,9 @@ public class Enemy : MonoBehaviour
 		// Track if using a random path (not targeting the player)
 		isUsingRandomPath = false;
 		// First try to find a complete path to the player
-		Path = AStar.ComputePath(transform.position, Player.transform.position);
+		Path = AStar.ComputePath(transform.position, PlayerTargetPosition);
 		// If no complete path is available (other enemy is in the way), try partial pathfinding
-		Path ??= AStar.ComputePath(transform.position, Player.transform.position, true);
+		Path ??= AStar.ComputePath(transform.position, PlayerTargetPosition, true);
         // If still no path (enemy is completely blocked from player), try to find a random position within a limited range to move to
         if (Path == null)
         {
@@ -147,6 +147,13 @@ public class Enemy : MonoBehaviour
 				&& Path.Count == AdjacentNodeCount
 				&& !isUsingRandomPath)
 		{
+			// A two-node partial path can end at the closest blocked cell without reaching the player. Only actual orthogonal adjacency permits damage
+			if (!IsAdjacentToPlayerTarget())
+			{
+				Path = null;
+				WasBlockedThisTurn = HasEnergy;
+				return;
+			}
 			// A burning enemy prioritizes survival: flee to an unoccupied tile if it can,
 			// and only attacks the Player when it has nowhere to escape to
 			if (IsOnFire && TryStartFleePath())
@@ -169,6 +176,21 @@ public class Enemy : MonoBehaviour
 	/// True when the enemy is standing on a fire tile
 	/// </summary>
 	private bool IsOnFire => GameManager.Instance.HasFireAtWorld(transform.position);
+	private Vector3 PlayerTargetPosition => Player.IsInVehicle && Player.Vehicle != null
+		? Player.Vehicle.transform.position
+		: Player.transform.position;
+	private bool IsAdjacentToPlayerTarget()
+	{
+		Vector3Int EnemyCell = TilemapGround.WorldToCell(transform.position);
+		Vector3Int TargetCell = TilemapGround.WorldToCell(PlayerTargetPosition);
+		return AreCellsAdjacentForAttack(EnemyCell, TargetCell);
+	}
+	public static bool AreCellsAdjacentForAttack(Vector3Int EnemyCell, Vector3Int TargetCell)
+	{
+		int horizontalDistance = Mathf.Abs(EnemyCell.x - TargetCell.x);
+		int verticalDistance = Mathf.Abs(EnemyCell.y - TargetCell.y);
+		return horizontalDistance + verticalDistance == 1;
+	}
 	/// <summary>
 	/// Starts a flee: the enemy steps off the fire onto the safe tile nearest the player, then re-targets
 	/// the player with any remaining energy. Returns false (so the caller can fall back to attacking) if
@@ -193,7 +215,7 @@ public class Enemy : MonoBehaviour
 	{
 		Best = default;
 		Vector3Int EnemyCell = TilemapGround.WorldToCell(transform.position);
-		Vector3Int PlayerCell = TilemapGround.WorldToCell(Player.transform.position);
+		Vector3Int PlayerCell = TilemapGround.WorldToCell(PlayerTargetPosition);
 		BoundsInt Size = TilemapGround.cellBounds;
 		int bestDistance = int.MaxValue;
 		bool found = false;
@@ -244,11 +266,11 @@ public class Enemy : MonoBehaviour
 	{
 		AStar.Initialize();
 		AStar.SetAllowDiagonal(false);
-		Stack<Vector3Int> PursuitPath = AStar.ComputePath(transform.position, Player.transform.position);
-		PursuitPath ??= AStar.ComputePath(transform.position, Player.transform.position, true);
+		Stack<Vector3Int> PursuitPath = AStar.ComputePath(transform.position, PlayerTargetPosition);
+		PursuitPath ??= AStar.ComputePath(transform.position, PlayerTargetPosition, true);
 		if (PursuitPath == null || PursuitPath.Count < AdjacentNodeCount)
 			yield break;
-		Vector3Int PlayerCell = TilemapGround.WorldToCell(Player.transform.position);
+		Vector3Int PlayerCell = TilemapGround.WorldToCell(PlayerTargetPosition);
 		// Remove the tile the enemy is currently on
 		PursuitPath.Pop();
 		while (PursuitPath.Count > 0 && HasEnergy)
@@ -345,7 +367,10 @@ public class Enemy : MonoBehaviour
 					&& HasEnergy
 					&& !isUsingRandomPath)
 			{
-				AttackPlayer();
+				if (IsAdjacentToPlayerTarget())
+					AttackPlayer();
+				else
+					WasBlockedThisTurn = true;
 				break;
 			}
 			// No more moves available
@@ -381,6 +406,8 @@ public class Enemy : MonoBehaviour
 	/// </summary>
 	private bool AttackPlayer()
 	{
+		if (!HasEnergy || !IsAdjacentToPlayerTarget())
+			return false;
 		Info.DecrementEnergy();
 		// If Player is in Vehicle, damage Vehicle and stop if it was destroyed
 		if (Player.IsInVehicle)
