@@ -32,7 +32,7 @@ public partial class Player : MonoBehaviour
 	private int vestHealth = 0;
 	private bool hasNightVision = false;
 	public bool HasNightVision => hasNightVision;
-	[NonSerialized] public Profession Profession;
+	[NonSerialized] public Profession Profession = Profession.None;
 	private int regionsSurvived = 0;
 	// Tracks the master hiker free step, reset each turn
 	private bool hasUsedFreeStepThisTurn = false;
@@ -61,7 +61,7 @@ public partial class Player : MonoBehaviour
 	[SerializeField] private ItemInfo.Tags SelectedItemTag = ItemInfo.Tags.Unknown;
 	[SerializeField] private int selectedItemUses = 0;
 	[SerializeField] private bool isInVehicle = false;
-	[SerializeField] private Profession.Tags ProfessionTag = Profession.Tags.Medic;
+	[SerializeField] private Profession.Tags ProfessionTag = Profession.Tags.None;
 	[SerializeField] private bool isProfessionMaster = false;
 	[SerializeField] private List<ItemInfo.Tags> InventoryItemTags = new();
 	[SerializeField] private List<string> InventoryItemNames = new();
@@ -83,7 +83,7 @@ public partial class Player : MonoBehaviour
 		Inventory = new(inventorySize);
 		InventoryUI.Inventory = Inventory;
 		Animator = GetComponent<Animator>();
-		Profession = Profession.GetRandomProfession();
+		Profession = Profession.None;
 		FinishedInit = true;
 	}
 #if UNITY_EDITOR
@@ -169,7 +169,7 @@ public partial class Player : MonoBehaviour
 		InventoryUI.SetNoneSelected();
 		InventoryUI.RefreshInventoryIcons();
 		InventoryUI.RefreshText();
-		Profession = Profession.GetRandomProfession();
+		Profession = Profession.None;
 		regionsSurvived = 0;
 		hasUsedFreeStepThisTurn = false;
 		StopAttackAnimationRoutineIfRunning();
@@ -800,11 +800,24 @@ public partial class Player : MonoBehaviour
 	/// </summary>
 	public void RecordRegionSurvived()
 	{
+		if (Profession.Tag is Profession.Tags.None)
+			return;
 		regionsSurvived++;
 		if (Profession.IsMaster || !ProfessionPerks.ShouldMaster(regionsSurvived))
 			return;
 		Profession.IsMaster = true;
 		Debug.Log($"Profession {Profession.Tag} mastered after surviving {regionsSurvived} regions");
+	}
+	/// <summary>
+	/// Assigns the player's profession on first entering the Fragmented Coast.
+	/// A profession selected through the cheat menu is left unchanged.
+	/// </summary>
+	public void AssignProfessionForRegion(RegionInfo.Tags RegionTag)
+	{
+		if (RegionTag is not RegionInfo.Tags.FragmentedCoast || Profession.Tag is not Profession.Tags.None)
+			return;
+		Profession = Profession.GetRandomProfession();
+		Debug.Log($"Profession assigned: {Profession.Tag}");
 	}
 	public void RechargePlasmaRailgun()
 	{

@@ -348,7 +348,7 @@ public class CheatActions
 		Vector3 World = WorldFromCell(Cell);
 		Player.transform.position = World;
 		if (Player.IsInVehicle && Player.Vehicle != null)
-			Player.Vehicle.transform.position = World;
+			Player.Vehicle.SetPosition(World);
 		RefreshWorld();
 		return CheatResult.Pass($"Teleported to ({Cell.x},{Cell.y})");
 	}

@@ -193,7 +193,7 @@ public class GameManager : MonoBehaviour
 		StructureManager.DestroyAllStructures();
 		Player.transform.position = PlayerStartPosition;
 		if (Player.IsInVehicle)
-			Player.Vehicle.transform.position = Player.transform.position;
+			Player.Vehicle.SetPosition(Player.transform.position);
 		Player.RestoreEnergy();
 		InitGame();
 	}
@@ -504,6 +504,7 @@ public class GameManager : MonoBehaviour
 	public void ClearChronoclasmReadyOverride() 			=> ChronoclasmManager.ClearChronoclasmReadyOverride();
 	public void OnPlayerActionPointSpent() 				=> ChronoclasmManager.MarkActionPointSpentThisTurn();
 	public void OnRegionSurvived() 							=> Player.RecordRegionSurvived();
+	public void OnRegionEntered(RegionInfo.Tags RegionTag) 	=> Player.AssignProfessionForRegion(RegionTag);
 	public void ClearUndoHistory(string Reason) 			=> ChronoclasmManager.ClearUndoHistory(Reason);
 	public void RecordUndoSnapshot(bool recordGroundItem = false) => ChronoclasmManager.RecordUndoSnapshot(recordGroundItem);
 	public bool HasItemAtPosition(Vector3 Position) 		=> ItemManager.HasItemAtPosition(Position);

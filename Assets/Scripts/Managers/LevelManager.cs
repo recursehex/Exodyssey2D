@@ -91,7 +91,10 @@ public partial class LevelManager : MonoBehaviour
         // Track region progression; surviving a region advances profession mastery
         RegionManager.CompleteGrid();
         if (RegionManager.TryAdvanceRegion())
+        {
             GameManager.Instance.OnRegionSurvived();
+            GameManager.Instance.OnRegionEntered(RegionManager.CurrentRegion.Tag);
+        }
         ClearTilemaps();
     }
     /// <summary>

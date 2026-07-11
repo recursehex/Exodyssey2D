@@ -55,6 +55,14 @@ public class Vehicle : MonoBehaviour
 		AStar.SetEnemyPassabilityCheck(CanRunOverEnemyAt);
 	}
 	/// <summary>
+	/// Relocates the vehicle and notifies its manager so cell-based lookups remain synchronized
+	/// </summary>
+	public void SetPosition(Vector3 Position)
+	{
+		transform.position = Position;
+		OnCellChanged?.Invoke(this);
+	}
+	/// <summary>
 	/// Returns true if there is an enemy at the given world position that this vehicle can run over
 	/// </summary>
 	private bool CanRunOverEnemyAt(Vector3 Position)

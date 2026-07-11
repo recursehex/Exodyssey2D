@@ -390,7 +390,7 @@ public class ChronoclasmManager : MonoBehaviour
 		{
 			if (Vehicle == null)
 				return false;
-			Vehicle.transform.position = VehiclePosition;
+			Vehicle.SetPosition(VehiclePosition);
 			EnsureVehicleIgnitionState(Vehicle, vehicleWasOn);
 			Player.SetVehicleState(Vehicle, true, VehiclePosition);
 		}

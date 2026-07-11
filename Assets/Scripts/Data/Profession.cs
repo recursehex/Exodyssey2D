@@ -10,7 +10,8 @@ public struct Profession
 		Hunter,
 		Hiker,
 		Navigator,
-		Ranger
+		Ranger,
+		None
 	}
 	public Tags Tag;
 	public bool IsMaster { get; set; }
@@ -25,6 +26,7 @@ public struct Profession
     public static readonly Profession Hiker 	= new(Tags.Hiker, 		false);
     public static readonly Profession Navigator = new(Tags.Navigator, 	false);
 	public static readonly Profession Ranger 	= new(Tags.Ranger, 		false);
+	public static readonly Profession None 		= new(Tags.None, 		false);
 	public static readonly List<Profession> ProfessionList = new() { Medic, Mechanic, Hunter, Hiker, Navigator, Ranger };
 	public static Profession GetRandomProfession() => ProfessionList[Random.Range(0, ProfessionList.Count)];
 }

@@ -16,6 +16,13 @@ public class ProfessionTests
     }
 
     [Test]
+    public void NoProfession_IsNotInRandomProfessionPool()
+    {
+        Assert.AreEqual(Profession.Tags.None, Profession.None.Tag);
+        Assert.IsFalse(Profession.ProfessionList.Contains(Profession.None));
+    }
+
+    [Test]
     public void ProfessionList_ContainsAllExpectedTags()
     {
         var expectedTags = new[]
