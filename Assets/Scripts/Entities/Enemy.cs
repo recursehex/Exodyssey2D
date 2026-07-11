@@ -6,6 +6,7 @@ using UnityEngine.Tilemaps;
 
 public class Enemy : MonoBehaviour
 {
+	public event Action<Enemy> OnCellChanged;
 	#region DATA
 	[NonSerialized] public EnemyInfo Info;
 	public GameObject StunIcon;
@@ -293,16 +294,8 @@ public class Enemy : MonoBehaviour
 	private IEnumerator MoveToCell(Vector3Int Cell)
 	{
 		SoundManager.Instance.PlaySound(Move);
-		Vector3 ShiftedDistance = GridCoordinates.GetCellCenter(Cell);
-		// Comparing positions avoids the square root Vector3.Distance takes every frame
-		while (transform.position != ShiftedDistance)
-		{
-			transform.position = Vector3.MoveTowards(transform.position,
-													 ShiftedDistance,
-													 Info.Speed * Time.deltaTime);
-			yield return null;
-		}
-		transform.position = ShiftedDistance;
+		yield return GridMovement.MoveToCell(transform, Cell, Info.Speed);
+		OnCellChanged?.Invoke(this);
 	}
 	/// <summary>
 	/// Moves Enemy along A* path
@@ -313,17 +306,8 @@ public class Enemy : MonoBehaviour
 		if (Destination != null)
 		{
 			SoundManager.Instance.PlaySound(Move);
-			Vector3 ShiftedDistance = GridCoordinates.GetCellCenter(Destination);
-			// Move to the destination; comparing positions avoids the square root
-			// Vector3.Distance takes every frame
-			while (transform.position != ShiftedDistance)
-			{
-				transform.position = Vector3.MoveTowards(transform.position,
-														 ShiftedDistance,
-														 Info.Speed * Time.deltaTime);
-				yield return null;
-			}
-			transform.position = ShiftedDistance;
+			yield return GridMovement.MoveToCell(transform, Destination, Info.Speed);
+			OnCellChanged?.Invoke(this);
 		}
 		// Then continue with remaining path if any
 		while (Path != null && Path.Count > 0)
@@ -340,18 +324,8 @@ public class Enemy : MonoBehaviour
 					Info.DecrementEnergy();
 					Destination = Path.Pop();
 					SoundManager.Instance.PlaySound(Move);
-					Vector3 ShiftedDistance = GridCoordinates.GetCellCenter(Destination);
-					// Move to next tile; comparing positions avoids the square root
-					// Vector3.Distance takes every frame
-					while (transform.position != ShiftedDistance)
-					{
-						transform.position = Vector3.MoveTowards(
-							transform.position,
-							ShiftedDistance,
-							Info.Speed * Time.deltaTime);
-						yield return null;
-					}
-					transform.position = ShiftedDistance;
+					yield return GridMovement.MoveToCell(transform, Destination, Info.Speed);
+					OnCellChanged?.Invoke(this);
 				}
 				// Stop moving if next position is now occupied
 				else break;

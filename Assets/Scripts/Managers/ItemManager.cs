@@ -4,7 +4,8 @@ using UnityEngine;
 public class ItemManager : MonoBehaviour
 {
     [SerializeField] private GameObject[] ItemTemplates;
-    public List<Item> Items { get; private set; } = new();
+    private readonly GridEntityRegistry<Item> Registry = new(Item => GridCoordinates.GetCell(Item.transform.position));
+    public List<Item> Items => Registry.Entities;
     [SerializeField] private int spawnItemCount;
     private LootManager LootManager;
     public void Initialize(GameObject[] Templates, LootManager LootManager)
@@ -32,7 +33,7 @@ public class ItemManager : MonoBehaviour
         Item Item = Instantiate(ItemTemplates[index], Position, Quaternion.identity).GetComponent<Item>();
         Item.Info = new(index);
         Item.RefreshSprite();
-        Items.Add(Item);
+        Registry.Add(Item);
         return Item;
     }
     /// <summary>
@@ -44,7 +45,7 @@ public class ItemManager : MonoBehaviour
         Item Item = Instantiate(ItemTemplates[index], Position, Quaternion.identity).GetComponent<Item>();
         Item.Info = Info;
         Item.RefreshSprite();
-        Items.Add(Item);
+        Registry.Add(Item);
         return Item;
     }
     /// <summary>
@@ -56,19 +57,12 @@ public class ItemManager : MonoBehaviour
     /// summary>
     public Item GetItemAtPosition(Vector3 Position)
     {
-        // Plain loop: queried per burning cell each turn, so avoid closure allocations
-        for (int i = 0; i < Items.Count; i++)
-        {
-            Item Item = Items[i];
-            if (Item != null && Item.transform.position == Position)
-                return Item;
-        }
-        return null;
+        return Registry.GetFirst(GridCoordinates.GetCell(Position));
     }
     /// <summary>
     /// Removes an item at the given position from Items list
     /// </summary>
-    public void RemoveItemAtPosition(Item ItemAtPosition) => Items.Remove(ItemAtPosition);
+    public void RemoveItemAtPosition(Item ItemAtPosition) => Registry.Remove(ItemAtPosition);
     /// <summary>
     /// Destroys an item at the given position
     /// </summary>
@@ -77,7 +71,7 @@ public class ItemManager : MonoBehaviour
         Item Item = GetItemAtPosition(Position);
         if (Item == null)
             return;
-        Items.Remove(Item);
+        Registry.Remove(Item);
         Destroy(Item.gameObject);
     }
     public void DestroyAllItemsAtPosition(Vector3 Position)
@@ -91,6 +85,6 @@ public class ItemManager : MonoBehaviour
     public void DestroyAllItems()
     {
         Items.ForEach(Item => Destroy(Item.gameObject));
-        Items.Clear();
+        Registry.Clear();
     }
 }

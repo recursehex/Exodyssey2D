@@ -5,7 +5,8 @@ using UnityEngine.Tilemaps;
 public class EnemyManager : MonoBehaviour
 {
     [SerializeField] private GameObject[] EnemyTemplates;
-    public List<Enemy> Enemies { get; private set; } = new();
+    private readonly GridEntityRegistry<Enemy> Registry = new(Enemy => GridCoordinates.GetCell(Enemy.transform.position));
+    public List<Enemy> Enemies => Registry.Entities;
     [SerializeField] private int spawnEnemyCount;
     [Header("Spawning")]
     [SerializeField] private int baseMinSpawn = 1;
@@ -47,7 +48,8 @@ public class EnemyManager : MonoBehaviour
         EnemyInfo EnemyInfo = new(index);
         Enemy Enemy = Instantiate(EnemyTemplates[index], Position, Quaternion.identity).GetComponent<Enemy>();
         Enemy.Initialize(TilemapGround, TilemapWalls, EnemyInfo);
-        Enemies.Add(Enemy);
+        Enemy.OnCellChanged += HandleEnemyCellChanged;
+        Registry.Add(Enemy);
         return Enemy;
     }
     /// <summary>
@@ -59,31 +61,26 @@ public class EnemyManager : MonoBehaviour
     /// </summary>
     public Enemy GetEnemyAtPosition(Vector3 Position)
     {
-        // Plain loop: this is queried heavily from pathfinding, so avoid closure
-        // allocations and per-query cleanup scans (cleanup runs once per turn instead)
-        for (int i = 0; i < Enemies.Count; i++)
-        {
-            Enemy Enemy = Enemies[i];
-            if (Enemy != null && Enemy.transform.position == Position)
-                return Enemy;
-        }
-        return null;
+        return Registry.GetFirst(GridCoordinates.GetCell(Position));
     }
     /// <summary>
     /// Destroys the specified enemy
     /// </summary>
     private void DestroyEnemy(Enemy Enemy)
     {
+        Enemy.OnCellChanged -= HandleEnemyCellChanged;
         Destroy(Enemy.StunIcon);
         Destroy(Enemy.gameObject);
     }
+
+    private void HandleEnemyCellChanged(Enemy Enemy) => Registry.UpdateCell(Enemy);
     /// <summary>
     /// Destroys all enemies and clears Enemies list
     /// </summary>
     public void DestroyAllEnemies()
     {
         Enemies.ForEach(Enemy => DestroyEnemy(Enemy));
-        Enemies.Clear();
+        Registry.Clear();
         NeedToStartEnemyMovement = false;
         EnemiesAreMoving = false;
         indexOfMovingEnemy = -1;
@@ -102,7 +99,7 @@ public class EnemyManager : MonoBehaviour
         Enemy.DecreaseHealthBy(damagePoints);
         if (Enemy.Info.CurrentHealth <= 0)
         {
-            Enemies.Remove(Enemy);
+            Registry.Remove(Enemy);
             DestroyEnemy(Enemy);
             OnEnemyKilled?.Invoke();
             return;
@@ -120,7 +117,7 @@ public class EnemyManager : MonoBehaviour
     {
         if (Enemy == null)
             return;
-        Enemies.Remove(Enemy);
+        Registry.Remove(Enemy);
         DestroyEnemy(Enemy);
         OnEnemyKilled?.Invoke();
     }
@@ -219,7 +216,7 @@ public class EnemyManager : MonoBehaviour
         for (int i = Enemies.Count - 1; i >= 0; i--)
         {
             if (Enemies[i] == null)
-                Enemies.RemoveAt(i);
+                Registry.Remove(Enemies[i]);
         }
     }
 }

@@ -5,7 +5,8 @@ using UnityEngine.Tilemaps;
 public class VehicleManager : MonoBehaviour
 {
     [SerializeField] private GameObject[] VehicleTemplates;
-    public List<Vehicle> Vehicles { get; private set; } = new();
+    private readonly GridEntityRegistry<Vehicle> Registry = new(Vehicle => GridCoordinates.GetCell(Vehicle.transform.position));
+    public List<Vehicle> Vehicles => Registry.Entities;
     [SerializeField] private int spawnVehicleCount;
     [Header("Spawning")]
     [SerializeField] private int minSpawnCount = 0;
@@ -33,7 +34,8 @@ public class VehicleManager : MonoBehaviour
         Vehicle Vehicle = Instantiate(VehicleTemplates[index], Position, Quaternion.identity).GetComponent<Vehicle>();
         VehicleInfo VehicleInfo = new(index, startingFuel);
         Vehicle.Initialize(TilemapGround, TilemapWalls, VehicleInfo);
-        Vehicles.Add(Vehicle);
+        Vehicle.OnCellChanged += HandleVehicleCellChanged;
+        Registry.Add(Vehicle);
         return Vehicle;
     }
     /// <summary>
@@ -41,37 +43,26 @@ public class VehicleManager : MonoBehaviour
     /// </summary>
     public bool HasVehicleAtPosition(Vector3 Position)
     {
-        // Plain loop: queried heavily from pathfinding, so avoid closure allocations
-        for (int i = 0; i < Vehicles.Count; i++)
-        {
-            Vehicle Vehicle = Vehicles[i];
-            if (Vehicle != null && Vehicle.transform.position == Position)
-                return true;
-        }
-        return false;
+        return Registry.Contains(GridCoordinates.GetCell(Position));
     }
     /// <summary>
     /// Returns vehicle at specified position, or null if no vehicle is found
     /// </summary>
     public Vehicle GetVehicleAtPosition(Vector3Int Position)
     {
-		Vector3 ShiftedPosition = GridCoordinates.GetCellCenter(Position);
-        for (int i = 0; i < Vehicles.Count; i++)
-        {
-            Vehicle Vehicle = Vehicles[i];
-            if (Vehicle != null && Vehicle.transform.position == ShiftedPosition)
-                return Vehicle;
-        }
-        return null;
+        return Registry.GetFirst(Position);
     }
     /// <summary>
     /// Destroys specified vehicle
     /// </summary>
     public void DestroyVehicle(Vehicle Vehicle)
     {
+        Vehicle.OnCellChanged -= HandleVehicleCellChanged;
+        Registry.Remove(Vehicle);
         Destroy(Vehicle.gameObject);
-        Vehicles.Remove(Vehicle);
     }
+
+    private void HandleVehicleCellChanged(Vehicle Vehicle) => Registry.UpdateCell(Vehicle);
     /// <summary>
     /// Applies damage to a vehicle, handling destruction and ejecting the player if needed
     /// </summary>
@@ -102,11 +93,11 @@ public class VehicleManager : MonoBehaviour
     /// </summary>
     public void DestroyAllVehicles(Vehicle ExcludedVehicle = null)
     {
-        Vehicles.ForEach(Vehicle =>
+        for (int i = Vehicles.Count - 1; i >= 0; i--)
         {
+            Vehicle Vehicle = Vehicles[i];
             if (Vehicle != ExcludedVehicle)
-                Destroy(Vehicle.gameObject);
-        });
-        Vehicles.RemoveAll(Vehicle => Vehicle != ExcludedVehicle);
+                DestroyVehicle(Vehicle);
+        }
     }
 }

@@ -22,6 +22,7 @@ public class Vehicle : MonoBehaviour
 	[SerializeField] private int movementRange = 0;
 	#region EVENTS
 	public System.Action OnVehicleMovementComplete;
+	public event Action<Vehicle> OnCellChanged;
 	#endregion
 	#region AUDIO
 	public AudioClip Move;
@@ -198,19 +199,13 @@ public class Vehicle : MonoBehaviour
 		while (Path != null && Path.Count >= 0)
 		{
 			SoundManager.Instance.PlaySound(Move);
-			Vector3 ShiftedDistance = GridCoordinates.GetCellCenter(Destination);
-			// Move vehicle smoothly to next tile; comparing positions avoids the
-			// square root Vector3.Distance takes every frame
-			while (transform.position != ShiftedDistance)
-			{
-				transform.position = Vector3.MoveTowards(transform.position,
-														 ShiftedDistance,
-														 Info.Speed * DriverSpeedMultiplier * Time.deltaTime);
-				yield return null;
-			}
-			transform.position = ShiftedDistance;
+			yield return GridMovement.MoveToCell(
+				transform,
+				Destination,
+				Info.Speed * DriverSpeedMultiplier);
+			OnCellChanged?.Invoke(this);
 			// Crush any run-over-able enemy on the tile just reached
-			RunOverEnemyAt(ShiftedDistance);
+			RunOverEnemyAt(transform.position);
 			// Pop next tile in path
 			if (Path != null && Path.Count > 0)
 				Destination = Path.Pop();
