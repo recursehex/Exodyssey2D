@@ -68,21 +68,12 @@ public class VehicleInfo
 	{
 		if (Database != null)
 			return;
-		TextAsset JsonFile = Resources.Load<TextAsset>("Definitions/VehicleDefinitions");
-		if (JsonFile == null)
-		{
-			Debug.LogError("VehicleDefinitions.json not found in Resources folder!");
-			return;
-		}
-		Database = JsonUtility.FromJson<EntryList>(JsonFile.text).Vehicles;
+		Database = DefinitionLoader.LoadEntries<EntryList, Entry>(
+			"Definitions/VehicleDefinitions",
+			File => File.Vehicles);
 		// Index entries by tag so per-spawn lookups avoid a linear scan with
 		// enum-to-string conversion
-		EntryByTag = new();
-		foreach (Entry Entry in Database)
-		{
-			if (Enum.TryParse(Entry.Tag, out Tags Tag))
-				EntryByTag[Tag] = Entry;
-		}
+		EntryByTag = DefinitionLoader.IndexByTag<Tags, Entry>(Database, Entry => Entry.Tag);
 	}
 	private static List<Rarity> GenerateAllRarities()
 	{

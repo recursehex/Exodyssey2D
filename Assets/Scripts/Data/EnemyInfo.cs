@@ -65,21 +65,12 @@ public class EnemyInfo
 	{
 		if (Database != null)
 			return;
-		TextAsset JsonFile = Resources.Load<TextAsset>("Definitions/EnemyDefinitions");
-		if (JsonFile == null)
-		{
-			Debug.LogError("EnemyDefinitions.json not found in Resources folder!");
-			return;
-		}
-		Database = JsonUtility.FromJson<EntryList>(JsonFile.text).Enemies;
+		Database = DefinitionLoader.LoadEntries<EntryList, Entry>(
+			"Definitions/EnemyDefinitions",
+			File => File.Enemies);
 		// Index entries by tag so per-spawn lookups avoid a linear scan with
 		// enum-to-string conversion
-		EntryByTag = new();
-		foreach (Entry Entry in Database)
-		{
-			if (Enum.TryParse(Entry.Tag, out Tags Tag))
-				EntryByTag[Tag] = Entry;
-		}
+		EntryByTag = DefinitionLoader.IndexByTag<Tags, Entry>(Database, Entry => Entry.Tag);
 	}
 	private static List<T> GenerateAll<T>(Func<Entry, T> Extract, Func<int, T> Fallback)
 	{

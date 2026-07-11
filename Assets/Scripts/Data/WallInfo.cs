@@ -29,13 +29,11 @@ public class WallInfo
 		if (Database != null)
 			return;
 		Database = new();
-		TextAsset JsonFile = Resources.Load<TextAsset>("Definitions/WallDefinitions");
-		if (JsonFile == null)
-		{
-			Debug.LogError("WallDefinitions.json not found in Resources folder!");
+		List<Entry> Entries = DefinitionLoader.LoadEntries<EntryList, Entry>(
+			"Definitions/WallDefinitions",
+			File => File.Walls);
+		if (Entries == null)
 			return;
-		}
-		List<Entry> Entries = JsonUtility.FromJson<EntryList>(JsonFile.text).Walls;
 		foreach (Entry Entry in Entries)
 		{
 			if (Entry.disabled || string.IsNullOrEmpty(Entry.Name))

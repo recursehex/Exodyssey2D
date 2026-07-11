@@ -110,21 +110,12 @@ public class ItemInfo
 	{
 		if (Database != null)
 			return;
-		TextAsset JsonFile = Resources.Load<TextAsset>("Definitions/ItemDefinitions");
-		if (JsonFile == null)
-		{
-			Debug.LogError("ItemDefinitions.json not found in Resources folder!");
-			return;
-		}
-		Database = JsonUtility.FromJson<EntryList>(JsonFile.text).Items;
+		Database = DefinitionLoader.LoadEntries<EntryList, Entry>(
+			"Definitions/ItemDefinitions",
+			File => File.Items);
 		// Index entries by tag so per-construction lookups (items are cloned on
 		// pickup and drop) avoid a linear scan with enum-to-string conversion
-		EntryByTag = new();
-		foreach (Entry Entry in Database)
-		{
-			if (Enum.TryParse(Entry.Tag, out Tags Tag))
-				EntryByTag[Tag] = Entry;
-		}
+		EntryByTag = DefinitionLoader.IndexByTag<Tags, Entry>(Database, Entry => Entry.Tag);
 	}
 	/// <summary>
 	/// Returns indices of all enabled items in the database, in Tags order

@@ -28,11 +28,9 @@ public class StructureInfo
 	{
 		if (Database != null)
 			return;
-		TextAsset JsonFile = Resources.Load<TextAsset>("Definitions/StructureDefinitions");
-		if (JsonFile != null)
-			Database = JsonUtility.FromJson<EntryList>(JsonFile.text).Structures;
-		else
-			Debug.LogError("StructureDefinitions.json not found in Resources folder!");
+		Database = DefinitionLoader.LoadEntries<EntryList, Entry>(
+			"Definitions/StructureDefinitions",
+			File => File.Structures);
 	}
 	public StructureInfo(int n)
 	{

@@ -59,11 +59,9 @@ public class RegionInfo
 	{
 		if (Database != null)
 			return;
-		TextAsset JsonFile = Resources.Load<TextAsset>("Definitions/RegionDefinitions");
-		if (JsonFile != null)
-			Database = JsonUtility.FromJson<EntryList>(JsonFile.text).Regions;
-		else
-			Debug.LogError("RegionDefinitions.json not found in Resources folder!");
+		Database = DefinitionLoader.LoadEntries<EntryList, Entry>(
+			"Definitions/RegionDefinitions",
+			File => File.Regions);
 	}
     /// <summary>
     /// Returns info for a desired region,

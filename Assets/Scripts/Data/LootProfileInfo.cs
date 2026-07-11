@@ -83,13 +83,7 @@ public class LootProfileInfo
 			return;
 		TuningData = new LootTuning();
 		Profiles = new List<LootProfileInfo>();
-		TextAsset JsonFile = Resources.Load<TextAsset>("Definitions/LootTables");
-		if (JsonFile == null)
-		{
-			Debug.LogError("LootTables.json not found in Resources folder!");
-			return;
-		}
-		TableFile Parsed = JsonUtility.FromJson<TableFile>(JsonFile.text);
+		TableFile Parsed = DefinitionLoader.Load<TableFile>("Definitions/LootTables");
 		if (Parsed == null)
 			return;
 		TuningData = Parsed.Tuning ?? new LootTuning();
