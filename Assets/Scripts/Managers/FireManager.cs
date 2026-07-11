@@ -77,9 +77,9 @@ public class FireManager : MonoBehaviour
     /// </summary>
     public void ResetForLevel(bool allowNaturalWildfire = true)
     {
-        DestroyAllFires();
-        if (allowNaturalWildfire)
-            TrySpawnNaturalWildfire();
+		DestroyAllFires();
+		if (allowNaturalWildfire)
+			SpawnNaturalWildfireIfRolled();
     }
     /// <summary>
     /// Destroys and clears all active fires
@@ -151,7 +151,7 @@ public class FireManager : MonoBehaviour
         return true;
     }
     /// <summary>
-    /// Returns true if the cell contains a wall tile that should block fire.
+    /// Returns true if the cell contains a wall tile that should block fire
     /// </summary>
     private bool IsBlockingWall(Vector3Int Cell)
     {
@@ -160,7 +160,7 @@ public class FireManager : MonoBehaviour
         return !IsFlammableWallTile(Cell);
     }
     /// <summary>
-    /// Returns true if the wall tile at the cell is flammable per its WallInfo definition.
+    /// Returns true if the wall tile at the cell is flammable per its WallInfo definition
     /// </summary>
     private bool IsFlammableWallTile(Vector3Int Cell)
     {
@@ -187,18 +187,13 @@ public class FireManager : MonoBehaviour
         return false;
     }
     /// <summary>
-    /// Attempts to start a natural wildfire for the current grid.
-    /// Wildfires do not expire naturally and try to fill the grid
-    /// </summary>
-    /// <summary>
-    /// Forces the given number of wildfire seeds to spawn this level, bypassing the
-    /// natural spawn chance roll. Used to guarantee wildfires on the first level.
+    /// Forces the given number of wildfire seeds to spawn this level, bypassing the natural spawn chance roll. Used to guarantee wildfires on the first level
     /// </summary>
     public void ForceSpawnWildfires(int seeds)
     {
         SpawnWildfireSeeds(Mathf.Max(1, seeds));
     }
-    private void TrySpawnNaturalWildfire()
+    private void SpawnNaturalWildfireIfRolled()
     {
         if (naturalWildfireChance <= 0f || Random.value > naturalWildfireChance)
             return;
@@ -206,8 +201,7 @@ public class FireManager : MonoBehaviour
     }
     private void SpawnWildfireSeeds(int seeds)
     {
-        // Collect every valid edge-biased seed cell so the minimum seed count is
-        // guaranteed whenever enough tiles exist, drawing distinct cells
+        // Collect every valid edge-biased seed cell so the minimum seed count is guaranteed whenever enough tiles exist, drawing distinct cells
         List<Vector3Int> Candidates = GetWildfireCandidateCells();
         if (Candidates.Count < seeds)
             Debug.LogWarning($"Only {Candidates.Count} valid tiles available, cannot guarantee " +
@@ -374,7 +368,7 @@ public class FireManager : MonoBehaviour
                 continue;
             }
             int spawnAllowance = Fire.IsWildfire ? wildfireBudget : maxNeighborSpread;
-            int spawned = TrySpreadFrom(Fire, NewFireScratch, spawnAllowance);
+            int spawned = SpreadFrom(Fire, NewFireScratch, spawnAllowance);
             if (Fire.IsWildfire)
                 wildfireBudget = Mathf.Max(0, wildfireBudget - spawned);
         }
@@ -385,9 +379,9 @@ public class FireManager : MonoBehaviour
         return NewFireScratch.Count > 0;
     }
     /// <summary>
-    /// Attempts to spread fire from a given fire tile to neighboring cells
+    /// Spreads fire from a given fire tile to neighboring cells and returns the number queued
     /// </summary>
-    private int TrySpreadFrom(Fire Fire, List<(Vector3Int Cell, bool isWildfire)> NewFires, int spawnBudget)
+    private int SpreadFrom(Fire Fire, List<(Vector3Int Cell, bool isWildfire)> NewFires, int spawnBudget)
     {
         if (spawnBudget <= 0)
             return 0;

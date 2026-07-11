@@ -66,10 +66,10 @@ public sealed class EntityVisibilityController
 		lastSortingSignature = signature;
 		int topLayerId = OverlayRenderer.sortingLayerID;
 		int topLayerValue = int.MinValue;
-		TryConsumeRendererLayer(TilemapGround, ref topLayerId, ref topLayerValue);
-		TryConsumeRendererLayer(TilemapWalls, ref topLayerId, ref topLayerValue);
-		TryConsumeRendererLayer(TilemapExit, ref topLayerId, ref topLayerValue);
-		TryConsumeRendererLayer(Player != null ? Player.GetComponent<SpriteRenderer>() : null, ref topLayerId, ref topLayerValue);
+		ConsumeRendererLayerIfValid(TilemapGround, ref topLayerId, ref topLayerValue);
+		ConsumeRendererLayerIfValid(TilemapWalls, ref topLayerId, ref topLayerValue);
+		ConsumeRendererLayerIfValid(TilemapExit, ref topLayerId, ref topLayerValue);
+		ConsumeRendererLayerIfValid(Player != null ? Player.GetComponent<SpriteRenderer>() : null, ref topLayerId, ref topLayerValue);
 		ConsumeEntityLayers(EnemyManager?.Enemies, ref topLayerId, ref topLayerValue);
 		ConsumeEntityLayers(ItemManager?.Items, ref topLayerId, ref topLayerValue);
 		ConsumeEntityLayers(VehicleManager?.Vehicles, ref topLayerId, ref topLayerValue);
@@ -79,10 +79,10 @@ public sealed class EntityVisibilityController
 			&& TilemapGround.TryGetComponent(out TilemapRenderer GroundRenderer))
 			topLayerId = GroundRenderer.sortingLayerID;
 		int maxWorldOrder = int.MinValue;
-		TryConsumeRendererOrder(TilemapGround, topLayerId, ref maxWorldOrder);
-		TryConsumeRendererOrder(TilemapWalls, topLayerId, ref maxWorldOrder);
-		TryConsumeRendererOrder(TilemapExit, topLayerId, ref maxWorldOrder);
-		TryConsumeRendererOrder(Player != null ? Player.GetComponent<SpriteRenderer>() : null, topLayerId, ref maxWorldOrder);
+		ConsumeRendererOrderIfValid(TilemapGround, topLayerId, ref maxWorldOrder);
+		ConsumeRendererOrderIfValid(TilemapWalls, topLayerId, ref maxWorldOrder);
+		ConsumeRendererOrderIfValid(TilemapExit, topLayerId, ref maxWorldOrder);
+		ConsumeRendererOrderIfValid(Player != null ? Player.GetComponent<SpriteRenderer>() : null, topLayerId, ref maxWorldOrder);
 		ConsumeEntityOrders(EnemyManager?.Enemies, topLayerId, ref maxWorldOrder);
 		ConsumeEntityOrders(ItemManager?.Items, topLayerId, ref maxWorldOrder);
 		ConsumeEntityOrders(VehicleManager?.Vehicles, topLayerId, ref maxWorldOrder);
@@ -189,7 +189,7 @@ public sealed class EntityVisibilityController
 		if (Entities == null)
 			return;
 		foreach (T Entity in Entities)
-			TryConsumeRendererLayer(Entity != null ? Entity.GetComponent<SpriteRenderer>() : null, ref topLayerId, ref topLayerValue);
+			ConsumeRendererLayerIfValid(Entity?.GetComponent<SpriteRenderer>(), ref topLayerId, ref topLayerValue);
 	}
 
 	private void ConsumeEntityOrders<T>(IEnumerable<T> Entities, int topLayerId, ref int maxWorldOrder) where T : Component
@@ -197,10 +197,10 @@ public sealed class EntityVisibilityController
 		if (Entities == null)
 			return;
 		foreach (T Entity in Entities)
-			TryConsumeRendererOrder(Entity != null ? Entity.GetComponent<SpriteRenderer>() : null, topLayerId, ref maxWorldOrder);
+			ConsumeRendererOrderIfValid(Entity?.GetComponent<SpriteRenderer>(), topLayerId, ref maxWorldOrder);
 	}
 
-	private void TryConsumeRendererLayer(Component RendererComponent, ref int topLayerId, ref int topLayerValue)
+	private void ConsumeRendererLayerIfValid(Component RendererComponent, ref int topLayerId, ref int topLayerValue)
 	{
 		if (RendererComponent == null
 			|| !TryGetSortingInfo(RendererComponent, out int layerId, out int layerValue)
@@ -231,7 +231,7 @@ public sealed class EntityVisibilityController
 		return false;
 	}
 
-	private void TryConsumeRendererOrder(Component RendererComponent, int targetLayerId, ref int maxSortingOrder)
+	private void ConsumeRendererOrderIfValid(Component RendererComponent, int targetLayerId, ref int maxSortingOrder)
 	{
 		if (RendererComponent == null
 			|| !TryGetSortingOrder(RendererComponent, out int layerId, out int sortingOrder)

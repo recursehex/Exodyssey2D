@@ -550,19 +550,21 @@ public partial class Player : MonoBehaviour
 	{
 		SelectedItemInfo.DecreaseDurability();
 		InventoryUI.SetCurrentSelected(InventoryUI.SelectedIndex);
-		TryRemoveSelectedItem();
+		RemoveSelectedItemIfDepleted();
 		// Update icons so depleted unbreakable items show their empty sprite
 		InventoryUI.RefreshInventoryIcons();
 	}
 	/// <summary>
-	/// Removes selected item from inventory and resets related variables
-	/// Unbreakable items are kept at 0 UP unless forceRemove is true
-	/// If forceRemove is true, item is removed regardless of durability
+	/// Removes a depleted selected item from inventory, preserving unbreakable items
 	/// </summary>
-	private void TryRemoveSelectedItem(bool forceRemove = false)
+	private void RemoveSelectedItemIfDepleted()
 	{
-		if (!forceRemove && (HasUses || ShouldKeepDepletedSelectedItem))
+		if (HasUses || ShouldKeepDepletedSelectedItem)
 			return;
+		RemoveSelectedItem();
+	}
+	private void RemoveSelectedItem()
+	{
 		InventoryUI.RemoveItem(InventoryUI.SelectedIndex);
 		InventoryUI.SetNoneSelected();
 		SelectedItemInfo = null;
@@ -607,7 +609,7 @@ public partial class Player : MonoBehaviour
 	/// <summary>
 	/// Clicks on item in inventory, called by InventoryIcons
 	/// </summary>
-	public void TryClickItem(int itemIndex)
+	public void HandleInventoryItemClick(int itemIndex)
 	{
 		// Ensures index is within bounds and inventory has an item
 		if (!Inventory.HasItemAt(itemIndex))
@@ -675,7 +677,7 @@ public partial class Player : MonoBehaviour
 		{
 			hasHelmet = true;
 			helmetHealth = SelectedItemInfo.CurrentUses;
-			TryRemoveSelectedItem(true);
+			RemoveSelectedItem();
 			DecrementEnergy();
 			return true;
 		}
@@ -684,7 +686,7 @@ public partial class Player : MonoBehaviour
 		{
 			hasVest = true;
 			vestHealth = SelectedItemInfo.CurrentUses;
-			TryRemoveSelectedItem(true);
+			RemoveSelectedItem();
 			DecrementEnergy();
 			return true;
 		}
@@ -692,7 +694,7 @@ public partial class Player : MonoBehaviour
 			&& !hasNightVision)
 		{
 			hasNightVision = true;
-			TryRemoveSelectedItem(true);
+			RemoveSelectedItem();
 			DecrementEnergy();
 			return true;
 		}
@@ -745,15 +747,15 @@ public partial class Player : MonoBehaviour
 		{
 			DecrementEnergy();
 			InventoryUI.SetCurrentSelected(InventoryUI.SelectedIndex);
-			TryRemoveSelectedItem();
+			RemoveSelectedItemIfDepleted();
 			return true;
 		}
 		return false;
 	}
 	/// <summary>
-	/// Tries to drop item from inventory onto the ground, called by InventoryIcons
+	/// Drops an item from inventory onto the ground when the current state permits it
 	/// </summary>
-	public void TryDropItem(int itemIndex)
+	public void DropInventoryItem(int itemIndex)
 	{
 		// Returns if called when inventory is empty
 		if (!Inventory.HasItemAt(itemIndex))

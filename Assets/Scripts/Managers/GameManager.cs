@@ -887,19 +887,19 @@ public class GameManager : MonoBehaviour
 		{
 			if (!TrySwitchVehicle(TilePoint)
 				&& TileManager.IsInTileArea(TilePoint))
-				TryExitVehicle(WorldPoint, TilePoint, ShiftedClickPoint);
+				HandleVehicleExit(WorldPoint, TilePoint, ShiftedClickPoint);
 		}
 		// If Player's vehicle is on, has fuel, and has energy, try to move or ram (both cost 1 energy)
 		else if (Player.Vehicle.Info.IsOn
 				&& Player.Vehicle.HasCharge()
 				&& Player.HasEnergy)
-			TryVehicleMovement(WorldPoint, TilePoint, ShiftedClickPoint);
+			HandleVehicleMovement(WorldPoint, TilePoint, ShiftedClickPoint);
 		return true;
 	}
 	/// <summary>
-	/// Tries to exit Player's vehicle at specified world point
+	/// Handles an attempt to exit Player's vehicle at the specified world point
 	/// </summary>
-	private void TryExitVehicle(Vector3 WorldPoint, Vector3Int TilePoint, Vector3 ShiftedClickPoint)
+	private void HandleVehicleExit(Vector3 WorldPoint, Vector3Int TilePoint, Vector3 ShiftedClickPoint)
 	{
 		// Check if Player's vehicle can exit to clicked tile
 		bool isInMovementRange = TileManager.IsInTileArea(TilePoint);
@@ -978,9 +978,9 @@ public class GameManager : MonoBehaviour
 		return true;
 	}
 	/// <summary>
-	/// Tries to move Player's vehicle to specified world point
+	/// Handles an attempt to move Player's vehicle to the specified world point
 	/// </summary>
-	private void TryVehicleMovement(Vector3 WorldPoint, Vector3Int TilePoint, Vector3 ShiftedClickPoint)
+	private void HandleVehicleMovement(Vector3 WorldPoint, Vector3Int TilePoint, Vector3 ShiftedClickPoint)
 	{
 		// If the clicked tile holds an enemy this vehicle can ram, approach and ram it instead of moving onto it
 		if (TryVehicleRam(ShiftedClickPoint))

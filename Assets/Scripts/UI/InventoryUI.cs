@@ -24,8 +24,8 @@ public class InventoryUI : MonoBehaviour
 	private int lastHoverIndex = -1;
 	private string LastHoverStats;
 	private string CachedHoverDesc;
-	private static Color DefaultColor = new(115/255f, 119/255f, 160/255f);
-	private readonly float sensitivityDistance = 0.5f;
+	private static readonly Color DefaultColor = new(115/255f, 119/255f, 160/255f);
+	private const float sensitivityDistance = 0.5f;
 	private readonly Dictionary<int, Image> InventoryIconLookup = new();
 	private readonly Dictionary<int, Transform> InventoryPressedLookup = new();
 	private Text ItemNameText;
@@ -89,17 +89,8 @@ public class InventoryUI : MonoBehaviour
 		if (SelectedIndex == index)
 		{
 			SelectedIndex = -1;
-			InventoryPressed0.transform.localScale = Vector3.one;
-			InventoryPressed1.transform.localScale = Vector3.one;
-			if (ItemNameText != null)
-			{
-				ItemNameText.text = "";
-				ItemNameText.color = DefaultColor;
-			}
-			if (ItemDescText != null)
-			{
-				ItemDescText.text = "";
-			}
+			ResetPressedStates();
+			ClearItemText();
 		}
 		Inventory.RemoveItem(index);
 		RefreshInventoryIcons();
@@ -115,16 +106,10 @@ public class InventoryUI : MonoBehaviour
 		{
 			PressedTransform.localScale = Vector3.one;
 		}
-		if (ItemNameText != null)
-		{
-			ItemNameText.text = "";
-			ItemNameText.color = DefaultColor;
-		}
-		if (ItemDescText != null)
-			ItemDescText.text = "";
+		ClearItemText();
 	}
 	/// <summary>
-	/// Refreshes inventory text, called by TryDropItem
+	/// Refreshes inventory text after an inventory item changes
 	/// </summary>
 	public void RefreshText()
 	{
@@ -142,15 +127,7 @@ public class InventoryUI : MonoBehaviour
 			}
 		}
 		else
-		{
-			if (ItemNameText != null)
-			{
-				ItemNameText.text = "";
-				ItemNameText.color = DefaultColor;
-			}
-			if (ItemDescText != null)
-				ItemDescText.text = "";
-		}
+			ClearItemText();
 	}
 	/// <summary>
 	/// Refreshes items in inventory UI to match changed items
@@ -212,9 +189,13 @@ public class InventoryUI : MonoBehaviour
 	{
 		ResetPressedStates();
 		SelectedIndex 	= -1;
-		CachedName 		= "";
-		CachedColor 	= DefaultColor;
-		CachedDesc 		= "";
+		ClearItemText();
+	}
+	private void ClearItemText()
+	{
+		CachedName = string.Empty;
+		CachedColor = DefaultColor;
+		CachedDesc = string.Empty;
 		if (ItemNameText != null)
 		{
 			ItemNameText.text = CachedName;
@@ -307,15 +288,7 @@ public class InventoryUI : MonoBehaviour
 		if (mouseIsOverIcon)
 			return;
 		if (SelectedIndex == -1)
-		{
-			if (NameText != null)
-			{
-				NameText.text 	= "";
-				NameText.color 	= DefaultColor;
-			}
-			if (DescText != null)
-				DescText.text 	= "";
-		}
+			ClearItemText();
 		else
 		{
 			if (NameText != null)

@@ -68,7 +68,7 @@ public class DragAndDrop : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
 			Vector3Int DropCell = TilemapGround.WorldToCell(WorldPosition);
 			// Drop item if let go within cell bounds
 			if (CellBounds.Contains(DropCell))
-				Player.TryDropItem(inventoryIndex);
+				Player.DropInventoryItem(inventoryIndex);
 		// Return the icon to its original position
 		RectTransform.localPosition = OriginalPosition;
 		transform.SetParent(ParentAfterDrag);

@@ -62,7 +62,7 @@ public class CheatMenu : MonoBehaviour
 	private GUIStyle titleStyle;
 	private GUIStyle hintStyle;
 
-	private void TryInitialize()
+	private void InitializeWhenReady()
 	{
 		if (GameManager.Instance == null)
 			return;
@@ -90,7 +90,7 @@ public class CheatMenu : MonoBehaviour
 	{
 		if (!initialized)
 		{
-			TryInitialize();
+			InitializeWhenReady();
 			if (!initialized)
 				return;
 		}

@@ -12,8 +12,7 @@ public class InputManager : MonoBehaviour
     private InputAction InteractAction;
     private InputAction Drop1Action;
     private InputAction Drop2Action;
-    public delegate void PlayerActionDelegate(Vector3 WorldPoint, Vector3Int
-TilePoint, Vector3 ShiftedClickPoint);
+    public delegate void PlayerActionDelegate(Vector3 WorldPoint, Vector3Int TilePoint, Vector3 ShiftedClickPoint);
     public event PlayerActionDelegate OnPlayerClick;
     public event PlayerActionDelegate OnPlayerHover;
     public void Initialize(Camera MainCamera, Tilemap TilemapGround, Player Player, CursorController CursorController)
@@ -41,9 +40,9 @@ TilePoint, Vector3 ShiftedClickPoint);
 		Vector3 ShiftedClickPoint = GridCoordinates.GetCellCenter(TilePoint);
 
         if (Drop1Action != null && Drop1Action.WasPressedThisFrame())
-            Player.TryDropItem(0);
+            Player.DropInventoryItem(0);
         else if (Drop2Action != null && Drop2Action.WasPressedThisFrame())
-            Player.TryDropItem(1);
+            Player.DropInventoryItem(1);
 
         bool clicked = ClickAction.WasPressedThisFrame() || InteractAction.WasPressedThisFrame();
         if (clicked && CellBounds.Contains(TilePoint))
