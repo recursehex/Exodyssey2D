@@ -782,8 +782,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 569674968}
-        m_TargetAssemblyTypeName: Player, Assembly-CSharp
-        m_MethodName: TryClickItem
+        m_TargetAssemblyTypeName: Player, Exodyssey
+        m_MethodName: HandleInventoryItemClick
         m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -862,8 +862,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   MainCamera: {fileID: 519420031}
   Player: {fileID: 569674968}
-  doingSetup: 0
-  turnPhaseDelay: 0.5
+  <CurrentPhase>k__BackingField: 0
+  turnPhaseDelay: 0.25
   RegionManager: {fileID: 429070325}
   EnemyTemplates:
   - {fileID: 8301553589233551289, guid: 3a66190a890058e44bc0653995faf798, type: 3}
@@ -2319,8 +2319,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 569674968}
-        m_TargetAssemblyTypeName: Player, Assembly-CSharp
-        m_MethodName: TryClickItem
+        m_TargetAssemblyTypeName: Player, Exodyssey
+        m_MethodName: HandleInventoryItemClick
         m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

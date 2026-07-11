@@ -16,7 +16,7 @@ public class VisibilityManager : MonoBehaviour
 	// How dark the first grid starts before the darkness recedes (0 = pitch black, 1 = full daylight)
 	[SerializeField] private float wakeUpStartAmbient = 0.02f;
 	// How quickly the wake-up darkness recedes to daylight; higher is faster
-	[SerializeField] private float wakeUpTransitionSpeed = 0.5f;
+	[SerializeField] private float wakeUpTransitionSpeed = 1f;
 	[SerializeField] private float nightAmbient = 0.08f;
 	[SerializeField] private float nightVisionAmbient = 0.95f;
 	[SerializeField] private float overlayDarkAlpha = 0.95f;
