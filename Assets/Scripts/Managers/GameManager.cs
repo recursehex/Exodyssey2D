@@ -17,10 +17,6 @@ public class GameManager : MonoBehaviour
 	private Coroutine FireTurnRoutine;
 	private Coroutine PlayerTurnDelayRoutine;
 	private Coroutine ExitTransitionRoutine;
-	private readonly List<Item> LitDynamite = new();
-	private const string UndoAfterItemAction = "Undo history cleared after using an item.";
-	private const string UndoAfterTileItemAction = "Undo history cleared after using an item on a tile.";
-	private const string UndoAfterAttack = "Undo history cleared after attacking.";
 	// Vehicle the player is walking toward to enter once the movement completes
 	private Vehicle PendingEnterVehicle;
 	[Header("Managers")]
@@ -38,6 +34,7 @@ public class GameManager : MonoBehaviour
 	private ChronoclasmManager ChronoclasmManager;
 	private TilemapRevealAnimator TilemapRevealAnimator;
 	private VisibilityManager VisibilityManager;
+	private PlayerActionController PlayerActions;
 	private CursorController CursorController;
 	[Header("Prefab Templates")]
 	[SerializeField] private GameObject[] EnemyTemplates;
@@ -92,6 +89,7 @@ public class GameManager : MonoBehaviour
 		ChronoclasmManager = gameObject.AddComponent<ChronoclasmManager>();
 		TilemapRevealAnimator = gameObject.AddComponent<TilemapRevealAnimator>();
 		VisibilityManager = gameObject.AddComponent<VisibilityManager>();
+		PlayerActions = gameObject.AddComponent<PlayerActionController>();
 		// Initialize managers
 		RegionManager	.Initialize();
 		LootManager		.Initialize(RegionManager);
@@ -105,6 +103,7 @@ public class GameManager : MonoBehaviour
 		LevelManager	.Initialize(TilemapGround, TilemapWalls, TilemapExit, RegionManager, RegionText, DayText, LevelText, LevelImage, TilemapRevealAnimator);
 		ChronoclasmManager.Initialize(this, TurnManager, TileManager, Player, TilemapGround);
 		VisibilityManager.Initialize(this, TilemapGround, TilemapWalls, TilemapExit, Player, LevelManager, EnemyManager, ItemManager, VehicleManager, StructureManager, FireManager);
+		PlayerActions.Initialize(this, Player, TileManager, TurnManager, LevelManager, ChronoclasmManager, StructureManager, EnemyManager, ItemManager, TilemapGround, TilemapWalls);
 		// Subscribe to events
 		TurnManager.OnPlayerTurnEnded 	+= OnPlayerTurnEnded;
 		TurnManager.OnEnemyTurnEnded 	+= OnEnemyTurnEnded;
@@ -175,7 +174,7 @@ public class GameManager : MonoBehaviour
 		ChronoclasmManager.HandleGridExit();
 		TurnManager.TurnTimer.timerIsRunning = false;
 		TurnManager.TurnTimer.ResetTimer();
-		LitDynamite.Clear();
+		PlayerActions.ClearTransientState();
 		PendingEnterVehicle = null;
 		FireManager.DestroyAllFires();
 		ItemManager.DestroyAllItems();
@@ -337,7 +336,7 @@ public class GameManager : MonoBehaviour
 	private void CleanupWorldEntities()
 	{
 		TurnManager.StopTurnTimer();
-		LitDynamite.Clear();
+		PlayerActions.ClearTransientState();
 		PendingEnterVehicle = null;
 		ItemManager.DestroyAllItems();
 		EnemyManager.DestroyAllEnemies();
@@ -708,7 +707,7 @@ public class GameManager : MonoBehaviour
 		if (turnPhaseDelay > 0f)
 			yield return new WaitForSecondsRealtime(turnPhaseDelay);
 		FireManager.HandleTurnStart(true);
-		ProcessDynamiteExplosions();
+		PlayerActions.ProcessDynamiteExplosions();
 		// Fire or dynamite may have killed the player; stop instead of re-enabling
 		// the turn UI behind the game-over screen
 		if (IsGameOver)
@@ -803,21 +802,21 @@ public class GameManager : MonoBehaviour
 			TileManager.TileDot.SetActive(false);
 			return;
 		}
-		if (Player.HasEnergy && TryBreakWall(TilePoint, ShiftedClickPoint)) return;
-		if (Player.HasEnergy && TryIgniteWall(TilePoint)) return;
+		if (Player.HasEnergy && PlayerActions.TryBreakWall(TilePoint, ShiftedClickPoint)) return;
+		if (Player.HasEnergy && PlayerActions.TryIgniteWall(TilePoint)) return;
 		if (!LevelManager.HasWallAtPosition(TilePoint))
 		{
 			if (PlayerIsInVehicle(WorldPoint, TilePoint, ShiftedClickPoint)) return;
 			if (TryAddItem(ShiftedClickPoint)) return;
 			if (!Player.HasEnergy) return;
-			if (TryInteractWithStructure(TilePoint)) return;
-			if (TryUseItemOnTile(TilePoint, ShiftedClickPoint)) return;
-			if (TryUseItemOnPlayer(ShiftedClickPoint)) return;
-			if (TryUseItemOnVehicle(TilePoint)) return;
+			if (PlayerActions.TryInteractWithStructure(TilePoint)) return;
+			if (PlayerActions.TryUseItemOnTile(TilePoint, ShiftedClickPoint)) return;
+			if (PlayerActions.TryUseItemOnPlayer(ShiftedClickPoint)) return;
+			if (PlayerActions.TryUseItemOnVehicle(TilePoint)) return;
 			if (TryEnterVehicle(TilePoint)) return;
-			if (TryThrowDynamite(TilePoint, ShiftedClickPoint)) return;
+			if (PlayerActions.TryThrowDynamite(TilePoint, ShiftedClickPoint)) return;
 			if (TryPlayerMovement(WorldPoint, TilePoint, ShiftedClickPoint)) return;
-			TryPlayerAttack(ShiftedClickPoint);
+			PlayerActions.TryPlayerAttack(ShiftedClickPoint);
 		}
 	}
 	/// <summary>
@@ -856,9 +855,9 @@ public class GameManager : MonoBehaviour
 		// If Player's vehicle is at clicked position, try self-use item first (e.g. flare), then toggle ignition
 		if (Player.Vehicle.transform.position == ShiftedClickPoint)
 		{
-			if (Player.HasEnergy && Player.ClickOnToUseItem())
-				CompleteWorldAction(UndoAfterItemAction);
-			else
+			bool usedItem = Player.HasEnergy
+				&& PlayerActions.TryUseItemOnPlayer(Player.transform.position);
+			if (!usedItem)
 			{
 				Player.Vehicle.SwitchIgnition();
 				TileManager.ClearTileAreas();
@@ -1079,88 +1078,6 @@ public class GameManager : MonoBehaviour
 		RefreshVisibility();
 		return true;
 	}
-	/// <summary>
-	/// Tries to use a selected item directly on the clicked tile
-	/// </summary>
-	private bool TryUseItemOnTile(Vector3Int TilePoint, Vector3 ShiftedClickPoint)
-	{
-		ItemInfo Selected = Player.SelectedItemInfo;
-		if (Selected == null)
-			return false;
-		// Extinguisher puts out fire on the clicked tile
-		if (Selected.Tag is ItemInfo.Tags.Extinguisher)
-		{
-			if (!IsPlayerAdjacentTo(ShiftedClickPoint))
-				return false;
-			bool didSomething = false;
-			if (HasFireAtPosition(TilePoint)
-				&& TryExtinguishFire(TilePoint))
-				didSomething = true;
-			Item LitDynamiteItem = LitDynamite.Find(Dynamite => Dynamite != null && Dynamite.transform.position == ShiftedClickPoint);
-			if (LitDynamiteItem != null)
-			{
-				LitDynamite.Remove(LitDynamiteItem);
-				SetDynamiteLitSprite(LitDynamiteItem, false);
-				didSomething = true;
-			}
-			if (didSomething)
-			{
-				Player.UseItem();
-				CompleteWorldAction(UndoAfterTileItemAction);
-				return true;
-			}
-		}
-		// Firestarters place a fire tile, but only if no fire, wall, enemy, or player at position
-		// (vehicles may be set on fire, so they are allowed)
-		else if (Selected.Tag is ItemInfo.Tags.Blowtorch or ItemInfo.Tags.Flamethrower)
-		{
-			if (!TileManager.IsInTileArea(TilePoint)
-				|| LevelManager.HasWallAtPosition(TilePoint)
-				|| HasEnemyAtPosition(ShiftedClickPoint)
-				|| HasFireAtPosition(TilePoint)
-				|| ShiftedClickPoint == Player.transform.position)
-				return false;
-			bool spawnedFire = Selected.Tag == ItemInfo.Tags.Flamethrower
-				? TrySpawnFlamethrowerLine(ShiftedClickPoint)
-				: TrySpawnFire(TilePoint, false, true);
-			if (spawnedFire)
-			{
-				Player.UseItem();
-				CompleteWorldAction(UndoAfterTileItemAction);
-				return true;
-			}
-		}
-		return false;
-	}
-	/// <summary>
-	/// Tries use an item on Player at specified shifted click point
-	/// </summary>
-    private bool TryUseItemOnPlayer(Vector3 ShiftedClickPoint)
-	{
-		// Return false if Player is not adjacent to clicked position or if click fails
-		if (ShiftedClickPoint != Player.transform.position
-			|| !Player.ClickOnToUseItem())
-			return false;
-		CompleteWorldAction(UndoAfterItemAction);
-		return true;
-	}
-	/// <summary>
-	/// Tries use an item on a vehicle at specified tile point
-	/// </summary>
-	private bool TryUseItemOnVehicle(Vector3Int TilePoint)
-	{
-		// Get vehicle index at position
-		Vehicle Vehicle = GetVehicleAtPosition(TilePoint);
-		// Return false if no vehicle found or Player has no selected item
-		if (Vehicle == null)
-			return false;
-		// Return false if player is not adjacent to vehicle or if click fails
-		if (!IsPlayerAdjacentTo(Vehicle.transform.position)
-			|| !Player.ClickOnVehicleToUseItem(Vehicle))
-			return false;
-		CompleteWorldAction("Undo history cleared after using an item on a vehicle.");
-		return true;
-	}
 	private bool TryEnterVehicle(Vector3Int TilePoint)
 	{
 		// Get vehicle at position
@@ -1307,44 +1224,12 @@ public class GameManager : MonoBehaviour
 			_ => false
 		};
 	}
-	private bool TryInteractWithStructure(Vector3Int TilePoint)
-	{
-		Structure Structure = StructureManager.GetStructureAtCell(TilePoint);
-		if (Structure == null || !Structure.Info.IsInteractable || Structure.Info.IsLooted)
-			return false;
-		if (!Structure.IsAdjacentTo(Player.transform.position))
-			return false;
-		bool interacted = false;
-		switch (Structure.Info.Tag)
-		{
-			case StructureInfo.Tags.MedCrate:
-				interacted = InteractMedCrate(Structure);
-				break;
-		}
-		if (!interacted)
-			return false;
-		Player.SpendEnergy(1);
-		CompleteAction("Undo history cleared after structure interaction.");
-		return true;
-	}
-	private bool InteractMedCrate(Structure Structure)
-	{
-		Structure.Info.IsLooted = true;
-		Structure.UpdateSprite();
-		ItemInfo MedKitInfo = new((int)ItemInfo.Tags.MedKit);
-		Inventory Inventory = Player.InventoryUI.Inventory;
-		if (Inventory != null && Inventory.TryAddItem(MedKitInfo))
-			Player.InventoryUI.RefreshInventoryIcons();
-		else
-			SpawnItem(MedKitInfo, Player.transform.position);
-		return true;
-	}
 	/// <summary>
 	/// Tries to move Player to clicked tile point
 	/// </summary>
 	private bool TryPlayerMovement(Vector3 WorldPoint, Vector3Int TilePoint, Vector3 ShiftedClickPoint)
 	{
-		if (IsFirestarterSelected() || IsDynamiteSelected())
+		if (PlayerActions.IsFirestarterSelected() || PlayerActions.IsDynamiteSelected())
 			return false;
 		// Check if player can move to clicked tile
 		bool isInMovementRange = TileManager.IsInTileArea(TilePoint);
@@ -1372,231 +1257,10 @@ public class GameManager : MonoBehaviour
 		return true;
 	}
 	/// <summary>
-	/// Tries to attack an enemy at specified tile point
-	/// </summary>
-    private void TryPlayerAttack(Vector3 ShiftedClickPoint)
-	{
-		// Check if player can attack an enemy at clicked tile
-		bool isInMeleeRange = IsPlayerAdjacentTo(ShiftedClickPoint);
-		bool isInRangedWeaponRange = Player.HasRange && TileManager.IsInRangedWeaponRange(ShiftedClickPoint);
-		// Return if no enemy found, not in melee or ranged weapon range, or selected item is not a weapon
-		if (!HasEnemyAtPosition(ShiftedClickPoint)
-			|| !isInMeleeRange
-			&& !isInRangedWeaponRange
-			|| Player.SelectedItemInfo?.Type is not ItemInfo.Types.Weapon
-			|| !Player.HasUses)
-			return;
-		if (IsDynamiteSelected())
-			return;
-		// Flamethrower sprays a fire streak; blowtorch spawns a single fire tile
-		if (Player.SelectedItemInfo.Tag is ItemInfo.Tags.Blowtorch or ItemInfo.Tags.Flamethrower)
-		{
-			Vector3Int TilePoint = TilemapGround.WorldToCell(ShiftedClickPoint);
-			if (LevelManager.HasWallAtPosition(TilePoint)
-				|| HasFireAtPosition(TilePoint)
-				|| HasVehicleAtPosition(ShiftedClickPoint)
-				|| ShiftedClickPoint == Player.transform.position)
-				return;
-			bool spawnedFire = Player.SelectedItemInfo.Tag is ItemInfo.Tags.Flamethrower
-				? TrySpawnFlamethrowerLine(ShiftedClickPoint)
-				: TrySpawnFire(TilePoint, false, true);
-			if (spawnedFire)
-			{
-				Player.AttackEntity();
-				CompleteWorldAttack();
-			}
-			return;
-		}
-		// Drop a rock after it is thrown
-		if (Player.SelectedItemInfo.Tag == ItemInfo.Tags.Rock)
-			SpawnItem((int)Player.SelectedItemInfo.Tag, ShiftedClickPoint);
-		// Handle damage to enemy
-		Enemy Enemy = GetEnemyAtPosition(ShiftedClickPoint);
-		EnemyManager.HandleDamageToEnemy(Enemy, Player.GetDamagePointsAgainst(Enemy), Player.SelectedItemInfo.IsStunning);
-		Player.AttackEntity();
-		CompleteAttack();
-	}
-	/// <summary>
-	/// Spawns a flamethrower fire streak between Player and target
-	/// </summary>
-	private bool TrySpawnFlamethrowerLine(Vector3 TargetWorldPosition)
-	{
-		Vector3Int TargetCell = TilemapGround.WorldToCell(TargetWorldPosition);
-		if (!TrySpawnFire(TargetCell, false, true))
-			return false;
-		List<Vector3Int> LineCells = TileManager.BresenhamsAlgorithm(Player.transform.position, TargetWorldPosition);
-		Vector3Int PlayerCell = TilemapGround.WorldToCell(Player.transform.position);
-		foreach (Vector3Int Cell in LineCells)
-		{
-			if (Cell == PlayerCell || Cell == TargetCell)
-				continue;
-			TrySpawnFire(Cell, false, true);
-		}
-		return true;
-	}
-	/// <summary>
 	/// Checks if Player is adjacent to a specified position
 	/// </summary>
 	private bool IsPlayerAdjacentTo(Vector3 Position) => Vector3.Distance(Player.transform.position, Position) <= 1.0f;
-	/// <summary>
-	/// Returns true when Player has a selected firestarter item
-	/// </summary>
-	private bool IsFirestarterSelected() => Player.SelectedItemInfo?.Tag is ItemInfo.Tags.Blowtorch or ItemInfo.Tags.Flamethrower;
-	private bool IsDynamiteSelected() => Player.SelectedItemInfo?.Tag is ItemInfo.Tags.Dynamite;
-	private bool IsValidFireTarget(Vector3Int Cell)
-	{
-		if (!IsCellVisible(Cell))
-			return false;
-		if (Cell == TilemapGround.WorldToCell(Player.transform.position))
-			return false;
-		if (LevelManager.HasWallAtPosition(Cell))
-			return false;
-		if (HasFireAtPosition(Cell))
-			return false;
-		Vector3 WorldPosition = GridCoordinates.GetCellCenter(Cell);
-		if (HasEnemyAtPosition(WorldPosition))
-			return false;
-		// Vehicles can be set on fire, so their tiles are valid firestarter targets
-		return true;
-	}
-	private bool IsValidDynamiteTarget(Vector3Int Cell)
-	{
-		if (!IsCellVisible(Cell))
-			return false;
-		if (Cell == TilemapGround.WorldToCell(Player.transform.position))
-			return false;
-		if (LevelManager.HasWallAtPosition(Cell))
-			return false;
-		return true;
-	}
-	private bool TryThrowDynamite(Vector3Int TilePoint, Vector3 ShiftedClickPoint)
-	{
-		if (!IsDynamiteSelected()
-			|| !Player.HasUses
-			|| ShiftedClickPoint == Player.transform.position
-			|| !TileManager.IsInTileArea(TilePoint))
-			return false;
-		Item SpawnedDynamite = SpawnItem((int)ItemInfo.Tags.Dynamite, ShiftedClickPoint);
-		SetDynamiteLitSprite(SpawnedDynamite, true);
-		LitDynamite.Add(SpawnedDynamite);
-		Player.AttackEntity();
-		CompleteAttack("Undo history cleared after throwing dynamite.");
-		return true;
-	}
-	public void RemoveLitDynamite(Item Dynamite)
-	{
-		LitDynamite.Remove(Dynamite);
-	}
-	private static void SetDynamiteLitSprite(Item Dynamite, bool Lit)
-	{
-		string Path = Lit ? "Sprites/dynamite_lit" : "Sprites/dynamite";
-		Sprite Sprite = Resources.Load<Sprite>(Path);
-		if (Sprite != null)
-			Dynamite.GetComponent<SpriteRenderer>().sprite = Sprite;
-	}
-	private void ProcessDynamiteExplosions()
-	{
-		if (LitDynamite.Count == 0)
-			return;
-		List<Item> ToProcess = new(LitDynamite);
-		LitDynamite.Clear();
-		foreach (Item Dynamite in ToProcess)
-		{
-			if (Dynamite == null)
-				continue;
-			Vector3 Position = Dynamite.transform.position;
-			int damage = Dynamite.Info.DamagePoints;
-			ItemManager.RemoveItemAtPosition(Dynamite);
-			Destroy(Dynamite.gameObject);
-			ExplodeArea(Position, damage);
-		}
-		RefreshVisibility();
-	}
-	private bool TryBreakWall(Vector3Int TilePoint, Vector3 ShiftedClickPoint)
-	{
-		if (!LevelManager.HasWallAtPosition(TilePoint)
-			|| !IsPlayerAdjacentTo(ShiftedClickPoint)
-			|| Player.SelectedItemInfo == null
-			|| !Player.HasUses)
-			return false;
-		Sprite WallSprite = TilemapWalls.GetSprite(TilePoint);
-		WallInfo Wall = WallInfo.Get(WallSprite != null ? WallSprite.name : "");
-		if (Wall == null
-			|| !Wall.IsChoppable
-			|| Player.SelectedItemInfo.Tag != Wall.ChopTool)
-			return false;
-		TilemapWalls.SetTile(TilePoint, null);
-		if (Wall.DropItem != ItemInfo.Tags.Unknown)
-			SpawnItem((int)Wall.DropItem, ShiftedClickPoint);
-		Player.AttackEntity();
-		CompleteWorldAction("Undo history cleared after breaking a wall.");
-		return true;
-	}
-	/// <summary>
-	/// Sets a flammable wall tile on fire when a firestarter is selected and the wall is within reach
-	/// </summary>
-	private bool TryIgniteWall(Vector3Int TilePoint)
-	{
-		if (!IsFirestarterSelected()
-			|| !Player.HasUses
-			|| !LevelManager.HasWallAtPosition(TilePoint)
-			|| HasFireAtPosition(TilePoint))
-			return false;
-		Sprite WallSprite = TilemapWalls.GetSprite(TilePoint);
-		WallInfo Wall = WallInfo.Get(WallSprite != null ? WallSprite.name : "");
-		if (Wall == null || !Wall.IsFlammable)
-			return false;
-		if (!HasFirestarterReachToWall(TilePoint))
-			return false;
-		// Flamethrower sprays a fire streak up to the wall; blowtorch ignites the wall directly
-		Vector3 WallCenter = GridCoordinates.GetCellCenter(TilePoint);
-		bool spawnedFire = Player.SelectedItemInfo.Tag is ItemInfo.Tags.Flamethrower
-			? TrySpawnFlamethrowerLine(WallCenter)
-			: TrySpawnFire(TilePoint, false, true);
-		if (!spawnedFire)
-			return false;
-		Player.UseItem();
-		TileManager.TileDot.SetActive(false);
-		CompleteWorldAction(UndoAfterTileItemAction);
-		return true;
-	}
-	private void CompleteAction(string UndoReason)
-	{
-		TurnManager.TurnTimer.StartTimer();
-		UpdateTileAreas();
-		ChronoclasmManager.ClearUndoHistory(UndoReason);
-	}
-	private void CompleteWorldAction(string UndoReason)
-	{
-		RefreshVisibility();
-		CompleteAction(UndoReason);
-	}
-	private void CompleteAttack(string UndoReason = UndoAfterAttack)
-	{
-		TurnManager.TurnTimer.StartTimer();
-		TileManager.TileDot.SetActive(false);
-		UpdateTargets();
-		UpdateTileAreas();
-		ChronoclasmManager.ClearUndoHistory(UndoReason);
-	}
-	private void CompleteWorldAttack()
-	{
-		RefreshVisibility();
-		CompleteAttack();
-	}
-	/// <summary>
-	/// Returns true if a firestarter can reach a flammable wall: any firestarter point-blank
-	/// (adjacent), or the flamethrower at range with a clear line of sight to the wall
-	/// </summary>
-	private bool HasFirestarterReachToWall(Vector3Int WallCell)
-	{
-		Vector3 WallCenter = GridCoordinates.GetCellCenter(WallCell);
-		if (IsPlayerAdjacentTo(WallCenter))
-			return true;
-		if (Player.SelectedItemInfo.Tag is not ItemInfo.Tags.Flamethrower || !Player.HasRange)
-			return false;
-		return TileManager.HasLineOfSightToWall(Player.transform.position, WallCell, Player.WeaponRange, TilemapWalls);
-	}
+	public void RemoveLitDynamite(Item Dynamite) => PlayerActions.RemoveLitDynamite(Dynamite);
 	public void ExplodeArea(Vector3 Center, int damage)
 	{
 		Vector3Int CenterCell = TilemapGround.WorldToCell(Center);
@@ -1680,7 +1344,7 @@ public class GameManager : MonoBehaviour
 		}
 		Dictionary<Vector3Int, Node> AreasToDraw = null;
 		// Firestarters override movement areas while on foot
-		if (!Player.IsInVehicle && IsFirestarterSelected())
+		if (!Player.IsInVehicle && PlayerActions.IsFirestarterSelected())
 		{
 			Vector3 PlayerPosition = Player.transform.position;
 			Vector3Int PlayerCell = TilemapGround.WorldToCell(PlayerPosition);
@@ -1692,10 +1356,10 @@ public class GameManager : MonoBehaviour
 				useLineOfSight,
 				TilemapWalls,
 				TilemapGround.cellBounds,
-				IsValidFireTarget);
+				PlayerActions.IsValidFireTarget);
 		}
 		// Dynamite overrides movement areas while on foot
-		else if (!Player.IsInVehicle && IsDynamiteSelected())
+		else if (!Player.IsInVehicle && PlayerActions.IsDynamiteSelected())
 		{
 			Vector3 PlayerPosition = Player.transform.position;
 			Vector3Int PlayerCell = TilemapGround.WorldToCell(PlayerPosition);
@@ -1706,7 +1370,7 @@ public class GameManager : MonoBehaviour
 				true,
 				TilemapWalls,
 				TilemapGround.cellBounds,
-				IsValidDynamiteTarget);
+				PlayerActions.IsValidDynamiteTarget);
 		}
 		// If Player is in a vehicle that is on and has charge, calculate vehicle area
 		else if (Player.IsInVehicle
@@ -1749,7 +1413,7 @@ public class GameManager : MonoBehaviour
 			return;
 		}
 		// Dynamite uses tile areas instead of enemy targets
-		if (IsDynamiteSelected())
+		if (PlayerActions.IsDynamiteSelected())
 		{
 			TileManager.ClearTargets();
 			return;
