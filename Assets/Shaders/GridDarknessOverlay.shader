@@ -62,6 +62,14 @@ Shader "Custom/GridDarknessOverlay"
 				return o;
 			}
 
+			float RoundedBoxDistance(float2 sourceOffset, float2 halfExtents, float cornerRadius)
+			{
+				float2 roundedOffset = sourceOffset - (halfExtents - cornerRadius);
+				return length(max(roundedOffset, 0))
+					+ min(max(roundedOffset.x, roundedOffset.y), 0)
+					- cornerRadius;
+			}
+
 			fixed4 frag(v2f i) : SV_Target
 			{
 				float illumination = saturate(_Ambient);
@@ -72,16 +80,27 @@ Shader "Custom/GridDarknessOverlay"
 						break;
 					float4 lightData = _LightData[index];
 					bool isVehicleBeam = lightData.z < 0;
+					bool isCrossLight = !isVehicleBeam && lightData.w < 0;
 					float squareHalfExtent = max(abs(lightData.z), 0.0001);
 					float2 halfExtents = isVehicleBeam
 						? float2(squareHalfExtent, 0.5)
 						: float2(squareHalfExtent, squareHalfExtent);
 					float cornerRadius = min(_LightCornerRadius, min(halfExtents.x, halfExtents.y));
 					float2 sourceOffset = abs(i.worldPos - lightData.xy);
-					float2 roundedOffset = sourceOffset - (halfExtents - cornerRadius);
-					float signedDistance = length(max(roundedOffset, 0))
-						+ min(max(roundedOffset.x, roundedOffset.y), 0)
-						- cornerRadius;
+					float signedDistance = RoundedBoxDistance(sourceOffset, halfExtents, cornerRadius);
+					if (isCrossLight)
+					{
+						float crossCornerRadius = min(_LightCornerRadius, 0.5);
+						float horizontalDistance = RoundedBoxDistance(
+							sourceOffset,
+							float2(squareHalfExtent, 0.5),
+							crossCornerRadius);
+						float verticalDistance = RoundedBoxDistance(
+							sourceOffset,
+							float2(0.5, squareHalfExtent),
+							crossCornerRadius);
+						signedDistance = min(horizontalDistance, verticalDistance);
+					}
 					float halfFeather = _LightEdgeFeather * 0.5;
 					float edgeProgress = saturate(
 						(signedDistance + halfFeather) / max(_LightEdgeFeather, 0.0001));
@@ -93,9 +112,19 @@ Shader "Custom/GridDarknessOverlay"
 						: saturate(max(
 							sourceOffset.x / halfExtents.x,
 							sourceOffset.y / halfExtents.y));
+					if (isCrossLight)
+					{
+						float horizontalProgress = max(
+							sourceOffset.x / squareHalfExtent,
+							sourceOffset.y / 0.5);
+						float verticalProgress = max(
+							sourceOffset.x / 0.5,
+							sourceOffset.y / squareHalfExtent);
+						distanceFromSource = saturate(min(horizontalProgress, verticalProgress));
+					}
 					float interiorGradient = exp2(
 						-_LightFalloffStrength * distanceFromSource * distanceFromSource);
-					illumination += edgeMask * interiorGradient * lightData.w * availableLight;
+					illumination += edgeMask * interiorGradient * abs(lightData.w) * availableLight;
 				}
 				illumination = min(saturate(illumination), _MaxIllumination);
 				float darkness = 1.0 - illumination;

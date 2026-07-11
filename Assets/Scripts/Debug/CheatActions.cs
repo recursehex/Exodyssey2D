@@ -360,6 +360,8 @@ public class CheatActions
 		if (!Ready) return CheatResult.Fail("Game not ready");
 		LevelManager.Debug_SetTimeOfDay(Time);
 		GameManager.RefreshVisibilityImmediately();
+		GameManager.UpdateTileAreas();
+		GameManager.UpdateTargets();
 		return CheatResult.Pass($"Time set to {Time}");
 	}
 

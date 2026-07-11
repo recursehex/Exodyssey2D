@@ -773,7 +773,6 @@ public partial class Player : MonoBehaviour
 				GameManager.Instance.ClearTargets();
 			SelectedItemInfo = null;
 			InventoryUI.DeselectItem(itemIndex);
-			GameManager.Instance.UpdateTileAreas();
 		}
 		Item ItemAtPosition = GameManager.Instance.GetItemAtPosition(transform.position);
 		// If there is item at Player's position
@@ -792,6 +791,7 @@ public partial class Player : MonoBehaviour
 		// Drop item onto ground from temp slot with preserved state
 		GameManager.Instance.SpawnItem(DroppedItemInfo, transform.position);
 		GameManager.Instance.RefreshVisibility();
+		GameManager.Instance.UpdateTileAreas();
 		// Removes item from inventory and plays corresponding sound
 		SoundManager.Instance.PlaySound(Move);
 	}
