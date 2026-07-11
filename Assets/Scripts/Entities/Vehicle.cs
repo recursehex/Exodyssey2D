@@ -158,7 +158,7 @@ public class Vehicle : MonoBehaviour
 		if (!IsWithinRange(ApproachCell))
 			return false;
 		AStar.Initialize();
-		Vector3 ApproachWorldPos = ApproachCell + new Vector3(0.5f, 0.5f);
+		Vector3 ApproachWorldPos = GridCoordinates.GetCellCenter(ApproachCell);
 		Stack<Vector3Int> FullPath = AStar.ComputePath(transform.position, ApproachWorldPos);
 		if (FullPath == null || FullPath.Count < 2)
 			return false;
@@ -198,7 +198,7 @@ public class Vehicle : MonoBehaviour
 		while (Path != null && Path.Count >= 0)
 		{
 			SoundManager.Instance.PlaySound(Move);
-			Vector3 ShiftedDistance = Destination + new Vector3(0.5f, 0.5f);
+			Vector3 ShiftedDistance = GridCoordinates.GetCellCenter(Destination);
 			// Move vehicle smoothly to next tile; comparing positions avoids the
 			// square root Vector3.Distance takes every frame
 			while (transform.position != ShiftedDistance)

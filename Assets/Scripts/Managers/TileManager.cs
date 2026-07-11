@@ -46,7 +46,7 @@ public class TileManager : MonoBehaviour
         // Draw new areas
         foreach (KeyValuePair<Vector3Int, Node> TileAreaPosition in TileAreasToDraw)
         {
-            Vector3 ShiftedDistance = TileAreaPosition.Value.Position + new Vector3(0.5f, 0.5f);
+			Vector3 ShiftedDistance = GridCoordinates.GetCellCenter(TileAreaPosition.Value.Position);
             GameObject TileArea = SpawnMarker(TileAreaPool, TileAreaTemplate, ShiftedDistance);
             TileAreas.Add(TileArea);
         }
@@ -113,7 +113,7 @@ public class TileManager : MonoBehaviour
                         continue;
                     if (!IsValidTarget(Cell))
                         continue;
-                    Vector3 WorldPosition = Cell + new Vector3(0.5f, 0.5f);
+					Vector3 WorldPosition = GridCoordinates.GetCellCenter(Cell);
                     if (!IsInLineOfSight(PlayerPosition, WorldPosition, range, Walls))
                         continue;
                     Area[Cell] = new Node(Cell);
@@ -156,15 +156,15 @@ public class TileManager : MonoBehaviour
     /// </summary>
     public bool HasLineOfSightToWall(Vector3 FromPosition, Vector3Int WallCell, int range, Tilemap Walls)
     {
-        Vector3 WallCenter = WallCell + new Vector3(0.5f, 0.5f);
+		Vector3 WallCenter = GridCoordinates.GetCellCenter(WallCell);
         if (Vector3.Distance(FromPosition, WallCenter) > range)
             return false;
 		return !HasBlockingWallOnLine(FromPosition, WallCenter, Walls, true);
 	}
 	private static bool HasBlockingWallOnLine(Vector3 Start, Vector3 End, Tilemap Walls, bool ignoreEnd)
 	{
-		Vector3Int StartInt = Vector3Int.FloorToInt(Start);
-		Vector3Int EndInt = Vector3Int.FloorToInt(End);
+		Vector3Int StartInt = GridCoordinates.GetCell(Start);
+		Vector3Int EndInt = GridCoordinates.GetCell(End);
 		int x0 = StartInt.x;
 		int y0 = StartInt.y;
 		int x1 = EndInt.x;
@@ -200,8 +200,8 @@ public class TileManager : MonoBehaviour
     public static List<Vector3Int> BresenhamsAlgorithm(Vector3 Start, Vector3 End)
     {
         // Ensure Start and End are Vector3Int
-        Vector3Int StartInt = Vector3Int.FloorToInt(Start);
-        Vector3Int EndInt   = Vector3Int.FloorToInt(End);
+		Vector3Int StartInt = GridCoordinates.GetCell(Start);
+		Vector3Int EndInt   = GridCoordinates.GetCell(End);
         int x0 = StartInt.x;
         int y0 = StartInt.y;
         int x1 = EndInt.x;

@@ -344,7 +344,7 @@ public class ChronoclasmManager : MonoBehaviour
 				Reason = "Chronoclasm destination is on fire.";
 				return false;
 			}
-			Vector3 TargetWorldPosition = TargetCellPosition + new Vector3(0.5f, 0.5f);
+			Vector3 TargetWorldPosition = GridCoordinates.GetCellCenter(TargetCellPosition);
 			if (GameManager.HasEnemyAtPosition(TargetWorldPosition))
 			{
 				Reason = "Chronoclasm destination is occupied by an enemy.";
@@ -369,7 +369,7 @@ public class ChronoclasmManager : MonoBehaviour
 			Reason = "Chronoclasm destination is on fire.";
 			return false;
 		}
-		Vector3 PlayerWorldPosition = PlayerCellPosition + new Vector3(0.5f, 0.5f);
+		Vector3 PlayerWorldPosition = GridCoordinates.GetCellCenter(PlayerCellPosition);
 		if (GameManager.HasEnemyAtPosition(PlayerWorldPosition))
 		{
 			Reason = "Chronoclasm destination is occupied by an enemy.";
@@ -542,7 +542,7 @@ public class ChronoclasmManager : MonoBehaviour
 	private Vector3 GetTileCenterPosition(Vector3 WorldPosition)
 	{
 		Vector3Int Cell = TilemapGround.WorldToCell(WorldPosition);
-		return Cell + new Vector3(0.5f, 0.5f);
+		return GridCoordinates.GetCellCenter(Cell);
 	}
 	private void NotifyChronoclasmFailure(string Reason)
 	{

@@ -401,11 +401,9 @@ public class GameManager : MonoBehaviour
 				if (HasWallAtPosition(Cell)
 					|| HasFireAtPosition(Cell)
 					|| HasExitTileAtPosition(Cell)
-					|| (x <= GameConfig.Grid.SafeZoneMaxX
-						&& y <= GameConfig.Grid.SafeZoneMaxY
-						&& y >= GameConfig.Grid.SafeZoneMinY))
+					|| GridCoordinates.IsInSafeZone(Cell))
 					continue;
-				Vector3 ShiftedPosition = Cell + new Vector3(0.5f, 0.5f);
+				Vector3 ShiftedPosition = GridCoordinates.GetCellCenter(Cell);
 				if (HasItemAtPosition(ShiftedPosition)
 					|| HasEnemyAtPosition(ShiftedPosition)
 					|| HasVehicleAtPosition(ShiftedPosition)
@@ -420,7 +418,7 @@ public class GameManager : MonoBehaviour
 			return false;
 		}
 		Vector3Int SelectedCell = CandidateCells[Random.Range(0, CandidateCells.Count)];
-		Position = SelectedCell + new Vector3(0.5f, 0.5f);
+		Position = GridCoordinates.GetCellCenter(SelectedCell);
 		return true;
 	}
 	/// <summary>
@@ -441,11 +439,9 @@ public class GameManager : MonoBehaviour
 					|| HasExitTileAtPosition(Cell)
 					|| HasStructureAtCell(Cell)
 					|| IsPlayerOnCell(Cell)
-					|| (x <= GameConfig.Grid.SafeZoneMaxX
-						&& y <= GameConfig.Grid.SafeZoneMaxY
-						&& y >= GameConfig.Grid.SafeZoneMinY))
+					|| GridCoordinates.IsInSafeZone(Cell))
 					continue;
-				Vector3 ShiftedPosition = Cell + new Vector3(0.5f, 0.5f);
+				Vector3 ShiftedPosition = GridCoordinates.GetCellCenter(Cell);
 				if (HasItemAtPosition(ShiftedPosition)
 					|| HasEnemyAtPosition(ShiftedPosition)
 					|| HasVehicleAtPosition(ShiftedPosition))
@@ -532,7 +528,7 @@ public class GameManager : MonoBehaviour
 		UpdateTileAreas();
 	}
 	public bool HasVehicleAtPosition(Vector3 Position) 		=> VehicleManager.HasVehicleAtPosition(Position);
-	public bool IsPlayerOnCell(Vector3Int Cell) 			=> Vector3Int.FloorToInt(Player.transform.position) == Cell;
+	public bool IsPlayerOnCell(Vector3Int Cell) 			=> GridCoordinates.GetCell(Player.transform.position) == Cell;
 	public Vehicle GetVehicleAtPosition(Vector3Int Position) => VehicleManager.GetVehicleAtPosition(Position);
 	public bool HasStructureAtCell(Vector3Int Cell) 		=> StructureManager.HasStructureAtCell(Cell);
 	public Structure GetStructureAtCell(Vector3Int Cell) 	=> StructureManager.GetStructureAtCell(Cell);
@@ -780,7 +776,7 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	private void HandlePlayerExitTile()
 	{
-		if (LevelManager.HasExitTileAtPosition(Vector3Int.FloorToInt(Player.transform.position)))
+		if (LevelManager.HasExitTileAtPosition(GridCoordinates.GetCell(Player.transform.position)))
 		{
 			TileManager.TileDot.SetActive(false);
 			if (ExitTransitionRoutine != null)
@@ -1276,7 +1272,7 @@ public class GameManager : MonoBehaviour
 		int bestMoves = int.MaxValue;
 		foreach (Vector3Int Offset in Offsets)
 		{
-			Vector3 CandidateWorld = VehicleCell + Offset + new Vector3(0.5f, 0.5f);
+			Vector3 CandidateWorld = GridCoordinates.GetCellCenter(VehicleCell + Offset);
 			int tileCount = Player.GetPathTileCountTo(CandidateWorld);
 			// No path, or the candidate is the player's own tile
 			if (tileCount < 2)
@@ -1483,7 +1479,7 @@ public class GameManager : MonoBehaviour
 			return false;
 		if (HasFireAtPosition(Cell))
 			return false;
-		Vector3 WorldPosition = Cell + new Vector3(0.5f, 0.5f);
+		Vector3 WorldPosition = GridCoordinates.GetCellCenter(Cell);
 		if (HasEnemyAtPosition(WorldPosition))
 			return false;
 		// Vehicles can be set on fire, so their tiles are valid firestarter targets
@@ -1586,7 +1582,7 @@ public class GameManager : MonoBehaviour
 		if (!HasFirestarterReachToWall(TilePoint))
 			return false;
 		// Flamethrower sprays a fire streak up to the wall; blowtorch ignites the wall directly
-		Vector3 WallCenter = TilePoint + new Vector3(0.5f, 0.5f);
+		Vector3 WallCenter = GridCoordinates.GetCellCenter(TilePoint);
 		bool spawnedFire = Player.SelectedItemInfo.Tag is ItemInfo.Tags.Flamethrower
 			? TrySpawnFlamethrowerLine(WallCenter)
 			: TrySpawnFire(TilePoint, false, true);
@@ -1607,7 +1603,7 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	private bool HasFirestarterReachToWall(Vector3Int WallCell)
 	{
-		Vector3 WallCenter = WallCell + new Vector3(0.5f, 0.5f);
+		Vector3 WallCenter = GridCoordinates.GetCellCenter(WallCell);
 		if (IsPlayerAdjacentTo(WallCenter))
 			return true;
 		if (Player.SelectedItemInfo.Tag is not ItemInfo.Tags.Flamethrower || !Player.HasRange)
@@ -1623,7 +1619,7 @@ public class GameManager : MonoBehaviour
 			for (int dy = -1; dy <= 1; dy++)
 			{
 				Vector3Int Cell = CenterCell + new Vector3Int(dx, dy, 0);
-				Vector3 WorldPos = Cell + new Vector3(0.5f, 0.5f);
+				Vector3 WorldPos = GridCoordinates.GetCellCenter(Cell);
 				if (HasEnemyAtPosition(WorldPos))
 				{
 					Enemy Enemy = GetEnemyAtPosition(WorldPos);

@@ -121,7 +121,7 @@ public class Enemy : MonoBehaviour
 			Path.Pop();
 			// Move one tile closer to destination
 			Vector3Int TryDistance = Path.Pop();
-			Vector3 ShiftedTryDistance = TryDistance + new Vector3(0.5f, 0.5f);
+			Vector3 ShiftedTryDistance = GridCoordinates.GetCellCenter(TryDistance);
 			if (!GameManager.Instance.HasEnemyAtPosition(ShiftedTryDistance)
 				&& !GameManager.Instance.HasVehicleAtPosition(ShiftedTryDistance))
 			{
@@ -183,13 +183,7 @@ public class Enemy : MonoBehaviour
 	{
 		Vector3Int EnemyCell = TilemapGround.WorldToCell(transform.position);
 		Vector3Int TargetCell = TilemapGround.WorldToCell(PlayerTargetPosition);
-		return AreCellsAdjacentForAttack(EnemyCell, TargetCell);
-	}
-	public static bool AreCellsAdjacentForAttack(Vector3Int EnemyCell, Vector3Int TargetCell)
-	{
-		int horizontalDistance = Mathf.Abs(EnemyCell.x - TargetCell.x);
-		int verticalDistance = Mathf.Abs(EnemyCell.y - TargetCell.y);
-		return horizontalDistance + verticalDistance == 1;
+		return GridCoordinates.AreOrthogonallyAdjacent(EnemyCell, TargetCell);
 	}
 	/// <summary>
 	/// Starts a flee: the enemy steps off the fire onto the safe tile nearest the player, then re-targets
@@ -222,7 +216,7 @@ public class Enemy : MonoBehaviour
 		foreach (Vector3Int Direction in new[] { Vector3Int.up, Vector3Int.down, Vector3Int.left, Vector3Int.right })
 		{
 			Vector3Int Cell = EnemyCell + Direction;
-			Vector3 World = Cell + new Vector3(0.5f, 0.5f);
+			Vector3 World = GridCoordinates.GetCellCenter(Cell);
 			if (Cell.x < Size.min.x || Cell.x >= Size.max.x || Cell.y < Size.min.y || Cell.y >= Size.max.y)
 				continue;
 			if (TilemapWalls.HasTile(Cell)
@@ -283,7 +277,7 @@ public class Enemy : MonoBehaviour
 				yield break;
 			}
 			Vector3Int Next = PursuitPath.Peek();
-			Vector3 NextShifted = Next + new Vector3(0.5f, 0.5f);
+			Vector3 NextShifted = GridCoordinates.GetCellCenter(Next);
 			// Stop if the next tile is now occupied
 			if (GameManager.Instance.HasEnemyAtPosition(NextShifted)
 				|| GameManager.Instance.HasVehicleAtPosition(NextShifted))
@@ -299,7 +293,7 @@ public class Enemy : MonoBehaviour
 	private IEnumerator MoveToCell(Vector3Int Cell)
 	{
 		SoundManager.Instance.PlaySound(Move);
-		Vector3 ShiftedDistance = Cell + new Vector3(0.5f, 0.5f);
+		Vector3 ShiftedDistance = GridCoordinates.GetCellCenter(Cell);
 		// Comparing positions avoids the square root Vector3.Distance takes every frame
 		while (transform.position != ShiftedDistance)
 		{
@@ -319,7 +313,7 @@ public class Enemy : MonoBehaviour
 		if (Destination != null)
 		{
 			SoundManager.Instance.PlaySound(Move);
-			Vector3 ShiftedDistance = Destination + new Vector3(0.5f, 0.5f);
+			Vector3 ShiftedDistance = GridCoordinates.GetCellCenter(Destination);
 			// Move to the destination; comparing positions avoids the square root
 			// Vector3.Distance takes every frame
 			while (transform.position != ShiftedDistance)
@@ -338,7 +332,7 @@ public class Enemy : MonoBehaviour
 			if (Path.Count > 1 && HasEnergy)
 			{
 				Vector3Int NextDestination = Path.Peek();
-				Vector3 NextShiftedDestination = new(NextDestination.x + 0.5f, NextDestination.y + 0.5f);
+				Vector3 NextShiftedDestination = GridCoordinates.GetCellCenter(NextDestination);
 				// Check if next destination is still free before moving
 				if (!GameManager.Instance.HasEnemyAtPosition(NextShiftedDestination)
 					&& !GameManager.Instance.HasVehicleAtPosition(NextShiftedDestination))
@@ -346,7 +340,7 @@ public class Enemy : MonoBehaviour
 					Info.DecrementEnergy();
 					Destination = Path.Pop();
 					SoundManager.Instance.PlaySound(Move);
-					Vector3 ShiftedDistance = Destination + new Vector3(0.5f, 0.5f);
+					Vector3 ShiftedDistance = GridCoordinates.GetCellCenter(Destination);
 					// Move to next tile; comparing positions avoids the square root
 					// Vector3.Distance takes every frame
 					while (transform.position != ShiftedDistance)

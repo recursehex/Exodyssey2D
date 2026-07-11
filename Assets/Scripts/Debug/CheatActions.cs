@@ -62,8 +62,8 @@ public class CheatActions
 	public static bool TryParseEnum<T>(string Text, out T Value) where T : struct, Enum =>
 		Enum.TryParse(Text, true, out Value) && Enum.IsDefined(typeof(T), Value);
 
-	public Vector3Int PlayerCell => Vector3Int.FloorToInt(Player.transform.position);
-	private static Vector3 WorldFromCell(Vector3Int Cell) => Cell + new Vector3(0.5f, 0.5f);
+	public Vector3Int PlayerCell => GridCoordinates.GetCell(Player.transform.position);
+	private static Vector3 WorldFromCell(Vector3Int Cell) => GridCoordinates.GetCellCenter(Cell);
 
 	private static bool IsInGrid(Vector3Int Cell) =>
 		Cell.x >= GameConfig.Grid.MinX && Cell.x <= GameConfig.Grid.MaxX

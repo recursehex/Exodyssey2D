@@ -38,7 +38,7 @@ TilePoint, Vector3 ShiftedClickPoint);
         BoundsInt CellBounds      = TilemapGround.cellBounds;
         Vector3 WorldPoint        = MainCamera.ScreenToWorldPoint(CursorController.CursorScreenPosition);
         Vector3Int TilePoint      = TilemapGround.WorldToCell(WorldPoint);
-        Vector3 ShiftedClickPoint = TilePoint + new Vector3(0.5f, 0.5f);
+		Vector3 ShiftedClickPoint = GridCoordinates.GetCellCenter(TilePoint);
 
         if (Drop1Action != null && Drop1Action.WasPressedThisFrame())
             Player.TryDropItem(0);

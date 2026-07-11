@@ -276,7 +276,7 @@ public class CursorController : MonoBehaviour
     {
         if (Tilemap != null)
             return Tilemap.WorldToCell(WorldPosition);
-        return Vector3Int.FloorToInt(WorldPosition);
+		return GridCoordinates.GetCell(WorldPosition);
     }
     private Vector3 GetTileCenterWorld(Vector3Int TilePoint)
     {
@@ -286,7 +286,7 @@ public class CursorController : MonoBehaviour
             Center.z = 0f;
             return Center;
         }
-        return TilePoint + new Vector3(0.5f, 0.5f);
+		return GridCoordinates.GetCellCenter(TilePoint);
     }
     private bool ButtonAllowsSelectCursor(GameObject ButtonObject)
     {

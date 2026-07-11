@@ -97,7 +97,7 @@ public class AStar
 		int randomIndex = UnityEngine.Random.Range(0, Positions.Count);
 		Vector3Int RandomGoal = Positions[randomIndex];
 		// Compute path to the random goal
-		Stack<Vector3Int> Path = ComputePath(Start, TilemapGround.CellToWorld(RandomGoal) + new Vector3(0.5f, 0.5f));
+		Stack<Vector3Int> Path = ComputePath(Start, GridCoordinates.GetCellCenter(RandomGoal));
 		// Verify the path actually moves the entity (more than just the starting position)
 		return Path?.Count > 1 ? Path : null;
 	}

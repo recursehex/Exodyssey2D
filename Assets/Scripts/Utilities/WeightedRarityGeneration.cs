@@ -108,7 +108,7 @@ public static class WeightedRarityGeneration
 		// rarity/type roll fails so a rare miss does not consume the target
 		while (spawned < toSpawn && cellIndex < EmptyCells.Count)
 		{
-			Vector3 Position = EmptyCells[cellIndex] + new Vector3(0.5f, 0.5f);
+			Vector3 Position = GridCoordinates.GetCellCenter(EmptyCells[cellIndex]);
 			if (GenerateAt<T>(Position))
 				spawned++;
 			cellIndex++;
@@ -131,7 +131,7 @@ public static class WeightedRarityGeneration
 		int toSpawn = Mathf.Min(PlannedIndices.Count, EmptyCells.Count);
 		for (int i = 0; i < toSpawn; i++)
 		{
-			Vector3 Position = EmptyCells[i] + new Vector3(0.5f, 0.5f);
+			Vector3 Position = GridCoordinates.GetCellCenter(EmptyCells[i]);
 			GameManager.Instance.SpawnItem(PlannedIndices[i], Position);
 		}
 		return toSpawn;

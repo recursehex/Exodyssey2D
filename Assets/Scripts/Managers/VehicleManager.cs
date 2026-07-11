@@ -55,7 +55,7 @@ public class VehicleManager : MonoBehaviour
     /// </summary>
     public Vehicle GetVehicleAtPosition(Vector3Int Position)
     {
-        Vector3 ShiftedPosition = Position + new Vector3(0.5f, 0.5f);
+		Vector3 ShiftedPosition = GridCoordinates.GetCellCenter(Position);
         for (int i = 0; i < Vehicles.Count; i++)
         {
             Vehicle Vehicle = Vehicles[i];

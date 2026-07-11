@@ -697,13 +697,8 @@ public class VisibilityManager : MonoBehaviour
 	}
 	private void AddCellIfInsideBounds(Vector3Int Cell)
 	{
-		if (Cell.x < GameConfig.Grid.MinX
-			|| Cell.x > GameConfig.Grid.MaxX
-			|| Cell.y < GameConfig.Grid.MinY
-			|| Cell.y > GameConfig.Grid.MaxY)
-		{
+		if (!GridCoordinates.IsInsideGrid(Cell))
 			return;
-		}
 		VisibleCells.Add(Cell);
 	}
 	private static int LightKeyPlayer() => 1;

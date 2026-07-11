@@ -212,7 +212,7 @@ public partial class Player : MonoBehaviour
 		{
 			SpendStepEnergy();
 			SoundManager.Instance.PlaySound(Move);
-			Vector3 ShiftedDistance = Destination + new Vector3(0.5f, 0.5f);
+			Vector3 ShiftedDistance = GridCoordinates.GetCellCenter(Destination);
 			// Move Player smoothly to next tile; comparing positions avoids the
 			// square root Vector3.Distance takes every frame
 			while (transform.position != ShiftedDistance)

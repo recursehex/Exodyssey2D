@@ -43,11 +43,9 @@ public class StructureManager : MonoBehaviour
 			|| GameManager.Instance.HasFireAtPosition(Cell)
 			|| GameManager.Instance.HasExitTileAtPosition(Cell)
 			|| HasStructureAtCell(Cell)
-			|| (x <= GameConfig.Grid.SafeZoneMaxX
-				&& y <= GameConfig.Grid.SafeZoneMaxY
-				&& y >= GameConfig.Grid.SafeZoneMinY))
+			|| GridCoordinates.IsInSafeZone(Cell))
 			return false;
-		Vector3 ShiftedPosition = Cell + new Vector3(0.5f, 0.5f);
+		Vector3 ShiftedPosition = GridCoordinates.GetCellCenter(Cell);
 		if (GameManager.Instance.HasItemAtPosition(ShiftedPosition)
 			|| GameManager.Instance.HasEnemyAtPosition(ShiftedPosition)
 			|| GameManager.Instance.HasVehicleAtPosition(ShiftedPosition))
@@ -70,10 +68,7 @@ public class StructureManager : MonoBehaviour
 	}
 	public bool HasStructureAtPosition(Vector3 Position)
 	{
-		Vector3Int Cell = new(
-			Mathf.FloorToInt(Position.x),
-			Mathf.FloorToInt(Position.y),
-			0);
+		Vector3Int Cell = GridCoordinates.GetCell(Position);
 		return HasStructureAtCell(Cell);
 	}
 	public void RemoveStructure(Structure Structure)

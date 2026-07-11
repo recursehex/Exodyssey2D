@@ -18,6 +18,6 @@ public class EnemyTests
 		Vector3Int EnemyCell = new(enemyX, enemyY, 0);
 		Vector3Int TargetCell = new(targetX, targetY, 0);
 
-		Assert.That(Enemy.AreCellsAdjacentForAttack(EnemyCell, TargetCell), Is.EqualTo(expected));
+		Assert.That(GridCoordinates.AreOrthogonallyAdjacent(EnemyCell, TargetCell), Is.EqualTo(expected));
 	}
 }
