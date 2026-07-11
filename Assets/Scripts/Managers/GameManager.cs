@@ -18,6 +18,9 @@ public class GameManager : MonoBehaviour
 	private Coroutine PlayerTurnDelayRoutine;
 	private Coroutine ExitTransitionRoutine;
 	private readonly List<Item> LitDynamite = new();
+	private const string UndoAfterItemAction = "Undo history cleared after using an item.";
+	private const string UndoAfterTileItemAction = "Undo history cleared after using an item on a tile.";
+	private const string UndoAfterAttack = "Undo history cleared after attacking.";
 	// Vehicle the player is walking toward to enter once the movement completes
 	private Vehicle PendingEnterVehicle;
 	[Header("Managers")]
@@ -854,12 +857,7 @@ public class GameManager : MonoBehaviour
 		if (Player.Vehicle.transform.position == ShiftedClickPoint)
 		{
 			if (Player.HasEnergy && Player.ClickOnToUseItem())
-			{
-				TurnManager.TurnTimer.StartTimer();
-				RefreshVisibility();
-				UpdateTileAreas();
-				ChronoclasmManager.ClearUndoHistory("Undo history cleared after using an item.");
-			}
+				CompleteWorldAction(UndoAfterItemAction);
 			else
 			{
 				Player.Vehicle.SwitchIgnition();
@@ -1108,10 +1106,7 @@ public class GameManager : MonoBehaviour
 			if (didSomething)
 			{
 				Player.UseItem();
-				TurnManager.TurnTimer.StartTimer();
-				RefreshVisibility();
-				UpdateTileAreas();
-				ChronoclasmManager.ClearUndoHistory("Undo history cleared after using an item on a tile.");
+				CompleteWorldAction(UndoAfterTileItemAction);
 				return true;
 			}
 		}
@@ -1131,11 +1126,7 @@ public class GameManager : MonoBehaviour
 			if (spawnedFire)
 			{
 				Player.UseItem();
-				TurnManager.TurnTimer.StartTimer();
-				TileManager.ClearTileAreas();
-				RefreshVisibility();
-				UpdateTileAreas();
-				ChronoclasmManager.ClearUndoHistory("Undo history cleared after using an item on a tile.");
+				CompleteWorldAction(UndoAfterTileItemAction);
 				return true;
 			}
 		}
@@ -1150,10 +1141,7 @@ public class GameManager : MonoBehaviour
 		if (ShiftedClickPoint != Player.transform.position
 			|| !Player.ClickOnToUseItem())
 			return false;
-		TurnManager.TurnTimer.StartTimer();
-		RefreshVisibility();
-		UpdateTileAreas();
-		ChronoclasmManager.ClearUndoHistory("Undo history cleared after using an item.");
+		CompleteWorldAction(UndoAfterItemAction);
 		return true;
 	}
 	/// <summary>
@@ -1170,10 +1158,7 @@ public class GameManager : MonoBehaviour
 		if (!IsPlayerAdjacentTo(Vehicle.transform.position)
 			|| !Player.ClickOnVehicleToUseItem(Vehicle))
 			return false;
-		TurnManager.TurnTimer.StartTimer();
-		RefreshVisibility();
-		UpdateTileAreas();
-		ChronoclasmManager.ClearUndoHistory("Undo history cleared after using an item on a vehicle.");
+		CompleteWorldAction("Undo history cleared after using an item on a vehicle.");
 		return true;
 	}
 	private bool TryEnterVehicle(Vector3Int TilePoint)
@@ -1339,9 +1324,7 @@ public class GameManager : MonoBehaviour
 		if (!interacted)
 			return false;
 		Player.SpendEnergy(1);
-		TurnManager.TurnTimer.StartTimer();
-		UpdateTileAreas();
-		ChronoclasmManager.ClearUndoHistory("Undo history cleared after structure interaction.");
+		CompleteAction("Undo history cleared after structure interaction.");
 		return true;
 	}
 	private bool InteractMedCrate(Structure Structure)
@@ -1420,12 +1403,7 @@ public class GameManager : MonoBehaviour
 			if (spawnedFire)
 			{
 				Player.AttackEntity();
-				TurnManager.TurnTimer.StartTimer();
-				TileManager.TileDot.SetActive(false);
-				RefreshVisibility();
-				UpdateTargets();
-				UpdateTileAreas();
-				ChronoclasmManager.ClearUndoHistory("Undo history cleared after attacking.");
+				CompleteWorldAttack();
 			}
 			return;
 		}
@@ -1436,11 +1414,7 @@ public class GameManager : MonoBehaviour
 		Enemy Enemy = GetEnemyAtPosition(ShiftedClickPoint);
 		EnemyManager.HandleDamageToEnemy(Enemy, Player.GetDamagePointsAgainst(Enemy), Player.SelectedItemInfo.IsStunning);
 		Player.AttackEntity();
-		TurnManager.TurnTimer.StartTimer();
-		TileManager.TileDot.SetActive(false);
-		UpdateTargets();
-		UpdateTileAreas();
-		ChronoclasmManager.ClearUndoHistory("Undo history cleared after attacking.");
+		CompleteAttack();
 	}
 	/// <summary>
 	/// Spawns a flamethrower fire streak between Player and target
@@ -1506,11 +1480,7 @@ public class GameManager : MonoBehaviour
 		SetDynamiteLitSprite(SpawnedDynamite, true);
 		LitDynamite.Add(SpawnedDynamite);
 		Player.AttackEntity();
-		TurnManager.TurnTimer.StartTimer();
-		TileManager.TileDot.SetActive(false);
-		UpdateTargets();
-		UpdateTileAreas();
-		ChronoclasmManager.ClearUndoHistory("Undo history cleared after throwing dynamite.");
+		CompleteAttack("Undo history cleared after throwing dynamite.");
 		return true;
 	}
 	public void RemoveLitDynamite(Item Dynamite)
@@ -1559,10 +1529,7 @@ public class GameManager : MonoBehaviour
 		if (Wall.DropItem != ItemInfo.Tags.Unknown)
 			SpawnItem((int)Wall.DropItem, ShiftedClickPoint);
 		Player.AttackEntity();
-		TurnManager.TurnTimer.StartTimer();
-		RefreshVisibility();
-		UpdateTileAreas();
-		ChronoclasmManager.ClearUndoHistory("Undo history cleared after breaking a wall.");
+		CompleteWorldAction("Undo history cleared after breaking a wall.");
 		return true;
 	}
 	/// <summary>
@@ -1589,13 +1556,33 @@ public class GameManager : MonoBehaviour
 		if (!spawnedFire)
 			return false;
 		Player.UseItem();
-		TurnManager.TurnTimer.StartTimer();
-		TileManager.ClearTileAreas();
 		TileManager.TileDot.SetActive(false);
-		RefreshVisibility();
-		UpdateTileAreas();
-		ChronoclasmManager.ClearUndoHistory("Undo history cleared after using an item on a tile.");
+		CompleteWorldAction(UndoAfterTileItemAction);
 		return true;
+	}
+	private void CompleteAction(string UndoReason)
+	{
+		TurnManager.TurnTimer.StartTimer();
+		UpdateTileAreas();
+		ChronoclasmManager.ClearUndoHistory(UndoReason);
+	}
+	private void CompleteWorldAction(string UndoReason)
+	{
+		RefreshVisibility();
+		CompleteAction(UndoReason);
+	}
+	private void CompleteAttack(string UndoReason = UndoAfterAttack)
+	{
+		TurnManager.TurnTimer.StartTimer();
+		TileManager.TileDot.SetActive(false);
+		UpdateTargets();
+		UpdateTileAreas();
+		ChronoclasmManager.ClearUndoHistory(UndoReason);
+	}
+	private void CompleteWorldAttack()
+	{
+		RefreshVisibility();
+		CompleteAttack();
 	}
 	/// <summary>
 	/// Returns true if a firestarter can reach a flammable wall: any firestarter point-blank
