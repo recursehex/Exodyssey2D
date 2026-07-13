@@ -9,6 +9,7 @@ public class VisibilityManager : MonoBehaviour
 	private const int flareRadius = 1;
 	private const int lightrodRadius = 2;
 	private const int overlaySortingOrder = 32000;
+	private const float lightFollowSpeed = 1f;
 	[Header("Overlay")]
 	[SerializeField] private float transitionSpeed = 6f;
 	[SerializeField] private float duskAmbient = 0.62f;
@@ -733,6 +734,7 @@ public class VisibilityManager : MonoBehaviour
 		if (!DarknessOverlay.IsReady)
 			return;
 		float interpolation = Mathf.Clamp01(Time.deltaTime * transitionSpeed);
+		float lightFollowDistance = lightFollowSpeed * Time.deltaTime;
 		// The wake-up darkness recedes at its own tunable speed so the effect reads as waking up
 		float ambientInterpolation = IsWakingUp
 			? Mathf.Clamp01(Time.deltaTime * wakeUpTransitionSpeed)
@@ -798,30 +800,53 @@ public class VisibilityManager : MonoBehaviour
 		for (int i = 0; i < TargetLightCount; i++)
 		{
 			int key = TargetLightKeys[i];
-			Vector4 target = TargetLightData[i];
-			if (AppliedLights.TryGetValue(key, out Vector4 current))
+			Vector4 Target = TargetLightData[i];
+			if (AppliedLights.TryGetValue(key, out Vector4 Current))
 			{
-				// Once movement completes, glide the light from its old cell to the new target
-				Vector4 updated = new(
-					LerpWithSnap(current.x, target.x, interpolation),
-					LerpWithSnap(current.y, target.y, interpolation),
-					LerpWithSnap(current.z, target.z, interpolation),
-					LerpWithSnap(current.w, target.w, interpolation));
-				if (updated != current)
+				// Once movement completes, follow at a constant world-space speed
+				bool isVehicleBeam = Target.z < 0f;
+				Vector2 CurrentPosition = isVehicleBeam
+					? new Vector2(Current.x + Current.z, Current.y)
+					: new Vector2(Current.x, Current.y);
+				Vector2 TargetPosition = isVehicleBeam
+					? new Vector2(Target.x + Target.z, Target.y)
+					: new Vector2(Target.x, Target.y);
+				Vector2 UpdatedPosition = Vector2.MoveTowards(
+					CurrentPosition,
+					TargetPosition,
+					lightFollowDistance);
+				float updatedRadius = LerpWithSnap(Current.z, Target.z, interpolation);
+				float updatedPositionX = UpdatedPosition.x;
+				if (isVehicleBeam)
 				{
-					AppliedLights[key] = updated;
+					float currentRightEdge = Current.x - Current.z;
+					float targetRightEdge = Target.x - Target.z;
+					bool isFullyExpanded = Mathf.Abs(currentRightEdge - targetRightEdge) < 0.01f;
+					if (isFullyExpanded)
+						updatedRadius = -(targetRightEdge - UpdatedPosition.x) * 0.5f;
+					// Preserve the interpolated near edge while the beam grows or follows the vehicle
+					updatedPositionX = UpdatedPosition.x - updatedRadius;
+				}
+				Vector4 Updated = new(
+					updatedPositionX,
+					UpdatedPosition.y,
+					updatedRadius,
+					LerpWithSnap(Current.w, Target.w, interpolation));
+				if (Updated != Current)
+				{
+					AppliedLights[key] = Updated;
 					overlayChanged = true;
 				}
 			}
 			else
 			{
 				// Vehicle beams grow rightward from their fixed left edge. Other lights grow outward from their source position
-				float startPositionX = target.z < 0f ? target.x + target.z : target.x;
-				AppliedLights[key] = new Vector4(startPositionX, target.y, 0f, 0f);
+				float startPositionX = Target.z < 0f ? Target.x + Target.z : Target.x;
+				AppliedLights[key] = new Vector4(startPositionX, Target.y, 0f, 0f);
 				overlayChanged = true;
 			}
 		}
-		// Once every lerp has converged there is nothing new to push to the material
+		// Once every transition has converged there is nothing new to push to the material
 		if (!overlayChanged)
 			return;
 		bool shouldDisplayOverlay = TargetOverlayEnabled
