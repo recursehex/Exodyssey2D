@@ -70,6 +70,29 @@ Shader "Custom/GridDarknessOverlay"
 					- cornerRadius;
 			}
 
+			float RoundedCrossDistance(
+				float2 sourceOffset,
+				float halfExtent,
+				float armHalfWidth,
+				float cornerRadius)
+			{
+				float2 foldedOffset = sourceOffset.x >= sourceOffset.y
+					? sourceOffset
+					: sourceOffset.yx;
+				float innerCornerEnd = armHalfWidth + cornerRadius;
+				if (foldedOffset.x <= innerCornerEnd)
+				{
+					float2 cornerOffset = innerCornerEnd - foldedOffset;
+					float distanceToCornerCore = length(max(cornerOffset, 0))
+						+ min(max(cornerOffset.x, cornerOffset.y), 0);
+					return cornerRadius - distanceToCornerCore;
+				}
+				return RoundedBoxDistance(
+					foldedOffset,
+					float2(halfExtent, armHalfWidth),
+					cornerRadius);
+			}
+
 			fixed4 frag(v2f i) : SV_Target
 			{
 				float illumination = saturate(_Ambient);
@@ -86,20 +109,16 @@ Shader "Custom/GridDarknessOverlay"
 						? float2(squareHalfExtent, 0.5)
 						: float2(squareHalfExtent, squareHalfExtent);
 					float cornerRadius = min(_LightCornerRadius, min(halfExtents.x, halfExtents.y));
+					float crossCornerRadius = min(_LightCornerRadius, 0.5);
 					float2 sourceOffset = abs(i.worldPos - lightData.xy);
 					float signedDistance = RoundedBoxDistance(sourceOffset, halfExtents, cornerRadius);
 					if (isCrossLight)
 					{
-						float crossCornerRadius = min(_LightCornerRadius, 0.5);
-						float horizontalDistance = RoundedBoxDistance(
+						signedDistance = RoundedCrossDistance(
 							sourceOffset,
-							float2(squareHalfExtent, 0.5),
+							squareHalfExtent,
+							0.5,
 							crossCornerRadius);
-						float verticalDistance = RoundedBoxDistance(
-							sourceOffset,
-							float2(0.5, squareHalfExtent),
-							crossCornerRadius);
-						signedDistance = min(horizontalDistance, verticalDistance);
 					}
 					float halfFeather = _LightEdgeFeather * 0.5;
 					float edgeProgress = saturate(
@@ -112,16 +131,6 @@ Shader "Custom/GridDarknessOverlay"
 						: saturate(max(
 							sourceOffset.x / halfExtents.x,
 							sourceOffset.y / halfExtents.y));
-					if (isCrossLight)
-					{
-						float horizontalProgress = max(
-							sourceOffset.x / squareHalfExtent,
-							sourceOffset.y / 0.5);
-						float verticalProgress = max(
-							sourceOffset.x / 0.5,
-							sourceOffset.y / squareHalfExtent);
-						distanceFromSource = saturate(min(horizontalProgress, verticalProgress));
-					}
 					float interiorGradient = exp2(
 						-_LightFalloffStrength * distanceFromSource * distanceFromSource);
 					illumination += edgeMask * interiorGradient * abs(lightData.w) * availableLight;
