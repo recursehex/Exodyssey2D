@@ -34,6 +34,7 @@ public class LootDirector
 		public IReadOnlyList<int> RarityWeightsStart;	// C/L/S/R/A weights at region start
 		public IReadOnlyList<int> RarityWeightsEnd;		// C/L/S/R/A weights at region end
 		public int anomalousCap;
+		public HashSet<int> AllowedItemIndices;			// Region item allowlist, null = every item
 		public LootProfileInfo Profile;
 	}
 	public const int commonTier = 0;
@@ -177,6 +178,8 @@ public class LootDirector
 		foreach (Candidate Candidate in Candidates)
 		{
 			if (Candidate.Rarity.Tag == Rarity.Tags.Tsurath)
+				continue;
+			if (!IsRegionAllowed(Candidate, Ctx))
 				continue;
 			if (!Candidate.Categories.Contains(Category))
 				continue;
@@ -389,6 +392,8 @@ public class LootDirector
 		{
 			if (Candidate.Rarity.Tag == Rarity.Tags.Tsurath)
 				continue;
+			if (!IsRegionAllowed(Candidate, Ctx))
+				continue;
 			if (TierIndexOf(Candidate.Rarity) != tier)
 				continue;
 			// Fuel never enters the rarity roll; the fuel meter and the
@@ -496,6 +501,13 @@ public class LootDirector
 	/// </summary>
 	private static bool RareIsPossible(Context Ctx) =>
 		Ctx.RarityWeightsStart[rareTier] > 0 || Ctx.RarityWeightsEnd[rareTier] > 0;
+	/// <summary>
+	/// Applies the region's item allowlist, which curates exactly what can
+	/// generate there (the Ruined Outpost tutorial pool). Regions without one
+	/// allow anything the rarity table, MinRegion gate, and profile permit
+	/// </summary>
+	private static bool IsRegionAllowed(Candidate Candidate, Context Ctx) =>
+		Ctx.AllowedItemIndices == null || Ctx.AllowedItemIndices.Contains(Candidate.index);
 	private static bool HasAnyCategory(Candidate Candidate, List<LootCategory> Categories)
 	{
 		foreach (LootCategory Category in Categories)

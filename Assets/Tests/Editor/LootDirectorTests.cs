@@ -44,7 +44,8 @@ public class LootDirectorTests
     }
 
     private static LootDirector.Context MakeContext(
-        int[] start, int[] end = null, int regionIndex = 1, int gridsCompleted = 0, int gridsRequired = 5, int cap = 0)
+        int[] start, int[] end = null, int regionIndex = 1, int gridsCompleted = 0, int gridsRequired = 5, int cap = 0,
+        HashSet<int> allowedItems = null)
     {
         return new LootDirector.Context
         {
@@ -54,6 +55,7 @@ public class LootDirectorTests
             RarityWeightsStart = start,
             RarityWeightsEnd = end ?? start,
             anomalousCap = cap,
+            AllowedItemIndices = allowedItems,
             Profile = LootProfileInfo.GetProfile(LootProfileInfo.DefaultProfileName),
         };
     }
@@ -113,6 +115,58 @@ public class LootDirectorTests
         LootDirector.Context context = MakeContext(new[] { 0, 0, 0, 0, 100 }, regionIndex: 4, cap: 99);
         Random rng = new Random(99);
         Assert.AreEqual(anomalousIndex, director.RollItem(context, rng));
+    }
+
+    // --- Region item pool ---
+
+    [Test]
+    public void RegionItemPool_OnlyGeneratesAllowedItems()
+    {
+        HashSet<int> pool = new HashSet<int> { commonIndex, limitedIndex };
+        LootDirector director = MakeDirector(OnePerTier());
+        LootDirector.Context context = MakeContext(new[] { 40, 30, 15, 10, 5 }, cap: 99, allowedItems: pool);
+        Random rng = new Random(555);
+        for (int grid = 0; grid < 200; grid++)
+        {
+            foreach (int index in director.PlanGridLoot(context, rng))
+                Assert.Contains(index, new List<int>(pool), "item generated outside the region's pool");
+        }
+    }
+
+    [Test]
+    public void RegionItemPool_AppliesToGuaranteedCategoryPicks()
+    {
+        // Both candidates are fuel, so the fuel meter always has something to
+        // pick; only the pooled one may ever be chosen
+        const int allowedFuelIndex = 40;
+        const int excludedFuelIndex = 41;
+        List<LootDirector.Candidate> candidates = OnePerTier();
+        foreach (int fuelIndex in new[] { allowedFuelIndex, excludedFuelIndex })
+        {
+            LootDirector.Candidate fuel = MakeCandidate(fuelIndex, Rarity.Scarce);
+            fuel.Categories.Add(LootCategory.Fuel);
+            candidates.Add(fuel);
+        }
+        HashSet<int> pool = new HashSet<int> { commonIndex, limitedIndex, allowedFuelIndex };
+        LootDirector director = MakeDirector(candidates);
+        LootDirector.Context context = MakeContext(new[] { 50, 36, 12, 2, 0 }, gridsRequired: 1000, allowedItems: pool);
+        Random rng = new Random(31);
+        int allowedFuelCount = 0;
+        for (int grid = 0; grid < 100; grid++)
+        {
+            List<int> plan = director.PlanGridLoot(context, rng);
+            Assert.IsFalse(plan.Contains(excludedFuelIndex), "fuel outside the region's pool was generated");
+            allowedFuelCount += plan.FindAll(index => index == allowedFuelIndex).Count;
+        }
+        Assert.Greater(allowedFuelCount, 0, "the pooled fuel item should still generate on the meter's cadence");
+    }
+
+    [Test]
+    public void NoRegionItemPool_LeavesEveryItemEligible()
+    {
+        LootDirector director = MakeDirector(OnePerTier());
+        LootDirector.Context context = MakeContext(new[] { 0, 0, 0, 0, 100 }, regionIndex: 4, cap: 99);
+        Assert.AreEqual(anomalousIndex, director.RollItem(context, new Random(99)));
     }
 
     // --- Anomalous cap ---

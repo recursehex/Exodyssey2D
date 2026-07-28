@@ -27,6 +27,7 @@ public class LootSimulationTests
         public int longestFuelDrought;
         public List<int> PreScorchedPlateauAnomalous = new();
         public List<int> EarlyPlasmaRailguns = new();
+        public List<string> ItemPoolViolations = new();
     }
 
     private static readonly List<LootDirector.Candidate> Candidates = LootManager.BuildCandidates();
@@ -58,6 +59,7 @@ public class LootSimulationTests
                     RarityWeightsStart = region.ItemRarityWeightsStart,
                     RarityWeightsEnd = region.ItemRarityWeightsEnd,
                     anomalousCap = region.AnomalousCap,
+                    AllowedItemIndices = region.AllowedItemIndices,
                     Profile = defaultProfile,
                 };
                 Random rng = new Random(seed ^ director.State.globalGridNumber);
@@ -71,6 +73,8 @@ public class LootSimulationTests
                     LootDirector.Candidate candidate = CandidateOf(index);
                     countsByIndex.TryGetValue(index, out int already);
                     countsByIndex[index] = already + 1;
+                    if (!region.IsItemAllowed((ItemInfo.Tags)index))
+                        stats.ItemPoolViolations.Add($"{(ItemInfo.Tags)index} in {(RegionInfo.Tags)regionIndex} grid {globalGrid}");
                     // Fuel is metered rather than ramped, so it is tracked
                     // separately and never counts toward the rarity bands
                     if (candidate.Categories.Contains(LootCategory.Fuel))
@@ -151,6 +155,8 @@ public class LootSimulationTests
             for (int regionIndex = 0; regionIndex < (int)RegionInfo.Tags.Unknown; regionIndex++)
                 Assert.GreaterOrEqual(stats.FuelPerRegion[regionIndex], tuning.minFuelItemsPerRegion,
                     $"seed {caseSeed}: region {regionIndex} below its fuel budget");
+            // Regions with a curated item pool only ever generate those items
+            Assert.IsEmpty(stats.ItemPoolViolations, $"seed {caseSeed}: item generated outside its region's ItemPool");
             // Plasma Railgun respects its per-item region gate
             Assert.IsEmpty(stats.EarlyPlasmaRailguns, $"seed {caseSeed}: Plasma Railgun before Rainforest Ravines");
             totalAnomalous += stats.AnomalousGlobalGrids.Count;

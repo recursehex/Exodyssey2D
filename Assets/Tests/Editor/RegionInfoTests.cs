@@ -214,6 +214,40 @@ public class RegionInfoTests
         Assert.AreEqual(atEnd[rareIndex], pastEnd[rareIndex], 0.001f, "t past 1 should clamp to end weights");
     }
 
+    // --- Item Pool ---
+
+    [Test]
+    public void RuinedOutpost_RestrictsLootToItsTutorialPool()
+    {
+        RegionInfo region = new RegionInfo((int)RegionInfo.Tags.RuinedOutpost);
+        ItemInfo.Tags[] allowed =
+        {
+            ItemInfo.Tags.Branch,
+            ItemInfo.Tags.Rock,
+            ItemInfo.Tags.Knife,
+            ItemInfo.Tags.MedKit,
+            ItemInfo.Tags.Flare,
+            ItemInfo.Tags.PowerCell,
+        };
+        Assert.AreEqual(allowed.Length, region.AllowedItemIndices.Count);
+        foreach (ItemInfo.Tags tag in allowed)
+            Assert.IsTrue(region.IsItemAllowed(tag), $"{tag} should be in the Ruined Outpost pool");
+        Assert.IsFalse(region.IsItemAllowed(ItemInfo.Tags.ToolKit));
+        Assert.IsFalse(region.IsItemAllowed(ItemInfo.Tags.Lightrod));
+        Assert.IsFalse(region.IsItemAllowed(ItemInfo.Tags.Chainsaw));
+    }
+
+    [Test]
+    public void RegionsWithoutAnItemPool_AllowEveryItem()
+    {
+        for (int i = (int)RegionInfo.Tags.FragmentedCoast; i < (int)RegionInfo.Tags.Unknown; i++)
+        {
+            RegionInfo region = new RegionInfo(i);
+            Assert.IsNull(region.AllowedItemIndices, $"Region {region.Tag} should not restrict its item pool");
+            Assert.IsTrue(region.IsItemAllowed(ItemInfo.Tags.ToolKit));
+        }
+    }
+
     [Test]
     public void RareWeight_NeverDecreasesAcrossRegions()
     {

@@ -27,6 +27,8 @@ public class RegionInfo
     public Tile[] WallTiles         { get; set; }                           // Wall tiles for this region
     public List<string> EnemyPool   { get; private set; } = new();          // Allowed enemy types for this region
     public List<string> VehiclePool { get; private set; } = new();          // Allowed vehicle tags for this region
+    public List<string> ItemPool    { get; private set; } = new();          // Allowed item tags for this region, empty = every item
+    public HashSet<int> AllowedItemIndices { get; private set; }            // ItemPool parsed to item indices, null = unrestricted
     public Dictionary<string, int> WallWeights { get; private set; } = new(); // Per-region wall spawn weights by sprite name
     public int ForcedWildfires      { get; private set; } = 0;              // Guaranteed wildfires spawned per grid
     public bool AllowNaturalWildfire { get; private set; } = true;          // Whether the natural wildfire chance roll can occur
@@ -40,7 +42,7 @@ public class RegionInfo
         public int GridsRequired = 3;
         public int MinEnemySpawn = 0;
         public string GroundTileSetName, WallTileSetName;
-        public List<string> EnemyPool = new(), VehiclePool = new();
+        public List<string> EnemyPool = new(), VehiclePool = new(), ItemPool = new();
         public List<int> ItemRarityWeightsStart = new(), ItemRarityWeightsEnd = new();
         public int AnomalousCap = 0;
         public List<WallWeight> WallWeights = new();
@@ -97,6 +99,8 @@ public class RegionInfo
         Description     = Source.Description;
         EnemyPool       = new(Source.EnemyPool);
         VehiclePool     = new(Source.VehiclePool);
+        ItemPool        = new(Source.ItemPool);
+        AllowedItemIndices = BuildAllowedItemIndices(Source.ItemPool, Source.Tag);
         ForcedWildfires = Source.ForcedWildfires;
         AllowNaturalWildfire = Source.AllowNaturalWildfire;
         ItemRarityWeightsStart = ValidateWeights(Source.ItemRarityWeightsStart, Source.Tag, "ItemRarityWeightsStart");
@@ -111,6 +115,24 @@ public class RegionInfo
                 WallWeights[Weight.Name] = Weight.weight;
         }
         Tag = Enum.TryParse(Source.Tag, out Tags ParsedTag) ? ParsedTag : Tags.Unknown;
+    }
+    /// <summary>
+    /// Parses the region's item allowlist into item indices. Returns null for
+    /// an empty pool so the loot director leaves the region unrestricted
+    /// </summary>
+    private static HashSet<int> BuildAllowedItemIndices(List<string> ItemPool, string regionTag)
+    {
+        if (ItemPool.Count == 0)
+            return null;
+        HashSet<int> Indices = new();
+        foreach (string TagName in ItemPool)
+        {
+            if (Enum.TryParse(TagName, out ItemInfo.Tags ParsedTag) && ParsedTag != ItemInfo.Tags.Unknown)
+                Indices.Add((int)ParsedTag);
+            else
+                Debug.LogWarning($"Unknown item '{TagName}' in ItemPool for region {regionTag}");
+        }
+        return Indices.Count == 0 ? null : Indices;
     }
     /// <summary>
     /// Falls back to the canonical global weights when a region's table is
@@ -161,6 +183,12 @@ public class RegionInfo
     /// Checks if a vehicle tag is allowed in this region's spawn pool
     /// </summary>
     public bool IsVehicleAllowed(string vehicleTag) => VehiclePool.Contains(vehicleTag);
+    /// <summary>
+    /// Checks if an item can generate in this region; regions without an
+    /// ItemPool allow every item the loot director's other rules permit
+    /// </summary>
+    public bool IsItemAllowed(ItemInfo.Tags Tag) =>
+        AllowedItemIndices == null || AllowedItemIndices.Contains((int)Tag);
     /// <summary>
     /// Resets grids completed counter
     /// </summary>

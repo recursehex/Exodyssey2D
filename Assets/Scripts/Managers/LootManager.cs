@@ -69,6 +69,7 @@ public partial class LootManager : MonoBehaviour
 			RarityWeightsStart = Region.ItemRarityWeightsStart,
 			RarityWeightsEnd = Region.ItemRarityWeightsEnd,
 			anomalousCap = Region.AnomalousCap,
+			AllowedItemIndices = Region.AllowedItemIndices,
 			Profile = LootProfileInfo.GetProfile(LootProfileInfo.DefaultProfileName),
 		};
 	}

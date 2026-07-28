@@ -9,6 +9,7 @@
       "WallTileSetName": "RO_Walls",
       "EnemyPool": ["Weak"],
       "VehiclePool": ["Common", "Limited"],
+      "ItemPool": ["Branch", "Rock", "Knife", "MedKit", "Flare", "PowerCell"],
       "ItemRarityWeightsStart": [55, 35, 10, 0, 0],
       "ItemRarityWeightsEnd": [55, 35, 10, 0, 0],
       "AnomalousCap": 0,
