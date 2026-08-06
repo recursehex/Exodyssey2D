@@ -647,11 +647,7 @@ public class GameManager : MonoBehaviour
 			StopCoroutine(FireTurnRoutine);
 			FireTurnRoutine = null;
 		}
-		if (EnemyManager.Enemies.Count == 0 && Player.HasEnergy)
-		{
-			TileManager.ClearTileAreas();
-			TileManager.TileDot.SetActive(false);
-		}
+		TileManager.ClearTileAreas();
 		RefreshVisibility();
 		EnemyManager.NeedToStartEnemyMovement = false;
 		FireTurnRoutine = StartCoroutine(RunEnemyTurnSequence());
