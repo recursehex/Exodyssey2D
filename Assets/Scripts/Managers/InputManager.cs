@@ -15,6 +15,8 @@ public class InputManager : MonoBehaviour
     public delegate void PlayerActionDelegate(Vector3 WorldPoint, Vector3Int TilePoint, Vector3 ShiftedClickPoint);
     public event PlayerActionDelegate OnPlayerClick;
     public event PlayerActionDelegate OnPlayerHover;
+    public event System.Action OnPlayerHoverExit;
+    private bool wasCursorInBounds = false;
     public void Initialize(Camera MainCamera, Tilemap TilemapGround, Player Player, CursorController CursorController)
     {
         this.MainCamera       = MainCamera;
@@ -45,9 +47,13 @@ public class InputManager : MonoBehaviour
             Player.DropInventoryItem(1);
 
         bool clicked = ClickAction.WasPressedThisFrame() || InteractAction.WasPressedThisFrame();
-        if (clicked && CellBounds.Contains(TilePoint))
+        bool cursorInBounds = CellBounds.Contains(TilePoint);
+        if (clicked && cursorInBounds)
             OnPlayerClick?.Invoke(WorldPoint, TilePoint, ShiftedClickPoint);
-		else if (CellBounds.Contains(TilePoint))
+		else if (cursorInBounds)
 			OnPlayerHover?.Invoke(WorldPoint, TilePoint, ShiftedClickPoint);
+		else if (wasCursorInBounds)
+			OnPlayerHoverExit?.Invoke();
+        wasCursorInBounds = cursorInBounds;
 	}
 }

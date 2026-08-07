@@ -121,6 +121,7 @@ public class GameManager : MonoBehaviour
 		LevelManager.OnLoadingScreenVisibilityChanged += HandleLoadingScreenVisibilityChanged;
 		InputManager.OnPlayerClick 		+= HandlePlayerClick;
 		InputManager.OnPlayerHover 		+= HandlePlayerHover;
+		InputManager.OnPlayerHoverExit 	+= HandlePlayerHoverExit;
 		Player.OnMovementComplete 		+= OnPlayerMovementComplete;
 		EnemyManager.OnEnemyKilled 		+= UpdateTileAreas;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
@@ -170,6 +171,7 @@ public class GameManager : MonoBehaviour
 		LevelManager.OnLoadingScreenVisibilityChanged -= HandleLoadingScreenVisibilityChanged;
 		InputManager.OnPlayerClick 		-= HandlePlayerClick;
 		InputManager.OnPlayerHover 		-= HandlePlayerHover;
+		InputManager.OnPlayerHoverExit 	-= HandlePlayerHoverExit;
 		Player.OnMovementComplete 		-= OnPlayerMovementComplete;
 		EnemyManager.OnEnemyKilled 		-= UpdateTileAreas;
 	}
@@ -729,11 +731,6 @@ public class GameManager : MonoBehaviour
 		}
 		RefreshVisibility();
 		CurrentPhase = GamePhase.PlayerTurn;
-		// Hide TileDot if player is in vehicle with no charge, otherwise show it
-		bool hideForDepletedVehicle = Player.IsInVehicle
-			&& Player.Vehicle.Info.IsOn
-			&& !Player.Vehicle.HasCharge();
-		TileManager.TileDot.SetActive(!hideForDepletedVehicle);
 		if (!Player.IsInVehicle)
 			UpdateTargets();
 		// Draw tile areas at start of player's turn
@@ -860,6 +857,10 @@ public class GameManager : MonoBehaviour
 		else
 			TileManager.TileDot.SetActive(false);
 	}
+	/// <summary>
+	/// Hides the TileDot when the cursor leaves the grid
+	/// </summary>
+	private void HandlePlayerHoverExit() => TileManager.TileDot.SetActive(false);
 	/// <summary>
 	/// Checks if Player is in a vehicle at specified world point
 	/// </summary>
