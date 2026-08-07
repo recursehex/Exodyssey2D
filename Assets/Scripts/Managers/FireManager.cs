@@ -362,15 +362,13 @@ public class FireManager : MonoBehaviour
         {
             if (Fire == null)
                 continue;
-            if (Fire.ShouldExtinguishAfterTurn())
-            {
-                ExpiredFireScratch.Add(Fire);
-                continue;
-            }
+            // Spread before the lifetime check so a fire still pushes outward on its final tick
             int spawnAllowance = Fire.IsWildfire ? wildfireBudget : maxNeighborSpread;
             int spawned = SpreadFrom(Fire, NewFireScratch, spawnAllowance);
             if (Fire.IsWildfire)
                 wildfireBudget = Mathf.Max(0, wildfireBudget - spawned);
+            if (Fire.ShouldExtinguishAfterTurn())
+                ExpiredFireScratch.Add(Fire);
         }
         foreach ((Vector3Int Cell, bool isWildfire) in NewFireScratch)
             TrySpawnFire(Cell, isWildfire);
