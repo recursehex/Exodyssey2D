@@ -244,12 +244,14 @@ public class ChronoclasmManager : MonoBehaviour
 			NotifyUndoUnavailable(Reason);
 			return false;
 		}
-		UndoSnapshot Snapshot = UndoSnapshots.Pop();
+		// Peek so a failed restore keeps the snapshot instead of silently skipping an action
+		UndoSnapshot Snapshot = UndoSnapshots.Peek();
 		if (!ApplySnapshot(Snapshot.wasInVehicle, Snapshot.Vehicle, Snapshot.PlayerPosition, Snapshot.VehiclePosition, Snapshot.vehicleWasOn))
 		{
 			NotifyUndoUnavailable("Undo failed to restore player position.");
 			return false;
 		}
+		UndoSnapshots.Pop();
 		Player.SetEnergy(Snapshot.playerEnergy);
 		// Resume the timer if it was paused by energy exhaustion and undo restored energy
 		if (Player.HasEnergy)
