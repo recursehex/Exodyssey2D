@@ -283,6 +283,11 @@ public class ChronoclasmManager : MonoBehaviour
 			Reason = "Chronoclasm requires an AP-costing action before use.";
 			return false;
 		}
+		if (IsPlayerAtSnapshotPosition())
+		{
+			Reason = "Chronoclasm requires having moved this turn.";
+			return false;
+		}
 		if (GameManager != null && GameManager.IsDoingSetup)
 		{
 			Reason = "Chronoclasm is unavailable during setup.";
@@ -314,6 +319,22 @@ public class ChronoclasmManager : MonoBehaviour
 			return false;
 		}
 		return true;
+	}
+	/// <summary>
+	/// Returns true if the player is still exactly where the turn-start snapshot was taken, so a Chronoclasm would be a no-op teleport
+	/// </summary>
+	private bool IsPlayerAtSnapshotPosition()
+	{
+		ChronoclasmSnapshot Snapshot = CurrentChronoclasmSnapshot;
+		if (Snapshot == null || Player == null)
+			return false;
+		if (Snapshot.wasInVehicle != Player.IsInVehicle)
+			return false;
+		if (Player.IsInVehicle)
+			return Snapshot.Vehicle == Player.Vehicle
+				&& Player.Vehicle != null
+				&& GetTileCenterPosition(Player.Vehicle.transform.position) == Snapshot.VehiclePosition;
+		return GetTileCenterPosition(Player.transform.position) == Snapshot.PlayerPosition;
 	}
 	private bool IsChronoclasmDestinationValid(ChronoclasmSnapshot Snapshot, out string Reason)
 	{
