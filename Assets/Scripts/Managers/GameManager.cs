@@ -672,7 +672,6 @@ public class GameManager : MonoBehaviour
 	{
 		CurrentPhase = GamePhase.FireResolution;
 		TurnManager.SetEndTurnButtonInteractable(false);
-		ChronoclasmManager.OnPlayerTurnStart();
 		RefreshVisibility();
 		if (PlayerTurnDelayRoutine != null)
 		{
@@ -739,6 +738,7 @@ public class GameManager : MonoBehaviour
 			UpdateTargets();
 		// Draw tile areas at start of player's turn
 		UpdateTileAreas();
+		ChronoclasmManager.OnPlayerTurnStart();
 		TurnManager.SetEndTurnButtonInteractable(true);
 		PlayerTurnDelayRoutine = null;
 	}
