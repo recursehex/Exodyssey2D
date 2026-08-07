@@ -225,10 +225,7 @@ public partial class Player : MonoBehaviour
 		Path = null;
 		IsInMovement = false;
 		MoveRoutine = null;
-		// Update targets if a ranged weapon is selected
-		if (HasRange && !IsInVehicle)
-			GameManager.Instance.UpdateTargets();
-		// Notify that movement is complete
+		// Notify that movement is complete; targets are redrawn there after visibility refreshes
 		OnMovementComplete?.Invoke();
 	}
 	/// <summary>

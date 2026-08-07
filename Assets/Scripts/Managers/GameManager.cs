@@ -759,6 +759,8 @@ public class GameManager : MonoBehaviour
 		if (CurrentPhase == GamePhase.PlayerTurn)
 		{
 			TurnManager.SetEndTurnButtonInteractable(true);
+			if (!Player.IsInVehicle)
+				UpdateTargets();
 			UpdateTileAreas();
 		}
 	}

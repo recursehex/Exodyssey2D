@@ -511,10 +511,10 @@ public class ChronoclasmManager : MonoBehaviour
 			TileManager.ClearTargets();
 		if (GameManager != null)
 		{
+			GameManager.RefreshVisibility();
 			GameManager.UpdateTileAreas();
 			if (Player != null && !Player.IsInVehicle)
 				GameManager.UpdateTargets();
-			GameManager.RefreshVisibility();
 		}
 		TurnManager.SetEndTurnButtonInteractable(true);
 	}
