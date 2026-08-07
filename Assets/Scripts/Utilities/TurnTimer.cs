@@ -11,7 +11,9 @@ public class TurnTimer : MonoBehaviour
 	private static Color OutOfTimeColor = new(172/255f, 22/255f, 45/255f);
 	private int lastDisplayedSeconds = -1;
 	public void StartTimer() => timerIsRunning = true;
-	public void StopTimer()
+	// Pauses the countdown without expiring it: remaining time and display are kept
+	public void StopTimer() => timerIsRunning = false;
+	private void ExpireTimer()
 	{
 		timeRemaining = 0;
 		timerIsRunning = false;
@@ -41,7 +43,7 @@ public class TurnTimer : MonoBehaviour
 		timeRemaining = Mathf.Max(0f, timeRemaining - Time.deltaTime);
 		DisplayTime(timeRemaining);
 		if (timeRemaining <= 0f)
-			StopTimer();
+			ExpireTimer();
 	}
 	private void DisplayTime(float timeToDisplay)
 	{

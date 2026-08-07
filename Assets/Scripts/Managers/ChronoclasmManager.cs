@@ -251,6 +251,9 @@ public class ChronoclasmManager : MonoBehaviour
 			return false;
 		}
 		Player.SetEnergy(Snapshot.playerEnergy);
+		// Resume the timer if it was paused by energy exhaustion and undo restored energy
+		if (Player.HasEnergy)
+			TurnManager.TurnTimer.StartTimer();
 		hasSpentActionPointsThisTurn = Snapshot.hadSpentActionPointsThisTurn;
 		RestoreInventorySnapshot(Snapshot);
 		RestoreGroundItemSnapshot(Snapshot);
