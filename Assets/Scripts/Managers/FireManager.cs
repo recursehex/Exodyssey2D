@@ -46,8 +46,13 @@ public class FireManager : MonoBehaviour
     {
         for (int i = ActiveFires.Count - 1; i >= 0; i--)
         {
-            if (ActiveFires[i] == null)
+            Fire Fire = ActiveFires[i];
+            if (Fire == null)
+            {
+                if (!ReferenceEquals(Fire, null))
+                    FireCells.Remove(Fire.CellPosition);
                 ActiveFires.RemoveAt(i);
+            }
         }
         return ActiveFires.Count > 0;
     }
@@ -442,6 +447,8 @@ public class FireManager : MonoBehaviour
             FireCells.Remove(Fire.CellPosition);
             Destroy(Fire.gameObject);
         }
+        else if (!ReferenceEquals(Fire, null))
+            FireCells.Remove(Fire.CellPosition);
         ActiveFires.RemoveAt(index);
     }
 }
