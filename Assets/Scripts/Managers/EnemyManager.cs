@@ -151,8 +151,6 @@ public class EnemyManager : MonoBehaviour
             BlockedEnemies.Clear();
             IsRetryingBlockedEnemies = false;
             Enemies[indexOfMovingEnemy].ComputePathAndStartMovement();
-            GameManager.Instance.ClearTileAreas();
-            GameManager.Instance.ClearTargets();
             EnemiesAreMoving = true;
             return;
         }

@@ -648,6 +648,7 @@ public class GameManager : MonoBehaviour
 			FireTurnRoutine = null;
 		}
 		TileManager.ClearTileAreas();
+		TileManager.ClearTargets();
 		RefreshVisibility();
 		EnemyManager.NeedToStartEnemyMovement = false;
 		FireTurnRoutine = StartCoroutine(RunEnemyTurnSequence());
