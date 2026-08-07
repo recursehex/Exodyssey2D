@@ -70,14 +70,19 @@ public class Vehicle : MonoBehaviour
 		Enemy Enemy = GameManager.Instance.GetEnemyAtPosition(Position);
 		return Enemy != null && Info.CanRunOverType(Enemy.Info.Type);
 	}
+	private const string UndoAfterVehicleKill = "Undo history cleared after harming an enemy with a vehicle.";
 	/// <summary>
-	/// Kills any run-over-able enemy on the tile just reached (free, no cost)
+	/// Kills any run-over-able enemy on the tile just reached (free, no cost); returns true if one was killed
 	/// </summary>
-	private void RunOverEnemyAt(Vector3 Position)
+	private bool RunOverEnemyAt(Vector3 Position)
 	{
 		Enemy Enemy = GameManager.Instance.GetEnemyAtPosition(Position);
 		if (Enemy != null && Info.CanRunOverType(Enemy.Info.Type))
+		{
 			GameManager.Instance.KillEnemy(Enemy);
+			return true;
+		}
+		return false;
 	}
 	/// <summary>
 	/// Rams an enemy from an adjacent tile: deals damage equal to the vehicle's health and costs it 1 HP.
@@ -203,6 +208,7 @@ public class Vehicle : MonoBehaviour
 	/// </summary>
 	private IEnumerator MoveAlongPath()
 	{
+		bool harmedEnemy = false;
 		// While path has remaining tiles
 		while (Path != null && Path.Count >= 0)
 		{
@@ -213,7 +219,8 @@ public class Vehicle : MonoBehaviour
 				Info.Speed * DriverSpeedMultiplier);
 			OnCellChanged?.Invoke(this);
 			// Crush any run-over-able enemy on the tile just reached
-			RunOverEnemyAt(transform.position);
+			if (RunOverEnemyAt(transform.position))
+				harmedEnemy = true;
 			// Pop next tile in path
 			if (Path != null && Path.Count > 0)
 				Destination = Path.Pop();
@@ -223,6 +230,7 @@ public class Vehicle : MonoBehaviour
 		bool wasDestroyedByRam = false;
 		if (RamTarget != null)
 		{
+			harmedEnemy = true;
 			if (!ExecuteRam(RamTarget))
 				wasDestroyedByRam = true;
 			RamTarget = null;
@@ -231,6 +239,9 @@ public class Vehicle : MonoBehaviour
 		Path = null;
 		IsInMovement = false;
 		MoveRoutine = null;
+		// Enemy damage and vehicle wear cannot be undone
+		if (harmedEnemy)
+			GameManager.Instance.ClearUndoHistory(UndoAfterVehicleKill);
 		// Notify player that vehicle movement is complete
 		OnVehicleMovementComplete?.Invoke();
 		// Eject the player and destroy the vehicle if a ram depleted its health
