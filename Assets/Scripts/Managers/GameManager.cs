@@ -640,7 +640,6 @@ public class GameManager : MonoBehaviour
 	private void OnPlayerTurnEnded()
 	{
 		CurrentPhase = GamePhase.FireResolution;
-		Player.RestoreEnergy();
 		// Hide TileDot during enemy turn
 		TileManager.TileDot.SetActive(false);
 		TurnManager.SetEndTurnButtonInteractable(false);
@@ -730,6 +729,8 @@ public class GameManager : MonoBehaviour
 			yield break;
 		}
 		RefreshVisibility();
+		// Refill energy only now, when the turn actually returns to the player
+		Player.RestoreEnergy();
 		CurrentPhase = GamePhase.PlayerTurn;
 		if (!Player.IsInVehicle)
 			UpdateTargets();
