@@ -24,6 +24,7 @@ public class ChronoclasmManager : MonoBehaviour
 		public Vector3 GroundItemPosition;
 		public ItemInfo GroundItemInfo;
 		public bool hadSpentActionPointsThisTurn;
+		public bool hadUsedFreeStepThisTurn;
 		public bool wasInVehicle;
 		public bool vehicleWasOn;
 	}
@@ -105,6 +106,7 @@ public class ChronoclasmManager : MonoBehaviour
 		Snapshot.PlayerPosition = GetTileCenterPosition(Player.transform.position);
 		Snapshot.playerEnergy = Player.CurrentEnergy;
 		Snapshot.hadSpentActionPointsThisTurn = hasSpentActionPointsThisTurn;
+		Snapshot.hadUsedFreeStepThisTurn = Player.HasUsedFreeStepThisTurn;
 		Snapshot.wasInVehicle = Player.IsInVehicle;
 		Snapshot.Vehicle = Player.Vehicle;
 		CaptureInventorySnapshot(ref Snapshot);
@@ -257,6 +259,7 @@ public class ChronoclasmManager : MonoBehaviour
 		if (Player.HasEnergy)
 			TurnManager.TurnTimer.StartTimer();
 		hasSpentActionPointsThisTurn = Snapshot.hadSpentActionPointsThisTurn;
+		Player.HasUsedFreeStepThisTurn = Snapshot.hadUsedFreeStepThisTurn;
 		RestoreInventorySnapshot(Snapshot);
 		RestoreGroundItemSnapshot(Snapshot);
 		RefreshAfterReposition();

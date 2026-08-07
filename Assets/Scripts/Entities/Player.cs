@@ -411,6 +411,12 @@ public partial class Player : MonoBehaviour
 	#endregion
 	#region ENERGY METHODS
 	public bool HasEnergy => CurrentEnergy > 0;
+	// Exposed so undo snapshots can restore a master hiker's free step
+	public bool HasUsedFreeStepThisTurn
+	{
+		get => hasUsedFreeStepThisTurn;
+		set => hasUsedFreeStepThisTurn = value;
+	}
 	public void SpendEnergy(int amount)
 	{
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
