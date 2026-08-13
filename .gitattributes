@@ -2,4 +2,4 @@
 * text=auto
 # Custom for Visual Studio
 *.cs     diff=csharp
-
+*.wav filter=lfs diff=lfs merge=lfs -text
