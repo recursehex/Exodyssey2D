@@ -292,7 +292,6 @@
       "Categories": ["Light"]
     },
     {
-      "disabled": true,
       "Tag": "Blowtorch",
       "Rarity": "Rare",
       "Type": "Utility",
